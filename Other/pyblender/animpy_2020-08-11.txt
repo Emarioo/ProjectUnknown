@@ -1,0 +1,95 @@
+# Script by Emarioo / Data Olsson, Updated 2020-08-11
+
+import bpy
+
+# When naming, use standard characters like A-Z, 0-9, No Spaces!
+dir="D:/Development/CPlusPlus/ProjectMMORPG/ProjectMMORPG/assets/animations/"
+name="PlayerIdle"
+loop=True
+tickspeed=24/60
+# List of objects to take the keyframes for the object's currently selected action animation from
+objects=["Head","RUArm"]
+# Supported Interpolation: Beizer, Linear, Constant
+
+# Do not touch code below
+file = open(dir+name+".rawanim","w")
+
+fstart = 99999
+fend = 0
+for s in objects:
+    ranger = bpy.data.objects[s].animation_data.action.frame_range
+    if ranger[0]<fstart:
+        fstart=ranger[0]
+    if ranger[1]>fend:
+        fend=ranger[1]
+file.write("start "+str(int(fstart))+"\n")
+file.write("end "+str(int(fend))+"\n")
+
+file.write("speed "+str(tickspeed)+"\n")
+if(loop):
+    file.write("loop 1\n")
+else:
+    file.write("loop 0\n")
+
+
+byteC=2+2+4+1+1
+xyz="XYZ"
+for s in objects:
+    ob = bpy.data.objects[s]
+    if not ob.animation_data.action==None:
+        curveInt=0
+        curves=[0,0,0,0,0,0,0,0,0]
+        for curve in ob.animation_data.action.fcurves:
+            # Code used to switch z and y
+            con=0
+            if curve.array_index==2:
+                con=1
+            elif curve.array_index==1:
+                con=2
+            
+            if curve.data_path=="location":
+                con=con+0
+            elif curve.data_path=="rotation_euler":
+                con=con+3
+            elif curve.data_path=="scale":
+                con=con+6
+            
+            curves[con]=1
+                
+        for i in range(0,9):
+            curveInt += curves[i]*pow(2,i);
+        
+        
+        file.write("object "+ob.name+"\n")
+        byteC=byteC+1+len(ob.name)+2
+        
+        for curve in ob.animation_data.action.fcurves:
+            if curve.is_empty or curve.mute or not curve.is_valid:# Is_valid may cause problems?
+                continue
+            
+            ind=curve.array_index
+            if ind==2:
+                ind=1
+            elif ind==1:
+                ind=2
+            
+            file.write("keys "+curve.data_path[0:3]+str(ind)+"\n")
+            byteC=byteC+2+len(curve.keyframe_points)*(1+2+4)
+            
+            for key in curve.keyframe_points:
+                pol=key.interpolation 
+                if pol=="LINEAR":
+                    pol="L"
+                elif pol=="BEZIER":
+                    pol="B"
+                else:
+                    pol="C"
+                
+                # x component needs to be inversed if z and y switches
+                if curve.array_index==0:
+                    file.write("k "+pol+" "+str(int(key.co[0]))+" "+str(key.co[1]*-1)+"\n")
+                else:
+                    file.write("k "+pol+" "+str(int(key.co[0]))+" "+str(key.co[1])+"\n")
+                    
+file.write("# Bytes: "+str(byteC))
+file.close()

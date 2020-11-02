@@ -1,0 +1,5 @@
+Tutorial
+Seed
+Player Data (pos,rot,items,level)
+Monster Data (pos,rot,health,items?)
+Other?

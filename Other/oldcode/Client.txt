@@ -1,0 +1,442 @@
+// HEADER
+#pragma once
+
+#define GLEW_STATIC
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include "Rendering/Renderer.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include "imgui/imgui_impl_glfw.h"
+
+/*#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
+#pragma comment(lib,"ws2_32.lib")
+#include <WinSock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+#include <stdlib.h>
+*/
+#include <thread>
+#include <vector>
+#include <string>
+#include <unordered_map>
+
+#include "../Objects/ClientPlayer.h"
+
+#include <Windows.h>
+
+class Client
+{
+public:
+	Client();
+	void StartLoop();
+
+	/*
+	void StartNetwork();
+	void SendData(const char *data, unsigned int size);
+	void HandleData(std::string data);
+	std::thread Network;
+	bool ConnectedToServer;
+	SOCKET ServerSocket;
+	*/
+	void UpdateCamera();
+	std::unordered_map<std::string, World> Worlds;
+	World currentWorld;
+	ClientPlayer player;
+	Renderer renderer;
+	glm::mat4 projectionMatrix;
+	glm::mat4 uniMatrix;
+
+	static void WinFocusInput(GLFWwindow* window,int focus);
+	static void SetMouseLock(bool f);
+	static bool MouseLock;
+	static bool HasFocus;
+	bool MouseInWindow();
+	bool NeedUpdateCamera = false;
+
+private:
+	static float centerX;
+	static float centerY;
+};
+// CPP
+#include "Client.h"
+
+
+float Client::centerX = 0;
+float Client::centerY = 0;
+//Renderer Client::renderer = Renderer();
+bool Client::HasFocus = true;
+bool Client::MouseLock = false;
+Client::Client()
+	: currentWorld(World())//,ConnectedToServer(true),ServerSocket(INVALID_SOCKET), Network(&Client::StartNetwork,this)
+{
+	//ServerSocket = INVALID_SOCKET;
+	StartLoop();
+	//Network.join();
+}
+void Client::StartLoop()
+{
+	if (!glfwInit()) {
+		std::cout << "Not Init Window!" << std::endl;
+		return;
+	}
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	GLFWwindow* window = glfwCreateWindow(1200, 800, "ProjectMMORPG - 'Jigenken RPG' - 'Dimensional Sword RPG'", NULL, NULL);
+	if (!window)
+	{
+		glfwTerminate();
+		std::cout << "Terminate Window!" << std::endl;
+		return;
+	}
+	glfwMakeContextCurrent(window);
+	if (glewInit() != GLEW_OK) {
+		std::cout << "Error!" << std::endl;
+		return;
+	}
+	std::cout << glGetString(GL_VERSION) << std::endl;
+	// Created Window
+	// Do stuff
+	projectionMatrix = glm::perspective(glm::radians(60.0f), (1200.f / 800.f), 0.1f, 400.0f); // <- Aspect ratio of screen size
+
+	renderer.GuiStart();
+	renderer.Setup(&currentWorld, 1200, 800);
+
+	player = ClientPlayer(&currentWorld, 0, 50, 0, -90, 0, 0);
+	renderer.UpdateWorld(&currentWorld, player.position);
+
+	float sens = 0.5f;
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glfwSetWindowFocusCallback(window, WinFocusInput);
+
+	bool keyEsc = false;
+
+	// IMGUI SETUP
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 130");
+	/*
+	float qua[]{
+		0,0,1,0,1,1,
+		1,0,1,0,1,1,
+		0,1,1,0,1,1
+	};
+	unsigned int quai[]{
+		0,1,2
+	};
+	
+	VertexArray tim1=VertexArray();
+	VertexBuffer tim2(qua,sizeof(qua),false);
+	tim1.SetAttrib(&tim2,0,2,6,0);
+	tim1.SetAttrib(&tim2,1,4,6,2);
+	IndexBuffer tim3(quai,sizeof(quai),false);
+	
+	Shader guiShader = Shader("assets/shaders/basic.shader");
+	*/
+	//renderer.layout.UpdateElements();
+	
+	unsigned int dva, dvb, dib;
+	float quadv[]{
+		0,0,
+		1,0,
+		0,1
+	};
+	unsigned int quadi[]{
+		0,1,2
+	};
+	/*
+	glGenVertexArrays(1, &dva);
+	glGenBuffers(1, &dvb);
+	glGenBuffers(1, &dib);
+
+	glBindVertexArray(dva);
+	glBindBuffer(GL_ARRAY_BUFFER, dvb);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadv), quadv, GL_STATIC_DRAW);
+	
+	glEnableVertexArrayAttrib(dvb, 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dib);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadi), quadi, GL_STATIC_DRAW);
+	*/
+	
+	while (!glfwWindowShouldClose(window))
+	{
+		if (HasFocus) {
+			//if (MouseInWindow()) {SetMouseLock(true);}
+			if (GetKeyState(VK_ESCAPE) < 0) {
+				if (!keyEsc) {
+					SetMouseLock(!MouseLock);
+				}
+				keyEsc = true;
+			}
+			else {
+				keyEsc = false;
+			}
+			// Camera Rotation
+			if (MouseLock) {
+				POINT mouse;
+				GetCursorPos(&mouse);
+				int dx = mouse.x - centerX;
+				int dy = mouse.y - centerY;
+				if (dx != 0 || dy != 0) {
+					int wx;
+					int wy;
+					int wsx;
+					int wsy;
+					glfwGetWindowPos(window, &wx, &wy);
+					glfwGetWindowSize(window, &wsx, &wsy);
+					centerX = wx + wsx / 2;
+					centerY = wy + wsy / 2;
+
+					player.rotation.y -= glm::degrees(glm::asin(dx / ((float)wsx / 2)))*sens;
+					player.rotation.x -= glm::degrees(glm::asin(dy / ((float)wsy / 2)))*sens;
+					SetCursorPos(centerX, centerY);
+					NeedUpdateCamera = true;
+				}
+			}
+			player.Update();
+		}
+
+		//if (NeedUpdateCamera) {
+		UpdateCamera();
+		//	NeedUpdateCamera = false;
+		//}
+		// Rendering
+		glClearColor(0.1f, 0.1f, 0.1f, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//renderer.guiShader.Bind();
+
+		//guiShader.Bind();
+
+		//glBindVertexArray(dva);
+		/*
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dib);
+		tim1.Bind();
+		tim3.Bind();
+		glDrawElements(GL_TRIANGLES,3,GL_UNSIGNED_INT,nullptr);
+		*/
+		
+		renderer.DrawWorld();
+		if (distance(player.position.x, player.position.z,currentWorld.lastGenX,currentWorld.lastGenZ)>30) {
+			renderer.UpdateWorld(&currentWorld, player.position);
+			currentWorld.lastGenX = player.position.x;
+			currentWorld.lastGenZ = player.position.z;
+		}
+		for (PhysicalObject& po : currentWorld.objects) {
+			for (Bone& b : po.model) {
+				//renderer.DrawBone(b);
+			}
+		}
+
+		renderer.DrawGui();
+		/*
+		
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		
+		ImGui::Begin("Test");
+
+		ImGui::DragFloat3("Position",(float*)&player.position,0.1);
+		ImGui::DragFloat3("Rotation",(float*)&player.rotation,0.1);
+		ImGui::DragFloat("Scale", &currentWorld.scale, 0.1, 1, 500);
+		ImGui::DragFloat("HeightScale", &currentWorld.heightScale, 0.1, 1, 500);
+		ImGui::DragFloat("Persistance", &currentWorld.persistance, 0.01, 0, 1);
+		ImGui::DragFloat("Lacunarity", &currentWorld.lacunarity, 0.01, 1, 1000);
+		ImGui::DragInt("Octaves", &currentWorld.octaves, 1, 0, 10);
+		ImGui::DragInt("Seed", &currentWorld.seed, 1, 0, 10000);
+		ImGui::DragFloat("Gravity", &player.gravity, 0.001, 0, 100);
+		ImGui::DragFloat("JumpForce", &player.jumpForce, 0.001, 0, 100);
+
+		ImGui::End();
+		
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		*/
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+	
+	glfwTerminate();
+}
+void Client::WinFocusInput(GLFWwindow* window, int focus) {
+	
+	HasFocus=focus;
+	if (!focus) {
+		SetMouseLock(false);
+	}
+}
+bool Client::MouseInWindow() {
+
+	if (GetKeyState(VK_LBUTTON)<0) {
+		int x=0;
+		int y=0;
+		int w=0;
+		int h=0;
+		//glfwGetWindowPos(renderer.window, &x, &y);
+		//glfwGetWindowSize(renderer.window, &w, &h);
+		POINT p;
+		GetCursorPos(&p);
+	
+		return p.x > x&&p.x<x + w && p.y>y&&p.y < y + h;
+	}
+	return false;
+}
+void Client::SetMouseLock(bool f) {
+	if (MouseLock == f)
+		return;
+	MouseLock = f;
+	ShowCursor(!f);
+	if (f) {
+		int wx=0;
+		int wy=0;
+		int wsx=0;
+		int wsy=0;
+		//glfwGetWindowPos(renderer.window, &wx, &wy);
+		//glfwGetWindowSize(renderer.window, &wsx, &wsy);
+		centerX = wx + wsx / 2;
+		centerY = wy + wsy / 2;
+		SetCursorPos(centerX, centerY);
+	}
+}
+void Client::UpdateCamera() {
+	glm::mat4 trans = glm::translate(glm::mat4(1.0f), player.position) *
+		glm::rotate(glm::mat4(1.0f), glm::radians(player.rotation.y), glm::vec3(0, 1, 0))*
+		glm::rotate(glm::mat4(1.0f), glm::radians(player.rotation.x), glm::vec3(1, 0, 0));
+	uniMatrix = projectionMatrix * glm::inverse(trans);
+	renderer.gameShader.Bind();
+	glUniformMatrix4fv(glGetUniformLocation(renderer.gameShader.programID, "proj"), 1, GL_FALSE, glm::value_ptr(uniMatrix));
+}
+/*
+void Client::StartNetwork()
+{
+	WSADATA wsaData;
+	struct addrinfo *result = NULL,
+		*ptr = NULL,
+		hints;
+
+	// Initialize Winsock
+	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (iResult != 0) {
+		printf("WSAStartup failed with error: %d\n", result);
+		return;
+	}
+
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+
+	// Resolve the server address and port
+	iResult = getaddrinfo("localhost", "27015", &hints, &result);
+	if (iResult != 0) {
+		printf("getaddrinfo failed with error: %d\n", iResult);
+		WSACleanup();
+		return;
+	}
+
+	// Attempt to connect to an address until one succeeds
+	for (ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+
+		// Create a SOCKET for connecting to server
+		ServerSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+		if (ServerSocket == INVALID_SOCKET) {
+			printf("socket failed with error: %ld\n", WSAGetLastError());
+			WSACleanup();
+			return;
+		}
+
+		// Connect to server.
+		iResult = connect(ServerSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+		if (iResult == SOCKET_ERROR) {
+			closesocket(ServerSocket);
+			ServerSocket = INVALID_SOCKET;
+			continue;
+		}
+		break;
+	}
+
+	freeaddrinfo(result);
+
+	if (ServerSocket == INVALID_SOCKET) {
+		printf("Unable to connect to server!\n");
+		WSACleanup();
+		return;
+	}
+	// Send an initial buffer
+	//iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
+	//if (iResult == SOCKET_ERROR) {
+	//	printf("send failed with error: %d\n", WSAGetLastError());
+	//	closesocket(ConnectSocket);
+	//	WSACleanup();
+	//	return;
+	//}
+	//printf("Bytes Sent: %ld\n", iResult);
+
+	const int buflen = 512;
+	char buffer[buflen];
+	// Receive until the peer closes the connection
+	ConnectedToServer = true;
+	while (ConnectedToServer) {
+		iResult = recv(ServerSocket, buffer, buflen, 0);
+		if (iResult > 0) {
+			std::string data = ((std::string)buffer).substr(0, iResult);
+			HandleData(data);
+			printf("Bytes received: %d\n", iResult);
+		}
+		
+		//else if (iResult == 0) {printf("Connection closed\n");
+		//} else {printf("recv failed with error: %d\n", WSAGetLastError());}
+		
+	}
+	iResult = shutdown(ServerSocket, SD_SEND);
+	if (iResult == SOCKET_ERROR) {
+		printf("shutdown failed with error: %d\n", WSAGetLastError());
+		closesocket(ServerSocket);
+		WSACleanup();
+		return;
+	}
+	closesocket(ServerSocket);
+	WSACleanup();
+}
+void Client::HandleData(std::string data) {
+	std::vector<std::string> wdata = SplitString(data, "/-/"); // player/:/name/p:/emarioo/-/world/:/kaishi
+	std::cout << "Message:" << std::endl;
+	for (std::string line : wdata) {
+		std::cout <<" " << line << std::endl;
+		std::vector<std::string> set = SplitString(line,"/:/");
+		if (set[0] == "player") {
+			player.LoadPlayer(set[1]);
+		}else if (set[0] == "world") {
+			currentWorld.LoadData(set[1]);
+		}
+	}
+}
+void Client::SendData(const char *data, unsigned int size) {
+	if (ConnectedToServer) {
+		int result = send(ServerSocket, data, size, 0);
+		if (result == SOCKET_ERROR) {
+			printf("send failed with error: %d\n", WSAGetLastError());
+			closesocket(ServerSocket);
+			WSACleanup();
+			return;
+		}
+		printf("Bytes Sent: %ld\n", result);
+	}
+}*/

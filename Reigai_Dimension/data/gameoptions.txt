@@ -1,0 +1,4 @@
+ioctaves 6
+flacunarity 2
+fscale 50
+fpersistance 0.5

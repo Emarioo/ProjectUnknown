@@ -1,0 +1,3 @@
+btn_quit=Quit
+btn_logout=Log Out
+btn_settings=Settings

@@ -1,0 +1,94 @@
+# Script by Emarioo / Data Olsson, Updated 2020-08-03
+
+import bpy
+
+# Objects in current scene has to be in the current view layer. Fix in future?
+# what does the line above mean? - 2020-07-13
+
+# How many decimals?
+shorting=8
+collection="testing"
+dir="D:/Development/CPlusPlus/ProjectMMORPG/ProjectMMORPG/assets/models/"
+
+# Do not change the code below
+bpy.ops.object.select_all(action="DESELECT")
+coll=bpy.data.collections[collection]
+colname=coll.name
+for temp in coll.objects:
+    if temp.type=="MESH":
+        # Applying modifiers
+        o=temp.copy()
+        o.data=temp.data.copy()
+        bpy.context.scene.collection.objects.link(o)
+        o.select_set(True)
+        bpy.context.view_layer.objects.active=o
+        for mod in o.modifiers:
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+        
+        # Create File
+        file = open(dir+colname+"_"+temp.name+".txt","w")
+        
+        # Determine what type of mesh
+        settings=[len(o.data.vertices),1,len(o.data.polygons)*2,""]
+        coloring=0
+        if not o.active_material==None:
+            if o.active_material.use_nodes:
+                base = o.active_material.node_tree.nodes["Material Output"].inputs["Surface"].links[0].from_node.inputs["Base Color"]
+                if len(base.links)>0:
+                    if base.links[0].from_node.name=="Image Texture":
+                        settings[1] = len(o.data.uv_layers.active.data)
+                        settings[3] = base.links[0].from_node.image.name
+                        settings[3] = settings[3][0:len(settings[3])-4] # remove .png
+                        coloring=2
+                    elif base.links[0].from_node.name=="Vertex Color":
+                        settings[1] = len(o.data.vertex_colors.active.data)
+                        coloring=3
+                else:
+                    coloring=1
+                    #col = base.default_value
+                    #file.write("col "+short(col[0])+" "+short(col[1])+" "+short(col[2])+" "+short(col[3])+"\n")
+            else:
+                coloring=1
+        else:
+            coloring=0
+        
+        # Write Mesh Information
+        file.write("mesh "+str(settings[0])+" "+str(settings[1])+" "+str(settings[2])+" "+settings[3]+"\n")
+        byteC=2+2+2+1+len(settings[3])
+        
+        # Write Points - x y z is switched to -x z y
+        byteC=byteC+settings[0]*4*3
+        for v in o.data.vertices:
+            file.write("v "+str(v.co[0]*-1)+" "+str(v.co[2])+" "+str(v.co[1])+"\n")
+        
+        # Write uv or vertex colors
+        if coloring==0:
+            byteC=byteC+4*4
+            file.write("c 1 1 1 1\n")
+        elif coloring==1:
+            byteC=byteC+4*4
+            col = o.active_material.diffuse_color
+            file.write("c "+str(col[0])+" "+str(col[1])+" "+str(col[2])+" "+str(col[3])+"\n")
+        elif coloring==2:# uv
+            byteC=byteC+settings[1]*4*2
+            for u in o.data.uv_layers.active.data:
+                file.write("c "+str(u.uv[0])+" "+str(u.uv[1])+"\n")
+        elif coloring==3:# vertex color
+            byteC=byteC+settings[1]*4*4
+            for c in o.data.vertex_colors.active.data:
+                file.write("c "+str(c.color[0])+" "+str(c.color[1])+" "+str(c.color[2])+" "+str(c.color[3])+"\n")
+                
+        # Write Triangles
+        byteC=byteC+settings[2]*2*6
+        for poly in o.data.polygons:
+            v = poly.vertices
+            l = poly.loop_indices
+            file.write("t "+str(v[0])+" "+str(l[0])+" "+str(v[1])+" "+str(l[1])+" "+str(v[2])+" "+str(l[2])+"\n")
+            file.write("t "+str(v[0])+" "+str(l[0])+" "+str(v[2])+" "+str(l[2])+" "+str(v[3])+" "+str(l[3])+"\n")
+        
+        # Write Bytes
+        file.write("# Bytes: "+str(byteC))
+        
+        # Cleanup
+        bpy.ops.object.delete()
+        file.close()

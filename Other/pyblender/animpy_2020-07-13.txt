@@ -1,0 +1,61 @@
+# Script by Emarioo / Data Olsson, Updated 2020-07-13
+
+import bpy
+
+# Note: When naming use standard characters like a-z, A-Z, 0-9
+# Alter values 
+dir="D:/Development/CPlusPlus/ProjectMMORPG/ProjectMMORPG/assets/pyblender/"
+name="magicstaff_idle"
+loop=True
+tickspeed=1
+collection="magicstaff"
+objects=["fireball"]
+
+# Do not touch code below
+file = open(dir+name+".txt","w")
+if(loop):
+    file.write("1")
+else:
+    file.write("0")
+fstart = 99999
+fend = 0
+for s in objects:
+    range = bpy.data.collections[collection].objects[s].animation_data.action.frame_range
+    if range[0]<fstart:
+        fstart=range[0]
+    if range[1]>fend:
+        fend=range[1] 
+file.write(" "+str(int(fstart)))
+file.write(" "+str(int(fend)))
+file.write(" "+str(tickspeed))
+xyz="XYZ"
+for s in objects:
+    ob = bpy.data.collections[collection].objects[s]
+    file.write(">"+ob.name)
+    me=""
+    for curve in ob.animation_data.action.fcurves:
+        if curve.is_empty or curve.mute or not curve.is_valid:# Is_valid may cause problems?
+            continue
+        con=""
+        if curve.data_path=="location":
+            con="P"
+        elif curve.data_path=="rotation_euler":
+            con="R"
+        elif curve.data_path=="scale":
+            con="S"
+        if not me==con:
+            me=con
+            file.write(" "+me)
+        file.write(" "+xyz[curve.array_index])
+        
+        for key in curve.keyframe_points:
+            pol=key.interpolation 
+            if pol=="CONSTANT":
+                pol="C"
+            else:
+                pol="L"
+            file.write(" "+str(int(key.co[0]))+" "+str(pol)+" "+str(key.co[1]))     
+file.close()
+
+# > means new object
+#loopframeSFrameEtickspeed>fireball P Z polation frame value polation frame value R Z polation frame value polation frame value>staff P X polation frame value
