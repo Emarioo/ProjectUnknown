@@ -55,7 +55,7 @@ Activated or deactivate cursor
 void SetCursorMode(bool f);
 
 GLFWwindow* GetWindow();
-void RenderInit(int w,int h);
+void RenderInit();
 void RenderClearScreen(float r,float g,float b,float a);
 bool RenderRunning();
 void RenderTermin();

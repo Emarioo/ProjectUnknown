@@ -434,26 +434,26 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 			float d0 = glm::dot(Q + c0->points[j] - A, up);
 			float d1 = glm::dot(Q + c0->points[j] + v0*delta - A, up);
 
-			pr("D ");
+			/*pr("D ");
 			pv(Q+c0->points[j]);
 			pv(Q + c0->points[j]+v0*delta);
 			pf(d0);
 			pf(d1);
-			pe();
+			pe();*/
 
 			// If d0 and d1 is same then no collision
 			if (d0 >= 0 && d1 >= 0 || d0 < 0 && d1 < 0) {
 				continue;
 			}
+			/*
+			pr("V ");
+			pv(v0 * delta);
+			//pv(c1->points[j]);
+			//pv(A);
+			//pv(up);
 			
-			pr("Diff! ");
-			/*pv(O);
-			pv(p2->points[j]);
-			pv(A);
-			pv(up);
-			*/
 			pe();
-			
+			*/
 			// Line's intersection point to quad plane
 			glm::vec3 P = IntersectPlane(A, up, Q + c0->points[j], Q + c0->points[j] + v0*delta);
 
@@ -476,15 +476,13 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 				// take the shortest intersection point
 				if (l < shortest) {
 					shortest = l;
-					//pr("Up"); pv(up); pe();
-					/*if (d1<0) {
-						out = up * (O - P);
-					} else {
-						out = up * (P - (O + p2->points[j]));
-					}*/
-					pr("Special!");
+
+					out = ((P - Q - c0->points[j])+up* (P - Q - c0->points[j]))/delta;
+					pr("V ");
+					pv(P - Q - c0->points[j]);
+					pv(P-Q - c0->points[j] + up * (P - Q - c0->points[j]));
+					pv(out*delta);
 					pe();
-					out = (P - Q + c0->points[j])/ delta;
 				}
 			}
 		}

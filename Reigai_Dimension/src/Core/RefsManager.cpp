@@ -93,9 +93,10 @@ void RenderGame() {
 	if (GetPlayer()->renderHitbox/*&&GetPlayer()->freeCam*/) {
 		GetPlayer()->collision.Draw();
 	}
+	/*
 	for (GameObject* o : texRender) {
 		o->Draw();
-	}
+	}*/
 
 	BindShader("terrain");
 	if (loadedDim != nullptr) {

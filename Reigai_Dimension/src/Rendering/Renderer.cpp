@@ -231,14 +231,14 @@ void SetCallbacks(
 	ResizeEvent = resize;
 	FocusEvent = focus;
 }
-void RenderInit(int w,int h) {
+void RenderInit() {
 	if (!glfwInit()) {
 		std::cout << "Not Init Window!" << std::endl;
 		return;
 	}
 	const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 	
-	SetWinSize(mode->width/2-w/2,mode->height/2-h/2,w,h);
+	SetWinSize(mode->width/6,mode->height/6, mode->width / 1.5, mode->height / 1.5);
 	
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

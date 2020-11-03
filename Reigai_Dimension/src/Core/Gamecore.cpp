@@ -15,7 +15,6 @@
 #include "Utility/GameOptions.h"
 
 void Gamecore::LoadGameData() {// ALL game assets should be added here(Not interface stuff). Remember to load texture first and then mesh
-	
 	AddTexture("magicstaff_staff", "assets/textures/magicstaff_staff");
 	AddTexture("magicstaff_fireball", "assets/textures/magicstaff_fireball");
 	AddAnimation("magicstaff_idle", "assets/animations/MagicStaffIdle");
@@ -30,18 +29,16 @@ void Gamecore::LoadGameData() {// ALL game assets should be added here(Not inter
 
 	AddTexture("noise", "assets/textures/noise");
 	AddMesh("Parkour", "assets/models/Parkour");
-	
 }
 Gamecore::Gamecore(){
-	RenderInit(1600,900);
+	RenderInit();
 
 	ReadOptions();
 	/*float persistance = GetOptionf("persistance");
 	float lacunarity = GetOptionf("lacunarity");
 	int octaves = GetOptioni("octaves");
 	float scale = GetOptionf("scale");
-	std::cout << scale << " " << persistance << " "<<lacunarity << " "<<octaves<<" " << std::endl;
-	*/
+	std::cout << scale << " " << persistance << " "<<lacunarity << " "<<octaves<<" " << std::endl;*/
 	InitManager();
 	InitInterface();
 	InitEditor();
@@ -76,7 +73,7 @@ Gamecore::Gamecore(){
 	
 	Cube* cube2 = new Cube(4, 0, -3, 8, 8, 2, 0.4, 1, 1, 1);
 	cube2->SetName("Wall1");
-	cube2->renderMesh = false;
+	//cube2->renderMesh = false;
 	AddRenderO("color", cube2);
 	AddUpdateO(cube2);
 	/*
@@ -299,7 +296,6 @@ void Gamecore::Update(float delta) {
 
 		// Collision detection. Change velocity
 		if (o0->isSolid) {
-			bool hit=false;
 			glm::vec3 finalV = o0->velocity;
 			for (int j = i+1; j < updateObjects.size(); j++) { // WILL BREAK IF SOMETHING HAS BEEN HIT. KEEP THIS?
 				GameObject* o1 = updateObjects[j];
@@ -311,11 +307,10 @@ void Gamecore::Update(float delta) {
 					if (v!=o0->velocity) {
 						// Has collided... do stuff
 						
-						hit = true;
 						finalV = v;
 						// player hit ground?
 
-						/*
+						/* Reset static velocity?
 						MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
 						if (ms != nullptr) {
 							ms->floats[0] = 0;

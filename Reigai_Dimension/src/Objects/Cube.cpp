@@ -17,10 +17,10 @@ Cube::Cube(float x, float y, float z, float w, float h, float d,float r,float g,
 	weight = 10;
 	//collision.SetHitbox(0, 0, 0, w, h, d);
 	collision.radius = sqrt(pow(w,2)+pow(h,2)+pow(d,2));
-	//collision.MakeCube(0, 0, 0, w, h, d);
+	collision.MakeCube(0, 0, 0, w, h, d);
 	
 	//collision.MakeFace(glm::vec3(-w/2,-h/2,d/4),glm::vec3(w/2,-h/2,d/4),glm::vec3(w/2,h/2,-d/4),glm::vec3(-w/2,h/2,-d/4));
-	collision.MakeFace(glm::vec3(-w/2,-h/2,0),glm::vec3(w/2,-h/2,0),glm::vec3(w/2,h/2,0),glm::vec3(-w/2,h/2,0));
+	//collision.MakeFace(glm::vec3(-w/2,-h/2,0),glm::vec3(w/2,-h/2,0),glm::vec3(w/2,h/2,0),glm::vec3(-w/2,h/2,0));
 	SetPosition(x, y, z);
 	this->w = w;
 	this->h = h;
@@ -28,7 +28,7 @@ Cube::Cube(float x, float y, float z, float w, float h, float d,float r,float g,
 	GenMesh(r, g, b, a);
 }
 void Cube::GenMesh(float r,float g,float b,float a) {
-	/*float v[]{// vec3, color, normal - Dark Bottom
+	float v[]{// vec3, color, normal - Dark Bottom
 		-w / 2,-h / 2,-d / 2,r*0.5,g*0.5,b*0.5,a,0,-1,0,
 		w / 2,-h / 2,-d / 2,r*0.5,g*0.5,b*0.5,a,1,0,0,
 		w / 2,-h / 2,d / 2,r*0.5,g*0.5,b*0.5,a,0,0,1,
@@ -37,8 +37,8 @@ void Cube::GenMesh(float r,float g,float b,float a) {
 		w / 2,h / 2,-d / 2,r,g,b,a,0,0,-1,
 		w / 2,h / 2,d / 2,r,g,b,a,0,1,0,
 		-w / 2,h / 2,d / 2,r,g,b,a,0,1,0
-	};*/
-	
+	};/**/
+	/*
 	float v[]{// vec3, color, normal - Filled
 		-w / 2,-h / 2,-d / 2,r,g,b,a,0,-1,0,
 		w / 2,-h / 2,-d / 2,r,g,b,a,1,0,0,
@@ -48,7 +48,7 @@ void Cube::GenMesh(float r,float g,float b,float a) {
 		w / 2,h / 2,-d / 2,r,g,b,a,0,0,-1,
 		w / 2,h / 2,d / 2,r,g,b,a,0,1,0,
 		-w / 2,h / 2,d / 2,r,g,b,a,0,1,0
-	};
+	};/**/
 	unsigned int i[]{
 		1,2,0,
 		2,3,0,
