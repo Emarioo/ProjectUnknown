@@ -196,12 +196,16 @@ Gamecore::Gamecore(){
 	int FPS = 0;
 	int tickSpeed = 0;
 	float delta;
+	/*
+	Option to lock fps 
+	*/
 	while (RenderRunning()) {
 		int now = GetTime();
 		if (now-lastTime>1000) {
 			lastTime = now;
 			SetWindowTitle(("Reigai Dimension - "+std::to_string(FPS)+" fps").c_str());
 			FPS = 0;
+			//std::cout << "Running" << std::endl;
 		}
 
 		delta = (now - lastDTime)/1000.f;
@@ -211,7 +215,8 @@ Gamecore::Gamecore(){
 			tickSpeed = 0;
 			FPS++;
 			if (HasFocus()&&!GetPauseMode()) {
-				Update(delta);
+				//std::cout<< delta << std::endl;;
+				Update(0.001);//delta);
 			}
 		}
 		//cube2->metaData.GetMeta(Velocity, Pos, None)->floats[1] -= 0.1/60;
@@ -268,10 +273,22 @@ void Gamecore::DelUpdateO(GameObject* o) {
 }
 int Gamecore::GetTime() {
 	return std::chrono::system_clock::now().time_since_epoch().count()/10000;
+}/*
+void pr(std::string s) {
+	std::cout << s << " ";
 }
-void pri(std::string s) {
-	std::cout << s << std::endl;
+void pv(glm::vec3 v) {
+	std::cout << "[" << v.x << " " << v.y << " " << v.z << "] ";
 }
+void pv(glm::vec2 v) {
+	std::cout << "[" << v.x << " " << v.y << "] ";
+}
+void pf(float v) {
+	std::cout << v << " ";
+}
+void pe() {
+	std::cout << std::endl;
+}*/
 int tim = 0;
 void Gamecore::Update(float delta) {
 	// Object updates
@@ -320,6 +337,12 @@ void Gamecore::Update(float delta) {
 						break;
 					}
 				}
+			}
+			if (i==-1){//finalV!=o0->velocity) {
+				pr("V ");
+				//pv(o0->position);
+				pv(finalV * delta);
+				pe();
 			}
 			o0->position += finalV * delta;
 		}

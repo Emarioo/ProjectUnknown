@@ -224,10 +224,10 @@ void Collision::MakeFace(glm::vec3 p1,glm::vec3 p2,glm::vec3 p3,glm::vec3 p4) {
 		found[3] = originPoints.size();
 		originPoints.push_back(p4);
 	}
-	quadIndex.push_back(found[0]);
-	quadIndex.push_back(found[1]);
-	quadIndex.push_back(found[2]);
 	quadIndex.push_back(found[3]);
+	quadIndex.push_back(found[2]);
+	quadIndex.push_back(found[1]);
+	quadIndex.push_back(found[0]);
 	// Add new faces?
 	float fl[]{
 		p1.x,p1.y,p1.z,
@@ -344,7 +344,7 @@ glm::vec3 Collision::collision(Collision* c2) {
 			if (d0 > 0 && d1 > 0 || d0 < 0 && d1 < 0) {
 				continue;
 			}
-			
+			/*
 			pr("A ");
 			pv(O);
 			pv(p2->points[j]);
@@ -352,7 +352,7 @@ glm::vec3 Collision::collision(Collision* c2) {
 			pv(up);
 		
 			pe();
-
+			*/
 			// Line's intersection point to quad plane
 			glm::vec3 P = IntersectPlane(A, up, O, O + p2->points[j]);
 			
@@ -412,6 +412,8 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 	/*
 	THIS METHOD CAN CAUSE COMPLICATIONS DEPENDING ON WHICH POINT IS USED 
 	*/
+	pr("--------");
+	pe();
 	for (int i = 0; i < c1->quadIndex.size() / 4; i++) {
 
 		// Get 4 points for quad
@@ -428,7 +430,7 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 		glm::vec3 BC = glm::normalize(glm::cross(up, B - C));
 		glm::vec3 CD = glm::normalize(glm::cross(up, C - D));
 		glm::vec3 DA = glm::normalize(glm::cross(up, D - A));
-
+	
 		for (int j = 0; j < c0->points.size(); j++) {
 			// Which side of plane is point j before and after velocity
 			float d0 = glm::dot(Q + c0->points[j] - A, up);
@@ -472,17 +474,30 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 			*/
 			// if P is inside then calculate how much.
 			if (a < 0 && b < 0 && c < 0 && d < 0) {
-				float l = glm::length(P - Q);
+				float l = glm::length(P - Q + c0->points[j]);
 				// take the shortest intersection point
 				if (l < shortest) {
 					shortest = l;
-
-					out = ((P - Q - c0->points[j])+up* (P - Q - c0->points[j]))/delta;
-					pr("V ");
-					pv(P - Q - c0->points[j]);
-					pv(P-Q - c0->points[j] + up * (P - Q - c0->points[j]));
-					pv(out*delta);
+					
+					out = /*-(P + up * 0.00001f- Q - c0->points[j]) / delta;*/ +v0 - glm::vec3(abs(up.x), abs(up.y), abs(up.z)) * v0; // TODO: This is an expensive calculation. Is there a better way?
+					
+					//pv(P + up * 0.00001f - Q - c0->points[j]);
+					pf(i);
+					pf(j);
+					pv(Q + c0->points[j]);
+					pv(Q+c0->points[j] + out*delta);
+					//pv(Q + c0->points[j] - P + up * 0.00001f);
 					pe();
+					/*
+					pr("I");
+					pf(l);
+					pf(i);// plane
+					pf(j);// point
+					pe();*/
+					//pv(v0 * delta);
+					//pv(up);
+					//pv(out*delta);
+					//pe();
 				}
 			}
 		}

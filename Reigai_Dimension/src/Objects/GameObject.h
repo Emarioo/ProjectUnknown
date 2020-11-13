@@ -61,6 +61,13 @@ public:
 	//std::vector<GameObject*> IsCollidingL();
 	//GameObject* IsColliding();
 };
+
+void pr(std::string s);
+void pv(glm::vec3 v);
+void pv(glm::vec2 v);
+void pf(float v);
+void pe();
+
 class GameObject{
 private:
 public:
