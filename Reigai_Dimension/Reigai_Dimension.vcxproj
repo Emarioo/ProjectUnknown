@@ -24,6 +24,7 @@
     <ProjectGuid>{79de0278-9ad7-4251-9405-4f2a8bc2bc13}</ProjectGuid>
     <RootNamespace>ReigaiDimension</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Reigai-Dimension</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

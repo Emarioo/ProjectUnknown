@@ -211,12 +211,12 @@ Gamecore::Gamecore(){
 		delta = (now - lastDTime)/1000.f;
 		lastDTime = now;
 		tickSpeed++;
-		if (tickSpeed==10) {
+		if (tickSpeed==1) {
 			tickSpeed = 0;
 			FPS++;
 			if (HasFocus()&&!GetPauseMode()) {
 				//std::cout<< delta << std::endl;;
-				Update(0.001);//delta);
+				Update(delta);
 			}
 		}
 		//cube2->metaData.GetMeta(Velocity, Pos, None)->floats[1] -= 0.1/60;

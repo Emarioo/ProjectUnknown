@@ -412,8 +412,8 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 	/*
 	THIS METHOD CAN CAUSE COMPLICATIONS DEPENDING ON WHICH POINT IS USED 
 	*/
-	pr("--------");
-	pe();
+	//pr("--------");
+	//pe();
 	for (int i = 0; i < c1->quadIndex.size() / 4; i++) {
 
 		// Get 4 points for quad
@@ -474,20 +474,25 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 			*/
 			// if P is inside then calculate how much.
 			if (a < 0 && b < 0 && c < 0 && d < 0) {
-				float l = glm::length(P - Q + c0->points[j]);
+				float l = glm::length(P - Q - c0->points[j]);
 				// take the shortest intersection point
 				if (l < shortest) {
 					shortest = l;
 					
-					out = /*-(P + up * 0.00001f- Q - c0->points[j]) / delta;*/ +v0 - glm::vec3(abs(up.x), abs(up.y), abs(up.z)) * v0; // TODO: This is an expensive calculation. Is there a better way?
+					out = /*-(P + up * 0.00001f- Q - c0->points[j]) / delta;*/ +v0 - glm::vec3(abs(up.x), abs(up.y), abs(up.z)) * v0; 
+					// TODO: This is an expensive calculation. Is there a better way?
+					// TODO: This does NOT snap to edge, this will cause noticable gaps at high velocities.
 					
 					//pv(P + up * 0.00001f - Q - c0->points[j]);
+					/*
 					pf(i);
 					pf(j);
+					pf(shortest);
 					pv(Q + c0->points[j]);
-					pv(Q+c0->points[j] + out*delta);
+					pv(Q + c0->points[j] + out*delta);
 					//pv(Q + c0->points[j] - P + up * 0.00001f);
 					pe();
+					*/
 					/*
 					pr("I");
 					pf(l);
