@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{79de0278-9ad7-4251-9405-4f2a8bc2bc13}</ProjectGuid>
+    <ProjectGuid>{497A2588-E2DA-44F3-8F83-06A9A1BB3408}</ProjectGuid>
     <RootNamespace>ReigaiDimension</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>Reigai-Dimension</ProjectName>
@@ -232,7 +232,7 @@
     <ClInclude Include="src\World\Dimension.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Reigai_Dimension.rc" />
+    <ResourceCompile Include="Reigai-Dimension.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="favicon.ico" />

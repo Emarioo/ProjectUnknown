@@ -223,7 +223,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Reigai_Dimension.rc">
+    <ResourceCompile Include="Reigai-Dimension.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
