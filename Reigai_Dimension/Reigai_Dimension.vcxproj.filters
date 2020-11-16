@@ -105,6 +105,9 @@
     <ClCompile Include="src\Core\MagicEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Components\Collision.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -204,6 +207,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\MagicEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Components\Collision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Data\MeshData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Data\AnimData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Data\CollData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

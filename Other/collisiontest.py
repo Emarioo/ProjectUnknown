@@ -51,19 +51,25 @@ def PointTri(A, B, C, P):
     print(str(w1)+" "+str(w2))
     return w1 >= 0 and w2 >= 0 and (w1 + w2) <= 1
 
-p0=(1,1,1)
-p1=(2,1,1)
-p2=(1,2,1.5)
-r0=(1.5,2,1.25)
-r1=(1.5,1,1.5)
-pn=normalize(cross(sub(p1,p0),sub(p2,p0)))
+up=(-0.841471,0,-0.540302)
+v0=(-0.170153,0,-0.134136)
+out=(v0[0]*(1-abs(up[0])),v0[1]*(1-abs(up[1])),v0[2]*(1-abs(up[2])))
+print(up)
+print(out)
 
-I=LinePlane(p0,pn,r0,r1)
-
-a=[1,1,1]
-b=[3,1,1]
-c=[1,1,1.5]
-i=LinePlane(a,normalize(cross(sub(b,a),sub(c,a))),(1.5,0.5,1.2),(1.4,1.5,1.2))
-PointTri(a,b,c,i)
+##p0=(1,1,1)
+##p1=(2,1,1)
+##p2=(1,2,1.5)
+##r0=(1.5,2,1.25)
+##r1=(1.5,1,1.5)
+##pn=normalize(cross(sub(p1,p0),sub(p2,p0)))
+##
+##I=LinePlane(p0,pn,r0,r1)
+##
+##a=[1,1,1]
+##b=[3,1,1]
+##c=[1,1,1.5]
+##i=LinePlane(a,normalize(cross(sub(b,a),sub(c,a))),(1.5,0.5,1.2),(1.4,1.5,1.2))
+##PointTri(a,b,c,i)
 
 

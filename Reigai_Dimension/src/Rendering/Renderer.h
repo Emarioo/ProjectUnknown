@@ -16,7 +16,7 @@
 #include "Utility/FileHandler.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
-#include "Objects/GameObject.h"
+//#include "Objects/GameObject.h"
 
 // This class is the renderer class
 // It stores meshes, animations, textures and other classes calls its functions

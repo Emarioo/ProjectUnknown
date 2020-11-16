@@ -32,21 +32,11 @@ void BufferContainer::Setup(bool dyna, void* vdata, unsigned int fcount,void* td
 	}
 }
 /*
-void BufferContainer::Setup(bool dyna, void* vdata, unsigned int fcount) { // fcount in number of floats
-	type = 1;
-	dynamic = dyna;
-	glGenVertexArrays(1, &va);
-	glBindVertexArray(va);
-
-	glGenBuffers(1, &vb);
-	glBindBuffer(GL_ARRAY_BUFFER, vb);
-	if (dynamic) {
-		glBufferData(GL_ARRAY_BUFFER, fcount * sizeof(float), vdata, GL_DYNAMIC_DRAW);
-	} else {
-		glBufferData(GL_ARRAY_BUFFER, fcount * sizeof(float), vdata, GL_STATIC_DRAW);
-	}
-}
+This function does not quite work yet. Deletes vertex buffer but what about vertex array?
 */
+void BufferContainer::Clear() {
+	glDeleteBuffers(1,&vb);
+}
 void BufferContainer::SetAttrib(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
 	glEnableVertexArrayAttrib(va, loc);
 	glVertexAttribPointer(loc, count, GL_FLOAT, GL_FALSE, stride * sizeof(float), (const void*)(offset * sizeof(float)));

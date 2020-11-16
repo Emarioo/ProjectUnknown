@@ -49,9 +49,9 @@ Gamecore::Gamecore(){
 
 	SetPauseMode(true);
 	
+	GetPlayer()->CreateHitbox();
 	GetPlayer()->SetPosition(0, 0, 0);
 
-	GetPlayer()->CreateHitbox();
 	AddUpdateO(GetPlayer());
 
 	MetaStrip pMeta(Velocity,Pos);
@@ -73,6 +73,7 @@ Gamecore::Gamecore(){
 	
 	Cube* cube2 = new Cube(4, 0, -3, 8, 8, 2, 0.4, 1, 1, 1);
 	cube2->SetName("Wall1");
+	//cube2->SetRotation(0,0.2,0);
 	//cube2->renderMesh = false;
 	AddRenderO("color", cube2);
 	AddUpdateO(cube2);
@@ -211,12 +212,12 @@ Gamecore::Gamecore(){
 		delta = (now - lastDTime)/1000.f;
 		lastDTime = now;
 		tickSpeed++;
-		if (tickSpeed==1) {
+		if (tickSpeed==5) {
 			tickSpeed = 0;
 			FPS++;
 			if (HasFocus()&&!GetPauseMode()) {
 				//std::cout<< delta << std::endl;;
-				Update(delta);
+				Update(1.f/60);//delta);
 			}
 		}
 		//cube2->metaData.GetMeta(Velocity, Pos, None)->floats[1] -= 0.1/60;
@@ -312,18 +313,20 @@ void Gamecore::Update(float delta) {
 		}
 
 		// Collision detection. Change velocity
-		if (o0->isSolid) {
+
+		if (o0->collision.isActive) {
 			glm::vec3 finalV = o0->velocity;
 			for (int j = i+1; j < updateObjects.size(); j++) { // WILL BREAK IF SOMETHING HAS BEEN HIT. KEEP THIS?
 				GameObject* o1 = updateObjects[j];
-				if (o1->isSolid && o0->collision.IsClose(&o1->collision)) {
+				if (o1->collision.isActive && o0->collision.IsClose(&o1->collision)) {
 					// check for sphere type or plane type?
 
 					glm::vec3 v = o0->WillCollide(o1, delta);
 					//o0->position += v * delta;
 					if (v!=o0->velocity) {
 						// Has collided... do stuff
-						
+						//pr("new");
+						//pe();
 						finalV = v;
 						// player hit ground?
 

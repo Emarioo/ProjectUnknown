@@ -5,19 +5,8 @@
 ClientPlayer::ClientPlayer(){
 	name = "Player";
 	weight = 1;
-	//collision.SetHitbox(0, -0.5, 0, 1, 2, 1);
-	//collision.radius = sqrt(pow(1, 2) + pow(1.5, 2) + pow(1, 2));
-	//collision.MakeCube(0, -0.5, 0, 1, 2, 1);
-	isSolid = true;
-	//std::cout << renderHitbox <<" "<<renderMesh << std::endl;
-	/*
-	collision.points.push_back(glm::vec3(0, -0.5, 0));
-	collision.points.push_back(glm::vec3(0.5, 0, 0));
-	collision.points.push_back(glm::vec3(-0.5, 0, 0));
-	collision.points.push_back(glm::vec3(-0.5, 0, 0.5));
-	collision.points.push_back(glm::vec3(0, 0, -0.5));*/
-	//collision.points.push_back(glm::vec3(0, 2, 0));
 }
+
 void ClientPlayer::CreateHitbox() {
 	collision.radius = sqrt(pow(1, 2) + pow(1.5, 2) + pow(1, 2));
 	collision.MakeCube(0, -0.5, 0, 1, 2, 1);
@@ -166,7 +155,7 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
 
 	//rotation = camera->rotation;
-	SetRotation(0,camera->rotation.y,0);
+	SetRotationA(0,camera->rotation.y,0);
 	if (!freeCam) {
 		//position += nmove * delta;
 		return nmove;

@@ -162,6 +162,7 @@
   <ItemGroup>
     <ClCompile Include="src\Components\Animation.cpp" />
     <ClCompile Include="src\Components\AnimationData.cpp" />
+    <ClCompile Include="src\Components\Collision.cpp" />
     <ClCompile Include="src\Components\Mesh.cpp" />
     <ClCompile Include="src\Components\MetaData.cpp" />
     <ClCompile Include="src\Core\Creation.cpp" />
@@ -195,12 +196,16 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\Components\Animation.h" />
     <ClInclude Include="src\Components\AnimationData.h" />
+    <ClInclude Include="src\Components\Collision.h" />
     <ClInclude Include="src\Components\Mesh.h" />
     <ClInclude Include="src\Components\MetaData.h" />
     <ClInclude Include="src\Core\Gamecore.h" />
     <ClInclude Include="src\Core\MagicEditor.h" />
     <ClInclude Include="src\Core\Interface.h" />
     <ClInclude Include="src\Core\RefsManager.h" />
+    <ClInclude Include="src\Data\AnimData.h" />
+    <ClInclude Include="src\Data\CollData.h" />
+    <ClInclude Include="src\Data\MeshData.h" />
     <ClInclude Include="src\Gui\Font.h" />
     <ClInclude Include="src\Gui\IDimensions.h" />
     <ClInclude Include="src\Gui\IElem.h" />
