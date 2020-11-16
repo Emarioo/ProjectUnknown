@@ -102,7 +102,7 @@ void DrawMesh(std::string name, glm::mat4 trans);
 void AddMesh(std::string name, std::string path);
 glm::vec3 GetMeshPos(std::string name);
 glm::vec3 GetMeshRot(std::string name);
-	
+
 void AddAnimation(std::string name, std::string path);
 /*
 returns nullptr if name doesn't exist

@@ -7,10 +7,12 @@
 #include <sstream>
 #include <string>
 
-#include "Components/Mesh.h"
-#include "Rendering/BufferContainer.h"
+//#include "Rendering/BufferContainer.h"
 #include "ExtraFunc.h"
-#include "Components/AnimationData.h"
+
+#include "Data/AnimData.h"
+#include "Data/MeshData.h"
+#include "Data/CollData.h"
 
 enum {
 	FHSuccess,
@@ -25,8 +27,9 @@ std::vector<std::string> ReadFileList(std::string path,int* err);
 
 int WriteTextFile(std::string path, std::vector<std::string> text);
 
-int FHLoadMesh(Mesh* mes,std::string path);
-int FHLoadAnim(AnimationData* anim,std::string path);
+int FHLoadMesh(MeshData* da,std::string path);
+int FHLoadAnim(AnimData* da,std::string path);
+int FHLoadColl(CollData* da, std::string path);
 
 // Deprecated
 /*

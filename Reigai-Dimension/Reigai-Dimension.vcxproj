@@ -170,6 +170,8 @@
     <ClCompile Include="src\Core\Interface.cpp" />
     <ClCompile Include="src\Core\MagicEditor.cpp" />
     <ClCompile Include="src\Core\RefsManager.cpp" />
+    <ClCompile Include="src\Data\AnimData.cpp" />
+    <ClCompile Include="src\Data\DataManager.cpp" />
     <ClCompile Include="src\Gui\Font.cpp" />
     <ClCompile Include="src\Gui\IElem.cpp" />
     <ClCompile Include="src\Gui\Text.cpp" />
@@ -205,6 +207,7 @@
     <ClInclude Include="src\Core\RefsManager.h" />
     <ClInclude Include="src\Data\AnimData.h" />
     <ClInclude Include="src\Data\CollData.h" />
+    <ClInclude Include="src\Data\DataManager.h" />
     <ClInclude Include="src\Data\MeshData.h" />
     <ClInclude Include="src\Gui\Font.h" />
     <ClInclude Include="src\Gui\IDimensions.h" />

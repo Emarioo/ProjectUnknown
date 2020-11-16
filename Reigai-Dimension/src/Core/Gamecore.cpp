@@ -204,7 +204,7 @@ Gamecore::Gamecore(){
 		int now = GetTime();
 		if (now-lastTime>1000) {
 			lastTime = now;
-			SetWindowTitle(("Reigai Dimension - "+std::to_string(FPS)+" fps").c_str());
+			SetWindowTitle(("Reigai Dimension  "+std::to_string(FPS)+" fps").c_str());
 			FPS = 0;
 			//std::cout << "Running" << std::endl;
 		}

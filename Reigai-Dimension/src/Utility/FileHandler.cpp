@@ -72,7 +72,7 @@ std::string ReadFile(std::string path,int* err){
 /*
 Parameter "path" is automatically using .mesh format
 */
-int FHLoadMesh(Mesh* mes, std::string path) {
+int FHLoadMesh(MeshData* da, std::string path) {
 	path += ".mesh";
 	std::ifstream file(path, std::ios::binary);
 	if (!file) {
@@ -276,14 +276,14 @@ int FHLoadMesh(Mesh* mes, std::string path) {
 
 	// Used in actuall game
 	
-	if (mes != nullptr) {
-		mes->tex = texName;
-		mes->position = glm::vec3(place[0],place[1],place[2]);
-		mes->rotation = glm::vec3(place[3],place[4],place[5]);
-		mes->container.Setup(false, vout, (indexing.size() / 3)*(3 + cStride + 3), tout, triC * 3);
-		mes->container.SetAttrib(0, 3, 3 + cStride + 3, 0);// Position
-		mes->container.SetAttrib(1, cStride, 3 + cStride + 3, 3);// Color
-		mes->container.SetAttrib(2, 3, 3 + cStride + 3, 3 + cStride);// Normal
+	if (da != nullptr) {
+		da->tex = texName;
+		da->position = glm::vec3(place[0],place[1],place[2]);
+		da->rotation = glm::vec3(place[3],place[4],place[5]);
+		da->container.Setup(false, vout, (indexing.size() / 3)*(3 + cStride + 3), tout, triC * 3);
+		da->container.SetAttrib(0, 3, 3 + cStride + 3, 0);// Position
+		da->container.SetAttrib(1, cStride, 3 + cStride + 3, 3);// Color
+		da->container.SetAttrib(2, 3, 3 + cStride + 3, 3 + cStride);// Normal
 	}
 
 	// Cleanup
@@ -299,7 +299,7 @@ int FHLoadMesh(Mesh* mes, std::string path) {
 /*
 Parameter "path" is automaticly using .anim format
 */
-int FHLoadAnim(AnimationData* anim, std::string path){
+int FHLoadAnim(AnimData* da, std::string path){
 	path += ".anim";
 	std::ifstream file(path, std::ios::binary);
 	if (!file) {
@@ -342,10 +342,10 @@ int FHLoadAnim(AnimationData* anim, std::string path){
 
 	// Used in actual Game
 	
-	anim->frameStart = start;
-	anim->frameEnd = end;
-	anim->defaultSpeed = speed;
-	anim->loop = loop;
+	da->frameStart = start;
+	da->frameEnd = end;
+	da->defaultSpeed = speed;
+	da->loop = loop;
 	
 
 	for (int i = 0; i < objects; i++) {
@@ -385,8 +385,8 @@ int FHLoadAnim(AnimationData* anim, std::string path){
 			}
 		}
 		
-		anim->curves[name] = FCurves();
-		FCurves* fCurves = &anim->curves[name];
+		da->curves[name] = FCurves();
+		FCurves* fCurves = &da->curves[name];
 		
 		for (int j = 0; j < 9; j++) {
 			if (curveB[j]) {
@@ -424,4 +424,7 @@ int FHLoadAnim(AnimationData* anim, std::string path){
 	// Cleanup
 	file.close();
 	return FHSuccess;
+}
+int FHLoadColl(CollData* co, std::string path) {
+	return 0;
 }
