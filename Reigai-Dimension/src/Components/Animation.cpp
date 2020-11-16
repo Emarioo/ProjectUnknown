@@ -1,7 +1,7 @@
 #include "Animation.h"
 
 Animation::Animation(std::string name) {
-	data=GetAnimation(name);
+	data=GetAnim(name);
 	if(data!=nullptr)
 		fps = data->defaultSpeed;
 }

@@ -13,7 +13,6 @@ void SetDimension(std::string s) {
 	loadedDim = &dimensions[s];
 }
 // Animation
-
 std::unordered_map<std::string, AnimData*> animations;
 void AddAnim(std::string name, std::string path) {
 	AnimData* an = new AnimData();

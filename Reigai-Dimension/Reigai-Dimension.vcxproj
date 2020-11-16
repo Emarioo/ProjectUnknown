@@ -161,9 +161,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Components\Animation.cpp" />
-    <ClCompile Include="src\Components\AnimationData.cpp" />
     <ClCompile Include="src\Components\Collision.cpp" />
-    <ClCompile Include="src\Components\Mesh.cpp" />
     <ClCompile Include="src\Components\MetaData.cpp" />
     <ClCompile Include="src\Core\Creation.cpp" />
     <ClCompile Include="src\Core\Gamecore.cpp" />
@@ -197,9 +195,7 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\Components\Animation.h" />
-    <ClInclude Include="src\Components\AnimationData.h" />
     <ClInclude Include="src\Components\Collision.h" />
-    <ClInclude Include="src\Components\Mesh.h" />
     <ClInclude Include="src\Components\MetaData.h" />
     <ClInclude Include="src\Core\Gamecore.h" />
     <ClInclude Include="src\Core\MagicEditor.h" />

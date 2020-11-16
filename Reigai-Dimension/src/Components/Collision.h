@@ -36,8 +36,9 @@ public:
 	bool isUnique = false;
 	std::string colData = "";
 
-	std::vector<glm::vec3> originPoints;
-	std::vector<int> quadIndex;// 4 ints is one quad
+	//std::vector<glm::vec3> originPoints;
+	//std::vector<int> quadIndex;// 4 ints is one quad
+	CollData* data;
 
 	std::vector<glm::vec3> points;
 	void UpdatePoints(glm::vec3 r);

@@ -5,9 +5,7 @@ int FHFileExist(std::string path) {
 	struct stat buffer;
 	return (stat(path.c_str(), &buffer) == 0);
 }
-/*
-Remember to handle the returned error status
-*/
+
 int WriteTextFile(std::string path, std::vector<std::string> text) {
 	std::ofstream file(path);
 	path += ".txt";
@@ -26,9 +24,7 @@ int WriteTextFile(std::string path, std::vector<std::string> text) {
 	file.close();
 	return FHSuccess;
 }
-/*
-Remember to handle the error status
-*/
+
 std::vector<std::string> ReadFileList(std::string path,int* err){
 	*err = FHSuccess;
 	path += ".txt";
@@ -48,9 +44,6 @@ std::vector<std::string> ReadFileList(std::string path,int* err){
 	file.close();
 	return out;
 }
-/*
-Remember to handle the returned error status
-*/
 std::string ReadFile(std::string path,int* err){
 	*err = FHSuccess;
 	path += ".txt";
@@ -69,9 +62,6 @@ std::string ReadFile(std::string path,int* err){
 	file.close();
 	return text;
 }
-/*
-Parameter "path" is automatically using .mesh format
-*/
 int FHLoadMesh(MeshData* da, std::string path) {
 	path += ".mesh";
 	std::ifstream file(path, std::ios::binary);
@@ -296,9 +286,6 @@ int FHLoadMesh(MeshData* da, std::string path) {
 	file.close();
 	return FHSuccess;
 }
-/*
-Parameter "path" is automaticly using .anim format
-*/
 int FHLoadAnim(AnimData* da, std::string path){
 	path += ".anim";
 	std::ifstream file(path, std::ios::binary);
@@ -425,6 +412,80 @@ int FHLoadAnim(AnimData* da, std::string path){
 	file.close();
 	return FHSuccess;
 }
-int FHLoadColl(CollData* co, std::string path) {
-	return 0;
+int FHLoadColl(CollData* co, std::string path) { // TODO: More efficient by removing unneccecery for loops
+	//CollData* da=new CollData();
+	std::ifstream file(path, std::ios::binary);
+	if (!file) {
+		std::cout << "Could not find " << path << std::endl;
+		file.close();
+		return 0;
+	}
+	int atByte = 0;
+	file.seekg(0, file.end);
+	int fileSize = file.tellg();
+	file.seekg(0, file.beg);
+
+	atByte += 2 * 3;
+	if (atByte > fileSize) {
+		std::cout << "Corrupt Error: At byte " << atByte << std::endl;
+		return FHCorrupt;
+	}
+
+	char buf[2];
+	std::uint16_t valu[3];
+	file.read(reinterpret_cast<char*>(&valu[0]), 2 * 3);// Vertex Count
+	std::uint16_t vC = valu[0];
+	std::uint16_t qC = valu[1];
+	std::uint16_t tC = valu[2];
+
+	//std::cout << "Points: " << vC << std::endl;
+	//std::cout << "Quads: " << qC << std::endl;
+	//std::cout << "Triangles: " << tC << std::endl;
+
+	int vS = vC * 3;
+	int qS = qC * 4;
+	int tS = tC * 3;
+
+	atByte += 4 * vS + 2 * qS + 2 * tS;
+	if (atByte > fileSize) {
+		std::cout << "Corrupt Error: At byte " << atByte << std::endl;
+		return FHCorrupt;
+	}
+
+	float* uV = new float[vS];
+	file.read(reinterpret_cast<char*>(&uV[0]), 4 * vS); // Positions
+
+	std::uint16_t* uQ = new std::uint16_t[qS];
+	file.read(reinterpret_cast<char*>(&uQ[0]), 2 * qS);// Colors
+
+	std::uint16_t* uT = new std::uint16_t[tS];
+	file.read(reinterpret_cast<char*>(&uT[0]), 2 * tS);// Triangles
+
+	for (int i = 0; i < vC; i++) {
+		co->points.push_back(glm::vec3(uV[i * 3], uV[i * 3 + 1], uV[i * 3 + 2]));
+		//std::cout << "V " << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
+	}
+	for (int i = 0; i < qC; i++) {
+		//std::cout << "Q";
+		for (int j = 0; j < 4; j++) {
+			co->quad.push_back(uQ[i * 4 + j]);
+			//std::cout << " " << uQ[i * 4 + j];
+		}
+		//std::cout << std::endl;
+	}
+	for (int i = 0; i < tC; i++) {
+		//std::cout << "T";
+		for (int j = 0; j < 3; j++) {
+			co->quad.push_back(uT[i]);
+			//std::cout << " " << uQ[i * 3 + j];
+		}
+		//std::cout << std::endl;
+	}
+
+	// Cleanup
+	delete uV;
+	delete uQ;
+	delete uT;
+	file.close();
+	return FHSuccess;
 }

@@ -13,6 +13,7 @@ ClientPlayer* GetPlayer() {
 	return &player;
 }
 
+/*
 std::map<std::string,Dimension> dimensions;
 Dimension* loadedDim = nullptr;
 void AddDimension(std::string s,Dimension dim) {
@@ -24,7 +25,7 @@ Dimension* GetDimension() {
 void SetDimension(std::string s) {
 	loadedDim = &dimensions[s];
 }
-
+*/
 std::vector<GameObject*> texRender;
 std::vector<GameObject*> colorRender;
 void AddRenderO(std::string s, GameObject* o) {
@@ -98,6 +99,7 @@ void RenderGame() {
 		o->Draw();
 	}*/
 
+	/*
 	BindShader("terrain");
 	if (loadedDim != nullptr) {
 		BindTexture("blank");
@@ -107,7 +109,7 @@ void RenderGame() {
 			ObjectTransform(base.mat());
 			c.con.Draw();
 		}
-	}
+	}*/
 }
 /*
 void UpdateInterface() {
@@ -126,5 +128,4 @@ void RenderInterface() {
 */
 void InitManager() {
 	player.SetCamera(GetCamera());
-	//AddTexture("ground", "assets/textures/ground");
 }

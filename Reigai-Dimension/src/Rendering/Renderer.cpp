@@ -506,65 +506,13 @@ void ObjectColor(float r,float g,float b,float a) {
 		currentShader->SetUniform4f("uColor",r,g,b,a);
 }
 
-std::map<std::string, Mesh*> meshes;
-/*
-Closest Lights need to be bound before drawing mesh
-*/
 void DrawMesh(std::string meshid, glm::mat4 trans) {
-	Mesh* me = meshes[meshid];
+	MeshData* me = GetMesh(meshid);
 	if (me != nullptr) {
 		ObjectTransform(trans);
 		BindTexture(me->tex);
 		me->container.Draw();
 	}
-}
-void AddMesh(std::string name, std::string path) {
-	Mesh* me = new Mesh();
-	int err = FHLoadMesh(me, path);
-	if (err == FHSuccess){
-		meshes[name] = me;
-	} else if (err==FHNotFound){
-		std::cout << "[Mesh] Not Found: " << path<<".mesh" << std::endl;;
-		delete me;
-	} else if (err == FHCorrupt) {
-		std::cout << "[Mesh] Corrupt: " << path << ".mesh" << std::endl;;
-		delete me;
-	}
-}
-glm::vec3 GetMeshPos(std::string name) {
-	Mesh* me = meshes[name];
-	if (me != nullptr)
-		return me->position;
-	else
-		return glm::vec3(0, 0, 0);
-}
-glm::vec3 GetMeshRot(std::string name) {
-	Mesh* me = meshes[name];
-	if (me != nullptr)
-		return me->rotation;
-	else
-		return glm::vec3(0, 0, 0);
-}
-
-std::map<std::string, AnimationData*> animations;
-void AddAnimation(std::string name, std::string path) {
-	AnimationData* an = new AnimationData();
-	int err = FHLoadAnim(an, path);
-	if (err == FHSuccess){
-		animations[name] = an;
-	}else if(err==FHNotFound) {
-		std::cout << "[Animation] Not Found: " << path<<".anim" << std::endl;;
-		delete an;
-	} else if (err == FHCorrupt) {
-		std::cout << "[Animation] Corrupt: " << path << ".anim" << std::endl;;
-		delete an;
-	}
-}
-AnimationData* GetAnimation(std::string name) {
-	if (animations[name] == nullptr)
-		std::cout << "[Animation] '" << name << "' does not exist" << std::endl;
-	
-	return animations[name];
 }
 
 std::map<std::string, Texture*> textures;

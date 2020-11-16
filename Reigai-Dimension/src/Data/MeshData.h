@@ -12,7 +12,6 @@ public:
 	std::string tex;
 	glm::vec3 position;
 	glm::vec3 rotation;
-	std::string name;
 	BufferContainer container;
 	
 private:

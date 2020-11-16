@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Rendering/Renderer.h"
-#include "AnimationData.h"
+#include "Data/AnimData.h"
 
 class Animation {
 public:
 	Animation(std::string name);
-	AnimationData* data;
+	AnimData* data;
 	float frame=0;
 	float fps=60;
 	bool running=false;

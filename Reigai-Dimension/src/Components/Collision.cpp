@@ -174,9 +174,8 @@ void Collision::MakeFace(glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, glm::vec3 p4)
 }*/
 void Collision::UpdatePoints(glm::vec3 r) {
 	points.clear();
-	//points = originPoints;
 
-	for (glm::vec3 p : originPoints) {
+	for (glm::vec3 p : data->points) {
 		Location loc;
 		//loc.Rotate(r);
 		loc.Translate(p);
@@ -189,7 +188,7 @@ void Collision::UpdatePoints(glm::vec3 r) {
 
 		points.push_back(loc.vec());//glm::vec3(at.x,at.y,at.z));
 	}
-	float fl[]{
+	float fl[]{ // TODO: Remove this since it slows the game down.
 		points.at(0).x,points.at(0).y,points.at(0).z,
 		points.at(1).x,points.at(1).y,points.at(1).z,
 		points.at(2).x,points.at(2).y,points.at(2).z,
@@ -201,8 +200,8 @@ void Collision::UpdatePoints(glm::vec3 r) {
 		//,0,0,0
 	};
 	outline.SubVB(0, 3 * 8, fl);
-}/*
-void Collision::MakeSphere(float rad) {
+}
+/*void Collision::MakeSphere(float rad) {
 	type = 1;
 	radius = rad;
 }*/
@@ -224,8 +223,8 @@ void pf(float v) {
 }
 void pe() {
 	std::cout << std::endl;
-}*/
-/*
+}
+
 glm::vec3 Collision::collision(Collision* c2) {
 	Collision* p1 = this;
 	Collision* p2 = c2;
@@ -329,55 +328,57 @@ void Collision::Draw() {
 void Collision::MakeCube(float x, float y, float z, float w, float h, float d) {
 	glm::vec3 O = glm::vec3(x, y, z);
 
-	originPoints.push_back(O + glm::vec3(-w, -h, -d) / 2.f);
-	originPoints.push_back(O + glm::vec3(w, -h, -d) / 2.f);
-	originPoints.push_back(O + glm::vec3(w, -h, d) / 2.f);
-	originPoints.push_back(O + glm::vec3(-w, -h, d) / 2.f);
+	data = new CollData();
 
-	originPoints.push_back(O + glm::vec3(-w, h, -d) / 2.f);
-	originPoints.push_back(O + glm::vec3(w, h, -d) / 2.f);
-	originPoints.push_back(O + glm::vec3(w, h, d) / 2.f);
-	originPoints.push_back(O + glm::vec3(-w, h, d) / 2.f);
+	data->points.push_back(O + glm::vec3(-w, -h, -d) / 2.f);
+	data->points.push_back(O + glm::vec3(w, -h, -d) / 2.f);
+	data->points.push_back(O + glm::vec3(w, -h, d) / 2.f);
+	data->points.push_back(O + glm::vec3(-w, -h, d) / 2.f);
 
-	quadIndex.push_back(0);
-	quadIndex.push_back(1);
-	quadIndex.push_back(2);
-	quadIndex.push_back(3);
+	data->points.push_back(O + glm::vec3(-w, h, -d) / 2.f);
+	data->points.push_back(O + glm::vec3(w, h, -d) / 2.f);
+	data->points.push_back(O + glm::vec3(w, h, d) / 2.f);
+	data->points.push_back(O + glm::vec3(-w, h, d) / 2.f);
 
-	quadIndex.push_back(0);
-	quadIndex.push_back(1);
-	quadIndex.push_back(5);
-	quadIndex.push_back(4);
+	data->quad.push_back(0);
+	data->quad.push_back(1);
+	data->quad.push_back(2);
+	data->quad.push_back(3);
 
-	quadIndex.push_back(1);
-	quadIndex.push_back(2);
-	quadIndex.push_back(6);
-	quadIndex.push_back(5);
+	data->quad.push_back(0);
+	data->quad.push_back(1);
+	data->quad.push_back(5);
+	data->quad.push_back(4);
 
-	quadIndex.push_back(2);
-	quadIndex.push_back(3);
-	quadIndex.push_back(7);
-	quadIndex.push_back(6);
+	data->quad.push_back(1);
+	data->quad.push_back(2);
+	data->quad.push_back(6);
+	data->quad.push_back(5);
 
-	quadIndex.push_back(3);
-	quadIndex.push_back(0);
-	quadIndex.push_back(4);
-	quadIndex.push_back(7);
+	data->quad.push_back(2);
+	data->quad.push_back(3);
+	data->quad.push_back(7);
+	data->quad.push_back(6);
 
-	quadIndex.push_back(4);
-	quadIndex.push_back(5);
-	quadIndex.push_back(6);
-	quadIndex.push_back(7);
+	data->quad.push_back(3);
+	data->quad.push_back(0);
+	data->quad.push_back(4);
+	data->quad.push_back(7);
+
+	data->quad.push_back(4);
+	data->quad.push_back(5);
+	data->quad.push_back(6);
+	data->quad.push_back(7);
 
 	float fl[]{
-		originPoints.at(0).x,originPoints.at(0).y,originPoints.at(0).z,
-		originPoints.at(1).x,originPoints.at(1).y,originPoints.at(1).z,
-		originPoints.at(2).x,originPoints.at(2).y,originPoints.at(2).z,
-		originPoints.at(3).x,originPoints.at(3).y,originPoints.at(3).z,
-		originPoints.at(4).x,originPoints.at(4).y,originPoints.at(4).z,
-		originPoints.at(5).x,originPoints.at(5).y,originPoints.at(5).z,
-		originPoints.at(6).x,originPoints.at(6).y,originPoints.at(6).z,
-		originPoints.at(7).x,originPoints.at(7).y,originPoints.at(7).z
+		data->points.at(0).x,data->points.at(0).y,data->points.at(0).z,
+		data->points.at(1).x,data->points.at(1).y,data->points.at(1).z,
+		data->points.at(2).x,data->points.at(2).y,data->points.at(2).z,
+		data->points.at(3).x,data->points.at(3).y,data->points.at(3).z,
+		data->points.at(4).x,data->points.at(4).y,data->points.at(4).z,
+		data->points.at(5).x,data->points.at(5).y,data->points.at(5).z,
+		data->points.at(6).x,data->points.at(6).y,data->points.at(6).z,
+		data->points.at(7).x,data->points.at(7).y,data->points.at(7).z
 		//,0,0,0
 	};
 	unsigned int in[]{
@@ -406,6 +407,6 @@ void Collision::MakeCube(float x, float y, float z, float w, float h, float d) {
 	outline.type = 1;
 	outline.Setup(true, fl, 3 * (8/*+1/**/), in, 2 * (12/*+8/**/));
 	outline.SetAttrib(0, 3, 3, 0);
-	//points = originPoints;
+	
 	UpdatePoints(glm::vec3(0, 0, 0));
 }

@@ -22,17 +22,24 @@ enum {
 };
 int FHFileExist(std::string path);
 
-std::string ReadFile(std::string path,int* err);
-std::vector<std::string> ReadFileList(std::string path,int* err);
-
-int WriteTextFile(std::string path, std::vector<std::string> text);
-
-int FHLoadMesh(MeshData* da,std::string path);
-int FHLoadAnim(AnimData* da,std::string path);
-int FHLoadColl(CollData* da, std::string path);
-
-// Deprecated
 /*
-int FHLoadContainer(Mesh* mesh,std::string path);
-int FHLoadAnimation(AnimationData* anim,std::string path);
+Remember to handle the returned error status
 */
+std::string ReadFile(std::string path, int* err);
+/*
+Remember to handle the error status
+*/
+std::vector<std::string> ReadFileList(std::string path, int* err);
+/*
+Remember to handle the returned error status
+*/
+int WriteTextFile(std::string path, std::vector<std::string> text);
+/*
+Parameter "path" is automatically using .mesh format
+*/
+int FHLoadMesh(MeshData* da, std::string path);
+/*
+Parameter "path" is automaticly using .anim format
+*/
+int FHLoadAnim(AnimData* da, std::string path);
+int FHLoadColl(CollData* da, std::string path);

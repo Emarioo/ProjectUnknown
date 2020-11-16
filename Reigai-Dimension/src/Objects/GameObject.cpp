@@ -79,13 +79,13 @@ glm::vec3 GameObject::WillCollide(GameObject* o1,float delta) {
 	*/
 	//pr("--------");
 	//pe();
-	for (int i = 0; i < c1->quadIndex.size() / 4; i++) {
+	for (int i = 0; i < c1->data->quad.size() / 4; i++) {
 
 		// Get 4 points for quad
-		glm::vec3 A = O + c1->points[c1->quadIndex[i * 4]];
-		glm::vec3 B = O + c1->points[c1->quadIndex[i * 4 + 1]];
-		glm::vec3 C = O + c1->points[c1->quadIndex[i * 4 + 2]];
-		glm::vec3 D = O + c1->points[c1->quadIndex[i * 4 + 3]];
+		glm::vec3 A = O + c1->points[c1->data->quad[i * 4]];
+		glm::vec3 B = O + c1->points[c1->data->quad[i * 4 + 1]];
+		glm::vec3 C = O + c1->points[c1->data->quad[i * 4 + 2]];
+		glm::vec3 D = O + c1->points[c1->data->quad[i * 4 + 3]];
 
 		// Front of quad
 		glm::vec3 up = glm::normalize(glm::cross(B - A, C - A));

@@ -17,11 +17,11 @@
 void Gamecore::LoadGameData() {// ALL game assets should be added here(Not interface stuff). Remember to load texture first and then mesh
 	AddTexture("magicstaff_staff", "assets/textures/magicstaff_staff");
 	AddTexture("magicstaff_fireball", "assets/textures/magicstaff_fireball");
-	AddAnimation("magicstaff_idle", "assets/animations/MagicStaffIdle");
+	AddAnim("magicstaff_idle", "assets/animations/MagicStaffIdle");
 	AddMesh("magicstaff_staff", "assets/models/staff");
 	AddMesh("magicstaff_fireball", "assets/models/fireball");
 	
-	AddAnimation("player_idle", "assets/animations/PlayerIdle");
+	AddAnim("player_idle", "assets/animations/PlayerIdle");
 	AddMesh("player_body", "assets/models/Body");
 	AddMesh("player_head", "assets/models/Head");
 	AddMesh("player_ruarm", "assets/models/RUArm");

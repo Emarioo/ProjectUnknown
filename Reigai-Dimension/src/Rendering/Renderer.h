@@ -16,10 +16,11 @@
 #include "Utility/FileHandler.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
-//#include "Objects/GameObject.h"
+
+#include "Data/DataManager.h"
 
 // This class is the renderer class
-// It stores meshes, animations, textures and other classes calls its functions
+// It handles textures, lights and shaders
 // It does not control which objects to render but is instead used as a tool to render them
 
 enum WindowTypes {
@@ -77,6 +78,7 @@ void SetCallbacks(
 
 //void RenderScene();
 
+// Shader
 void BindShader(std::string name);
 void AddShader(std::string name, std::string path);
 /*
@@ -95,22 +97,17 @@ void ObjectColor(float r, float g, float b, float a);
 void GuiTransform(float x, float y);
 void GuiColor(float r, float g,float b,float a);
 
+// Texture
 void BindTexture(std::string name);
 void AddTexture(std::string name, std::string path);
 
-void DrawMesh(std::string name, glm::mat4 trans);
-void AddMesh(std::string name, std::string path);
-glm::vec3 GetMeshPos(std::string name);
-glm::vec3 GetMeshRot(std::string name);
-
-void AddAnimation(std::string name, std::string path);
+// Render
 /*
-returns nullptr if name doesn't exist
+Closest Lights need to be bound before drawing mesh
 */
-AnimationData* GetAnimation(std::string name);
+void DrawMesh(std::string name, glm::mat4 trans);
 
+// Light
 void AddLight(Light* l);
 void DelLight(Light* l);
 void BindLights(std::string s, glm::vec3 pos);
-
-//void AddElement(IElement el);
