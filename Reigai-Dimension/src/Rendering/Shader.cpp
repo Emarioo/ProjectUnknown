@@ -5,8 +5,18 @@
 Shader::Shader(){
 
 }
+bool Shader::IsInitiliazed() {
+	return initialized;
+}
 Shader::Shader(const std::string& path)
 	: shaderPath(path+".shader") {
+	initialized = true;
+	ShaderProgramSource source = ParseShader(shaderPath);
+	programID = CreateShader(source.vert, source.frag);
+}
+void Shader::Init(const std::string& path) {
+	initialized = true;
+	shaderPath = path + ".shader";
 	ShaderProgramSource source = ParseShader(shaderPath);
 	programID = CreateShader(source.vert, source.frag);
 }

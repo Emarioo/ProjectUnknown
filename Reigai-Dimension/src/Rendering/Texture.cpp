@@ -40,7 +40,8 @@ void Texture::LoadTex(const std::string& path)
 }
 Texture::~Texture()
 {
-	glDeleteTextures(1, &m_RendererID);
+	//glDeleteTextures(1, &m_RendererID); // deletes texture when you add it with texturer[name] = Texture(path)
+	// deleting textures is not really neccesarry i think?
 }
 void Texture::Bind(unsigned int slot) const
 {

@@ -1,4 +1,4 @@
-# Script by Emarioo / Data Olsson, Updated 2020-10-26
+# Script by Emarioo / Data Olsson, Updated 2020-08-11
 
 import bpy
 
@@ -6,7 +6,7 @@ import bpy
 dir="D:/Development/CPlusPlus/ProjectMMORPG/ProjectMMORPG/assets/animations/"
 name="MagicStaffIdle"
 loop=True
-fps=24
+tickspeed=24/60
 # List of objects to take the keyframes for the object's currently selected action animation from
 objects=["fireball"]
 # Supported Interpolation: Beizer, Linear, Constant
@@ -25,7 +25,7 @@ for s in objects:
 file.write("start "+str(int(fstart))+"\n")
 file.write("end "+str(int(fend))+"\n")
 
-file.write("speed "+str(fps)+"\n")
+file.write("speed "+str(tickspeed)+"\n")
 if(loop):
     file.write("loop 1\n")
 else:

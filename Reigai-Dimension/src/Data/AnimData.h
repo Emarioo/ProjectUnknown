@@ -16,6 +16,7 @@ public:
 class FCurve {
 public:
 	FCurve(){}
+	
 	float GetValue(int frame);
 	std::vector<Keyframe> keyframes;
 };
@@ -50,8 +51,10 @@ class AnimData {
 public:
 	AnimData(){}
 	std::map<std::string, FCurves> curves;
-	unsigned short frameStart;
-	unsigned short frameEnd;
-	float defaultSpeed;
-	bool loop;
+	unsigned short frameStart=0;
+	unsigned short frameEnd=0;
+	float defaultSpeed=1;
+	bool loop=0;
+
+	bool hasError = false;
 };

@@ -6,108 +6,110 @@
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include "Texture.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Shader.h"
-#include "Components/Mesh.h"
-#include "Utility/FileHandler.h"
+#include "Utility/FileManager.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
-
-#include "Data/DataManager.h"
 
 // This class is the renderer class
 // It handles textures, lights and shaders
 // It does not control which objects to render but is instead used as a tool to render them
 
-enum WindowTypes {
-	Minimized,
-	WindowBorderless,
-	WindowBorder,
-	Maximized,
-	Fullscreen
-};
+namespace renderer {
 
-float Wid();
-float Hei();
-float Width();
-float Height();
-void SetWinSize(int x,int y,int w, int h);
-void SetWindowType(WindowTypes t);
-WindowTypes GetWindowType();
-WindowTypes GetLastWindowType();
-float AlterW(float w);
-float AlterH(float h);
-float AlterX(float x);
-float AlterY(float y);
+	enum WindowTypes {
+		Minimized,
+		WindowBorderless,
+		WindowBorder,
+		Maximized,
+		Fullscreen
+	};
 
-bool HasFocus();
+	float Wid();
+	float Hei();
+	float Width();
+	float Height();
+	void SetWinSize(int x, int y, int w, int h);
+	void SetWindowType(WindowTypes t);
+	WindowTypes GetWindowType();
+	WindowTypes GetLastWindowType();
+	float AlterW(float w);
+	float AlterH(float h);
+	float AlterX(float x);
+	float AlterY(float y);
 
-Camera* GetCamera();
-void UpdateProj();
+	bool HasFocus();
 
-bool GetCursorMode();
-/*
-Activated or deactivate cursor
-*/
-void SetCursorMode(bool f);
+	Camera* GetCamera();
+	void UpdateProj();
 
-GLFWwindow* GetWindow();
-void RenderInit();
-void RenderClearScreen(float r,float g,float b,float a);
-bool RenderRunning();
-void RenderTermin();
-bool IsFullscreen();
-bool IsMaximized();
-bool IsMinimized();
-void SetProjection(float ratio);
-void SwitchBlendDepth(bool b);
-void SetWindowTitle(const char*);
+	bool GetCursorMode();
+	/*
+	Activated or deactivate cursor
+	*/
+	void SetCursorMode(bool f);
 
-void SetCallbacks(
-	void(*key)(int, int),
-	void(*mouse)(double,double,int, int),
-	void(*drag)(double, double),
-	void(*resize)(int, int),
-	void(*focus)(int));
+	GLFWwindow* GetWindow();
+	/*
+	Starts glfw, shaders and base projection matrix
+	*/
+	void Init();
+	void RenderClearScreen(float r, float g, float b, float a);
+	bool RenderRunning();
+	void RenderTermin();
+	bool IsFullscreen();
+	bool IsMaximized();
+	bool IsMinimized();
+	void SetProjection(float ratio);
+	void SwitchBlendDepth(bool b);
+	void SetWindowTitle(const char*);
 
-//void RenderBorder();
+	void SetCallbacks(
+		void(*key)(int, int),
+		void(*mouse)(double, double, int, int),
+		void(*drag)(double, double),
+		void(*resize)(int, int),
+		void(*focus)(int));
 
-//void RenderScene();
+	//void RenderBorder();
 
-// Shader
-void BindShader(std::string name);
-void AddShader(std::string name, std::string path);
-/*
-Can return nullptr
-*/
-Shader* GetShader(std::string name);
-/*
-Bind Shader before
-*/
-void ObjectTransform(glm::mat4 m);
-/*
-Bind Shader before
-*/
-void ObjectProjection(glm::mat4 m);
-void ObjectColor(float r, float g, float b, float a);
-void GuiTransform(float x, float y);
-void GuiColor(float r, float g,float b,float a);
+	//void RenderScene();
 
-// Texture
-void BindTexture(std::string name);
-void AddTexture(std::string name, std::string path);
+	// Shader
+	void BindShader(MaterialType type);
+	/*
+	Can return nullptr if materia errorerd
+	*/
+	Shader* GetShader(MaterialType type);
+	/*
+	Bind Shader before
+	*/
+	void ObjectTransform(glm::mat4 m);
+	/*
+	Bind Shader before
+	*/
+	void ObjectProjection(glm::mat4 m);
+	void ObjectColor(float r, float g, float b, float a);
+	void GuiTransform(float x, float y);
+	void GuiColor(float r, float g, float b, float a);
 
-// Render
-/*
-Closest Lights need to be bound before drawing mesh
-*/
-void DrawMesh(std::string name, glm::mat4 trans);
+	// Texture
+	void BindTexture(const std::string& name);
+	void AddTexture(const std::string& name, std::string path);
 
-// Light
-void AddLight(Light* l);
-void DelLight(Light* l);
-void BindLights(std::string s, glm::vec3 pos);
+	// Render
+	/*
+	Closest Lights need to be bound before drawing mesh
+	*/
+	void DrawMesh(MeshData* meshData, glm::mat4 trans);
+
+	// Light
+	void AddLight(Light* l);
+	void DelLight(Light* l);
+	void BindLights(glm::vec3 pos);
+}

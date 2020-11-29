@@ -8,12 +8,14 @@
 class MeshData {
 public:
 	MeshData(){}
-	std::string name;
-	std::string tex;
+	
+	std::string texture;
 	glm::vec3 position;
 	glm::vec3 rotation;
+	MaterialType material;
 	BufferContainer container;
 	
+	bool hasError = false;
 private:
 
 };

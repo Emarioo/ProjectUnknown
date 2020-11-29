@@ -11,16 +11,26 @@ public:
 	/*
 	SetCamera, SetPosition
 	*/
+	float lel=25;
+	/*
+	Setup player Components
+	*/
 	ClientPlayer();
-
 	Camera* camera;
-	void SetCamera(Camera*);
+	void SetCamera(Camera* cam);
 
-	void Update(float delta);
+	void PreComponents() override;
+	void Update(float delta) override;
+	std::vector<ColliderComponent*> GetColliders() override;
 	bool doMove;
 	glm::vec3 Movement(float delta);
 
-	void CreateHitbox();
+	MeshComponent phead;
+	MeshComponent pbody;
+	MeshComponent pruarm;
+	MeshComponent prlarm;
+	ColliderComponent hitbox;
+	AnimationComponent idle;
 
 	bool freeCam = false;
 	bool moveCam = true;
@@ -28,7 +38,7 @@ public:
 	bool crouchMode = false;
 	float walkSpeed= 4.0f;
 	float sprintSpeed= 7.0f;
-	float camSpeed = 1.0f;
+	float camSpeed = 2.0f;
 	float camFastSpeed = 13.0f;
 	float jumpForce = 10.0f;
 	

@@ -8,13 +8,13 @@ class IPos { // TODO: pixelScreen is out of function
 public:
 	float GetX() {
 		if (pixelScreen) {
-			return AlterX(x);
+			return renderer::AlterX(x);
 		}
 		return x;
 	}
 	float GetY() {
 		if (pixelScreen) {
-			return AlterY(y);
+			return renderer::AlterY(y);
 		}
 		return y;
 	}
@@ -30,8 +30,8 @@ public:
 			y = b;
 			pixelScreen = true;
 		} else {
-			x = AlterW(a);
-			y = AlterH(b);
+			x = renderer::AlterW(a);
+			y = renderer::AlterH(b);
 		}
 	}
 	void DataY(float a) {
@@ -42,7 +42,7 @@ public:
 			y = a;
 			pixelScreen = true;
 		} else {
-			y = AlterH(a);
+			y = renderer::AlterH(a);
 		}
 	}
 };
@@ -52,13 +52,13 @@ public:
 	float w = 0, h = 0;
 	float GetW() {
 		if (pixelScreen) {
-			return AlterW(w);
+			return renderer::AlterW(w);
 		}
 		return w;
 	}
 	float GetH() {
 		if (pixelScreen) {
-			return AlterH(h);
+			return renderer::AlterH(h);
 		}
 		return h;
 	}
@@ -73,8 +73,8 @@ public:
 			h = b;
 			pixelScreen = true;
 		} else {
-			w = AlterW(a);
-			h = AlterH(b);
+			w = renderer::AlterW(a);
+			h = renderer::AlterH(b);
 		}
 	}
 };

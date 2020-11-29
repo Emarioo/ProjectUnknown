@@ -67,7 +67,7 @@ float Text::PixelWidth(bool f) {
 		}
 	}
 	if (!f) {
-		max *= (charHeight / (Wid() / Hei())) / font->charSize;
+		max *= (charHeight / (renderer::Wid() / renderer::Hei())) / font->charSize;
 	}
 	return max;
 }
@@ -96,7 +96,7 @@ float Text::ScreenPosX(int c) {
 		}
 		wid += font->charWid[cha];
 	}
-	return wid*((charHeight / (Wid() / Hei())) / font->charSize);
+	return wid*((charHeight / (renderer::Wid() / renderer::Hei())) / font->charSize);
 }
 
 int Text::PixelPosX(int c) {
@@ -143,7 +143,7 @@ void Text::SetText(std::string atext) {
 	text = atext.substr(0, maxChar);
 
 	// Dynamic
-	charHeight = ((elemW / 2 * Width()) / PixelWidth(true)) * AlterH(64);
+	charHeight = ((elemW / 2 * renderer::Width()) / PixelWidth(true)) * renderer::AlterH(64);
 	float a = elemH / PixelHeight(false);
 	if(a<1)
 		charHeight *= a;
@@ -153,7 +153,7 @@ void Text::SetText(std::string atext) {
 
 	float atX = 0;
 	float atY = 0;
-	float ratio = charHeight /(Wid()/Hei());
+	float ratio = charHeight /(renderer::Wid()/ renderer::Hei());
 	
 	int i=0;
 	for (char cha : text) {
@@ -227,19 +227,19 @@ void Text::DrawString(float alpha,bool f) {
 		y = xy.GetY() + ypos - charHeight + elemH / 2;
 		
 	}
-	GuiTransform(x,y);
+	renderer::GuiTransform(x,y);
 	if(font!=nullptr)
 		if (font->texture != nullptr)
 			font->texture->Bind();
 	
-	GuiColor(r, g, b, a);
+	renderer::GuiColor(r, g, b, a);
 	container.Draw();
 	
 	if (f) {
 		//std::cout << (x + PixelPosX(atChar)) << " " << (y + PixelPosY(atChar)) << std::endl;
-		GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
-		GuiColor(r, g, b, a);
-		BindTexture("blank");
+		renderer::GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
+		renderer::GuiColor(r, g, b, a);
+		renderer::BindTexture("blank");
 		marker.Draw();
 	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Interface.h"
+#include "InterfaceManager.h"
 
 /*
 Create elements required. Load them into interface.

@@ -1,37 +1,36 @@
 #pragma once
 
-#include "Components/Animation.h"
+#include "Components/AnimationComponent.h"
 #include "Components/MetaData.h"
-#include "Components/Collision.h"
 
-void pr(std::string s);
-void pv(glm::vec3 v);
-void pv(glm::vec2 v);
-void pf(float v);
-void pe();
+#include "Data/DataManager.h"
 
 class GameObject{
 public:
-	/*
-	Remember to use delta
-	*/
+	GameObject();
 	glm::vec3 position;// Pointer to meta strip?
 	glm::vec3 rotation;
 	glm::vec3 scale;
-	Collision collision;
+	//ColliderComponent collider;
+	//MaterialType
 	/*
 	Remember to use delta
 	*/
 	glm::vec3 velocity;
 	std::string name;
-	std::string standard_mesh;
+	void SetName(std::string name);
+	std::string& GetName();
+	//MeshData* meshData=nullptr;
+	int weight = 1;
 	std::string standard_hitbox;
-	float weight;
-	GameObject();
-	GameObject(float x,float y,float z,std::string mesh);
+
+
+	float proximity = 40;
+
 	//void SetHitbox(std::string);
 	virtual void Update(float delta);
-	virtual void Draw();
+	virtual void PreComponents();
+	virtual std::vector<ColliderComponent*> GetColliders();
 
 	glm::vec3 GetPos();
 	glm::vec3 GetRot();
@@ -43,14 +42,12 @@ public:
 	return is equal to this.velocity if no collision.
 	*/
 	glm::vec3 WillCollide(GameObject* o1,float delta);
-	
-
-	void SetName(std::string name);
-	std::string& GetName();
 
 	void MetaUpdate(float delta);
 	MetaData metaData;
 	bool hasVelocity = false;
-	bool renderHitbox = true;
+	bool renderHitbox = false;
 	bool renderMesh = true;
+
+	bool IsClose(GameObject*);
 };

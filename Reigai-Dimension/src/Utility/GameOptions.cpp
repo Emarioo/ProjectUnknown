@@ -17,7 +17,7 @@ void AddOptionf(std::string s,float f) {
 }
 void ReadOptions() {
 	int err = 0;
-	std::vector<std::string> list = ReadFileList("data/gameoptions",&err);
+	std::vector<std::string> list = fManager::ReadFileList("data/gameoptions",&err);
 	for (std::string s : list) {
 		std::vector<std::string> set = SplitString(s," ");
 		if (set.size() > 1) {

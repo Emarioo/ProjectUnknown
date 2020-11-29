@@ -2,7 +2,7 @@
 
 #include <map>
 #include <string>
-#include "Utility/FileHandler.h"
+#include "Utility/FileManager.h"
 
 void ReadOptions();
 int GetOptioni(std::string);

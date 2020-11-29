@@ -1,18 +1,49 @@
 #include "ClientPlayer.h"
 
-#include "Core/RefsManager.h"
-
-ClientPlayer::ClientPlayer(){
+ClientPlayer::ClientPlayer() {
 	name = "Player";
 	weight = 1;
-}
 
-void ClientPlayer::CreateHitbox() {
-	collision.radius = sqrt(pow(1, 2) + pow(1.5, 2) + pow(1, 2));
-	collision.MakeCube(0, -0.5, 0, 1, 2, 1);
+	pbody.SetMesh(dManager::GetMesh("player_body"));
+	dManager::AddComponent(&pbody);
+	phead.SetMesh(dManager::GetMesh("player_head"));
+	dManager::AddComponent(&phead);
+	pruarm.SetMesh(dManager::GetMesh("player_ruarm"));
+	dManager::AddComponent(&pruarm);
+	prlarm.SetMesh(dManager::GetMesh("player_rlarm"));
+	dManager::AddComponent(&prlarm);
+
+	// Change into blender generated collider for players
+	hitbox.SetColl(dManager::AddColl("ClientPlayer"));
+	hitbox.MakeCube(0, -0.5, 0, 1, 3, 1);
+
+	idle.SetAnim(dManager::GetAnim("player_idle"));
 }
 void ClientPlayer::SetCamera(Camera* c) {
 	camera = c;
+}
+void ClientPlayer::PreComponents() {
+	Location body;
+	body.Translate(position);
+	body.Rotate(rotation);
+	pbody.SetMatrix(body.mat());
+
+	Location head(body);
+	head.Translate(idle.GetPos("Head"));
+	phead.SetMatrix(head.mat());
+
+	Location arm(body);
+	arm.Translate(idle.GetPos("RUArm"));
+	arm.Rotate(idle.GetRot("RUArm"));
+	pruarm.SetMatrix(arm.mat());
+
+	arm.Translate(glm::vec3(0, -0.814433, 0));
+	prlarm.SetMatrix(arm.mat());
+}
+std::vector<ColliderComponent*> ClientPlayer::GetColliders() {
+	std::vector<ColliderComponent*> out;
+	out.push_back(&hitbox);
+	return out;
 }
 void ClientPlayer::Update(float delta) {
 
@@ -41,7 +72,8 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 			if (!camToggle) {
 				freeCam = !freeCam;
 				if (!freeCam) {
-					SetPosition(camera->position.x,camera->position.y,camera->position.z);
+					if(camera!=nullptr)
+						SetPosition(camera->position.x,camera->position.y,camera->position.z);
 				}
 			}
 			camToggle = true;
@@ -58,6 +90,7 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 				moveToggle = false;
 			}
 		}
+		//std::cout << camSpeed << std::endl;
 		if (true||freeCam&&moveCam) {
 			/*
 			*velX = 0;
@@ -65,6 +98,7 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 			*velZ = 0;
 			*/
 			float speed = camSpeed;
+			//bug::out + 5 + bug::end;
 			if (GetKeyState(VK_LSHIFT) < 0) {
 				speed = camFastSpeed;
 			}
@@ -95,9 +129,11 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 				move.z += speed;
 			}
 			if (GetKeyState('D') < 0) {
+				//bug::out + speed + bug::end;
 				move.x += speed;
 			}
 			if (GetKeyState('A') < 0) {
+				//bug::out + speed + bug::end;
 				move.x -= speed;
 			}
 			if (GetKeyState(VK_SHIFT) < 0) {
@@ -140,10 +176,11 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 			*/
 		}
 	}
-
+	//bug::out + move.x + bug::end;
 	// Rought way of calculation look vector and movement
 	glm::vec3 nmove(move.z*glm::sin(rotation.y) + move.x*glm::sin(rotation.y + glm::pi<float>() / 2), move.y,
 		move.z*glm::cos(rotation.y) + move.x*glm::cos(rotation.y + glm::pi<float>() / 2));
+	//bug::out + "2 " + nmove + '\n';
 	/*
 	if (!freeCam||!moveCam) {
 		nmove.x += *velX;
@@ -155,13 +192,16 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
 
 	//rotation = camera->rotation;
-	SetRotationA(0,camera->rotation.y,0);
+	if(camera!=nullptr)
+		SetRotationA(0,camera->rotation.y,0);
 	if (!freeCam) {
 		//position += nmove * delta;
 		return nmove;
 	} else if (freeCam&&moveCam) {
-		camera->position += nmove * delta;
+		if(camera!=nullptr)
+			camera->position += nmove * delta;
 	} else {
+		//bug::out +bug::AQUA+ nmove + '\n';
 		return nmove;
 		//position += nmove * delta;
 	}

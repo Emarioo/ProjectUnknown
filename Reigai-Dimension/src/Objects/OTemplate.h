@@ -5,8 +5,14 @@
 class OTemplate : public GameObject {
 public:
 	OTemplate(float x, float y, float z);
-	void Draw() override;
-	void Update() override;
+	void PreComponents() override;
+	void Update(float delta) override;
+	std::vector<ColliderComponent*> GetColliders() override;
 
-	Animation* ANIM_NAME;
+	MeshComponent mesh;
+
+	ColliderComponent coll;
+
+	//AnimationComponent anim;
+
 };

@@ -1,5 +1,12 @@
 #pragma once
 
+enum class MaterialType {
+	ColorMat,
+	TextureMat,
+	InterfaceMat,
+	OutlineMat
+};
+
 class BufferContainer {
 public:
 	/*

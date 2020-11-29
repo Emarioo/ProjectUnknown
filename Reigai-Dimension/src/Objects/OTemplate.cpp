@@ -1,23 +1,39 @@
 #include "OTemplate.h"
 
 OTemplate::OTemplate(float x, float y, float z) {
-	position = glm::vec3(x, y, z);
-	ANIM_NAME = new Animation("ANIM_ID");
-	ANIM_NAME->running = true; // Start animation by default?
-}
-void OTemplate::Draw() {
-	Location body;
-	body.Translate(position);
-	body.Rotate(rotation);
-	DrawMesh("OBJECT_MESH", body.mat());
+	SetPosition(x, y, z);
+	SetName("OTemplate");
 
-	body.Rotate(ANIM_NAME->GetRot("SUB_MESH"));
-	body.Translate(ANIM_NAME->GetPos("SUB_MESH"));
-	DrawMesh("OBJECT_SUB_MESH", body.mat());
+	// Load meshes
+	mesh.SetMesh(dManager::GetMesh("vertexcolor"));
+	dManager::AddComponent(&mesh);
+
+	// Load animations
+//	anim.SetAnim(dManager::GetAnim("animname"));
+//	anim.running = true;
+
+	// Load colliders
+	coll.SetColl(dManager::GetColl("vertexcolor"));
+	dManager::AddComponent(&coll);// <- might not be neccesary
 }
-void OTemplate::Update() {
-	// Run animation
-	if (ANIM_NAME != nullptr) ANIM_NAME->Update();
-	// Meta Data
-	MetaUpdate();
+
+void OTemplate::PreComponents() {
+	Location body;
+	body.Translate(GetPos());
+	body.Rotate(GetRot());
+	mesh.SetMatrix(body.mat());
+
+	coll.SetMatrix(body.mat());
+
+//	body.Rotate(idle.GetRot("fireball"));
+//	body.Translate(idle.GetPos("fireball"));
+//	fireball.SetMatrix(body.mat());
+}
+void OTemplate::Update(float delta) {
+//	anim.Update(delta);
+}
+std::vector<ColliderComponent*> OTemplate::GetColliders() {
+	std::vector<ColliderComponent*> out;
+	out.push_back(&coll);
+	return out;
 }

@@ -21,6 +21,7 @@ class Shader
 public:
 	Shader();
 	Shader(const std::string& path);
+	void Init(const std::string& path);
 	unsigned int CreateShader(const std::string& vert, const std::string& frag);
 	unsigned int CompileShader(const unsigned int, const std::string& src);
 	ShaderProgramSource ParseShader(const std::string& filepath);
@@ -35,7 +36,9 @@ public:
 	unsigned int GetUniformLocation(const std::string& name);
 	std::string shaderPath;
 	unsigned int programID;
+	bool IsInitiliazed();
 private:
+	bool initialized=false;
 	char err;
 	std::unordered_map<std::string, unsigned int> uniLocations;
 };

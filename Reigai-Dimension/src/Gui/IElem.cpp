@@ -165,12 +165,12 @@ void IElem::Draw() { // TODO: Optimize this masterpiece of junk
 		return;
 	float x = GetX() + HoverEvent.xy.GetX()*HoverEvent.moveT + ClickEvent.xy.GetX()*ClickEvent.moveT;
 	float y = GetY() + HoverEvent.xy.GetY()*HoverEvent.moveT + ClickEvent.xy.GetY()*ClickEvent.moveT;
-	GuiTransform(x,y);
+	renderer::GuiTransform(x,y);
 	float red = r * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.r*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.r*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
 	float green = g * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.g*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.g*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
 	float blue = b * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.b*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.b*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
 	float alpha = a * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.a*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.a*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
-	GuiColor(red, green, blue, alpha);
+	renderer::GuiColor(red, green, blue, alpha);
 
 	float w = GetW() + HoverEvent.wh.GetW()*HoverEvent.sizeT + ClickEvent.wh.GetW()*ClickEvent.sizeT;
 	float h = GetH() + HoverEvent.wh.GetH()*HoverEvent.sizeT + ClickEvent.wh.GetH()*ClickEvent.sizeT;
@@ -178,7 +178,7 @@ void IElem::Draw() { // TODO: Optimize this masterpiece of junk
 	if (w != GetW()||h!=GetH()) {
 		SetCont(w,h);
 	}
-	BindTexture(texture);
+	renderer::BindTexture(texture);
 	cont.Draw();
 
 	if (text.text.length() > 0) {
@@ -426,7 +426,7 @@ void IElem::Type(int key, int action) {
 	}
 }
 bool IElem::Inside(float mx, float my) {
-	mx = AlterX(mx);
-	my = AlterY(my);
+	mx = renderer::AlterX(mx);
+	my = renderer::AlterY(my);
 	return mx > GetX()-GetW()/2&&mx<GetX() + GetW()/2 && my>GetY()-GetH()/2&&my < GetY() + GetH()/2;
 }

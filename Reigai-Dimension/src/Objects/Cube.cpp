@@ -4,12 +4,12 @@ Cube::Cube(float x,float y,float z,float w,float h,float d) {
 	name = "Cube";
 	weight = 10;
 	//collision.SetHitbox(0, 0, 0, w, h, d);
-	collision.radius = sqrt(pow(w, 2) + pow(h, 2) + pow(d, 2));
-	collision.MakeCube(0, 0, 0, w, h, d);
+	//collider.MakeCube(0, 0, 0, w, h, d);
 	position = glm::vec3(x,y,z);
 	this->w = w;
 	this->h = h;
 	this->d = d;
+
 	GenMesh(1, 1, 1, 1);
 }
 
@@ -17,8 +17,7 @@ Cube::Cube(float x, float y, float z, float w, float h, float d,float r,float g,
 	name = "Cube";
 	weight = 10;
 	//collision.SetHitbox(0, 0, 0, w, h, d);
-	collision.radius = sqrt(pow(w,2)+pow(h,2)+pow(d,2));
-	collision.MakeCube(0, 0, 0, w, h, d);
+	//collider.MakeCube(0, 0, 0, w, h, d);
 	
 	//collision.MakeFace(glm::vec3(-w / 2, -h / 2, d / 2), glm::vec3(w / 2, -h / 2, d / 2), glm::vec3(w / 2, h / 2, d / 2), glm::vec3(-w / 2, h / 2, d / 2));
 	//collision.MakeFace(glm::vec3(-w/2,-h/2,d/4),glm::vec3(w/2,-h/2,d/4),glm::vec3(w/2,h/2,-d/4),glm::vec3(-w/2,h/2,-d/4));
@@ -163,13 +162,16 @@ void Cube::GenMesh(float r,float g,float b,float a) {
 	container.SetAttrib(1,4,10,3);
 	container.SetAttrib(2,3,10,7);
 }
-void Cube::Draw() {
+void Cube::PreComponents() {
+	/*
 	Location body;
 	body.Translate(position);
 	body.Rotate(rotation);
-	ObjectTransform(body.mat());
-	BindLights("current", position);
+	renderer::ObjectTransform(body.mat());
+	//renderer::BindLights(position);
+	std::cout << "ye" << std::endl;
 	container.Draw();
+	*/
 }
 void Cube::Update(float delta) {
 	
