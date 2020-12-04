@@ -4,6 +4,7 @@ enum class MaterialType {
 	ColorMat,
 	TextureMat,
 	InterfaceMat,
+	AnimationMat,
 	OutlineMat
 };
 
@@ -24,6 +25,7 @@ public:
 	/*
 	*/
 	void SetAttrib(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset);
+	void SetAttribI(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset);
 	/*
 	Modifing vertex buffer data
 	*/

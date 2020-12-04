@@ -5,7 +5,7 @@ OTemplate::OTemplate(float x, float y, float z) {
 	SetName("OTemplate");
 
 	// Load meshes
-	mesh.SetMesh(dManager::GetMesh("vertexcolor"));
+	mesh.AddMesh(dManager::GetMesh("vertexcolor"));
 	dManager::AddComponent(&mesh);
 
 	// Load animations
@@ -13,15 +13,15 @@ OTemplate::OTemplate(float x, float y, float z) {
 //	anim.running = true;
 
 	// Load colliders
-	coll.SetColl(dManager::GetColl("vertexcolor"));
-	dManager::AddComponent(&coll);// <- might not be neccesary
+	//coll.SetData(dManager::GetColl("vertexcolor"));
+	//dManager::AddComponent(&coll);// <- might not be neccesary
 }
 
 void OTemplate::PreComponents() {
 	Location body;
 	body.Translate(GetPos());
 	body.Rotate(GetRot());
-	mesh.SetMatrix(body.mat());
+	//mesh.SetMatrix(body.mat());
 
 	coll.SetMatrix(body.mat());
 
@@ -34,6 +34,6 @@ void OTemplate::Update(float delta) {
 }
 std::vector<ColliderComponent*> OTemplate::GetColliders() {
 	std::vector<ColliderComponent*> out;
-	out.push_back(&coll);
+	//out.push_back(&coll);
 	return out;
 }

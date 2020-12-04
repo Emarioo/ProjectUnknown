@@ -46,7 +46,38 @@ namespace fManager {
 		}
 		file.close();
 		return out;
+	}/*
+	template<class T>
+	T ReadT(std::ifstream* f) {
+		T buf;
+		f->read(reinterpret_cast<char*>(&buf), sizeof(T));
+		return buf;
+	}*/
+	/*template<typename T,size_t N>
+	void ReadBytes(std::ifstream *f, T (&d)[N]) {
+		f->read(reinterpret_cast<char*>(&d[0]), sizeof(T)*N);
+	}*/
+	/*
+	template<typename T, size_t N>
+	void ReadBytes(std::ifstream* f, T* d) {
+		f->read(reinterpret_cast<char*>(&d[0]), sizeof(T) * N);
 	}
+	/*
+	Remember to delete heap allocation when done
+	*/
+	/*
+	template<class T>
+	T* ReadT(std::ifstream* f, int size) {
+		T* buf = new T[size];
+		f->read(reinterpret_cast<char*>(&buf[0]), sizeof(T)*size);
+		return buf;
+	}
+	glm::mat4 ReadMat4(std::ifstream* f) {
+		glm::mat4 buf(1);
+		//f->read(reinterpret_cast<char*>(&buf[0]), sizeof(glm::mat4));
+		return buf;
+	}*/
+
 	std::string ReadFile(std::string path, int* err) {
 		*err = Success;
 		path += ".txt";
@@ -87,6 +118,7 @@ namespace fManager {
 
 		char buf[2];
 		unsigned short valu[3];
+		//ReadBytes<unsigned short,3>(&file,valu);
 		file.read(reinterpret_cast<char*>(&valu[0]), 2 * 3);// Vertex Count
 		unsigned short posC = valu[0];
 		unsigned short colorC = valu[1];
@@ -395,8 +427,8 @@ namespace fManager {
 				}
 			}
 
-			da->curves[name] = FCurves();
-			FCurves* fCurves = &da->curves[name];
+			//da->curves[name] = FCurves();
+			//FCurves* fCurves = &da->curves[name];
 
 			for (int j = 0; j < 9; j++) {
 				if (curveB[j]) {
@@ -425,7 +457,7 @@ namespace fManager {
 						if (debug)
 							std::cout << "  Key " << polation << " " << frame << " " << v << std::endl;
 
-						fCurves->keyframes[j].keyframes.push_back(Keyframe(polation, frame, v));
+						//fCurves->keyframes[j].keyframes.push_back(Keyframe(polation, frame, v));
 					}
 				}
 			}
@@ -507,6 +539,89 @@ namespace fManager {
 		for (int i = 0; i < tC; i++) {
 			for (int j = 0; j < 3; j++) {
 				da->quad.push_back(uT[i]);
+				if (debug) std::cout << uQ[i * 3 + j] << " ";
+			}
+			if (debug) std::cout << std::endl;
+		}
+
+		// Cleanup
+		delete uV;
+		delete uQ;
+		delete uT;
+		file.close();
+		return Success;
+	}
+	int LoadBone(BoneData* da, std::string path) {
+		path += ".bone";
+		bool debug = false;
+		std::ifstream file(path, std::ios::binary);
+		if (!file) {
+			file.close();
+			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			return NotFound;
+		}
+		file.seekg(0, file.end);
+		int fileSize = file.tellg();
+		file.seekg(0, file.beg);
+
+		int atByte = 2 * 3 + 4;
+		if (atByte > fileSize) {
+			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			return Corrupt;
+		}
+
+		char buf[2];
+		std::uint16_t valu[3];
+		file.read(reinterpret_cast<char*>(&valu[0]), 2 * 3);// Vertex Count
+		std::uint16_t vC = valu[0];
+		std::uint16_t qC = valu[1];
+		std::uint16_t tC = valu[2];
+		float furthest;
+		file.read(reinterpret_cast<char*>(&furthest), 4);// Vertex Count
+		//da->furthestPoint = furthest;
+		if (debug) {
+			std::cout << "Points: " << vC << std::endl;
+			std::cout << "Quads: " << qC << std::endl;
+			std::cout << "Triangles: " << tC << std::endl;
+			std::cout << "Furthest: " << furthest << std::endl;
+		}
+
+		int vS = vC * 3;
+		int qS = qC * 4;
+		int tS = tC * 3;
+
+		atByte += 4 * vS + 2 * qS + 2 * tS;
+		if (atByte > fileSize) {
+			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			return Corrupt;
+		}
+
+		float* uV = new float[vS];
+		file.read(reinterpret_cast<char*>(&uV[0]), 4 * vS); // Positions
+
+		std::uint16_t* uQ = new std::uint16_t[qS];
+		file.read(reinterpret_cast<char*>(&uQ[0]), 2 * qS);// Colors
+
+		std::uint16_t* uT = new std::uint16_t[tS];
+		file.read(reinterpret_cast<char*>(&uT[0]), 2 * tS);// Triangles
+
+		if (debug) std::cout << "Vectors" << std::endl;
+		for (int i = 0; i < vC; i++) {
+			//da->points.push_back(glm::vec3(uV[i * 3], uV[i * 3 + 1], uV[i * 3 + 2]));
+			if (debug) std::cout << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
+		}
+		if (debug) std::cout << "Quads" << std::endl;;
+		for (int i = 0; i < qC; i++) {
+			for (int j = 0; j < 4; j++) {
+				//da->quad.push_back(uQ[i * 4 + j]);
+				if (debug) std::cout << uQ[i * 4 + j] << " ";
+			}
+			if (debug) std::cout << std::endl;
+		}
+		if (debug) std::cout << "Triangles" << std::endl;;
+		for (int i = 0; i < tC; i++) {
+			for (int j = 0; j < 3; j++) {
+				//da->quad.push_back(uT[i]);
 				if (debug) std::cout << uQ[i * 3 + j] << " ";
 			}
 			if (debug) std::cout << std::endl;

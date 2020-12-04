@@ -43,13 +43,13 @@ bool ColliderComponent::IsClose(ColliderComponent* c2) {
 
 	return true;
 }
-void ColliderComponent::SetColl(CollData* c) {
+void ColliderComponent::SetData(CollData* data) {
 	isActive = true;
-	coll = c;
+	coll = data;
 	UpdatePoints();
 }
-void ColliderComponent::SetMatrix(glm::mat4 m) {
-	matrix = m;
+void ColliderComponent::SetMatrix(glm::mat4 mat) {
+	matrix = mat;
 	UpdatePoints();
 }
 /*

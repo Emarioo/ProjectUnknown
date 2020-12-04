@@ -5,6 +5,7 @@
 #include <string>
 #include "Rendering/BufferContainer.h"
 #include "Rendering/Renderer.h"
+#include "Data/CollData.h"
 
 class Location {
 public:
@@ -24,13 +25,12 @@ public:
 	If collision is activated. Not used in collision class
 	*/
 	bool isActive = false;
-	/*
-	Can be nullptr if data wasn't found
-	*/
+	
 	CollData* coll=nullptr;
-	void SetColl(CollData*);
+	void SetData(CollData* data);
+
 	glm::mat4 matrix=glm::mat4(1);
-	void SetMatrix(glm::mat4);
+	void SetMatrix(glm::mat4 mat);
 	/*
 	Real world points
 	*/

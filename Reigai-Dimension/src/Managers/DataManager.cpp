@@ -42,6 +42,21 @@ namespace dManager {
 			return &animations[name];
 		return nullptr;
 	}
+	// Bone
+	std::unordered_map<std::string, BoneData> bones;
+	void AddBone(const std::string& name, const std::string& path) {
+		bones[name] = BoneData();
+		int err = fManager::LoadBone(&bones[name], path);
+		if (err != fManager::Success)
+			bones[name].hasError = true;
+	}
+	BoneData* GetBone(const std::string& name) {
+		if (bones.count(name) == 0) {
+			bug::out + bug::RED + "Cannot find BoneData '" + name + "'\n";
+		} else if (!bones[name].hasError)
+			return &bones[name];
+		return nullptr;
+	}
 	// Mesh
 	std::unordered_map<std::string, MeshData> meshes;
 	void AddMesh(const std::string& name, const std::string& path) {

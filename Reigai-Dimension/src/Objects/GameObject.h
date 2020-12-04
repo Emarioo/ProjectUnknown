@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Components/AnimationComponent.h"
-#include "Components/MetaData.h"
+//#include "Components/AnimationComponent.h"
+//#include "Components/BoneComponent.h"
+#include "Components/MetaComponent.h"
+#include "Components/ColliderComponent.h"
 
-#include "Data/DataManager.h"
+#include "Managers/DataManager.h"
 
 class GameObject{
 public:
@@ -20,14 +22,11 @@ public:
 	std::string name;
 	void SetName(std::string name);
 	std::string& GetName();
-	//MeshData* meshData=nullptr;
-	int weight = 1;
-	std::string standard_hitbox;
 
+	int weight = 1;
 
 	float proximity = 40;
 
-	//void SetHitbox(std::string);
 	virtual void Update(float delta);
 	virtual void PreComponents();
 	virtual std::vector<ColliderComponent*> GetColliders();
@@ -44,7 +43,7 @@ public:
 	glm::vec3 WillCollide(GameObject* o1,float delta);
 
 	void MetaUpdate(float delta);
-	MetaData metaData;
+	MetaComponent metaData;
 	bool hasVelocity = false;
 	bool renderHitbox = false;
 	bool renderMesh = true;

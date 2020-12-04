@@ -4,25 +4,26 @@ ClientPlayer::ClientPlayer() {
 	name = "Player";
 	weight = 1;
 
-	pbody.SetMesh(dManager::GetMesh("player_body"));
-	dManager::AddComponent(&pbody);
-	phead.SetMesh(dManager::GetMesh("player_head"));
-	dManager::AddComponent(&phead);
-	pruarm.SetMesh(dManager::GetMesh("player_ruarm"));
-	dManager::AddComponent(&pruarm);
-	prlarm.SetMesh(dManager::GetMesh("player_rlarm"));
-	dManager::AddComponent(&prlarm);
+	//animation.SetData(dManager::GetAnim("player_idle"));
 
-	// Change into blender generated collider for players
-	hitbox.SetColl(dManager::AddColl("ClientPlayer"));
-	hitbox.MakeCube(0, -0.5, 0, 1, 3, 1);
+	//bone.SetData(dManager::GetBone("player_bone"));
+	//bone.SetAnim(&animation);
+	animation.SetData(dManager::GetAnim(""));
+	bone.SetAnim(&animation);
+	bone.SetBone(dManager::GetBone(""));
+	mesh.AddMesh(dManager::GetMesh("player_body"));
+	mesh.SetBone(&bone);
+	dManager::AddComponent(&mesh);
 
-	idle.SetAnim(dManager::GetAnim("player_idle"));
+	//collider.SetData(dManager::AddColl("ClientPlayer"));
+	//collider.MakeCube(0, -0.5, 0, 1, 3, 1);
 }
 void ClientPlayer::SetCamera(Camera* c) {
 	camera = c;
 }
 void ClientPlayer::PreComponents() {
+	
+	/*
 	Location body;
 	body.Translate(position);
 	body.Rotate(rotation);
@@ -38,15 +39,19 @@ void ClientPlayer::PreComponents() {
 	pruarm.SetMatrix(arm.mat());
 
 	arm.Translate(glm::vec3(0, -0.814433, 0));
-	prlarm.SetMatrix(arm.mat());
+	prlarm.SetMatrix(arm.mat());*/
 }
 std::vector<ColliderComponent*> ClientPlayer::GetColliders() {
 	std::vector<ColliderComponent*> out;
-	out.push_back(&hitbox);
+	//out.push_back(&collider);
 	return out;
 }
 void ClientPlayer::Update(float delta) {
-
+	animation.Update(delta);
+	Location body;
+	body.Translate(position);
+	body.Rotate(rotation);
+	mesh.matrices[0] = body.mat();
 }
 bool camToggle = false;
 bool moveToggle = false;
@@ -90,15 +95,8 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 				moveToggle = false;
 			}
 		}
-		//std::cout << camSpeed << std::endl;
 		if (true||freeCam&&moveCam) {
-			/*
-			*velX = 0;
-			*velY = 0;
-			*velZ = 0;
-			*/
 			float speed = camSpeed;
-			//bug::out + 5 + bug::end;
 			if (GetKeyState(VK_LSHIFT) < 0) {
 				speed = camFastSpeed;
 			}
@@ -129,11 +127,9 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 				move.z += speed;
 			}
 			if (GetKeyState('D') < 0) {
-				//bug::out + speed + bug::end;
 				move.x += speed;
 			}
 			if (GetKeyState('A') < 0) {
-				//bug::out + speed + bug::end;
 				move.x -= speed;
 			}
 			if (GetKeyState(VK_SHIFT) < 0) {
@@ -147,7 +143,6 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 			}
 			if (GetKeyState(VK_SPACE) < 0) {
 				if (onGround) {
-					// *velY = jumpForce;
 
 					onGround = false;
 				}
@@ -176,11 +171,10 @@ glm::vec3 ClientPlayer::Movement(float delta) {
 			*/
 		}
 	}
-	//bug::out + move.x + bug::end;
 	// Rought way of calculation look vector and movement
 	glm::vec3 nmove(move.z*glm::sin(rotation.y) + move.x*glm::sin(rotation.y + glm::pi<float>() / 2), move.y,
 		move.z*glm::cos(rotation.y) + move.x*glm::cos(rotation.y + glm::pi<float>() / 2));
-	//bug::out + "2 " + nmove + '\n';
+
 	/*
 	if (!freeCam||!moveCam) {
 		nmove.x += *velX;

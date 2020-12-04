@@ -42,9 +42,9 @@ public:
 };
 
 
-class MetaData {
+class MetaComponent {
 public:
-	MetaData();
+	MetaComponent();
 
 	std::vector<MetaStrip> meta;
 	int AddMeta(MetaStrip); // TODO: Fix so you can't add the same metadata

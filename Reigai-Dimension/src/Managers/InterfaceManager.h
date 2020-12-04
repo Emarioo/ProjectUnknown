@@ -1,6 +1,7 @@
 #pragma once
 
-#include "RefManager.h"
+#include "Managers/DataManager.h"
+#include "Gui/IElem.h"
 #include "Gui/WorldItem.h"
 //#include "Gui/ServerItem.h"
 

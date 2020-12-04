@@ -1,8 +1,9 @@
 #include "MeshComponent.h"
 
-void MeshComponent::SetMesh(MeshData* m) {
-	mesh = m;
+void MeshComponent::AddMesh(MeshData* mesh) {
+	meshes.push_back(mesh);
+	matrices.push_back(glm::mat4(1));
 }
-void MeshComponent::SetMatrix(glm::mat4 m) {
-	matrix = m;
+void MeshComponent::SetBone(BoneComponent* comp) {
+	bone = comp;
 }

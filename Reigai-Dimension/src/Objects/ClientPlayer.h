@@ -25,12 +25,10 @@ public:
 	bool doMove;
 	glm::vec3 Movement(float delta);
 
-	MeshComponent phead;
-	MeshComponent pbody;
-	MeshComponent pruarm;
-	MeshComponent prlarm;
-	ColliderComponent hitbox;
-	AnimationComponent idle;
+	MeshComponent mesh;
+	BoneComponent bone;
+	AnimationComponent animation;
+	ColliderComponent collider;
 
 	bool freeCam = false;
 	bool moveCam = true;

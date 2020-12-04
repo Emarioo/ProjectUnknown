@@ -5,32 +5,33 @@ MagicStaff::MagicStaff(float x,float y,float z) {
 	SetName("MagicStaff");
 
 	// Load meshes
-	staff.SetMesh(dManager::GetMesh("staff"));
+	staff.AddMesh(dManager::GetMesh("staff"));
 	dManager::AddComponent(&staff);
-	fireball.SetMesh(dManager::GetMesh("fireball"));
+	fireball.AddMesh(dManager::GetMesh("fireball"));
 	dManager::AddComponent(&fireball);
 
 	// Load animations
-	idle.SetAnim(dManager::GetAnim("idle"));
-	idle.running = true;
+	//idle.SetData(dManager::GetAnim("idle"));
+	//idle.running = true;
 
 	// Load colliders
 
 }
 
 void MagicStaff::PreComponents() {
-	Location body;
+	/*Location body;
 	body.Translate(GetPos());
 	body.Rotate(GetRot());
 	staff.SetMatrix(body.mat());
 	
-	body.Rotate(idle.GetRot("fireball"));
-	body.Translate(idle.GetPos("fireball"));
+	//body.Rotate(idle.GetRot("fireball"));
+	//body.Translate(idle.GetPos("fireball"));
 	fireball.SetMatrix(body.mat());
+	*/
 
 }
 void MagicStaff::Update(float delta) {
-	idle.Update(delta);
+	//idle.Update(delta);
 }
 std::vector<ColliderComponent*> MagicStaff::GetColliders() {
 	std::vector<ColliderComponent*> out;

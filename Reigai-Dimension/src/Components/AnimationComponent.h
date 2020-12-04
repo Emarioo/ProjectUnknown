@@ -6,16 +6,16 @@
 class AnimationComponent {
 public:
 	AnimationComponent() {}
-	AnimationComponent(AnimData* anim);
-	void SetAnim(AnimData* anim);
+	void SetData(AnimData* data);
 
 	AnimData* data=nullptr;
 	float frame=0;
-	float fps=60;
+	float speed=24; // per second
 	bool running=false;
 	int GetFrame();
 	void Update(float delta);
-	glm::vec3 GetPos(std::string o);
-	glm::vec3 GetRot(std::string o);
-	glm::vec3 GetScale(std::string o);
+	/*
+	Can cause index out of range
+	*/
+	glm::mat4 GetTransform(int index);
 };

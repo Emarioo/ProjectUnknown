@@ -7,12 +7,13 @@
 #include <sstream>
 #include <string>
 
-#include "ExtraFunc.h"
+#include "Utility/ExtraFunc.h"
 
 #include "Data/AnimData.h"
 #include "Data/MeshData.h"
 #include "Data/CollData.h"
-#include "Debugger.h"
+#include "Data/BoneData.h"
+#include "Utility/Debugger.h"
 
 namespace fManager {
 	enum {
@@ -49,4 +50,9 @@ namespace fManager {
 	Prints out any error (NotFound, Corrupt)
 	*/
 	int LoadColl(CollData* da, std::string path);
+	/*
+	Parameter "path" is automaticly using .bone format
+	Prints out any error (NotFound, Corrupt)
+	*/
+	int LoadBone(BoneData* da, std::string path);
 }

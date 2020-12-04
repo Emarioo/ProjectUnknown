@@ -2,9 +2,9 @@
 
 #include <unordered_map>
 #include "World/Dimension.h"
-#include "AnimData.h"
 #include "Components/MeshComponent.h"
 #include "Components/ColliderComponent.h"
+#include "Managers/FileManager.h"
 #include <vector>
 
 #include "Utility/Debugger.h"
@@ -36,6 +36,13 @@ namespace dManager {
 	returns nullptr if name doesn't exist
 	*/
 	AnimData* GetAnim(const std::string& name);
+
+	// Bone
+	void AddBone(const std::string& name, const std::string& path);
+	/*
+	returns nullptr if name doesn't exist
+	*/
+	BoneData* GetBone(const std::string& name);
 
 	// Mesh
 	void AddMesh(const std::string& name, const std::string& path);

@@ -12,7 +12,7 @@
 #include "glm/gtx/transform.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Shader.h"
-#include "Utility/FileManager.h"
+#include "Managers/FileManager.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
 

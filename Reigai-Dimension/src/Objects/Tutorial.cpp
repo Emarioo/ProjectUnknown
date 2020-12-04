@@ -5,14 +5,14 @@ Tutorial::Tutorial(float x, float y, float z) {
 	SetName("Tutorial");
 
 	// Load meshes
-	parkour.SetMesh(dManager::GetMesh("parkour"));
+	parkour.AddMesh(dManager::GetMesh("parkour"));
 	dManager::AddComponent(&parkour);
 
 	// Load animations
 
 	// Load colliders
-	collider.SetColl(dManager::GetColl("parkour"));
-	dManager::AddComponent(&collider);
+	//collider.SetData(dManager::GetColl("parkour"));
+	//dManager::AddComponent(&collider);
 
 }
 void Tutorial::PreComponents() {
@@ -20,13 +20,13 @@ void Tutorial::PreComponents() {
 	body.Translate(GetPos());
 	body.Rotate(GetRot());
 
-	parkour.SetMatrix(body.mat());
+	//parkour.SetMatrix(body.mat());
 }
 void Tutorial::Update(float delta) {
 	
 }
 std::vector<ColliderComponent*> Tutorial::GetColliders() {
 	std::vector<ColliderComponent*> out;
-	out.push_back(&collider);
+	//out.push_back(&collider);
 	return out;
 }

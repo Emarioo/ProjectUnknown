@@ -15,8 +15,8 @@
 #include "Chat.h"
 #include "Utility/GameOptions.h"
 
-#include "InterfaceManager.h"
-#include "ObjectManager.h"
+#include "Managers/InterfaceManager.h"
+#include "Managers/ObjectManager.h"
 
 #include "MagicEditor.h"
 
@@ -38,6 +38,7 @@ namespace gamecore {
 		dManager::AddMesh("player_head", "assets/meshes/Head");
 		dManager::AddMesh("player_ruarm", "assets/meshes/RUArm");
 		dManager::AddMesh("player_rlarm", "assets/meshes/RLArm");
+
 		
 		renderer::AddTexture("noise", "assets/textures/noise");
 		dManager::AddMesh("parkour", "assets/meshes/Parkour");
@@ -79,6 +80,7 @@ namespace gamecore {
 
 		oManager::GetPlayer()->renderHitbox = true;
 
+		/*
 		oManager::AddObject(new MagicStaff(0, 0, -10));
 		Tutorial* tut = new Tutorial(0, 0, 0);
 		tut->renderHitbox = true;
@@ -87,7 +89,7 @@ namespace gamecore {
 		OTemplate* temp = new OTemplate(0, 5, 0);
 		temp->renderHitbox = true;
 		oManager::AddObject(temp);
-
+		*/
 		/*
 		Cube* cube = new Cube(0,0,0,10,2,10,0.4,0.8,0.9,1);
 		cube->SetName("Flat");
@@ -360,22 +362,48 @@ namespace gamecore {
 		renderer::SwitchBlendDepth(false);
 		renderer::BindShader(MaterialType::ColorMat);
 		for (MeshComponent* m : *dManager::GetMeshComponents()) {
-			if (m->mesh != nullptr) {
-				if (m->mesh->material == MaterialType::ColorMat) {
-					renderer::DrawMesh(m->mesh, m->matrix);
-				}
-			} else {
-				if (!m->hasError) {
-					bug::out + bug::RED + "MeshData in MeshComponent is nullptr\n";
-					m->hasError = true;
+			for (int i = 0; i < m->meshes.size();i++) {
+				MeshData* mesh = m->meshes[i];
+				if (mesh != nullptr) {
+					if (mesh->material == MaterialType::ColorMat) {
+						renderer::DrawMesh(mesh, m->matrices[i]);
+					}
+				} else {
+					if (!m->hasError) {
+						bug::out + bug::RED + "MeshData in MeshComponent is nullptr\n";
+						m->hasError = true;
+					}
 				}
 			}
 		}
 		renderer::BindShader(MaterialType::TextureMat);
 		for (MeshComponent* m : *dManager::GetMeshComponents()) {
-			if (m->mesh != nullptr) {
-				if (m->mesh->material == MaterialType::TextureMat) {
-					renderer::DrawMesh(m->mesh, m->matrix);
+			for (int i = 0; i < m->meshes.size(); i++) {
+				MeshData* mesh = m->meshes[i];
+				if (mesh != nullptr) {
+					if (mesh->material == MaterialType::TextureMat) {
+						renderer::DrawMesh(mesh, m->matrices[i]);
+					}
+				}
+			}
+		}
+		renderer::BindShader(MaterialType::AnimationMat);
+		for (MeshComponent* m : *dManager::GetMeshComponents()) {
+			for (int i = 0; i < m->meshes.size(); i++) {
+				MeshData* mesh = m->meshes[i];
+				if (mesh != nullptr) {
+					if (mesh->material == MaterialType::AnimationMat) {
+						if (m->bone != nullptr) {
+							int count = m->bone->bone->count;
+							glm::mat4* mats = new glm::mat4[count];
+							m->bone->GetBoneTransforms(mats);
+							for (int i = 0; i < count;i++) {
+								renderer::GetShader(MaterialType::AnimationMat)->SetUniformMat4fv("uBoneTransforms["+i+std::string("]"), mats[i]);
+							}
+							delete mats;
+						}
+						renderer::DrawMesh(mesh, m->matrices[i]);// Could be causing problems by not giving it an empty matrix
+					}
 				}
 			}
 		}

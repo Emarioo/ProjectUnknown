@@ -12,6 +12,6 @@ public:
 	MeshComponent staff;
 	MeshComponent fireball;
 
-	AnimationComponent idle;
+	//AnimationComponent idle;
 
 };

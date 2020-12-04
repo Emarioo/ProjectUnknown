@@ -113,6 +113,8 @@ namespace renderer {
 		ObjectProjection(projMatrix * glm::inverse(trans));
 		BindShader(MaterialType::InterfaceMat);
 		ObjectProjection(projMatrix * glm::inverse(trans));
+		BindShader(MaterialType::AnimationMat);
+		ObjectProjection(projMatrix * glm::inverse(trans));
 		BindShader(MaterialType::OutlineMat);
 		ObjectProjection(projMatrix * glm::inverse(trans));
 	}
@@ -235,6 +237,7 @@ namespace renderer {
 	Shader colorShader;
 	Shader textureShader;
 	Shader interfaceShader;
+	Shader animationShader;
 	Shader outlineShader;
 	Shader* currentShader = nullptr;
 	void Init() {
@@ -304,6 +307,7 @@ namespace renderer {
 		colorShader.Init("assets/shaders/color");
 		textureShader.Init("assets/shaders/texture");
 		interfaceShader.Init("assets/shaders/interface");
+		animationShader.Init("assets/shaders/animation");
 		outlineShader.Init("assets/shaders/outline");
 		//terrainShader.Init("assets/shaders/terrain");
 
@@ -463,7 +467,9 @@ namespace renderer {
 			currentShader = &textureShader;
 		}else if (type == MaterialType::InterfaceMat) {
 			currentShader = &interfaceShader;
-		}else if (type == MaterialType::OutlineMat) {
+		} else if (type == MaterialType::AnimationMat) {
+			currentShader = &animationShader;
+		} else if (type == MaterialType::OutlineMat) {
 			currentShader = &outlineShader;
 		}
 		if (currentShader != nullptr) {
@@ -488,10 +494,11 @@ namespace renderer {
 			return &textureShader;
 		} else if (type == MaterialType::InterfaceMat) {
 			return &interfaceShader;
+		} else if (type == MaterialType::AnimationMat) {
+			return &animationShader;
 		} else if (type == MaterialType::OutlineMat) {
 			return &outlineShader;
 		}
-		//std::cout << "null ey\n";
 		return nullptr;
 	}
 	void GuiTransform(float x, float y) {
@@ -526,7 +533,6 @@ namespace renderer {
 			if(meshData->material==MaterialType::TextureMat)
 				BindTexture(meshData->texture);
 			
-			//bug::out + meshData->tex + bug::end;
 			meshData->container.Draw();
 		}
 	}

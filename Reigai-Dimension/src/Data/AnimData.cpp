@@ -1,55 +1,52 @@
 #include "AnimData.h"
 
-Keyframe::Keyframe(char p, unsigned short f, float v)
-	: polation(p), frame(f), value(v) {
-
+glm::mat4 Keyframe::getLocalTransform(){
+	glm::mat4 m(1);
+	m *= glm::translate(position);
+	//m *= glm::toMat4(rotation);
+	return m;
 }
-bool FCurves::CurveExist(int n) {
-	unsigned short curveInt = fCurves;
-	for (int i = 8; i >= 0; i--) {
-		if (0 <= curveInt - pow(2, i)) {
-			curveInt -= pow(2, i);
-			if (i == n)
-				return 1;
-		} else {
-			if (i == n)
-				return 0;
-		}
-	}
+glm::mat4 Keyframe::getLocalTransform(Keyframe* b, float progress) {
+	return glm::mat4(1) * glm::translate(position * (1 - progress) + b->position * progress);// *glm::toMat4(glm::mix(rotation, b->rotation, progress));
 }
+/*
 float bezier(float x, float xStart, float xEnd, float y0, float y1) {
 	float t = (x - xStart) / (xEnd - xStart);
 	float va = (pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) * y0 + (3 * (1 - t) * pow(t, 2) + pow(t, 3)) * y1;
 	return va;
 }
-float FCurve::GetValue(int frame) {
-	float v[2]{ 0,0 };
-	int f[2]{ 0,0 };
-	char p = ' ';
-	for (Keyframe k : keyframes) {
+*/
+float bezier(float x, float xStart, float xEnd) {
+	float t = (x - xStart) / (xEnd - xStart);
+	float va = (pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) + (3 * (1 - t) * pow(t, 2) + pow(t, 3));
+	return va;
+}
+glm::mat4 Transforms::GetValue(int frame) {
+	Keyframe* a=nullptr;
+	Keyframe* b=nullptr;
+	for (Keyframe k : frames) {
 		if (k.frame <= frame) {
-			f[0] = k.frame;
-			v[0] = k.value;
-			p = k.polation;
+			a = &k;
 		}
 		if (k.frame >= frame) {
-			f[1] = k.frame;
-			v[1] = k.value;
+			b = &k;
 			break;
 		}
 	}
-	if (v[0] == v[1]) {
-		return v[0];
+	if (a == b) {
+		return a->getLocalTransform();
 	}
-
-	float out = 0;
-	if (p == 'C') {
-		out = v[0];
-	} else if (p == 'L') {
-		float t = ((float)frame - f[0]) / (f[1] - f[0]);
-		out = (1 - t) * v[0] + t * v[1];
-	} else if (p == 'B') {
-		out = bezier(frame, f[0], f[1], v[0], v[1]);
+	if (a != nullptr&&b!=nullptr) {
+		if (a->polation == 'C') {
+			return a->getLocalTransform();
+		} else if (a->polation == 'L') {
+			float p = ((float)frame - a->frame) / (b->frame - a->frame);
+			return a->getLocalTransform(b, p);
+		} else if (a->polation == 'B') {
+			float p = bezier((float)frame, a->frame, b->frame);
+			return a->getLocalTransform(b, p);
+		}
+		return a->getLocalTransform();
 	}
-	return out;
+	return glm::mat4(1);
 }

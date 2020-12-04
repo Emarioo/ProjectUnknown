@@ -1,4 +1,4 @@
-#include "MetaData.h"
+#include "MetaComponent.h"
 
 #include <iostream>
 
@@ -18,10 +18,10 @@ MetaStrip::MetaStrip(MetaIdentity i0, MetaIdentity i1, MetaIdentity i2) {
 	types[2] = i2;
 }
 
-MetaData::MetaData() {
+MetaComponent::MetaComponent() {
 
 }
-int MetaData::AddMeta(MetaStrip m) {// Return 0 = Success, 1 = MetaStrip Exists
+int MetaComponent::AddMeta(MetaStrip m) {// Return 0 = Success, 1 = MetaStrip Exists
 	MetaStrip* vel=nullptr;
 	for (int i = 0; i < meta.size(); i++) {
 		if (meta[i].types[0] == Velocity && meta[i].types[1] == m.types[1] && meta[i].types[2] == None) {
@@ -45,7 +45,7 @@ int MetaData::AddMeta(MetaStrip m) {// Return 0 = Success, 1 = MetaStrip Exists
 	//std::cout << "seems fine "<<std::endl;
 	return 0;
 }
-void MetaData::DelMeta(MetaIdentity i0, MetaIdentity i1,MetaIdentity i2) {
+void MetaComponent::DelMeta(MetaIdentity i0, MetaIdentity i1,MetaIdentity i2) {
 	for (int i = 0; i < meta.size(); i++) {
 		if (meta[i].types[0] == i0 && meta[i].types[1]==i1&& meta[i].types[2]==i2) {
 			meta.erase(meta.begin() + i);
@@ -53,7 +53,7 @@ void MetaData::DelMeta(MetaIdentity i0, MetaIdentity i1,MetaIdentity i2) {
 		}
 	}
 }
-MetaStrip* MetaData::GetMeta(MetaIdentity i0, MetaIdentity i1, MetaIdentity i2) {// Returns nullptr if MetaStrip doesn't exist
+MetaStrip* MetaComponent::GetMeta(MetaIdentity i0, MetaIdentity i1, MetaIdentity i2) {// Returns nullptr if MetaStrip doesn't exist
 	for (int i = 0; i < meta.size(); i++) {
 		if (meta[i].types[0] == i0 && meta[i].types[1] == i1 && meta[i].types[2] == i2) {
 			return &meta[i];

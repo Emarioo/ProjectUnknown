@@ -41,6 +41,10 @@ void BufferContainer::SetAttrib(unsigned int loc, unsigned int count, unsigned i
 	glEnableVertexArrayAttrib(va, loc);
 	glVertexAttribPointer(loc, count, GL_FLOAT, GL_FALSE, stride * sizeof(float), (const void*)(offset * sizeof(float)));
 }
+void BufferContainer::SetAttribI(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
+	glEnableVertexArrayAttrib(va, loc);
+	glVertexAttribIPointer(loc, count, GL_INT, stride * sizeof(int), (const void*)(offset * sizeof(int)));
+}
 void BufferContainer::SubIB(unsigned int offset, unsigned int icount, void* data) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, icount*sizeof(unsigned int), data);
