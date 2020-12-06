@@ -8,6 +8,7 @@
 //#include "glm/gtx/component_wise.hpp"
 //#include "glm/gtx/quaternion.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include <unordered_map>
 
 class Keyframe {
 public:
@@ -31,7 +32,8 @@ public:
 class AnimData {
 public:
 	AnimData(){}
-	std::vector<std::string,Transforms> bones;
+	// unordered_map?
+	std::vector<Transforms> bones;
 
 	unsigned short frameStart = 0;
 	unsigned short frameEnd = 0;

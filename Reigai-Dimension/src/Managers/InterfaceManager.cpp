@@ -3,7 +3,7 @@
 namespace iManager {
 
 	bool pauseMode;
-	bool GetPauseMode() {
+	bool IsPauseMode() {
 		return pauseMode;
 	}
 	/*
@@ -27,28 +27,26 @@ namespace iManager {
 	IPos worldListOffset;
 	WorldItem* selectedWorld;
 	std::vector<WorldItem> worldItems;
-	std::vector<IElem> elements;
-	void AddElement(IElem e) {
-		elements.push_back(e);
+
+	std::unordered_map<std::string, IElem*> elements;
+	void AddElement(IElem* e) {
+		elements[e->name]=e;
 	}
 	IElem* GetElement(std::string s) {
-		for (int i = 0; i < elements.size(); i++) {
-			if (s == elements.at(i).name) {
-				return &elements.at(i);
-			}
-		}
+		if (elements.count(s) > 0)
+			return elements[s];
 		return nullptr;
 	}
-	void UpdateInterface() {
+	void UpdateInterface(float delta) {
 		//if (GetMenu() == Startup) {
-		for (int i = 0; i < elements.size(); i++) {
-			elements.at(i).Update();
+		for (auto p : elements) {
+			p.second->Update(delta);
 		}
 		//}
 	}
 	void KeyEvent(int key, int action) {
 		//std::cout << "KeyEvent " << key << " " << action << std::endl;
-		if (dManager::GetMenu() == Gameplay) {
+		if (dManager::GetGameState() == GameState::play) {
 			if (action == 1) {
 				if (key == GLFW_KEY_O) {
 					ReadOptions();
@@ -59,16 +57,18 @@ namespace iManager {
 					IElem* el = GetElement("editor_script");
 					if (el != nullptr) {
 						if (!el->selected) {
+							/*
 							if (HasTag(8)) {
-								DelTag(8);
+								//DelTag(8);
 
 								renderer::SetCursorMode(false);
 								// Pause game?
 							} else {
-								AddTag(8);
+								//AddTag(8);
 								renderer::SetCursorMode(true);
 								// Other things?
 							}
+							*/
 						}
 					}
 				}
@@ -77,53 +77,62 @@ namespace iManager {
 						SetPauseMode(false);
 					}
 				} else {
-					if (!HasTag(8)) {
+					//if (!HasTag(8)) {
 						if (key == GLFW_KEY_ESCAPE) {
 							SetPauseMode(true);
 
 						}
-					}
+					//}
 				}
 			}
 		} //else if (GetMenu() == Startup) {
-		for (int i = 0; i < elements.size(); i++) {
+		/*for (int i = 0; i < elements.size(); i++) {
 			elements.at(i).Type(key, action);
 
+		}*/
+		for (auto p : elements) {
+			IInput* re = reinterpret_cast<IInput*>(p.second);
+			if(re!=nullptr)
+				re->Type(key, action);
 		}
 		//}
 	}
 	void MouseEvent(double mx, double my, int button, int action) {// B0 > left | B1 > right | b2 > mid
 		//std::cout << "MouseEvent " << mx << " "<<my << " "<< button << " " << action << std::endl;
-		if (dManager::GetMenu() == Gameplay) {
+		if (dManager::GetGameState() == GameState::play) {
 			if (action == 0) {
-				if (pauseMode && !HasTag(8)) {
+				if (pauseMode) {
 					SetPauseMode(false);
 				}
 			}
 		}
-		for (int i = 0; i < elements.size(); i++) {
-			if (elements.at(i).Click(mx, my, action)) {
+		
+		for (auto p : elements) {
+			//bug::out + "WOOSH" + bug::end;
+			p.second->ClickEvent(mx, my, action);
+			/*
+			if (p.second->Click(mx, my, action)) {
 				for (int j = 0; j < worldItems.size(); j++) {
-					if (worldItems.at(j).id == elements.at(i).name) {
+					if (worldItems.at(j).id == p.second->name) {
 						selectedWorld = &worldItems.at(j);
 						break;
 					}
 				}
-			}
+			}*/
 		}
 	}
 	void DragEvent(double mx, double my) {
 		//if (GetMenu() == Startup) {
-		for (int i = 0; i < elements.size(); i++) {
-			elements.at(i).Hover(mx, my);
+		for (auto p : elements) {
+			p.second->HoverEvent(mx, my);
 		}
 		//}
 		//std::cout << "DragEvent " << mx << " "<<my << std::endl;
 	}
 	void ResizeEvent(int width, int height) {
 		//std::cout << "ResizeEvent " << width<< " "<<height << std::endl;
-		for (int i = 0; i < elements.size(); i++) {
-			elements.at(i).Resize(width, height);
+		for (auto p : elements) {
+			p.second->Resize(width, height); // NOT USED
 		}
 	}
 
@@ -131,23 +140,19 @@ namespace iManager {
 		renderer::SwitchBlendDepth(true);
 		renderer::BindShader(MaterialType::InterfaceMat);
 		//if (GetMenu()==Startup) {
-		for (int i = 0; i < elements.size(); i++) {
-			elements.at(i).Draw();
+		for (auto p : elements) {
+			p.second->Draw();
 			//std::cout << elements.at(i).name << std::endl;
 		}
 		//}
 	}
 
 	void PlayFunc() {
-		DelTag(0);
-		AddTag(1);
+		
 	}
 	void EditWorldFunc() {
 		if (selectedWorld == nullptr)
 			return;
-
-		DelTag(2);
-		AddTag(3);
 
 		IElem* e = GetElement("worldName");
 		e->SetText(selectedWorld->name);
@@ -155,9 +160,9 @@ namespace iManager {
 	void AddWorld(std::string name, std::string id) {
 		WorldItem item(name, id);
 		worldItems.push_back(item);
-
+		/*
 		IElem it(id);
-		it.AddTag(1);
+		//it.AddTag(1);
 		it.Dimi(575, 350 - (worldItems.size() - 1) * 110, 300, 100);
 		it.Tex(0.3, 0.8, 8, 1);
 		it.Text(name, &font1, 1, 1, 1, 1);
@@ -165,7 +170,8 @@ namespace iManager {
 		a->Fade(0.2, 0.6, 0.6, 1, 0.1);
 		a->Func(EditWorldFunc, 0.15);
 		// Action?
-		AddElement(it);
+		//AddElement(it);
+		*/
 	}
 	void JoinWorldFunc() {
 		if (selectedWorld == nullptr)
@@ -236,7 +242,7 @@ namespace iManager {
 		AddDimension("classic",dim);
 		SetDimension("classic");
 		*/
-		dManager::SetMenu(Menu::Gameplay);
+		//dManager::SetGameState(GameState::play);
 	}
 	void SaveWorldFunc() {
 		if (selectedWorld == nullptr)
@@ -250,11 +256,8 @@ namespace iManager {
 		selectedWorld->name = e->GetText();
 
 
-		DelTag(3);
 	}
 	void AddWorldFunc() {
-		DelTag(3);
-		AddTag(2);
 
 		IElem* e = GetElement("worldName");
 		e->SetText("World Name");
@@ -263,30 +266,24 @@ namespace iManager {
 		IElem* e = GetElement("worldName");
 		AddWorld(e->GetText(), SanitizeString(e->GetText()));
 
-		DelTag(2);
 	}
 	void DeleteWorldFunc() {
 		if (selectedWorld == nullptr)
 			return;
 
-		DelTag(2);
-		AddTag(3);
-
 		// Delete WorldItem
 		// Delete Save File
 	}
 	void MainMenuFunc() {
-		DelTag(3);
-		DelTag(2);
-		DelTag(1);
-		AddTag(0);
+		
 	}
+
 	void Init() {
 		renderer::SetCallbacks(KeyEvent, MouseEvent, DragEvent, ResizeEvent, FocusEvent);
 
 		//font1.Data("assets/fonts/verdana38");
 		font1.Data("assets/fonts/consolas42");
-
+		/*
 		IAction* a;
 
 		//AddTag(0);
@@ -299,7 +296,7 @@ namespace iManager {
 		a->Fade(0.2, 0.3, 0.6, 1, 0.1);
 		a->Func(PlayFunc, 0.15);
 		AddElement(play);
-
+		
 		IElem wb("worldBack");
 		wb.AddTag(1);
 		wb.Dimi(575, 50, 400, 750);
@@ -402,5 +399,6 @@ namespace iManager {
 
 		selectedWorld = &worldItems.at(0);
 		JoinWorldFunc();
+		*/
 	}
 }

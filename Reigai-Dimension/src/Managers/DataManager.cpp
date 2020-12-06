@@ -4,18 +4,14 @@
 #include <Windows.h>
 
 namespace dManager {
-	Menu currentMenu = Startup;
-	Menu GetMenu() {
-		return currentMenu;
+	GameState currentState = menu;
+	GameState GetGameState() {
+		return currentState;
 	}
-	void SetMenu(Menu m) {
-		currentMenu = m;
-	}/*
-	ClientPlayer* player;
-	ClientPlayer* GetPlayer() {
-		return player;
-	}*/
-	// Dimension
+	void SetGameState(GameState s) {
+		currentState = s;
+	}
+
 	std::unordered_map<std::string, Dimension> dimensions;
 	Dimension* loadedDim = nullptr;
 	void AddDimension(const std::string& s, Dimension dim) {
@@ -27,7 +23,7 @@ namespace dManager {
 	void SetDimension(const std::string& s) {
 		loadedDim = &dimensions[s];
 	}
-	// Animation
+	
 	std::unordered_map<std::string, AnimData> animations;
 	void AddAnim(const std::string& name, const std::string& path) {
 		animations[name] = AnimData();
@@ -37,12 +33,12 @@ namespace dManager {
 	}
 	AnimData* GetAnim(const std::string& name) {
 		if (animations.count(name) == 0) {
-			bug::out + bug::RED + "Cannot find AnimData '" + name + "'\n";
+			bug::out < bug::RED < "Cannot find AnimData '" < name < "'\n";
 		} else if (!animations[name].hasError)
 			return &animations[name];
 		return nullptr;
 	}
-	// Bone
+	
 	std::unordered_map<std::string, BoneData> bones;
 	void AddBone(const std::string& name, const std::string& path) {
 		bones[name] = BoneData();
@@ -52,12 +48,12 @@ namespace dManager {
 	}
 	BoneData* GetBone(const std::string& name) {
 		if (bones.count(name) == 0) {
-			bug::out + bug::RED + "Cannot find BoneData '" + name + "'\n";
+			bug::out < bug::RED < "Cannot find BoneData '" < name < "'\n";
 		} else if (!bones[name].hasError)
 			return &bones[name];
 		return nullptr;
 	}
-	// Mesh
+	
 	std::unordered_map<std::string, MeshData> meshes;
 	void AddMesh(const std::string& name, const std::string& path) {
 		meshes[name] = MeshData();
@@ -67,7 +63,7 @@ namespace dManager {
 	}
 	MeshData* GetMesh(const std::string& name) {
 		if (meshes.count(name) == 0) {
-			bug::out + bug::RED + "Cannot find MeshData '" + name + "'\n";
+			bug::out < bug::RED < "Cannot find MeshData '" < name < "'\n";
 		} else if (!meshes[name].hasError)
 			return &meshes[name];
 		return nullptr;
@@ -82,7 +78,7 @@ namespace dManager {
 			return meshes[name].rotation;
 		return glm::vec3(0, 0, 0);
 	}
-	// Collider
+	
 	std::unordered_map<std::string, CollData> colliders;
 	void AddColl(const std::string& name, const std::string& path) {
 		colliders[name] = CollData();
@@ -96,11 +92,12 @@ namespace dManager {
 	}
 	CollData* GetColl(const std::string& name) {
 		if (colliders.count(name) == 0) {
-			bug::out + bug::RED + "Cannot find CollData '" + name + "'\n";
+			bug::out < bug::RED < "Cannot find CollData '" < name < "'\n";
 		} else if (!colliders[name].hasError)
 			return &colliders[name];
 		return nullptr;
 	}
+
 	std::vector<MeshComponent*> meshComponents;
 	std::vector<ColliderComponent*> collComponents;
 	void AddComponent(MeshComponent* comp) {

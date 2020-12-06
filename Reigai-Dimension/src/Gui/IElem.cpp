@@ -1,131 +1,189 @@
 #include "IElem.h"
 
-std::vector<int> currentTags;
-void AddTag(int t) {
-	for (int i = 0; i < currentTags.size(); i++) {
-		if (t == currentTags.at(i))
-			return;
-	}
-	currentTags.push_back(t);
-}
-bool HasTag(int t) {
-	for (int i = 0; i < currentTags.size(); i++) {
-		if (t == currentTags.at(i))
-			return true;
-	}
-	return false;
-}
-void DelTag(int t) {
-	for (int i = 0; i < currentTags.size();i++) {
-		if (t==currentTags.at(i)) {
-			currentTags.erase(currentTags.begin() + i);
-			return;
-		}
-	}
-}
-void IElem::AddTag(int t) {
-	tags.push_back(t);
-}
-bool IElem::HasTag() {
-	for (int t1 : currentTags) {
-		for (int t2 : tags) {
-			if (t1 == t2) {
-				return true;
+void DimFormat(std::string s, float* out) { // TODO: IElem Dim check for errors in format before they happen
+	std::vector<std::string> split = SplitString(s, ",");
+	if (split.size() == 4) {
+			if (split[0].back() == 'p') {
+				split[0].pop_back();
+				out[0] = 2.f * atoi(split[0].c_str()) / 1920.f;
+			} else {
+				split[0].pop_back();
+				out[0] = atof(split[0].c_str());
 			}
+			if (split[1].back() == 'p') {
+				split[1].pop_back();
+				out[1] = 2.f * atoi(split[1].c_str()) / 1080.f;
+			} else {
+				split[1].pop_back();
+				out[1] = atof(split[1].c_str());
+			}
+			if (split[2].back() == 'p') {
+				split[2].pop_back();
+				out[2] = 2.f * atoi(split[2].c_str()) / 1920.f;
+			} else {
+				split[2].pop_back();
+				out[2] = atof(split[2].c_str());
+			}
+			if (split[3].back() == 'p') {
+				split[3].pop_back();
+				out[3] = 2.f * atoi(split[3].c_str()) / 1080.f;
+			} else {
+				split[3].pop_back();
+				out[3] = atof(split[3].c_str());
+			}
+	} else {
+		bug::out < bug::RED < "Error in Element Format: " < s < bug::end;
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+		out[3] = 0;
+	}
+}
+void Dim2Format(std::string s, float* out) { // TODO: IElem Dim check for errors in format before they happen
+	std::vector<std::string> split = SplitString(s, ",");
+	if (split.size() == 2) {
+		if (split[0].back() == 'p') {
+			split[0].pop_back();
+			out[0] = 2.f * atoi(split[0].c_str()) / 1920.f;
+		} else {
+			split[0].pop_back();
+			out[0] = atof(split[0].c_str());
+		}
+		if (split[1].back() == 'p') {
+			split[1].pop_back();
+			out[1] = 2.f * atoi(split[1].c_str()) / 1080.f;
+		} else {
+			split[1].pop_back();
+			out[1] = atof(split[1].c_str());
+		}
+	} else {
+		bug::out < bug::RED < "Error in Element Format: " < s < bug::end;
+		out[0] = 0;
+		out[1] = 0;
+	}
+}
+void IAction::Func(std::function<void()> f, float time) {
+	func = f;
+	funcS = 1 / time;
+}
+void IAction::Fade(float f0, float f1, float f2, float f3, float time) {
+	fade = true;
+	r = f0;
+	g = f1;
+	b = f2;
+	a = f3;
+	fadeS = 1 / time;
+}
+void IAction::Move(const std::string& xy, float time) {
+	move = true;
+	float arr[2];
+	Dim2Format(xy, arr);
+	x = arr[0];
+	y = arr[1];
+	moveS = 1 / time;
+}
+void IAction::Size(const std::string& wh, float time) {
+	size = true;
+	float arr[2];
+	Dim2Format(wh, arr);
+	w = arr[0];
+	h = arr[1];
+	sizeS = 1 / time;
+}
+void IAction::Update(float delta, bool b) {
+	if (func != nullptr) {
+		if (b || funcT > 0)
+			funcT += funcS * delta;
+		if (funcT >= 1 && funcT < 1 + funcS * delta)
+			func();
+		if (funcT > 1 && !b)
+			funcT = 0;
+	}
+	if (fade) {
+		if (b) {
+			fadeT += fadeS * delta;
+		} else {
+			fadeT -= fadeS * delta;
+		}
+		if (fadeT < 0) {
+			fadeT = 0;
+		} else if (fadeT > 1) {
+			fadeT = 1;
 		}
 	}
-	return false;
-}
-
-void IElem::Dim(float x,float y,float w,float h) {
-	pos.Data(x, y);
-	size.Data(w, h);
-	SetCont();
-	text.ElemWH(size.GetW(), size.GetH());
-}
-void IElem::Dimi(int x,int y,int w,int h) {
-	pos.Data(false, x, y);
-	size.Data(false, w, h);
-	SetCont();
-	text.ElemWH(size.GetW(), size.GetH());
-}
-void IElem::Dimp(int x,int y,int w,int h) {
-	pos.Data(true, x, y);
-	size.Data(true, w, h);
-	SetCont();
-	text.ElemWH(size.GetW(),size.GetH());
-}
-
-void IElem::Tex(std::string name) {
-	texture = name;
-}
-void IElem::Tex(float r, float g, float b, float a) {
-	this->r = r;
-	this->g = g;
-	this->b = b;
-	this->a = a;
-}
-void IElem::Tex(std::string name, float r, float g, float b, float a) {
-	texture = name;
-	this->r = r;
-	this->g = g;
-	this->b = b;
-	this->a = a;
-}
-void IElem::Text(std::string s,Font* f) {
-	text.Setup(f,s.size(),true);
-	text.SetText(s);
-}
-void IElem::Text(std::string s, Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, s.size(), true);
-	text.SetCol(f0, f1, f2, f3);
-	text.SetText(s);
-}
-void IElem::Text(int max, Font* f) {
-	text.Setup(f, max, true);
-}
-void IElem::Text(int max, Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, max, true);
-	text.SetCol(f0, f1, f2, f3);
-}
-void IElem::Text(int max, std::string s,Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, max, true);
-	text.SetCol(f0, f1, f2, f3);
-	text.SetText(s);
-}
-void IElem::SetText(std::string s) {
-	if (text.font!=nullptr) {
-		text.SetText(s);
+	if (move) {
+		if (b) {
+			moveT += moveS * delta;
+			//bug::outs < (moveT) < bug::end;
+		} else {
+			moveT -= moveS * delta;
+			//bug::outs < (-moveS* delta) < bug::end;
+		}
+		if (moveT < 0) {
+			moveT = 0;
+			//bug::outs < ("reset") < bug::end;
+		} else if (moveT > 1) {
+			moveT = 1;
+		}
+		//bug::outs < (moveT) < bug::end;
+	}
+	if (size) {
+		if (b) {
+			sizeT += sizeS * delta;
+		} else {
+			sizeT -= sizeS * delta;
+		}
+		if (sizeT < 0) {
+			sizeT = 0;
+		} else if (sizeT > 1) {
+			sizeT = 1;
+		}
 	}
 }
-void IElem::Typing() {
-	typing = true;
+void IElem::AddTag(bool* b) {
+	tags.push_back(b);
 }
-std::string IElem::GetText() {
-	return text.text;
+bool IElem::HasTags() {
+	for (bool* b : tags) {
+		if (!*b) {
+			return false;
+		}
+	}
+	return true;
 }
 float IElem::GetX() {
-	if(origin!=nullptr)
-		return origin->GetX()+ pos.GetX();
-	return pos.GetX();
+	float out = x + Hover.x * Hover.moveT + Click.x * Click.moveT;
+	for (auto& p : customActions) {
+		//bug::outs < p.second.x<p.second.moveT < bug::end;
+		out += p.second.x * p.second.moveT;
+	}
+	return out;
 }
 float IElem::GetY() {
-	if(origin!=nullptr)
-		return origin->GetY() +pos.GetY();
-	return pos.GetY();
+	float out = y + Hover.y * Hover.moveT + Click.y * Click.moveT;
+	for (auto& p : customActions) {
+		out += p.second.y * p.second.moveT;
+	}
+	return out;
 }
 float IElem::GetW() {
-	return size.GetW();
+	float out = w + Hover.w * Hover.sizeT + Click.w * Click.sizeT;
+	for (auto& p : customActions) {
+		out += p.second.w * p.second.sizeT;
+	}
+	return out;
 }
 float IElem::GetH() {
-	return size.GetH();
+	float out = h + Hover.h * Hover.sizeT + Click.h * Click.sizeT;
+	for (auto& p : customActions) {
+		out += p.second.h * p.second.sizeT;
+	}
+	return out;
 }
 void IElem::Resize(int wi, int he) {
-	if (size.pixelScreen) {
-		SetCont();
-	}
+	//if (size.pixelScreen)	SetCont();
 }
-void IElem::SetCont() {
+void IElem::UpdateCont() {
 	float tw = GetW() / 2;
 	float th = GetH() / 2;
 
@@ -141,8 +199,9 @@ void IElem::SetCont() {
 	};
 	cont.Setup(true, v, 4 * 4, t, 6);
 	cont.SetAttrib(0, 4, 4, 0);
+	text.ElemWH(GetW(), GetH());
 }
-void IElem::SetCont(float w,float h) {
+void IElem::UpdateCont(float w,float h) {
 	float tw = w / 2;
 	float th = h / 2;
 
@@ -153,277 +212,131 @@ void IElem::SetCont(float w,float h) {
 		tw,-th,1,0
 	};
 	cont.SubVB(0, 4 * 4, v);
+	text.ElemWH(GetW(), GetH());
 }
-void IElem::Update() {
-	if (!HasTag())
-		return;
-	HoverEvent.Update(hovering);
-	ClickEvent.Update(clicking);
+
+
+void IElem::Text(const std::string& s, Font* f) {
+	text.Setup(f, s.size(), true);
+	text.SetText(s);
 }
-void IElem::Draw() { // TODO: Optimize this masterpiece of junk
-	if (!HasTag())
-		return;
-	float x = GetX() + HoverEvent.xy.GetX()*HoverEvent.moveT + ClickEvent.xy.GetX()*ClickEvent.moveT;
-	float y = GetY() + HoverEvent.xy.GetY()*HoverEvent.moveT + ClickEvent.xy.GetY()*ClickEvent.moveT;
+void IElem::Text(const std::string& s, Font* f, float f0, float f1, float f2, float f3) {
+	text.Setup(f, s.size(), true);
+	text.SetCol(f0, f1, f2, f3);
+	text.SetText(s);
+}
+void IElem::Text(int max, Font* f) {
+	text.Setup(f, max, true);
+}
+void IElem::Text(int max, const std::string& s, Font* f) {
+	text.Setup(f, max, true);
+	text.SetText(s);
+}
+void IElem::Text(int max, Font* f, float f0, float f1, float f2, float f3) {
+	text.Setup(f, max, true);
+	text.SetCol(f0, f1, f2, f3);
+}
+void IElem::Text(int max, const std::string& s, Font* f, float f0, float f1, float f2, float f3) {
+	text.Setup(f, max, true);
+	text.SetCol(f0, f1, f2, f3);
+	text.SetText(s);
+}
+void IElem::SetText(const std::string& s) {
+	if (text.font != nullptr) {
+		text.SetText(s);
+	}
+}
+std::string IElem::GetText() {
+	return text.text;
+}
+
+void IElem::Update(float delta) {
+	if (!HasTags()) return;
+	Hover.Update(delta,hovering);
+	Click.Update(delta,clicked);
+	for (auto& p : customActions) {
+		//bug::outs < *p.first < bug::end;
+		p.second.Update(delta,*p.first);
+	}
+}
+IAction* IElem::NewAction(bool *b){
+	return &(customActions[b] = IAction());
+	
+}
+float IElem::GetRed() {
+	std::vector<IAction*> actions;
+	actions.push_back(&Hover);
+	actions.push_back(&Click);
+	for (auto& p : customActions) {
+		actions.push_back(&p.second);
+	}
+	float out = 0;
+	float temp = r;
+	for (auto p : actions) {
+		temp *= (1 - p->fadeT);
+	}
+	out += temp;
+	for (auto p : actions){
+		temp = p->r*p->fadeT;
+		for (auto p2 : actions) {
+			if(p==p2)
+				continue;
+			temp *= (1 - p2->fadeT/actions.size());
+		}
+		out += temp;
+	}
+	return out;
+}
+float lastW=0, lastH=0;
+void IElem::DrawNormal() { // TODO: Optimize this masterpiece of junk
+	float x = GetX();// +Hover.x * Hover.moveT + Click.x * Click.moveT;
+	float y = GetY();// +Hover.y * Hover.moveT + Click.y * Click.moveT;
 	renderer::GuiTransform(x,y);
-	float red = r * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.r*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.r*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
-	float green = g * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.g*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.g*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
-	float blue = b * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.b*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.b*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
-	float alpha = a * (1 - HoverEvent.fadeT)*(1 - ClickEvent.fadeT) + HoverEvent.a*HoverEvent.fadeT*(1 - ClickEvent.fadeT/2) + ClickEvent.a*ClickEvent.fadeT*(1 - HoverEvent.fadeT/2);
+	float red = GetRed();//r * (1 - Hover.fadeT)*(1 - Click.fadeT) + Hover.r*Hover.fadeT*(1 - Click.fadeT/2) + Click.r*Click.fadeT*(1 - Hover.fadeT/2);
+	float green = g * (1 - Hover.fadeT)*(1 - Click.fadeT) + Hover.g*Hover.fadeT*(1 - Click.fadeT/2) + Click.g*Click.fadeT*(1 - Hover.fadeT/2);
+	float blue = b * (1 - Hover.fadeT)*(1 - Click.fadeT) + Hover.b*Hover.fadeT*(1 - Click.fadeT/2) + Click.b*Click.fadeT*(1 - Hover.fadeT/2);
+	float alpha = a * (1 - Hover.fadeT)*(1 - Click.fadeT) + Hover.a*Hover.fadeT*(1 - Click.fadeT/2) + Click.a*Click.fadeT*(1 - Hover.fadeT/2);
 	renderer::GuiColor(red, green, blue, alpha);
 
-	float w = GetW() + HoverEvent.wh.GetW()*HoverEvent.sizeT + ClickEvent.wh.GetW()*ClickEvent.sizeT;
-	float h = GetH() + HoverEvent.wh.GetH()*HoverEvent.sizeT + ClickEvent.wh.GetH()*ClickEvent.sizeT;
-	
-	if (w != GetW()||h!=GetH()) {
-		SetCont(w,h);
+	float w = GetW();// +Hover.w * Hover.sizeT + Click.w * Click.sizeT;
+	float h = GetH();// +Hover.h * Hover.sizeT + Click.h * Click.sizeT;
+	//bug::outs < Hover.w < Hover.sizeT < bug::end;
+	if (w != lastW||h!=lastH) {
+		UpdateCont(w,h);
+		lastW = w;
+		lastH = h;
 	}
+	//bug::outs < name < bug::end;
+	//bug::out +red+" "+green+" "+blue+" "+alpha+" "+GetX()+" "+GetY()+ bug::end;
 	renderer::BindTexture(texture);
 	cont.Draw();
-
 	if (text.text.length() > 0) {
-		text.SetPos(x,y);
-		text.DrawString(alpha,typing&&selected);
+		text.SetPos(x, y);
+		text.DrawString(alpha, typing && selected);
 	}
 }
-void IElem::Hover(int mx, int my) {
-	if (!HasTag())
-		return;
+void IElem::Draw() {
+	if (!HasTags()) return;
+	DrawNormal();
+}
+void IElem::HoverEvent(int mx, int my) {
+	if (!HasTags()) return;
 	if (Inside(mx, my)) {
 		hovering = true;
 	} else {
 		hovering = false;
 	}
 }
-bool IElem::Click(int mx, int my, int action) {
-	if (!HasTag())
-		return false;
+bool IElem::ClickEvent(int mx, int my, int action) {
+	if (!HasTags()) return false;
 	if (Inside(mx, my)) {
-		clicking = action == 1;
+		clicked = action == 1;
 		selected = true;
 	} else {
-		clicking = false;
+		clicked = false;
 		selected = false;
 	}
-	return clicking;
-}
-bool elemShiftL = false,elemShiftR=false, elemAltR=false;
-void IElem::Type(int key, int action) {
-	if (!HasTag())
-		return;
-	if (typing&&selected) {
-		text.ElemWH(size.GetW(), size.GetH());
-		if (key == GLFW_KEY_LEFT_SHIFT) {
-			elemShiftL = action;
-		} if (key == GLFW_KEY_RIGHT_SHIFT) {
-			elemShiftR = action;
-		} else if (key == GLFW_KEY_RIGHT_ALT) {
-			elemAltR = action;
-		} else if (key==GLFW_KEY_UP) {
-			if (action) {
-				int c = text.atChar;
-				int l = text.CharOnLine(c);
-				int newC = -1;
-				//std::cout << "start " << c << " " << l << std::endl;
-			
-				for (int i = c; i >= 0; i--) {
-					if (i >= text.text.length())
-						continue;
-					if (c==i&&text.text.at(c) == '\n')
-						continue;
-					//std::cout << ">" << text.text.at(i) <<" "<<i<< std::endl;
-					if (text.text.at(i) == '\n') {
-						int o = 0;
-						for (int j = i - 1; j >= 0;j--) {
-							//std::cout <<" >" <<text.text.at(j)<<" "<<j << std::endl;
-							if (text.text.at(j) == '\n') {
-								o = j+1;
-								break;
-							}
-							if (j == 0) {
-								o = 0;
-							}
-						}
-						if (o+l > i)
-							newC = i;
-						else
-							newC = o+l;
-						break;
-					}
-				}
-				if (newC < 0) {
-					newC = 0;
-				}
-				//std::cout << "out " << newC << std::endl;
-				text.atChar = newC;
-				/* For uneven width on characters - TODO: Use the closest character instead of the last one
-				int c = text.atChar;
-				int newC = c;
-				float widO = text.PixelPosX(text.atChar);
-				float wid = -1;
-				for (int i = c; i >= 0; i--) {
-					char cha = text.text.at(i);
-					if (cha == '\n') {
-						if (wid > 0) {
-							newC = i;
-							break;
-						}
-						wid = 0;
-						if (i != 0) {
-							for (int j = i-1; j >= 0; j--) {
-								char cha2 = text.text.at(j);
-								if (cha2 == '\n') {
-									break;
-								}
-								wid += text.font->charWid[cha2];
-							}
-						}
-						continue;
-					}
-					if (cha < 0)
-						cha += 256;
-					if (wid >= 0) {
-						wid -= text.font->charWid[cha];
-						//std::cout << cha << " " << i << " " << widO << " < " << wid << std::endl;
-						if (widO > wid) {
-							newC = i;
-							if(text.text.length()>i+1){
-								if (text.text.at(i + 1)=='\n') {
-									newC++;
-								}
-							}
-							break;
-						}
-					}
-				}
-				text.atChar = newC;
-				*/
-			}
-		} else if (key==GLFW_KEY_LEFT) {
-			if (action) {
-				if (text.atChar > 0)
-					text.atChar--;
-			}
-		} else if (key == GLFW_KEY_DOWN) {
-			if (action) {
-				int c = text.atChar;
-				int l = text.CharOnLine(c);
-				int newC = -1;
-				int o = 0;
-				//std::cout << "start " << c <<" "<<l<< std::endl;
-				
-				for (int i = c; i < text.text.length(); i++) {
-					char cha = text.text.at(i);
-					//std::cout << "ch " << cha << std::endl;
-					if (newC >= 0) {
-						if (newC == l) {
-							newC = l + o + 1;
-							//std::cout << "end1 " << newC << std::endl;
-							break;
-						}
-						newC++;
-					}
-					if (cha == '\n') {
-						if (newC >= 0) {
-							if (newC < l+1) {
-								newC = i;
-								break;
-							}
-							newC += o + 1;
-							//std::cout << "end2 " << newC << std::endl;
-							break;
-						}
-						o = i;
-						newC = 0;
-						continue;
-					}
-					if (i == text.text.length() - 1) {
-						if (newC < 0) {
-							break;
-						}
-						newC += o + 1;
-					}
-				}
-				if (newC < 0) {
-					newC = text.text.length();
-				}
-				//std::cout << "out " << newC << std::endl;
-				text.atChar = newC;
-
-				/* characters width different widths
-				int c = text.atChar;
-				int newC = c;
-				float widO = text.PixelPosX(text.atChar);
-				float wid = -1;
-				for (int i = c; i < text.text.length(); i++) {
-					char cha = text.text.at(i);
-					if (cha == '\n') {
-						if (wid > 0) {
-							newC = i;
-							break;
-						}
-						wid = 0;
-						continue;
-					}
-					if (cha < 0)
-						cha += 256;
-					if(wid>=0)
-						wid += text.font->charWid[cha];
-					//std::cout << cha << " " << i << " " << widO << " < " << wid << std::endl;
-					if (widO < wid) {
-						newC = i;
-						break;
-					}
-				}
-				text.atChar = newC;
-				*/
-			}
-		} else if (key == GLFW_KEY_RIGHT) {
-			if (action) {
-				if (text.atChar < text.text.size())
-					text.atChar++;
-			}
-		} else if (key == GLFW_KEY_DELETE) {
-			if (action) {
-				if (text.text.size() > 0 && text.atChar < text.text.size()) {
-					if (text.atChar == 0) {
-						text.SetText(text.text.substr(1));
-					} else {
-						text.SetText(text.text.substr(0, text.atChar) + text.text.substr(text.atChar+1));
-					}
-				}
-			}
-		} else if (key == GLFW_KEY_BACKSPACE) {
-			if (action) {
-				if (text.text.length() > 0&&text.atChar>0) {
-					if (text.atChar == text.text.size()) {
-						text.SetText(text.text.substr(0, text.atChar - 1));
-						text.atChar--;
-					} else {
-						text.SetText(text.text.substr(0, text.atChar - 1) + text.text.substr(text.atChar));
-						text.atChar--;
-					}
-				}
-			}
-		} else if (key == GLFW_KEY_ENTER) {
-			if (action) {
-				if (text.text.size() < text.maxChar) {
-					text.SetText(text.text.substr(0, text.atChar) + '\n' + text.text.substr(text.atChar));
-					text.atChar++;
-				}
-			}
-		} else {
-			if (action) {
-				char cha = GetChar(key, elemShiftL || elemShiftR, elemAltR);
-				if (cha != 0) {
-					if (text.text.size() < text.maxChar) {
-						text.SetText(text.text.substr(0, text.atChar) + cha + text.text.substr(text.atChar));
-						text.atChar++;
-					}
-				}
-			}
-		}
-	}
+	return clicked;
 }
 bool IElem::Inside(float mx, float my) {
 	mx = renderer::AlterX(mx);

@@ -5,7 +5,10 @@ std::vector<std::string> SplitString(std::string text, std::string delim) {
 	std::vector<std::string> out;
 	unsigned int at = 0;
 	while ((at = text.find(delim)) != std::string::npos) {
-		out.push_back(text.substr(0, at));
+		std::string push = text.substr(0, at);
+		if (push.size() > 0) {
+			out.push_back(push);
+		}
 		text.erase(0, at + delim.length());
 	}
 	out.push_back(text);

@@ -18,7 +18,9 @@
 #include "Managers/InterfaceManager.h"
 #include "Managers/ObjectManager.h"
 
-#include "MagicEditor.h"
+#include "StartMenu.h"
+
+//#include "MagicEditor.h"
 
 namespace gamecore {
 	int vecLimit = 100;
@@ -38,7 +40,6 @@ namespace gamecore {
 		dManager::AddMesh("player_head", "assets/meshes/Head");
 		dManager::AddMesh("player_ruarm", "assets/meshes/RUArm");
 		dManager::AddMesh("player_rlarm", "assets/meshes/RLArm");
-
 		
 		renderer::AddTexture("noise", "assets/textures/noise");
 		dManager::AddMesh("parkour", "assets/meshes/Parkour");
@@ -52,7 +53,7 @@ namespace gamecore {
 	}
 	void Init() {
 		renderer::Init();
-
+		
 		ReadOptions();
 		/*float persistance = GetOptionf("persistance");
 		float lacunarity = GetOptionf("lacunarity");
@@ -68,7 +69,8 @@ namespace gamecore {
 		
 		oManager::GetPlayer()->SetPosition(0, 2, 0);
 
-		InitEditor();
+		startMenu::Init();
+		//InitEditor();
 		UpdateKeyboard(false);
 		//InitChat(&updateObjects);
 
@@ -205,10 +207,9 @@ namespace gamecore {
 			if (tickSpeed == 1) {
 				tickSpeed = 0;
 				FPS++;
-				if (renderer::HasFocus() && !iManager::GetPauseMode()) {
-					//Update(1.f/60);//delta);
-					Update(delta);
-				}
+				//Update(1.f/60);//delta);
+				Update(delta);
+				
 			}
 			glClearColor(0.4f, 0.9f, 1.f, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -227,301 +228,243 @@ namespace gamecore {
 	}
 	int tim = 0;
 	void Update(float delta) {
-		oManager::GetPlayer()->doMove = !renderer::GetCursorMode();// && !GetChatMode();
+		if (dManager::GetGameState() == GameState::menu) {
+			// Game Menu Update
 
-		for (int i = 0; i < oManager::GetObjects()->size(); i++) {
-			oManager::GetObjects()->at(i)->velocity = glm::vec3(0, 0, 0);
-		}
-		// Additional Player Movement
-		oManager::GetPlayer()->velocity += oManager::GetPlayer()->Movement(delta);
+		} else if (dManager::GetGameState() == GameState::play) {
+			if (renderer::HasFocus() && !iManager::IsPauseMode()) {
+				oManager::GetPlayer()->doMove = !renderer::GetCursorMode();// && !GetChatMode();
 
-		// Sort slowest velocity first
-		for (int i = 0; i < oManager::GetObjects()->size(); i++) {
-			GameObject* o0 = oManager::GetObjects()->at(i);
-			MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
-
-			if (ms != nullptr) {
-				o0->velocity += glm::vec3(ms->floats[0], ms->floats[1], ms->floats[2]);
-			}
-			
-			if (o0->GetColliders().size()>0) {
-				// If velocity has changed then go trough the list of all objects again
-				for (int j = i + 1; j < oManager::GetObjects()->size(); j++) {
-					GameObject* o1 = oManager::GetObjects()->at(j);
-					if (o0->IsClose(o1)) {
-
-						glm::vec3 v = o0->WillCollide(o1, delta);
-						if (v != o0->velocity) {
-							o0->velocity = v;
-							/* Reset static velocity?
-							MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
-							if (ms != nullptr) {
-								ms->floats[0] = 0;
-								ms->floats[1] = 0;
-								ms->floats[2] = 0;
-							}*/
-						}
-					}
+				for (int i = 0; i < oManager::GetObjects()->size(); i++) {
+					oManager::GetObjects()->at(i)->velocity = glm::vec3(0, 0, 0);
 				}
-			}
-			o0->position += o0->velocity * delta;
-			
-			o0->Update(delta);
+				// Additional Player Movement
+				oManager::GetPlayer()->velocity += oManager::GetPlayer()->Movement(delta);
 
-			/*
-			if (o0->isSolid) {
-				Collision* c0 = &o0->collision;//GetHitbox(o->standard_hitbox);
+				// Sort slowest velocity first
+				for (int i = 0; i < oManager::GetObjects()->size(); i++) {
+					GameObject* o0 = oManager::GetObjects()->at(i);
+					MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
 
-				// Test Expensive collision for close enough objects.
-				ClientPlayer* cl = dynamic_cast<ClientPlayer*>(o0);
-				for (GameObject* o1 : updateObjects) {
-					if (o1->isSolid&&o0!=o1) {
-						Collision* c1 = &o1->collision;
-						if (c0->IsClose(c1)) { // Close enough
-							if (c0->type == 1 || c1->type == 1) {
-								// COLLISION HAS HAPPENED
-								std::cout << "Circle Collision not Implemented" << std::endl;
-								//break;
-							} else {
-								glm::vec3 v;
-								if (o0->weight > o1->weight) {
-									v = c0->collision(c1);// Expensive detection
-								} else {
-									v = c1->collision(c0);// Expensive detection
-								}
-								if (v.x != 0 || v.y != 0 || v.z != 0) {
-									if (cl!=nullptr) {
-										if (v.y!=0) {
-											cl->onGround = true;
-										} else {
-											cl->onGround = false;
-										}
-									}
-									// The object with smaller weight should be pushed
-									if (o0->weight < o1->weight) {
-										MetaStrip* mVel = o0->metaData.GetMeta(Velocity, Pos, None);
-										if (mVel != nullptr) {
+					if (ms != nullptr) {
+						o0->velocity += glm::vec3(ms->floats[0], ms->floats[1], ms->floats[2]);
+					}
 
-											//glm::vec3 oVel(mVel->floats[0], mVel->floats[1], mVel->floats[2]);
-											//glm::vec3 nVel = oVel + glm::normalize(v)*glm::length(oVel);
-											//mVel->floats[0] = nVel.x;
-											//mVel->floats[1] = nVel.y;
-											//mVel->floats[2] = nVel.z;
-											mVel->floats[0] = 0;
-											mVel->floats[1] = 0;
-											mVel->floats[2] = 0;
-										}
-										o0->position += v;
-									} else {
-										MetaStrip* mVel = o1->metaData.GetMeta(Velocity, Pos, None);
-										if (mVel != nullptr) {
-											//glm::vec3 oVel(mVel->floats[0], mVel->floats[1], mVel->floats[2]);
-											//glm::vec3 nVel = oVel + glm::normalize(v)*glm::length(oVel);
-											//mVel->floats[0] = nVel.x;
-											//mVel->floats[1] = nVel.y;
-											//mVel->floats[2] = nVel.z;
-											mVel->floats[0] = 0;
-											mVel->floats[1] = 0;
-											mVel->floats[2] = 0;
-										}
-										o1->position -= v;
-									}
-									//break;
+					if (o0->GetColliders().size() > 0) {
+						// If velocity has changed then go trough the list of all objects again
+						for (int j = i + 1; j < oManager::GetObjects()->size(); j++) {
+							GameObject* o1 = oManager::GetObjects()->at(j);
+							if (o0->IsClose(o1)) {
+
+								glm::vec3 v = o0->WillCollide(o1, delta);
+								if (v != o0->velocity) {
+									o0->velocity = v;
+									/* Reset static velocity?
+									MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
+									if (ms != nullptr) {
+										ms->floats[0] = 0;
+										ms->floats[1] = 0;
+										ms->floats[2] = 0;
+									}*/
 								}
 							}
 						}
 					}
+					o0->position += o0->velocity * delta;
+
+					o0->Update(delta);
 				}
-			}*/
-		}
-		if (!oManager::GetPlayer()->freeCam) {
-			renderer::GetCamera()->position = oManager::GetPlayer()->position;
-		} else if (oManager::GetPlayer()->freeCam && oManager::GetPlayer()->moveCam) {
+				if (!oManager::GetPlayer()->freeCam) {
+					renderer::GetCamera()->position = oManager::GetPlayer()->position;
+				} else if (oManager::GetPlayer()->freeCam && oManager::GetPlayer()->moveCam) {
 
-		} else {
+				} else {
 
-		}
-		renderer::UpdateProj();
+				}
+				renderer::UpdateProj();
 
-		if (dManager::GetDimension() != nullptr)
-			dManager::GetDimension()->CleanChunks();
+				if (dManager::GetDimension() != nullptr)
+					dManager::GetDimension()->CleanChunks();
 
-		iManager::UpdateInterface();
-		// Update dimension
+				// Update dimension
 
-		// Update mesh transformations should maybe be moved to render
-		for (GameObject* o : *oManager::GetObjects()) {
-			if (o->renderMesh) {
-				o->PreComponents();
+				// Update mesh transformations should maybe be moved to render
+				for (GameObject* o : *oManager::GetObjects()) {
+					if (o->renderMesh) {
+						o->PreComponents();
+					}
+				}
 			}
 		}
+		iManager::UpdateInterface(delta);
 	}
 	bool reachedLimit = false;
 	void Render() {
-		// Run preComponents here?
-		renderer::SwitchBlendDepth(false);
-		renderer::BindShader(MaterialType::ColorMat);
-		for (MeshComponent* m : *dManager::GetMeshComponents()) {
-			for (int i = 0; i < m->meshes.size();i++) {
-				MeshData* mesh = m->meshes[i];
-				if (mesh != nullptr) {
-					if (mesh->material == MaterialType::ColorMat) {
-						renderer::DrawMesh(mesh, m->matrices[i]);
-					}
-				} else {
-					if (!m->hasError) {
-						bug::out + bug::RED + "MeshData in MeshComponent is nullptr\n";
-						m->hasError = true;
-					}
-				}
-			}
-		}
-		renderer::BindShader(MaterialType::TextureMat);
-		for (MeshComponent* m : *dManager::GetMeshComponents()) {
-			for (int i = 0; i < m->meshes.size(); i++) {
-				MeshData* mesh = m->meshes[i];
-				if (mesh != nullptr) {
-					if (mesh->material == MaterialType::TextureMat) {
-						renderer::DrawMesh(mesh, m->matrices[i]);
+		if (dManager::GetGameState() == GameState::menu) {
+
+		} else if(dManager::GetGameState() == GameState::play) {
+			// Run preComponents here?
+			renderer::SwitchBlendDepth(false);
+			renderer::BindShader(MaterialType::ColorMat);
+			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+				for (int i = 0; i < m->meshes.size(); i++) {
+					MeshData* mesh = m->meshes[i];
+					if (mesh != nullptr) {
+						if (mesh->material == MaterialType::ColorMat) {
+							renderer::DrawMesh(mesh, m->matrices[i]);
+						}
+					} else {
+						if (!m->hasError) {
+							bug::out < bug::RED < "MeshData in MeshComponent is nullptr\n";
+							m->hasError = true;
+						}
 					}
 				}
 			}
-		}
-		renderer::BindShader(MaterialType::AnimationMat);
-		for (MeshComponent* m : *dManager::GetMeshComponents()) {
-			for (int i = 0; i < m->meshes.size(); i++) {
-				MeshData* mesh = m->meshes[i];
-				if (mesh != nullptr) {
-					if (mesh->material == MaterialType::AnimationMat) {
-						if (m->bone != nullptr) {
-							int count = m->bone->bone->count;
-							glm::mat4* mats = new glm::mat4[count];
-							m->bone->GetBoneTransforms(mats);
-							for (int i = 0; i < count;i++) {
-								renderer::GetShader(MaterialType::AnimationMat)->SetUniformMat4fv("uBoneTransforms["+i+std::string("]"), mats[i]);
+			renderer::BindShader(MaterialType::TextureMat);
+			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+				for (int i = 0; i < m->meshes.size(); i++) {
+					MeshData* mesh = m->meshes[i];
+					if (mesh != nullptr) {
+						if (mesh->material == MaterialType::TextureMat) {
+							renderer::DrawMesh(mesh, m->matrices[i]);
+						}
+					}
+				}
+			}
+			renderer::BindShader(MaterialType::AnimationMat);
+			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+				for (int i = 0; i < m->meshes.size(); i++) {
+					MeshData* mesh = m->meshes[i];
+					if (mesh != nullptr) {
+						if (mesh->material == MaterialType::AnimationMat) {
+							if (m->bone != nullptr) {
+								int count = m->bone->bone->count;
+								glm::mat4* mats = new glm::mat4[count];
+								m->bone->GetBoneTransforms(mats);
+								for (int i = 0; i < count; i++) {
+									renderer::GetShader(MaterialType::AnimationMat)->SetUniformMat4fv("uBoneTransforms[" + i + std::string("]"), mats[i]);
+								}
+								delete mats;
 							}
-							delete mats;
-						}
-						renderer::DrawMesh(mesh, m->matrices[i]);// Could be causing problems by not giving it an empty matrix
-					}
-				}
-			}
-		}
-		renderer::BindShader(MaterialType::OutlineMat);
-		renderer::ObjectTransform(glm::mat4(1));
-		renderer::ObjectColor(1, 1, 1, 1);
-		glLineWidth(2.f);
-		for (GameObject* o : *oManager::GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
-			if (o->renderHitbox) {
-				int atVec = 0;
-				int atInd = 0;
-				// algorithm for removing line duplicates?
-				for (ColliderComponent* c : o->GetColliders()) {
-					if (c->coll != nullptr) {
-						int startV = atVec;
-						if (atVec + c->points.size() * 3 > 3 * vecLimit) {
-							if (!reachedLimit)
-								bug::out + bug::RED + "Line limit does not allow " + (atVec + c->points.size() * 3)+" points" + bug::end;
-							reachedLimit = true;
-							break;
-						}else if (atInd+c->coll->quad.size()*8+c->coll->tri.size()*6>2*lineLimit) {
-							if (!reachedLimit)
-								bug::out + bug::RED + "Line limit does not allow "+((atInd + c->coll->quad.size() * 8 + c->coll->tri.size() * 6)/2)+" lines:"+bug::end;
-							reachedLimit = true;
-							break;
-						}
-						for (int i = 0; i < c->points.size(); i++) {
-							glm::vec3 v = c->points[i];
-							hitboxVec[atVec++] = v.x;
-							hitboxVec[atVec++] = v.y;
-							hitboxVec[atVec++] = v.z;
-						}
-						for (int i = 0; i < c->coll->quad.size()/4; i++) {
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
-							hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
-						}
-						
-						for (int i = 0; i < c->coll->tri.size() / 3; i++) {
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
-							hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
+							renderer::DrawMesh(mesh, m->matrices[i]);// Could be causing problems by not giving it an empty matrix
 						}
 					}
 				}
-				// Clear the rest
-				for (int i = atVec; i < vecLimit;i++) {
-					hitboxVec[i] = 0;
-				}
-				for (int i = atInd; i < lineLimit*2; i++) {
-					hitboxVec[i] = 0;
-				}
-				hitbox.SubVB(0, vecLimit*3, hitboxVec);
-				hitbox.SubIB(0, lineLimit*2, hitboxInd);
-				hitbox.Draw();
 			}
-		}
+			renderer::BindShader(MaterialType::OutlineMat);
+			renderer::ObjectTransform(glm::mat4(1));
+			renderer::ObjectColor(1, 1, 1, 1);
+			glLineWidth(2.f);
+			for (GameObject* o : *oManager::GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
+				if (o->renderHitbox) {
+					int atVec = 0;
+					int atInd = 0;
+					// algorithm for removing line duplicates?
+					for (ColliderComponent* c : o->GetColliders()) {
+						if (c->coll != nullptr) {
+							int startV = atVec;
+							if (atVec + c->points.size() * 3 > 3 * vecLimit) {
+								if (!reachedLimit)
+									bug::out < bug::RED < "Line limit does not allow " < (atVec < c->points.size() * 3) < " points" < bug::end;
+								reachedLimit = true;
+								break;
+							} else if (atInd + c->coll->quad.size() * 8 + c->coll->tri.size() * 6 > 2 * lineLimit) {
+								if (!reachedLimit)
+									bug::out < bug::RED < "Line limit does not allow " < ((atInd < c->coll->quad.size() * 8 < c->coll->tri.size() * 6) / 2) < " lines:" < bug::end;
+								reachedLimit = true;
+								break;
+							}
+							for (int i = 0; i < c->points.size(); i++) {
+								glm::vec3 v = c->points[i];
+								hitboxVec[atVec++] = v.x;
+								hitboxVec[atVec++] = v.y;
+								hitboxVec[atVec++] = v.z;
+							}
+							for (int i = 0; i < c->coll->quad.size() / 4; i++) {
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
+								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
+							}
 
-		/*
-		renderer::SwitchBlendDepth(false);
-		renderer::BindShader(MaterialType::ColorMat);
-		
-		for (GameObject& o : *oManager::GetObjects()) {
-			if (o.renderMesh) {
-				//if (o.meshData != nullptr) {
-				//	if (o.meshData->material == MaterialType::ColorMat) {
-						o.PreDraw();
-				//	}
-				//}
-			}
-		}
-		renderer::BindShader(MaterialType::TextureMat);
-		for (GameObject& o : *oManager::GetObjects()) {
-			if (o.renderMesh) {
-				if (o.meshData != nullptr) {
-					if (o.meshData->material == MaterialType::TextureMat) {
-						//std::cout << "What\n";
-						o.Draw();
+							for (int i = 0; i < c->coll->tri.size() / 3; i++) {
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
+								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
+							}
+						}
 					}
+					// Clear the rest
+					for (int i = atVec; i < vecLimit; i++) {
+						hitboxVec[i] = 0;
+					}
+					for (int i = atInd; i < lineLimit * 2; i++) {
+						hitboxVec[i] = 0;
+					}
+					hitbox.SubVB(0, vecLimit * 3, hitboxVec);
+					hitbox.SubIB(0, lineLimit * 2, hitboxInd);
+					hitbox.Draw();
 				}
 			}
 
-		}
-		renderer::BindShader(MaterialType::OutlineMat);
-		glLineWidth(2.f);
-		for (GameObject& o : *oManager::GetObjects()) {
-			if (o.renderHitbox) {
-				//if (o.collision.) { TODO: Check if collision has draw object?
-				o.collision.Draw();
-				//}
+			/*
+			renderer::SwitchBlendDepth(false);
+			renderer::BindShader(MaterialType::ColorMat);
+
+			for (GameObject& o : *oManager::GetObjects()) {
+				if (o.renderMesh) {
+					//if (o.meshData != nullptr) {
+					//	if (o.meshData->material == MaterialType::ColorMat) {
+							o.PreDraw();
+					//	}
+					//}
+				}
 			}
-		}
-		if (oManager::GetPlayer()->renderHitbox/*&&GetPlayer()->freeCam) {
-			oManager::GetPlayer()->collision.Draw();
-		}
-		for (GameObject* o : texRender) {
-			o->Draw();
-		}
-		BindShader("terrain");
-		if (loadedDim != nullptr) {
-			BindTexture("blank");
-			for (Chunk c : loadedDim->loadedChunks) {
-				Location base;
-				base.Translate(glm::vec3(c.x*(loadedDim->chunkSize), 0, c.z*(loadedDim->chunkSize)));
-				ObjectTransform(base.mat());
-				c.con.Draw();
+			renderer::BindShader(MaterialType::TextureMat);
+			for (GameObject& o : *oManager::GetObjects()) {
+				if (o.renderMesh) {
+					if (o.meshData != nullptr) {
+						if (o.meshData->material == MaterialType::TextureMat) {
+							//std::cout << "What\n";
+							o.Draw();
+						}
+					}
+				}
+
 			}
-		}*/
-		if (dManager::GetMenu() == Gameplay) {
-			
+			renderer::BindShader(MaterialType::OutlineMat);
+			glLineWidth(2.f);
+			for (GameObject& o : *oManager::GetObjects()) {
+				if (o.renderHitbox) {
+					//if (o.collision.) { TODO: Check if collision has draw object?
+					o.collision.Draw();
+					//}
+				}
+			}
+			if (oManager::GetPlayer()->renderHitbox/*&&GetPlayer()->freeCam) {
+				oManager::GetPlayer()->collision.Draw();
+			}
+			for (GameObject* o : texRender) {
+				o->Draw();
+			}
+			BindShader("terrain");
+			if (loadedDim != nullptr) {
+				BindTexture("blank");
+				for (Chunk c : loadedDim->loadedChunks) {
+					Location base;
+					base.Translate(glm::vec3(c.x*(loadedDim->chunkSize), 0, c.z*(loadedDim->chunkSize)));
+					ObjectTransform(base.mat());
+					c.con.Draw();
+				}
+			}*/
 		}
 		iManager::RenderInterface();
 	}

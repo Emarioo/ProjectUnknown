@@ -2,6 +2,7 @@
 
 #include "Rendering/Renderer.h"
 
+
 class IPos { // TODO: pixelScreen is out of function
 	bool pixelScreen = false;
 	float x = 0, y = 0;

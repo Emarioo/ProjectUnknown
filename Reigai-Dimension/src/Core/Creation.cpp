@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
 		//CollData* temp = new CollData();
 		//FHLoadColl(temp, "assets/colliders/Floor");
 
-		AnimData* temp = new AnimData();
-		fManager::LoadAnim(temp, "assets/animations/MagicStaffIdle");
+		//AnimData* temp = new AnimData();
+		//fManager::LoadAnim(temp, "assets/animations/MagicStaffIdle");
 		
 		std::cin.get();
 		return 0;

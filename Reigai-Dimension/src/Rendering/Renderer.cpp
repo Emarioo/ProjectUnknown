@@ -542,14 +542,14 @@ namespace renderer {
 		if (textures.count(name)>0) {
 			textures[name].Bind();
 		} else {
-			bug::out + bug::RED +  "Cannot find texture '" + name + "'\n";
+			bug::out < bug::RED <  "Cannot find texture '" < name < "'\n";
 		}
 	}
 	void AddTexture(const std::string& name, std::string path) {// Change this system so it is simular to every other system. FileExist?
 		if (fManager::FileExist(path + ".png")) {
 			textures[name] = Texture(path);
 		} else {
-			bug::out + bug::RED + "Cannot find Texture '" + path + ".png'\n";
+			bug::out < bug::RED < "Cannot find Texture '" < path < ".png'\n";
 		}
 	}
 

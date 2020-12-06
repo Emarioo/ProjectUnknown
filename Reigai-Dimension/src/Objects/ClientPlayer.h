@@ -11,7 +11,6 @@ public:
 	/*
 	SetCamera, SetPosition
 	*/
-	float lel=25;
 	/*
 	Setup player Components
 	*/

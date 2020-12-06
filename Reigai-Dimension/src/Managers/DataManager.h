@@ -12,45 +12,40 @@
 /*
 Handling data
 */
-enum Menu {
-	Startup,
-	Gameplay
+enum GameState {
+	menu,
+	play
 };
 namespace dManager {
 
-	Menu GetMenu();
-	void SetMenu(Menu);
+	GameState GetGameState();
+	void SetGameState(GameState);
 	/*
 	Does nothing at the moment
 	*/
 	void Init();
 
-	// Dimension
 	void AddDimension(const std::string& s, Dimension dim);
 	Dimension* GetDimension();
 	void SetDimension(const std::string&);
-
-	// Animation
+	
 	void AddAnim(const std::string& name, const std::string& path);
 	/*
 	returns nullptr if name doesn't exist
 	*/
 	AnimData* GetAnim(const std::string& name);
 
-	// Bone
 	void AddBone(const std::string& name, const std::string& path);
 	/*
 	returns nullptr if name doesn't exist
 	*/
 	BoneData* GetBone(const std::string& name);
 
-	// Mesh
 	void AddMesh(const std::string& name, const std::string& path);
 	MeshData* GetMesh(const std::string& name);
 	glm::vec3 GetMeshPos(const std::string& name);
 	glm::vec3 GetMeshRot(const std::string& name);
 
-	// Collider
 	void AddColl(const std::string& name, const std::string& path);
 	/*
 	Add empty collider. Used for objects with unique collisions
@@ -63,8 +58,6 @@ namespace dManager {
 
 	void AddComponent(MeshComponent* comp);
 	void AddComponent(ColliderComponent* comp);
-
 	std::vector<MeshComponent*> *GetMeshComponents();
 	std::vector<ColliderComponent*> *GetColliderComponents();
-
 }

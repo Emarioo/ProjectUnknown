@@ -15,7 +15,7 @@ namespace fManager {
 		std::ofstream file(path);
 		std::vector<std::string> out;
 		if (!file) {
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return NotFound;
 		} else {
 			for (int i = 0; i < text.size(); i++) {
@@ -30,13 +30,13 @@ namespace fManager {
 
 	std::vector<std::string> ReadFileList(std::string path, int* err) {
 		*err = Success;
-		path += ".txt";
+		path  += ".txt";
 		std::ifstream file(path);
 
 		std::vector<std::string> out;
 		if (!file) {
 			*err = NotFound;
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED <"Cannot find file '" < path  <"'\n";
 			return out;
 		}
 		std::string line;
@@ -80,11 +80,11 @@ namespace fManager {
 
 	std::string ReadFile(std::string path, int* err) {
 		*err = Success;
-		path += ".txt";
+		path  += ".txt";
 		std::ifstream file(path);
 		if (!file) {
 			*err = NotFound;
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return "";
 		}
 		std::string text;
@@ -97,12 +97,12 @@ namespace fManager {
 		return text;
 	}
 	int LoadMesh(MeshData* da, std::string path) {
-		path += ".mesh";
+		path  += ".mesh";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return NotFound;
 		}
 		int atByte = 0;
@@ -112,7 +112,7 @@ namespace fManager {
 		
 		atByte += 7;// 4 * 6;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" +path+"' : missing "+ (atByte-fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" <path <"' : missing "+ (atByte-fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -124,14 +124,14 @@ namespace fManager {
 		unsigned short colorC = valu[1];
 		unsigned short triC = valu[2];
 		if (debug) {
-			bug::out + "Points: " + posC + bug::end;
-			bug::out + "Colors: " + colorC + bug::end;
-			bug::out + "Triangles: " + triC + bug::end;
+			bug::out < "Points: " < posC + bug::end;
+			bug::out < "Colors: " < colorC + bug::end;
+			bug::out < "Triangles: " < triC + bug::end;
 		}
 		file.read(buf, 1);// Texture Name Length
 		int texLen = (unsigned char)buf[0];
 		if (debug)
-			bug::out + "TextureLen: " + texLen + bug::end;
+			bug::out < "TextureLen: " < texLen + bug::end;
 
 		int cStride = 4;
 		std::string texName;
@@ -140,7 +140,7 @@ namespace fManager {
 			char* name = new char[texLen];
 			atByte += texLen;
 			if (atByte > fileSize) {
-				bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+				bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 				return Corrupt;
 			}
 			file.read(name, texLen);// Texture Name
@@ -148,18 +148,18 @@ namespace fManager {
 				texName += name[i];
 			}
 			if (debug)
-				bug::out + "Texture: " + texName + bug::end;
+				bug::out < "Texture: " < texName + bug::end;
 			delete name;
 		} else {
 			if (debug)
-				bug::out + "No Texture" + bug::end;
+				bug::out < "No Texture" < bug::end;
 		}
 
 		float* place = new float[6];
 		file.read(reinterpret_cast<char*>(&place[0]), 4 * 6);
 		if (debug) {
-			bug::out + "Position " + place[0] + " " + place[1] + " " + place[2] + bug::end;
-			bug::out + "Rotation " + place[3] + " " + place[4] + " " + place[5] + bug::end;
+			bug::out < "Position " < place[0] < " " < place[1] < " " < place[2] + bug::end;
+			bug::out < "Rotation " < place[3] < " " < place[4] < " " < place[5] + bug::end;
 		}
 		int uPosS = 3 * posC;
 		int uColorS = colorC * cStride;
@@ -167,7 +167,7 @@ namespace fManager {
 
 		atByte += 4 * uPosS + 4 * uColorS + 2 * trisS;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -184,23 +184,23 @@ namespace fManager {
 		file.read(reinterpret_cast<char*>(&tris[0]), 2 * trisS);// Triangles
 		//std::cout << "Triangles" << std::endl;
 		if (debug) {
-			bug::out +bug::LIME+ "  Vectors\n";
+			bug::out <bug::LIME< "  Vectors\n";
 			for (int i = 0; i < 3 * posC; i++) {
-				bug::out + uPos[i] +" ";
+				bug::out < uPos[i] < " ";
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
-					bug::out  +bug::end;
+					bug::out < bug::end;
 			}
-			bug::out +bug::LIME+ "  Colors\n";
+			bug::out <bug::LIME< "  Colors\n";
 			for (int i = 0; i < colorC * cStride; i++) {
-				bug::out + uColor[i] + " ";
+				bug::out < uColor[i] < " ";
 				if ((i + 1) / (cStride) == (float)(i + 1) / (cStride))
-					bug::out + bug::end;
+					bug::out < bug::end;
 			}
-			bug::out +bug::LIME+ "  Triangles\n";
+			bug::out <bug::LIME< "  Triangles\n";
 			for (int i = 0; i < 6 * triC; i++) {
-				bug::out + tris[i] + " ";
+				bug::out < tris[i] < " ";
 				if ((i + 1) / (6) == (float)(i + 1) / (6))
-					bug::out + bug::end;
+					bug::out < bug::end;
 			}
 		}
 
@@ -210,7 +210,7 @@ namespace fManager {
 		for (int i = 0; i < triC; i++) {
 			for (int j = 0; j < 3 * 3; j++) {
 				if (tris[i * 6 + j / 3 * 2] * 3 + j - j / 3 * 3 > uPosS) {
-					bug::out +bug::RED+"Corruption at '"+path+"' : Triangle Index\n";
+					bug::out <bug::RED+"Corruption at '"+path <"' : Triangle Index\n";
 					return Corrupt;
 				}
 			}
@@ -271,7 +271,7 @@ namespace fManager {
 			// Position
 			for (int j = 0; j < 3; j++) {
 				if (indexing[i * 3] * 3 + j > uPosS) {
-					bug::out + bug::RED + "Corruption at '" + path + "' : Position Index\n";
+					bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
 					return Corrupt;
 				}
 				vout[i * (3 + cStride + 3) + j] = uPos[indexing[i * 3] * 3 + j];
@@ -279,7 +279,7 @@ namespace fManager {
 			// Color
 			for (int j = 0; j < cStride; j++) {
 				if (indexing[i * 3 + 1] * cStride + j > uColorS) {
-					bug::out + bug::RED + "Corruption at '" + path + "' : Color Index\n";
+					bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
 					return Corrupt;
 				}
 				vout[i * (3 + cStride + 3) + 3 + j] = uColor[indexing[i * 3 + 1] * cStride + j];
@@ -288,7 +288,7 @@ namespace fManager {
 			// Normal
 			for (int j = 0; j < 3; j++) {
 				if (indexing[i * 3 + 2] * 3 + j > uNormal.size()) {
-					bug::out + bug::RED + "Corruption at '" + path + "' : Normal Index\n";
+					bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
 					return Corrupt;
 				}
 				vout[i * (3 + cStride + 3) + 3 + cStride + j] = uNormal[indexing[i * 3 + 2] * 3 + j];
@@ -338,12 +338,12 @@ namespace fManager {
 		return Success;
 	}
 	int LoadAnim(AnimData* da, std::string path) {
-		path += ".anim";
+		path  += ".anim";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return NotFound;
 		}
 
@@ -354,7 +354,7 @@ namespace fManager {
 
 		atByte += 10;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -375,11 +375,11 @@ namespace fManager {
 		unsigned char objects = buf[0];
 
 		if (debug) {
-			bug::out + "Start: " + start + bug::end;
-			bug::out + "End: " + end + bug::end;
-			bug::out + "Speed: " + speed + bug::end;
-			bug::out + "Loop: " + (int)loop + bug::end;
-			bug::out + "Objects: " + (int)objects + bug::end;
+			bug::out < "Start: " < start + bug::end;
+			bug::out < "End: " < end + bug::end;
+			bug::out < "Speed: " < speed + bug::end;
+			bug::out < "Loop: " < (int)loop + bug::end;
+			bug::out < "Objects: " < (int)objects + bug::end;
 		}
 
 		// Used in actual Game
@@ -392,7 +392,7 @@ namespace fManager {
 		for (int i = 0; i < objects; i++) {
 			atByte += 1;
 			if (atByte > fileSize) {
-				bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+				bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 				return Corrupt;
 			}
 			file.read(buf, 1);// Object Name Length
@@ -400,7 +400,7 @@ namespace fManager {
 			char* cname = new char[namelen];
 			atByte += namelen;
 			if (atByte > fileSize) {
-				bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+				bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 				return Corrupt;
 			}
 			file.read(cname, namelen);
@@ -410,7 +410,7 @@ namespace fManager {
 			}
 			atByte += 2;
 			if (atByte > fileSize) {
-				bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+				bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 				return Corrupt;
 			}
 			file.read(buf, 2);// Curves
@@ -419,7 +419,7 @@ namespace fManager {
 				std::cout << "Object " << name << " " << curves << std::endl;
 			bool curveB[9]{ 0,0,0,0,0,0,0,0,0 };
 			for (int j = 8; j >= 0; j--) {
-				if (0 <= curves - pow(2, j)) {
+				if (0  <= curves - pow(2, j)) {
 					curves -= pow(2, j);
 					curveB[j] = 1;
 				} else {
@@ -434,7 +434,7 @@ namespace fManager {
 				if (curveB[j]) {
 					atByte += 2;
 					if (atByte > fileSize) {
-						bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+						bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 						return Corrupt;
 					}
 					file.read(buf, 2);// Keys
@@ -445,7 +445,7 @@ namespace fManager {
 					for (int k = 0; k < keys; k++) {
 						atByte += 1 + 2 + 4;
 						if (atByte > fileSize) {
-							bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+							bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 							return Corrupt;
 						}
 						file.read(buf, 1);// Polation
@@ -469,12 +469,12 @@ namespace fManager {
 		return Success;
 	}
 	int LoadColl(CollData* da, std::string path) { // TODO: More efficient by removing unneccecery for loops
-		path += ".coll";
+		path  += ".coll";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return NotFound;
 		}
 		file.seekg(0, file.end);
@@ -483,7 +483,7 @@ namespace fManager {
 
 		int atByte = 2 * 3 + 4;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -509,7 +509,7 @@ namespace fManager {
 
 		atByte += 4 * vS + 2 * qS + 2 * tS;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -552,12 +552,12 @@ namespace fManager {
 		return Success;
 	}
 	int LoadBone(BoneData* da, std::string path) {
-		path += ".bone";
+		path  += ".bone";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
-			bug::out + bug::RED + "Cannot find file '" + path + "'\n";
+			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return NotFound;
 		}
 		file.seekg(0, file.end);
@@ -566,7 +566,7 @@ namespace fManager {
 
 		int atByte = 2 * 3 + 4;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
@@ -592,7 +592,7 @@ namespace fManager {
 
 		atByte += 4 * vS + 2 * qS + 2 * tS;
 		if (atByte > fileSize) {
-			bug::out + bug::RED + "Corruption at '" + path + "' : missing " + (atByte - fileSize) + " bytes\n";
+			bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 			return Corrupt;
 		}
 
