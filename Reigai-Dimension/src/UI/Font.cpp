@@ -9,9 +9,10 @@ void Font::Data(std::string path) {
 	int err = 0;
 	std::vector<std::string> list = fManager::ReadFileList(path, &err);
 	if (err == fManager::Success) {
-		if (list.size() == 1) {
-			int num = std::stoi(list.at(0));
-			for (int i = 0; i < 256;i++) {
+		if (list.size() == 2) {
+			charWid[0] = std::stoi(list.at(0));
+			int num = std::stoi(list.at(1));
+			for (int i = 1; i < 256;i++) {
 				charWid[i] = num;
 			}
 		} else {

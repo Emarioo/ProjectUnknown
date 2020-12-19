@@ -1,25 +1,25 @@
 #include "IInput.h"
 
-IInput::IInput(std::string name, std::string dim, const std::string& texture) {
+IInput::IInput(const std::string& name, const std::string& dim4, const std::string& texture) {
 	this->name = name;
 	float arr[4];
-	DimFormat(dim, arr);
+	DimFormat(dim4, arr,4);
 	x = arr[0]; y = arr[1], w = arr[2], h = arr[3];
 	this->texture = texture;
 	UpdateCont();
 }
-IInput::IInput(std::string name, std::string dim, float r, float g, float b, float a) {
+IInput::IInput(const std::string& name, const std::string& dim4, float r, float g, float b, float a) {
 	this->name = name;
 	float arr[4];
-	DimFormat(dim, arr);
+	DimFormat(dim4, arr,4);
 	x = arr[0]; y = arr[1], w = arr[2], h = arr[3];
 	this->r = r; this->g = g; this->b = b; this->a = a;
 	UpdateCont();
 }
-IInput::IInput(std::string name, std::string dim, float r, float g, float b, float a, const std::string& texture) {
+IInput::IInput(const std::string& name, const std::string& dim4, float r, float g, float b, float a, const std::string& texture) {
 	this->name = name;
 	float arr[4];
-	DimFormat(dim, arr);
+	DimFormat(dim4, arr,4);
 	x = arr[0]; y = arr[1], w = arr[2], h = arr[3];
 	this->r = r; this->g = g; this->b = b; this->a = a;
 	this->texture = texture;
@@ -40,7 +40,7 @@ bool elemShiftL = false, elemShiftR = false, elemAltR = false;
 void IInput::Type(int key, int action) {
 	if (!HasTags()) return;
 	if (typing && selected) {
-		text.ElemWH(GetW(), GetH());// Might not be neccessary
+		//text.ElemWH(GetW(), GetH());// Might not be neccessary
 		if (key == GLFW_KEY_LEFT_SHIFT) {
 			elemShiftL = action;
 		} if (key == GLFW_KEY_RIGHT_SHIFT) {
@@ -235,19 +235,19 @@ void IInput::Type(int key, int action) {
 			}
 		} else if (key == GLFW_KEY_ENTER) {
 			if (action) {
-				if (text.text.size() < text.maxChar) {
+				//if (text.text.size() < text.maxChar) {
 					text.SetText(text.text.substr(0, text.atChar) + '\n' + text.text.substr(text.atChar));
 					text.atChar++;
-				}
+				//}
 			}
 		} else {
 			if (action) {
 				char cha = GetChar(key, elemShiftL || elemShiftR, elemAltR);
 				if (cha != 0) {
-					if (text.text.size() < text.maxChar) {
+					//if (text.text.size() < text.maxChar) {
 						text.SetText(text.text.substr(0, text.atChar) + cha + text.text.substr(text.atChar));
 						text.atChar++;
-					}
+					//}
 				}
 			}
 		}

@@ -8,12 +8,13 @@ class MeshComponent{
 public:
 	MeshComponent() {}
 	
+	BoneComponent* bone=nullptr;
+	void SetBone(BoneComponent* comp);
+
 	std::vector<MeshData*> meshes;
 	std::vector<glm::mat4> matrices;
 	void AddMesh(MeshData* mesh);
-
-	BoneComponent* bone = nullptr;
-	void SetBone(BoneComponent* comp);
+	void SetMatrix(int index, glm::mat4 m);
 
 	bool hasError=false;
 

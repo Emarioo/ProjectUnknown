@@ -1,0 +1,307 @@
+# Script by Emarioo / Datolsson, Updated 2020-12-03
+# Watch Datolsson on youtube for more information
+# If any error occurs please contact Datolsson on youtube so I can update this script
+
+import bpy
+import struct
+
+
+standard_color=[0.8,0.8,0.8,1]
+meshDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/meshes/"
+animDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/animations/"
+collDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/colliders/"
+boneDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/bones/"
+
+# Select an object in OBJECT mode and run script to generate files
+# Supported Interpolation: Beizer, Linear, Constant
+framePerSecond=24
+ 
+# Loop at end of animation name to make it a Loop
+# C at the end of a mesh to make it a collider
+ 
+# Fix modifiers?
+
+# Do not change the code below
+
+def MeshFile(original,temp):
+    # Create File
+    file = open(meshDir+original.name+".mesh","wb")# CHANGED
+    
+    # Determine what type of mesh
+    type=0 # 0=Color  1=UV  2=Color with weights  3=UV with weights 
+    verC=len(temp.data.vertices)
+    triC=0
+    colorC=1
+    singleColor=standard_color
+    uvC=0
+    useTexture=False
+    useWeight=False
+    textureName=""
+    for poly in temp.data.polygons:
+        if len(poly.vertices)>3:
+            triC=triC+2
+        else:
+            triC=triC+1
+    
+    for mod in temp.vertex_groups:
+        if mod.name=="Armature":
+            useWeight=True
+            type=type+2
+            break
+    
+    if not temp.active_material==None:
+        if temp.active_material.use_nodes:
+            base = temp.active_material.node_tree.nodes["Material Output"].inputs["Surface"].links[0].from_node.inputs["Base Color"]
+            if len(base.links)>0:
+                if base.links[0].from_node.name=="Image Texture":
+                    type=type+1
+                    useTexture=True
+                    uvC = len(temp.data.uv_layers.active.data)
+                    tempName = base.links[0].from_node.image.name
+                    textureName = tempName[0:len(tempName)-4]
+                elif base.links[0].from_node.name=="Vertex Color":
+                    colorC = len(temp.data.vertex_colors.active.data)
+            else:
+                singleColor = o.active_material.diffuse_color
+    
+    # Write Mesh Information
+    file.write(struct.pack("=B",type))
+    file.write(struct.pack("=H",verC))# Vertex Count
+    if useTexture:
+        file.write(struct.pack("=H",uvC))
+        file.write(struct.pack("=B",len(textureName)))
+        file.write(bytearray(textureName,"UTF-8"))
+    else:
+        file.write(struct.pack("=H",colorC))
+    file.write(struct.pack("=H",triC))# Triangle Count (Maximum 65536)
+    
+    # Write Vertices | x y z is switched to -x z y
+    for v in temp.data.vertices:
+        file.write(struct.pack("=fff",v.co[0]*-1,v.co[2],v.co[1]))
+    
+    # Write uv or vertex colors
+    if useTexture:
+        for u in temp.data.uv_layers.active.data:
+            file.write(struct.pack("=ff",u.uv[0],u.uv[1]))
+    elif colorC==1:
+        file.write(struct.pack("=ffff",singleColor[0],singleColor[1],singleColor[2],singleColor[3]))
+    else:
+        for c in temp.data.vertex_colors.active.data:
+            file.write(struct.pack("=ffff",c.color[0],c.color[1],c.color[2],c.color[3]))
+    
+    # Remake this to a Unique system
+    #  Say one part of the mesh is completely red because of one bone. Why have 30 different weight points with the same value?
+    uniqueWeight=[]
+    weightIndex=[]
+    if useWeight:
+        for ve in temp.data.vertices:
+            weight=[-1,-1,-1,0,0,0]
+            for gr in ve.groups:
+                lowW=gr.weight
+                lowB=gr.group
+                for i in range(0,3):
+                    if lowW>weight[3+i]:
+                        temp=[weight[i],weight[3+i]]
+                        weight[i]=lowB
+                        weight[3+i]=lowW
+                        lowB=temp[0]
+                        lowW=temp[1]
+            same=True
+            for i in range(0,len(uniqueWeight)):
+                for j in range(0,6):
+                    if not uniqueWeight[i][j]==weight[j]:
+                        same=False
+                        break
+                
+                if same:
+                    weightIndex.append(i)
+                    break
+                
+                same=True
+            
+            if not same:
+                weightIndex.append(len(uniqueWeight))
+                uniqueWeight.append([weight[0],weight[1],weight[2],weight[0],weight[1],weight[2]])
+                file.write(struct.pack("=BBBfff",weight[0],weight[1],weight[2],weight[0],weight[1],weight[2]))
+    
+    # The shader uses on vertex color for every vertex. Blender uses multiple... How do i convert between?
+    
+    # Write Triangles
+    for poly in temp.data.polygons:
+        v = poly.vertices
+        l = poly.loop_indices
+        if not useTexture and colorC==1:
+            l=[0,0,0,0]
+        
+        if len(v)==4:
+            file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
+            file.write(struct.pack("=HHHHHH",v[2],l[2],v[3],l[3],v[0],l[0]))
+        else:
+            
+            file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
+    
+    # Cleanup
+    file.close()
+
+def AnimFile(action,objects):
+    # Create file
+    file = open(animDir+action.name+".anim","wb")
+
+    # Write anim information
+    fstart = int(action.frame_range[0])
+    fend = int(action.frame_range[1])
+
+    file.write(struct.pack("=H",fstart))
+    file.write(struct.pack("=H",fend))
+    file.write(struct.pack("=f",framePerSecond))
+
+    file.write(struct.pack("=B",action.name[len(action.name)-1]=='L'))
+
+    file.write(struct.pack("=B",len(objects)))
+
+    # Write Data
+    xyz="XYZ"
+    for group in action.groups:
+        if group.name=="Object Transforms":
+            file.write(struct.pack("=B",4))
+            file.write(bytearray("Main","UTF-8"))
+        else:
+            file.write(struct.pack("=B",len(group.name)))
+            file.write(bytearray(group.name,"UTF-8"))
+        
+        for i in range(fstart,fend):
+            bpy.context.scene.frame_set(i)
+            
+            
+        for curve in group.channels:
+            curveInt=0
+            curves=[0,0,0,0,0,0,0,0,0]
+            # Code used to switch z and y
+            con=0
+            if curve.array_index==2:
+                con=1
+            elif curve.array_index==1:
+                con=2
+                
+            if curve.data_path[len(curve.data_path)-1]=="n":
+                con=con+0
+            elif curve.data_path[len(curve.data_path)-1]=="r":
+                con=con+3
+            elif curve.data_path[len(curve.data_path)-1]=="e":
+                con=con+6
+                
+            curves[con]=1
+                    
+        for i in range(0,9):
+            curveInt += curves[i]*pow(2,i);
+            
+        file.write(struct.pack("=H",curveInt));
+            
+        for curve in group.channels:
+            if curve.is_empty or curve.mute or not curve.is_valid:# is this safe?
+                continue
+            
+            ind=curve.array_index
+            if ind==2:
+                ind=1
+            elif ind==1:
+                ind=2
+            file.write(struct.pack("=H",len(curve.keyframe_points)))
+            
+            for key in curve.keyframe_points:
+                pol=key.interpolation
+                if pol=="LINEAR":
+                    pol="L"
+                elif pol=="BEZIER":
+                    pol="B"
+                else:
+                    pol="C"
+                
+                # x component needs to be inversed if z and y switches
+                if curve.array_index==0:
+                    file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1]*-1))
+                else:
+                    file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1]))  
+    # Cleanup
+    file.close()
+
+def BoneFile(original, temp):
+    # Creating file
+    boneFile = open(boneDir+original.name+".bone","wb")
+    
+    # Loading data
+    boneCount = len(temp.data.bones)
+    boneFile.write(struct.pack("=B",boneCount))
+    
+    boneNames={}
+    
+    for index in range(0,boneCount):
+        bone = temp.data.bones[index]
+            
+        boneNames[bone.name]=index
+        
+    for index in range(0,boneCount):
+        bone = temp.data.bones[index]
+        
+        boneFile.write(struct.pack("=B",index))
+        boneFile.write(struct.pack("=B",len(bone.name)))
+        boneFile.write(bytearray(bone.name,"UTF-8"))
+        
+        for i in range(0,4):
+            for j in range(0,4):
+                boneFile.write(struct.pack("=f",bone.matrix_local[i][j]))
+                
+        boneFile.write(struct.pack("=B",len(bone.children)))
+        for i in range(0,len(bone.children)):
+            boneFile.write(struct.pack("=B",boneNames[bone.children[i].name]))
+        #boneFile.write(struct.pack("=s",b"\n"))
+    
+    # Cleanup
+    boneFile.close()
+
+if bpy.context.object.mode=='OBJECT':
+    bpy.ops.object.select_all(action="DESELECT")
+    if not bpy.context.object==None:
+        objects = [bpy.context.object]
+        for o in bpy.context.object.children:
+            objects.append(o)
+        
+        actions = []
+        
+        for object in objects:
+            if not object.hide_get():
+                if not object.animation_data==None:
+                    if not object.animation_data.action==None:
+                        if not object.animation_data.action.name in actions:
+                            actions.append(object.animation_data.action)
+                    
+                if object.name[len(object.name)-1]=="C":
+                    pass
+                elif object.type=="MESH":
+                    # Applying modifiers
+                    temp=object.copy()
+                    temp.data=object.data.copy()
+                    bpy.context.scene.collection.objects.link(temp)
+                    temp.select_set(True)
+                    bpy.context.view_layer.objects.active=temp
+                    for mod in temp.modifiers:
+                        bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    MeshFile(object,temp)
+                    bpy.ops.object.delete()
+                    
+                elif object.type=="ARMATURE":
+                    # Applying modifiers
+                    temp=object.copy()
+                    temp.data=object.data.copy()
+                    bpy.context.scene.collection.objects.link(temp)
+                    temp.select_set(True)
+                    bpy.context.view_layer.objects.active=temp
+                    for mod in temp.modifiers:
+                        bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    BoneFile(object,temp)
+                    bpy.ops.object.delete()
+        
+        for act in actions:
+            AnimFile(act,objects)

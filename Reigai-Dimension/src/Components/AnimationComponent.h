@@ -17,5 +17,5 @@ public:
 	/*
 	Can cause index out of range
 	*/
-	glm::mat4 GetTransform(int index);
+	glm::mat4 GetTransform(std::string name);
 };

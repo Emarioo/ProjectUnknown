@@ -38,6 +38,7 @@ namespace bug {
 		debug operator<(const std::string& s);
 		debug operator<(glm::vec3 v);
 		debug operator<(float f);
+		debug operator<(double d);
 		debug operator<(int i);
 		debug operator<(char c);
 		debug operator<(unsigned int i);

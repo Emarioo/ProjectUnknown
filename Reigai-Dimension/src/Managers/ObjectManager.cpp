@@ -1,6 +1,19 @@
 #include "ObjectManager.h"
 
 namespace oManager {
+
+	std::unordered_map<std::string, Dimension> dimensions;
+	Dimension* loadedDim = nullptr;
+	void AddDimension(const std::string& s, Dimension dim) {
+		dimensions[s] = dim;
+	}
+	Dimension* GetDimension() {
+		return loadedDim;
+	}
+	void SetDimension(const std::string& s) {
+		loadedDim = &dimensions[s];
+	}
+
 	ClientPlayer* player;
 	ClientPlayer* GetPlayer() {
 		return player;

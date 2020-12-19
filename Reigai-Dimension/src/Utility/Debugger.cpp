@@ -38,7 +38,7 @@ namespace bug {
 				}
 			}
 		}
-		return out;
+		return *this;
 	}
 	debug debug::operator<(glm::vec3 v) {
 		if (doPrint) {
@@ -55,7 +55,7 @@ namespace bug {
 			if (spaces)
 				std::cout << " ";
 		}
-		return out;
+		return *this;
 	}
 	debug debug::operator<(float f) {
 		if (doPrint) {
@@ -64,7 +64,16 @@ namespace bug {
 			if (spaces)
 				std::cout << " ";
 		}
-		return out;
+		return *this;
+	}
+	debug debug::operator<(double d) {
+		if (doPrint) {
+			std::cout << d;
+			//print += f;
+			if (spaces)
+				std::cout << " ";
+		}
+		return *this;
 	}
 	debug debug::operator<(char c) {
 		if (doPrint) {
@@ -78,7 +87,7 @@ namespace bug {
 			}
 		}
 		//print+=""+i;
-		return out;
+		return *this;
 	}
 	debug debug::operator<(int i) {
 		if (doPrint) {
@@ -87,7 +96,7 @@ namespace bug {
 			if (spaces)
 				std::cout << " ";
 		}
-		return out;
+		return *this;
 	}
 	debug debug::operator<(unsigned int i) {
 		if (doPrint) {
@@ -96,12 +105,12 @@ namespace bug {
 			if (spaces)
 				std::cout << " ";
 		}
-		return out;
+		return *this;
 	}
 	debug debug::operator<(TerminalCode t) {
 		if (doPrint)
 			SetConsoleTextAttribute(hConsole, t);
-		return out;
+		return *this;
 	}
 	debug debug::operator<(MaterialType t) {
 		if (doPrint) {
@@ -109,6 +118,6 @@ namespace bug {
 			if (spaces)
 				std::cout << " ";
 		}
-		return out;
+		return *this;
 	}
 }

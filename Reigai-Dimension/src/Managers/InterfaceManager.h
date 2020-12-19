@@ -1,32 +1,39 @@
 #pragma once
 
 #include "Managers/DataManager.h"
-#include "Gui/IElem.h"
-#include "Gui/IButton.h"
-#include "Gui/ISquare.h"
-#include "Gui/IInput.h"
-#include "Gui/WorldItem.h"
+#include "Managers/ObjectManager.h"
+#include "UI/IElement.h"
+
 #include <unordered_map>
-//#include "Gui/ServerItem.h"
 
 /*
 Global Manager for 2D elements (buttons, text)
  The iManager stores these elements in a global acceccible vector
  Two types of rendering (start menu buttons, in game inventories)
+ Also calls functions like "LoadWorld" from ObjectManager
 */
 namespace iManager {
-	
+
 	bool IsPauseMode();
 	void SetPauseMode(bool f);
+
+	void UIFadeOn();
+	void UIFadeOff();
+
 	/*
 	Setup callbacks and 2D elements
 	*/
+
 	void Init();
 	void UpdateInterface(float delta);
 	void RenderInterface();
 
-	void AddElement(IElem* e);
-	IElem* GetElement(std::string s);
+	IElement* NewElement(const std::string& name,int priority);
+	/*
+	Find element with name
+	(Avoid calling to many times)
+	*/
+	IElement* GetElement(const std::string& s);
 
 	Font* GetFont();
 }

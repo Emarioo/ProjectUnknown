@@ -1,3 +1,45 @@
+// HEADER
+#pragma once
+
+#include "Managers/DataManager.h"
+#include "Gui/IElem.h"
+#include "Gui/IButton.h"
+#include "Gui/ISquare.h"
+#include "Gui/IInput.h"
+#include "Gui/IList.h"
+#include "Gui/WorldItem.h"
+#include <unordered_map>
+
+#include "Gui/IElement.h"
+
+//#include "Gui/ServerItem.h"
+
+/*
+Global Manager for 2D elements (buttons, text)
+ The iManager stores these elements in a global acceccible vector
+ Two types of rendering (start menu buttons, in game inventories)
+*/
+namespace iManager {
+	
+	bool IsPauseMode();
+	void SetPauseMode(bool f);
+	/*
+	Setup callbacks and 2D elements
+	*/
+	void Init();
+	void UpdateInterface(float delta);
+	void RenderInterface();
+
+	void AddElement(IElem* e);
+	/*
+	Find element with name
+	(Avoid calling to many times)
+	*/
+	IElem* GetElement(const std::string& s);
+
+	Font* GetFont();
+}
+// CPP
 #include "InterfaceManager.h"
 
 namespace iManager {
@@ -24,40 +66,16 @@ namespace iManager {
 	Font* GetFont() {
 		return &font1;
 	}
-	//WorldItem* selectedWorld;
-	//std::vector<WorldItem> worldItems;
+	IPos worldListOffset;
+	WorldItem* selectedWorld;
+	std::vector<WorldItem> worldItems;
 
-	bool uiFadeBool = false;
-	IElement* uiFade = nullptr;
-	void UIFadeOn() {
-		uiFadeBool = true;
+	std::vector<IElem*> elements;
+	void AddElement(IElem* e) {
+		elements.push_back(e);
 	}
-	void UIFadeOff() {
-		uiFadeBool = false;
-	}
-
-	std::vector<IElement*> elements;
-	IElement* NewElement(const std::string& name,int priority) {
-		IElement* ie = new IElement(name, priority);
-		elements.push_back(ie);
-		std::vector<IElement*> tempElem = elements;
-		elements.clear();
-		while(tempElem.size()>0){
-			int prio = 99999999;
-			int ind = 0;
-			for (int i = 0; i < tempElem.size();i++) {
-				if (tempElem[i]->priority < prio) {
-					prio = tempElem[i]->priority;
-					ind = i;
-				}
-			}
-			elements.push_back(tempElem[ind]);
-			tempElem.erase(tempElem.begin() + ind);
-		}
-		return ie;
-	}
-	IElement* GetElement(const std::string& s) {
-		for (IElement* e : elements) {
+	IElem* GetElement(const std::string& s) {
+		for (IElem* e : elements) {
 			if (e->name == s) {
 				return e;
 			}
@@ -71,29 +89,26 @@ namespace iManager {
 	}
 	void UpdateInterface(float delta) {
 		//if (GetMenu() == Startup) {
+		
 		for (auto p : elements) {
-			p->HoverEvent(renderer::GetMX(), renderer::GetMY());
-		}
-		for (auto p : elements) {
-			p->InternalUpdate(delta);
 			p->Update(delta);
 		}
 		//}
 	}
 	void KeyEvent(int key, int action) {
-		//bug::outs < "KeyEvent" < key < action < bug::end;
+		//std::cout << "KeyEvent " << key << " " << action << std::endl;
 		if (dManager::GetGameState() == GameState::play) {
 			if (action == 1) {
 				if (key == GLFW_KEY_O) {
 					ReadOptions();
-					if (oManager::GetDimension() != nullptr)
-						oManager::GetDimension()->UpdateAllChunks();
+					if (dManager::GetDimension() != nullptr)
+						dManager::GetDimension()->UpdateAllChunks();
 				}
 				if (key == GLFW_KEY_G) {// AT: Magic Editor
-					/*IElement* el = GetElement("editor_script");
+					IElem* el = GetElement("editor_script");
 					if (el != nullptr) {
 						if (!el->selected) {
-
+							/*
 							if (HasTag(8)) {
 								//DelTag(8);
 
@@ -104,9 +119,9 @@ namespace iManager {
 								renderer::SetCursorMode(true);
 								// Other things?
 							}
-
+							*/
 						}
-					}*/
+					}
 				}
 				if (pauseMode) {
 					if (key == GLFW_KEY_ESCAPE) {
@@ -114,24 +129,27 @@ namespace iManager {
 					}
 				} else {
 					//if (!HasTag(8)) {
-					if (key == GLFW_KEY_ESCAPE) {
-						SetPauseMode(true);
+						if (key == GLFW_KEY_ESCAPE) {
+							SetPauseMode(true);
 
-					}
+						}
 					//}
 				}
 			}
 		} //else if (GetMenu() == Startup) {
-		
-		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->KeyEvent(key,action)) {
+		/*for (int i = 0; i < elements.size(); i++) {
+			elements.at(i).Type(key, action);
 
-			}
+		}*/
+		for (int i = elements.size() - 1; i < elements.size(); i--) {
+			IInput* re = reinterpret_cast<IInput*>(elements[i]);
+			if(re!=nullptr)
+				re->Type(key, action);
 		}
 		//}
 	}
 	void MouseEvent(double mx, double my, int button, int action) {// B0 > left | B1 > right | b2 > mid
-		//bug::outs < "MouseEvent" < mx < my < button < action < bug::end;
+		//std::cout << "MouseEvent " << mx << " "<<my << " "<< button << " " << action << std::endl;
 		if (dManager::GetGameState() == GameState::play) {
 			if (action == 0) {
 				if (pauseMode) {
@@ -139,36 +157,26 @@ namespace iManager {
 				}
 			}
 		}
-
-		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->ClickEvent(mx, my, button, action)) {
-				//break;
-			}
-		}
-	}
-	void ScrollEvent(double xoffset, double yoffset) {// B0 > left | B1 > right | b2 > mid
-		//bug::outs < "ScrollEvent" < xoffset < yoffset < bug::end;
-		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->ScrollEvent(yoffset)) {
-				//break;
+		
+		for (int i = elements.size()-1; i < elements.size();i--) {
+			if (elements[i]->ClickEvent(mx, my, action)){
+				break;
 			}
 		}
 	}
 	void DragEvent(double mx, double my) {
-		//bug::outs < "DragEvent" < mx < my < bug::end;
 		//if (GetMenu() == Startup) {
-		/*
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			elements[i]->HoverEvent(mx, my);
 		}
-		*/
 		//}
+		//std::cout << "DragEvent " << mx << " "<<my << std::endl;
 	}
 	void ResizeEvent(int width, int height) {
-		//bug::outs < "ResizeEvent" < width < height < std::endl;
-		/*for (int i = elements.size() - 1; i < elements.size(); i--) {
+		//std::cout << "ResizeEvent " << width<< " "<<height << std::endl;
+		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			elements[i]->Resize(width, height); // NOT USED
-		}*/
+		}
 	}
 	void RenderInterface() {
 		renderer::SwitchBlendDepth(true);
@@ -176,9 +184,18 @@ namespace iManager {
 		//if (GetMenu()==Startup) {
 		for (auto& p : elements) {
 			p->Draw();
+			//std::cout << elements.at(i).name << std::endl;
 		}
+		renderer::BindTexture("blank");
+		float arr[2];
+		DimFormat("25w,25h",arr,2);
+		renderer::DrawRect(0,0, arr[0],arr[1], 1,1,1,1);
+		//}
 	}
-	/*
+
+	void PlayFunc() {
+		
+	}
 	void EditWorldFunc() {
 		if (selectedWorld == nullptr)
 			return;
@@ -189,7 +206,7 @@ namespace iManager {
 	void AddWorld(std::string name, std::string id) {
 		WorldItem item(name, id);
 		worldItems.push_back(item);
-
+		/*
 		IElem it(id);
 		//it.AddTag(1);
 		it.Dimi(575, 350 - (worldItems.size() - 1) * 110, 300, 100);
@@ -200,7 +217,7 @@ namespace iManager {
 		a->Func(EditWorldFunc, 0.15);
 		// Action?
 		//AddElement(it);
-
+		*/
 	}
 	void JoinWorldFunc() {
 		if (selectedWorld == nullptr)
@@ -270,7 +287,7 @@ namespace iManager {
 		dim.Init(&GetPlayer()->position);
 		AddDimension("classic",dim);
 		SetDimension("classic");
-
+		*/
 		//dManager::SetGameState(GameState::play);
 	}
 	void SaveWorldFunc() {
@@ -304,19 +321,14 @@ namespace iManager {
 		// Delete Save File
 	}
 	void MainMenuFunc() {
-
+		
 	}
-	*/
+
 	void Init() {
-		renderer::SetCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
+		renderer::SetCallbacks(KeyEvent, MouseEvent, DragEvent, ResizeEvent, FocusEvent);
 
 		//font1.Data("assets/fonts/verdana38");
 		font1.Data("assets/fonts/consolas42");
-
-		uiFade = NewElement("uiFade",100);
-		uiFade->Color(0, 0, 0, 0)->conX.Center(0)->conY.Center(0)->conW.Center(1.f)->conH.Center(1.f);
-		uiFade->NewTransition(&uiFadeBool)->Fade(0, 0, 0, 1, 1.f);
-
 		/*
 		IAction* a;
 
@@ -330,7 +342,7 @@ namespace iManager {
 		a->Fade(0.2, 0.3, 0.6, 1, 0.1);
 		a->Func(PlayFunc, 0.15);
 		AddElement(play);
-
+		
 		IElem wb("worldBack");
 		wb.AddTag(1);
 		wb.Dimi(575, 50, 400, 750);
@@ -436,3 +448,92 @@ namespace iManager {
 		*/
 	}
 }
+// StartMenu.cpp
+ISquare* squ = new ISquare("background", "0w,0h,2.0,2.0", "noise");
+		squ->AddTag(&menu);
+		AddElement(squ);
+
+		IButton* but = new IButton("playAlone","-740w,400h,400w,200h",0.4,0.85,0.4,1, [&](int i) {
+			std::cout << "Play Alone" << std::endl;
+			hideStart = true;
+			hideAlone = false;
+			
+		}, 0.15);
+		//but->PosX.LeftScreen(0.5);
+		but->Text(GetFont(),"Play Alone", "52h", 1.0,1.0,1.0,1);
+		but->Click.Fade(0.6,0.6,0.8,1,0.1);
+		but->Hover.Fade(0.7, 0.7, 0.9, 1, 0.5);
+		but->Hover.Size("100w,20h",0.4);
+		but->Hover.Move("50w,0h",0.4);
+		but->AddTag(&menu);
+		IAction *a = but->NewAction(&hideStart);
+		a->Move("-450w,0.0",0.5);
+		AddElement(but);
+
+		but = new IButton("joinFriend", "-740w,180h,400w,200h", 0.4, 0.85, 0.4, 1, [&](int i) {
+			std::cout << "Join Friend" << std::endl;
+			hideStart = true;
+		}, 0.15);
+		but->Text(GetFont(),"Join a Friend",  "52h" ,1, 1, 1, 1);
+		but->Click.Fade(0.6, 0.6, 0.8, 1, 0.1);
+		but->Hover.Fade(0.7, 0.7, 0.9, 1, 0.5);
+		but->Hover.Size("100w,20h", 0.4);
+		but->Hover.Move("50w,0h", 0.4);
+		but->AddTag(&menu);
+		a = but->NewAction(&hideStart);
+		a->Move("-450w,0.0", 0.5);
+		AddElement(but);
+		
+		but = new IButton("mainSettings", "-740w,-40h,400w,200h", 0.4, 0.85, 0.4, 1, [&](int i) {
+			std::cout << "Settings" << std::endl;
+			hideStart = true;
+		}, 0.15);
+		but->Text(GetFont(),"Settings",  "52h", 1, 1, 1, 1);
+		but->Click.Fade(0.6, 0.6, 0.8, 1, 0.1);
+		but->Hover.Fade(0.7, 0.7, 0.9, 1, 0.5);
+		but->Hover.Size("100w,20h", 0.4);
+		but->Hover.Move("50w,0h", 0.4);
+		but->AddTag(&menu);
+		a = but->NewAction(&hideStart);
+		a->Move("-450w,0.0", 0.5);
+		AddElement(but);
+
+		but = new IButton("mainQuit", "-740w,-260h,400w,200h", 0.4, 0.85, 0.4, 1, [&](int i) {
+			std::cout << "Quit Game" << std::endl;
+			
+		}, 0.15);
+		but->Text(GetFont(),"Quit", "52h", 1, 1, 1, 1);
+		but->Click.Fade(0.6, 0.6, 0.8, 1, 0.1);
+		but->Hover.Fade(0.7, 0.7, 0.9, 1, 0.5);
+		but->Hover.Size("100w,20h", 0.4);
+		but->Hover.Move("50w,0h", 0.4);
+		but->AddTag(&menu);
+		a = but->NewAction(&hideStart);
+		a->Move("-450w,0.0", 0.5);
+		AddElement(but);
+		
+		but = new IButton("aloneBack", "-740w,-460h,200w,100h", 0.4, 0.85, 0.4, 1, [&](int i) {
+			std::cout << "Back" << std::endl;
+			hideAlone = true;
+			hideStart = false;
+		}, 0.15);
+		but->Text(GetFont(), "Back", "48h",1, 1, 1, 1);
+		but->Click.Fade(0.6, 0.6, 0.8, 1, 0.1);
+		but->Hover.Fade(0.7, 0.7, 0.9, 1, 0.5);
+		//but->Hover.Size("20w,20h", 0.4);
+		//but->Hover.Move("50w,0h", 0.4);
+		but->AddTag(&menu);
+		a = but->NewAction(&hideAlone);
+		a->Move("-450w,0.0", 0.5);
+		AddElement(but);
+		
+		IList* lis = new IList("aloneList", GetFont(), "-740w,0h,400w,800h,30w,50h,35h", 0.2, 0.2, 0.2, 1, 0.5, 0.5, 0.5, 1,[&](int i) {
+			std::cout << "Clicked Item " << i << std::endl;
+		},0.15);
+		lis->AddTag(&menu);
+		//lis->Click.Fade(0);
+		lis->AddItem("World 1");
+		lis->AddItem("World 2");
+		a = lis->NewAction(&hideAlone);
+		a->Move("-450w,0.0", 0.5);
+		AddElement(lis);

@@ -14,6 +14,7 @@ public:
 	void Translate(glm::vec3 v);
 	void Rotate(glm::vec3 v);
 	void Scale(glm::vec3 v);
+	void Matrix(glm::mat4 m);
 	glm::mat4 mat();
 	glm::vec3 vec();
 };

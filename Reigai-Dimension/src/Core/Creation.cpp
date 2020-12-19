@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include <functional>
+
 class Fruit {
 public:
 	Fruit() {};
@@ -20,6 +22,7 @@ public:
 	}
 };
 int main(int argc, char* argv[]) {
+
 	/*for (int i = 0; i < 256;i++) {
 		bug::c(i);
 		bug::out + i + " color? \n";
@@ -42,6 +45,7 @@ int main(int argc, char* argv[]) {
 	Apple a = AddT(Apple("red"));
 	std::cout << a.color << "\n";
 	*/
+
 	gamecore::Init();
 	std::cin.get();
 	return 0;

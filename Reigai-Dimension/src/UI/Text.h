@@ -2,25 +2,22 @@
 
 #include "Rendering/BufferContainer.h"
 #include "Rendering/Renderer.h"
+#include "Utility/Keyboard.h"
 #include "Font.h"
 #include "IDimensions.h"
 /*
-Center or Edge with float
-String or maxchar
-Dynamic textsizing or not
-
-
+Text should fit in a box
 
 */
 class Text {
 public:
 	Text(){}
-	int maxChar=0;
 	bool center = false;
+	bool staticHeight = false;
 	void Center(bool f);
-	void Setup(Font* f,int max, bool cent);
+	void Setup(Font* f, bool cent);
 
-	Font* font=nullptr;
+	Font *font=nullptr;
 	void SetFont(Font* f);
 
 	std::string text;
@@ -28,12 +25,10 @@ public:
 	Updates container
 	*/
 	//void SetText(std::string text,float h);
-	void SetText(std::string text);
+	void SetText(const std::string& text);
 
-	void ElemWH(float, float);
-	float elemW=0, elemH=0;// Temporary
-	IPos xy;
-	void SetXY(IPos);
+	float *elemW=nullptr, *elemH=nullptr;
+	void ElemWH(float*, float*);
 
 	float xpos=0,ypos=0;
 	void SetPos(float x,float y);
@@ -54,11 +49,13 @@ public:
 	Argument can't be more than size of text
 	*/
 	int PixelPosX(int c);
+	bool elemShiftL = false, elemShiftR = false, elemAltR = false;
+	void EditText(int key, int action);
 
 	int CharOnLine(int c);
-
-	float charWidth = 0.1;
+	bool isPixel = false;
 	float charHeight = 0.1;
+	void SetHeight(int s);
 	void SetHeight(float s);
 
 	float r=1,g=1,b=1,a=1;
@@ -67,10 +64,10 @@ public:
 	Update SetPos(x,y)
 	*/
 	void DrawString(float alpha,bool marker);
-	BufferContainer container;
+	//BufferContainer container;
 	/*
 	Can be altered without complications
 	*/
 	int atChar=0;
-	BufferContainer marker;
+	//BufferContainer marker;
 };

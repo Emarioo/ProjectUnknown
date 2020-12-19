@@ -2,10 +2,12 @@
 
 #include "glm/glm.hpp"
 #include <vector>
+#include <string>
 
 class Bone {
 public:
 	std::vector<Bone> children;
+	std::string name;
 	int index = 0;
 	glm::mat4 localMat=glm::mat4(1);
 

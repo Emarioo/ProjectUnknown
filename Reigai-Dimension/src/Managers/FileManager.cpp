@@ -22,7 +22,7 @@ namespace fManager {
 				if (i != 0)
 					file << "\n";
 				file << text[i];
-			}
+			} 
 		}
 		file.close();
 		return Success;
@@ -97,7 +97,7 @@ namespace fManager {
 		return text;
 	}
 	int LoadMesh(MeshData* da, std::string path) {
-		path  += ".mesh";
+		path = "assets/meshes/"+path+".mesh";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
@@ -338,7 +338,7 @@ namespace fManager {
 		return Success;
 	}
 	int LoadAnim(AnimData* da, std::string path) {
-		path  += ".anim";
+		path = "assets/animations/" + path + ".anim";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
@@ -469,7 +469,7 @@ namespace fManager {
 		return Success;
 	}
 	int LoadColl(CollData* da, std::string path) { // TODO: More efficient by removing unneccecery for loops
-		path  += ".coll";
+		path = "assets/colliders/" + path + ".coll";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
@@ -552,7 +552,7 @@ namespace fManager {
 		return Success;
 	}
 	int LoadBone(BoneData* da, std::string path) {
-		path  += ".bone";
+		path = "assets/bones/" + path + ".bone";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {

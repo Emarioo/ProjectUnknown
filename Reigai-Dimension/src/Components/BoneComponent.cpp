@@ -8,7 +8,7 @@ void BoneComponent::SetAnim(AnimationComponent* comp) {
 }
 void BoneComponent::addToArray(glm::mat4* mat, Bone bone, glm::mat4 parent) {
 	if (anim != nullptr) {
-		mat[bone.index] = parent * anim->GetTransform(bone.index);
+		mat[bone.index] = parent * anim->GetTransform(bone.name);
 	} else {
 		mat[bone.index] = parent * bone.localMat;
 	}

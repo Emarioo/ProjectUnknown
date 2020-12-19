@@ -1,68 +1,33 @@
 #include "IElem.h"
 
-void DimFormat(std::string s, float* out) { // TODO: IElem Dim check for errors in format before they happen
+/*
+This class is deprecated since 2020-12-13
+*/
+
+void DimFormat(const std::string& s, float* out, int count) {
 	std::vector<std::string> split = SplitString(s, ",");
-	if (split.size() == 4) {
-			if (split[0].back() == 'p') {
-				split[0].pop_back();
-				out[0] = 2.f * atoi(split[0].c_str()) / 1920.f;
+	if (split.size() == count) {
+		for (int i = 0; i < count; i++) {
+			if (split[i].back() == 'w') {
+				split[i].pop_back();
+				out[i] = 2.f * atoi(split[i].c_str()) / 1920.f;
+				
+			} else if (split[i].back() == 'h') {
+				split[i].pop_back();
+				out[i] = 2.f * atoi(split[i].c_str()) / 1080.f;
 			} else {
-				split[0].pop_back();
-				out[0] = atof(split[0].c_str());
+				split[i].pop_back();
+				out[i] = atof(split[i].c_str());
 			}
-			if (split[1].back() == 'p') {
-				split[1].pop_back();
-				out[1] = 2.f * atoi(split[1].c_str()) / 1080.f;
-			} else {
-				split[1].pop_back();
-				out[1] = atof(split[1].c_str());
-			}
-			if (split[2].back() == 'p') {
-				split[2].pop_back();
-				out[2] = 2.f * atoi(split[2].c_str()) / 1920.f;
-			} else {
-				split[2].pop_back();
-				out[2] = atof(split[2].c_str());
-			}
-			if (split[3].back() == 'p') {
-				split[3].pop_back();
-				out[3] = 2.f * atoi(split[3].c_str()) / 1080.f;
-			} else {
-				split[3].pop_back();
-				out[3] = atof(split[3].c_str());
-			}
-	} else {
-		bug::out < bug::RED < "Error in Element Format: " < s < bug::end;
-		out[0] = 0;
-		out[1] = 0;
-		out[2] = 0;
-		out[3] = 0;
-	}
-}
-void Dim2Format(std::string s, float* out) { // TODO: IElem Dim check for errors in format before they happen
-	std::vector<std::string> split = SplitString(s, ",");
-	if (split.size() == 2) {
-		if (split[0].back() == 'p') {
-			split[0].pop_back();
-			out[0] = 2.f * atoi(split[0].c_str()) / 1920.f;
-		} else {
-			split[0].pop_back();
-			out[0] = atof(split[0].c_str());
-		}
-		if (split[1].back() == 'p') {
-			split[1].pop_back();
-			out[1] = 2.f * atoi(split[1].c_str()) / 1080.f;
-		} else {
-			split[1].pop_back();
-			out[1] = atof(split[1].c_str());
 		}
 	} else {
 		bug::out < bug::RED < "Error in Element Format: " < s < bug::end;
-		out[0] = 0;
-		out[1] = 0;
+		for (int i = 0; i < count; i++) {
+			out[i] = 0;
+		}
 	}
 }
-void IAction::Func(std::function<void()> f, float time) {
+void IAction::Func(std::function<void(int)> f, float time) {
 	func = f;
 	funcS = 1 / time;
 }
@@ -77,7 +42,7 @@ void IAction::Fade(float f0, float f1, float f2, float f3, float time) {
 void IAction::Move(const std::string& xy, float time) {
 	move = true;
 	float arr[2];
-	Dim2Format(xy, arr);
+	DimFormat(xy, arr,2);
 	x = arr[0];
 	y = arr[1];
 	moveS = 1 / time;
@@ -85,17 +50,17 @@ void IAction::Move(const std::string& xy, float time) {
 void IAction::Size(const std::string& wh, float time) {
 	size = true;
 	float arr[2];
-	Dim2Format(wh, arr);
+	DimFormat(wh, arr,2);
 	w = arr[0];
 	h = arr[1];
 	sizeS = 1 / time;
 }
-void IAction::Update(float delta, bool b) {
+void IAction::Update(float delta, bool b,int funcData) {
 	if (func != nullptr) {
 		if (b || funcT > 0)
 			funcT += funcS * delta;
 		if (funcT >= 1 && funcT < 1 + funcS * delta)
-			func();
+			func(funcData);
 		if (funcT > 1 && !b)
 			funcT = 0;
 	}
@@ -139,6 +104,9 @@ void IAction::Update(float delta, bool b) {
 			sizeT = 1;
 		}
 	}
+}
+void IAction::ResetFunc() {
+	funcT = 0;
 }
 void IElem::AddTag(bool* b) {
 	tags.push_back(b);
@@ -184,6 +152,7 @@ void IElem::Resize(int wi, int he) {
 	//if (size.pixelScreen)	SetCont();
 }
 void IElem::UpdateCont() {
+	/*
 	float tw = GetW() / 2;
 	float th = GetH() / 2;
 
@@ -199,9 +168,11 @@ void IElem::UpdateCont() {
 	};
 	cont.Setup(true, v, 4 * 4, t, 6);
 	cont.SetAttrib(0, 4, 4, 0);
-	text.ElemWH(GetW(), GetH());
+	*/
+	//text.ElemWH(GetW(), GetH());
 }
 void IElem::UpdateCont(float w,float h) {
+	/*
 	float tw = w / 2;
 	float th = h / 2;
 
@@ -212,33 +183,37 @@ void IElem::UpdateCont(float w,float h) {
 		tw,-th,1,0
 	};
 	cont.SubVB(0, 4 * 4, v);
-	text.ElemWH(GetW(), GetH());
+	*/
+	//text.ElemWH(GetW(), GetH());
 }
 
 
-void IElem::Text(const std::string& s, Font* f) {
-	text.Setup(f, s.size(), true);
+void IElem::Text(Font* f) {
+	text.Setup(f, true);
+}
+void IElem::Text(Font* f, const std::string& s) {
+	text.Setup(f, true);
 	text.SetText(s);
 }
-void IElem::Text(const std::string& s, Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, s.size(), true);
+void IElem::Text(Font* f, float f0, float f1, float f2, float f3) {
+	text.Setup(f, true);
+	text.SetCol(f0, f1, f2, f3);
+}
+void IElem::Text(Font* f, const std::string& s, float f0, float f1, float f2, float f3) {
+	text.Setup(f, true);
 	text.SetCol(f0, f1, f2, f3);
 	text.SetText(s);
 }
-void IElem::Text(int max, Font* f) {
-	text.Setup(f, max, true);
-}
-void IElem::Text(int max, const std::string& s, Font* f) {
-	text.Setup(f, max, true);
-	text.SetText(s);
-}
-void IElem::Text(int max, Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, max, true);
+/*
+height is a format like "0.9" or "52p"
+*/
+void IElem::Text(Font* f, const std::string& s, const std::string& height, float f0, float f1, float f2, float f3) {
+	text.Setup(f, true);
 	text.SetCol(f0, f1, f2, f3);
-}
-void IElem::Text(int max, const std::string& s, Font* f, float f0, float f1, float f2, float f3) {
-	text.Setup(f, max, true);
-	text.SetCol(f0, f1, f2, f3);
+	float he;
+	DimFormat(height,&he,1);
+	text.staticHeight = true;
+	text.SetHeight(he);
 	text.SetText(s);
 }
 void IElem::SetText(const std::string& s) {
@@ -249,14 +224,13 @@ void IElem::SetText(const std::string& s) {
 std::string IElem::GetText() {
 	return text.text;
 }
-
 void IElem::Update(float delta) {
 	if (!HasTags()) return;
-	Hover.Update(delta,hovering);
-	Click.Update(delta,clicked);
+	Hover.Update(delta,hovering,funcData);
+	Click.Update(delta,clicked,funcData);
 	for (auto& p : customActions) {
 		//bug::outs < *p.first < bug::end;
-		p.second.Update(delta,*p.first);
+		p.second.Update(delta,*p.first,funcData);
 	}
 }
 IAction* IElem::NewAction(bool *b){
@@ -287,7 +261,7 @@ float IElem::GetRed() {
 	}
 	return out;
 }
-float lastW=0, lastH=0;
+float lastW = 0, lastH = 0;
 void IElem::DrawNormal() { // TODO: Optimize this masterpiece of junk
 	float x = GetX();// +Hover.x * Hover.moveT + Click.x * Click.moveT;
 	float y = GetY();// +Hover.y * Hover.moveT + Click.y * Click.moveT;
@@ -300,18 +274,20 @@ void IElem::DrawNormal() { // TODO: Optimize this masterpiece of junk
 
 	float w = GetW();// +Hover.w * Hover.sizeT + Click.w * Click.sizeT;
 	float h = GetH();// +Hover.h * Hover.sizeT + Click.h * Click.sizeT;
-	//bug::outs < Hover.w < Hover.sizeT < bug::end;
-	if (w != lastW||h!=lastH) {
-		UpdateCont(w,h);
+	
+	if (w != lastW || h != lastH) {
+		UpdateCont(w, h);
 		lastW = w;
 		lastH = h;
 	}
-	//bug::outs < name < bug::end;
-	//bug::out +red+" "+green+" "+blue+" "+alpha+" "+GetX()+" "+GetY()+ bug::end;
+
 	renderer::BindTexture(texture);
-	cont.Draw();
+	renderer::GuiSize(w, h);
+	renderer::DrawRect();
+	//cont.Draw();
 	if (text.text.length() > 0) {
 		text.SetPos(x, y);
+		renderer::GuiSize(1, 1);
 		text.DrawString(alpha, typing && selected);
 	}
 }

@@ -8,13 +8,14 @@ ClientPlayer::ClientPlayer() {
 
 	//bone.SetData(dManager::GetBone("player_bone"));
 	//bone.SetAnim(&animation);
+	/*
 	animation.SetData(dManager::GetAnim(""));
 	bone.SetAnim(&animation);
 	bone.SetBone(dManager::GetBone(""));
 	mesh.AddMesh(dManager::GetMesh("player_body"));
 	mesh.SetBone(&bone);
 	dManager::AddComponent(&mesh);
-
+	*/
 	//collider.SetData(dManager::AddColl("ClientPlayer"));
 	//collider.MakeCube(0, -0.5, 0, 1, 3, 1);
 }
@@ -51,7 +52,7 @@ void ClientPlayer::Update(float delta) {
 	Location body;
 	body.Translate(position);
 	body.Rotate(rotation);
-	mesh.matrices[0] = body.mat();
+	//mesh.matrices[0] = body.mat();
 }
 bool camToggle = false;
 bool moveToggle = false;

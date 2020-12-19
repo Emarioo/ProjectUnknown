@@ -10,6 +10,7 @@
 #include "Objects/Cube.h"
 #include "Objects/NetPlayer.h"
 #include "Objects/Tutorial.h"
+#include "Objects/Goblin.h"
 #include "Objects/OTemplate.h"
 
 #include "Chat.h"
@@ -31,25 +32,29 @@ namespace gamecore {
 	void LoadGameData() {// ALL game assets should be added here(Not interface stuff)
 		renderer::AddTexture("magicstaff_staff", "assets/textures/magicstaff_staff");
 		renderer::AddTexture("magicstaff_fireball", "assets/textures/magicstaff_fireball");
-		dManager::AddAnim("idle", "assets/animations/MagicStaffIdle");
-		dManager::AddMesh("staff", "assets/meshes/staff");
-		dManager::AddMesh("fireball", "assets/meshes/fireball");
+		dManager::AddAnim("MagicStaffIdle");
+		dManager::AddMesh("staff");
+		dManager::AddMesh("fireball");
 
-		dManager::AddAnim("player_idle", "assets/animations/PlayerIdle");
-		dManager::AddMesh("player_body", "assets/meshes/Body");
-		dManager::AddMesh("player_head", "assets/meshes/Head");
-		dManager::AddMesh("player_ruarm", "assets/meshes/RUArm");
-		dManager::AddMesh("player_rlarm", "assets/meshes/RLArm");
-		
+		dManager::AddAnim("PlayerIdle");
+		dManager::AddMesh("Body");
+		dManager::AddMesh("Head");
+		dManager::AddMesh("RUArm");
+		dManager::AddMesh("RLArm");
+
+		dManager::AddAnim("goblin_slash");
+		dManager::AddBone("goblin_skeleton");
+		dManager::AddMesh("goblin_body");
+
 		renderer::AddTexture("noise", "assets/textures/noise");
-		dManager::AddMesh("parkour", "assets/meshes/Parkour");
-		dManager::AddColl("parkour", "assets/colliders/Parkour");
+		dManager::AddMesh("Parkour");
+		dManager::AddColl("Parkour");
 
-		dManager::AddMesh("floor", "assets/meshes/Floor");
-		dManager::AddColl("floor", "assets/colliders/Floor");
+		dManager::AddMesh("Floor");
+		dManager::AddColl("Floor");
 
-		dManager::AddMesh("vertexcolor", "assets/meshes/VertexColor");
-		dManager::AddColl("vertexcolor", "assets/colliders/VertexColor");
+		dManager::AddMesh("VertexColor");
+		dManager::AddColl("VertexColor");
 	}
 	void Init() {
 		renderer::Init();
@@ -63,6 +68,8 @@ namespace gamecore {
 
 		LoadGameData();
 
+		dManager::SetGameState(GameState::play);// Temporary
+
 		dManager::Init();
 		iManager::Init();
 		oManager::Init();
@@ -70,6 +77,7 @@ namespace gamecore {
 		oManager::GetPlayer()->SetPosition(0, 2, 0);
 
 		startMenu::Init();
+
 		//InitEditor();
 		UpdateKeyboard(false);
 		//InitChat(&updateObjects);
@@ -81,13 +89,13 @@ namespace gamecore {
 		oManager::GetPlayer()->metaData.AddMeta(pMeta);
 
 		oManager::GetPlayer()->renderHitbox = true;
-
-		/*
-		oManager::AddObject(new MagicStaff(0, 0, -10));
-		Tutorial* tut = new Tutorial(0, 0, 0);
+		
+		//oManager::AddObject(new MagicStaff(0, 0, -10));
+		oManager::AddObject(new Goblin(0, 0, -10));
+		/*Tutorial* tut = new Tutorial(0, 0, 0);
 		tut->renderHitbox = true;
 		oManager::AddObject(tut);
-		
+		/*
 		OTemplate* temp = new OTemplate(0, 5, 0);
 		temp->renderHitbox = true;
 		oManager::AddObject(temp);
@@ -283,8 +291,8 @@ namespace gamecore {
 				}
 				renderer::UpdateProj();
 
-				if (dManager::GetDimension() != nullptr)
-					dManager::GetDimension()->CleanChunks();
+				if (oManager::GetDimension() != nullptr)
+					oManager::GetDimension()->CleanChunks();
 
 				// Update dimension
 
@@ -296,6 +304,7 @@ namespace gamecore {
 				}
 			}
 		}
+		dManager::Update(delta);
 		iManager::UpdateInterface(delta);
 	}
 	bool reachedLimit = false;
@@ -334,19 +343,19 @@ namespace gamecore {
 			}
 			renderer::BindShader(MaterialType::AnimationMat);
 			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+				if (m->bone != nullptr) {
+					int count = m->bone->bone->count;
+					glm::mat4* mats = new glm::mat4[count];
+					m->bone->GetBoneTransforms(mats);
+					for (int i = 0; i < count; i++) {
+						renderer::GetShader(MaterialType::AnimationMat)->SetUniformMat4fv("uBoneTransforms[" + i + std::string("]"), mats[i]);
+					}
+					delete mats;
+				}
 				for (int i = 0; i < m->meshes.size(); i++) {
 					MeshData* mesh = m->meshes[i];
 					if (mesh != nullptr) {
 						if (mesh->material == MaterialType::AnimationMat) {
-							if (m->bone != nullptr) {
-								int count = m->bone->bone->count;
-								glm::mat4* mats = new glm::mat4[count];
-								m->bone->GetBoneTransforms(mats);
-								for (int i = 0; i < count; i++) {
-									renderer::GetShader(MaterialType::AnimationMat)->SetUniformMat4fv("uBoneTransforms[" + i + std::string("]"), mats[i]);
-								}
-								delete mats;
-							}
 							renderer::DrawMesh(mesh, m->matrices[i]);// Could be causing problems by not giving it an empty matrix
 						}
 					}

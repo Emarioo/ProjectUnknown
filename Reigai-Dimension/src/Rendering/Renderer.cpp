@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 namespace renderer {
-
+	
 	WindowTypes windowType = WindowBorderless;
 	WindowTypes windowType2 = WindowBorderless;
 	WindowTypes GetWindowType() {
@@ -41,10 +41,10 @@ namespace renderer {
 			winH = h;
 	}
 	float Wid() {
-		return 1000;
+		return 1920;
 	}
 	float Hei() {
-		return 1000 / (16.f / 9);
+		return 1080;
 	}
 	/*
 	Width of game screen not window!
@@ -84,13 +84,18 @@ namespace renderer {
 	float AlterH(float h) {
 		return 2.f * (h) / Height();
 	}
-	float AlterX(float x) {
-		return 2.f * (x) / Width() - 1;
+	float AlterSW(float w) {
+		return 2 * w;
 	}
-	float AlterY(float y) {
-		return 1 - 2.f * (y) / Height();
+	float AlterSH(float h) {
+		return 2 * h;
 	}
-
+	float AlterX(int x) {
+		return 2 * x / Width() - 1;
+	}
+	float AlterY(int y) {
+		return 1 - 2 * y / Height();
+	}
 	glm::mat4 projMatrix;
 	float fov;
 	float zNear;
@@ -126,7 +131,12 @@ namespace renderer {
 
 	double renMouseX;
 	double renMouseY;
-
+	double GetMX() {
+		return renMouseX;
+	}
+	double GetMY() {
+		return renMouseY;
+	}
 	GLFWwindow* window;
 	GLFWwindow* GetWindow() {
 		return window;
@@ -190,6 +200,12 @@ namespace renderer {
 			}
 		}
 	}
+	void (*ScrollEvent)(double, double);
+	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+		if (ScrollEvent != nullptr) {
+			ScrollEvent(xoffset, yoffset);
+		}
+	}
 	void(*DragEvent)(double, double);
 	void DragCallback(GLFWwindow* window, double mx, double my) {
 		if (!GetCursorMode()) {
@@ -225,15 +241,21 @@ namespace renderer {
 	void SetCallbacks(
 		void(*key)(int, int),
 		void(*mouse)(double, double, int, int),
+		void(*scroll)(double, double),
 		void(*drag)(double, double),
 		void(*resize)(int, int),
 		void(*focus)(int)) {
 		KeyEvent = key;
 		MouseEvent = mouse;
+		ScrollEvent = scroll;
 		DragEvent = drag;
 		ResizeEvent = resize;
 		FocusEvent = focus;
 	}
+	const int TEXT_BATCH = 30;
+	float verts[4 * 4 * TEXT_BATCH];
+	BufferContainer textContainer;
+	BufferContainer rectContainer;
 	Shader colorShader;
 	Shader textureShader;
 	Shader interfaceShader;
@@ -274,6 +296,7 @@ namespace renderer {
 
 		glfwSetKeyCallback(window, KeyCallback);
 		glfwSetMouseButtonCallback(window, MouseCallback);
+		glfwSetScrollCallback(window, ScrollCallback);
 		glfwSetCursorPosCallback(window, DragCallback);
 		glfwSetWindowFocusCallback(window, WindowFocusCallback);
 		glfwSetWindowSizeCallback(window, ResizeCallback);
@@ -312,6 +335,33 @@ namespace renderer {
 		//terrainShader.Init("assets/shaders/terrain");
 
 		AddTexture("blank", "assets/textures/blank");
+
+		std::uint32_t indes[TEXT_BATCH*6];
+		for (int i = 0; i < TEXT_BATCH; i++) {
+			indes[0 + 6 * i] = 2 + 4 * i;
+			indes[1 + 6 * i] = 1 + 4 * i;
+			indes[2 + 6 * i] = 0 + 4 * i;
+			indes[3 + 6 * i] = 0 + 4 * i;
+			indes[4 + 6 * i] = 3 + 4 * i;
+			indes[5 + 6 * i] = 2 + 4 * i;
+		}
+		textContainer.Setup(true,nullptr,4*4*TEXT_BATCH,indes,6*TEXT_BATCH);
+		textContainer.SetAttrib(0, 4, 4, 0);
+		float temp[]{
+			-0.5, -0.5, 0, 0,
+			-0.5, 0.5, 0, 1,
+			0.5, 0.5, 1, 1,
+			0.5, -0.5, 1, 0
+		};
+		unsigned int temp2[]{
+			2,1,0,
+			0,3,2
+		};
+		rectContainer.Setup(false, temp,16, temp2, 6);
+		rectContainer.SetAttrib(0, 4, 4, 0);
+
+		BindShader(MaterialType::InterfaceMat);
+		GuiSize(1, 1);
 
 		fov = 90.f;
 		zNear = 0.1f;
@@ -506,6 +556,11 @@ namespace renderer {
 		if (interfaceShader.IsInitiliazed())
 			interfaceShader.SetUniform2f("uTransform", x, y);// 2.f*x / sWidth() - 1, 1 - 2.f*y / sHeight());
 	}
+	void GuiSize(float w, float h) {
+		// Bind Shader
+		if (interfaceShader.IsInitiliazed())
+			interfaceShader.SetUniform2f("uSize", w, h);
+	}
 	void GuiColor(float f0, float f1, float f2, float f3) {
 		// Bind Shader
 		if(interfaceShader.IsInitiliazed())
@@ -551,6 +606,144 @@ namespace renderer {
 		} else {
 			bug::out < bug::RED < "Cannot find Texture '" < path < ".png'\n";
 		}
+	}
+	void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
+		ar[ind] = f0;
+		ar[ind + 1] = f1;
+		ar[ind + 2] = f2;
+		ar[ind + 3] = f3;
+	}
+	
+	void DrawText(Font* font, const std::string& text, bool center,float charHeight,int atChar) {
+		// Setup
+		
+			//bug::out < atChar < bug::end;
+		if (text.length() == 0 && atChar==-1)
+			return;
+		if (font != nullptr) {
+			if (font->texture != nullptr)
+				font->texture->Bind();
+			else
+				return;
+		} else
+			return;
+		//charHeight = 0.5;
+		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(renderer::Wid()/renderer::Hei());
+
+		float ratio = charHeight * ((float)renderer::Height() / renderer::Width());
+		float maxHeight = charHeight;
+		float maxWidth = 0;
+		float temp = 0;
+		for (int i = 0; i < text.size();i++) {
+			unsigned char cha = text[i];
+			if (cha == '\n') {
+				if (temp> maxWidth)
+					maxWidth = temp;
+				temp = 0;
+				maxHeight+=charHeight;
+				continue;
+			}
+			temp += ratio * (font->charWid[cha] / (float)font->charSize);
+		}
+		if (temp > maxWidth)
+			maxWidth = temp;
+		temp = 0;
+		float leftX = 0, topY = 0;
+		if (center) {
+			leftX = -maxWidth / 2;
+			topY = maxHeight / 2 - charHeight;
+		}
+		// Fill array with characters coords
+		float atX = leftX;
+		float atY = topY;
+		int i = 0;
+		int indChar = 0;
+		if (atChar != -1) {
+			float wid = 0;
+			float hei = 0;
+			for (int i = 0; i < atChar; i++) {
+				int cha = text.at(i);
+				if ((char)cha == '\n') {
+					wid = 0;
+					hei++;
+					continue;
+				}
+				if (cha < 0) {
+					cha += 256;
+				}
+				wid += font->charWid[cha];
+			}
+			float markerX = atX+wid * ((charHeight / (renderer::Wid() / renderer::Hei())) / font->charSize);
+			float markerY = atY+hei * charHeight;
+			float wuv = font->charWid[0] / (float)font->imgSize;
+			float wxy = ratio * (font->charWid[0] / (float)font->charSize);
+			float u = (0 % 16);
+			float v = 15 - (0 / 16);
+
+			Insert4(verts, 16 * i, markerX, markerY, (u) / 16, (v) / 16);
+			Insert4(verts, 4 + 16 * i, markerX, markerY + charHeight, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 8 + 16 * i, markerX + wxy, markerY + charHeight, (u) / 16 + wuv, (v + 1) / 16);
+			Insert4(verts, 12 + 16 * i, markerX + wxy, markerY, (u) / 16 + wuv, (v) / 16);
+
+			i++;
+		}
+		for (unsigned char cha : text) {
+			if (cha == '\n') {
+				Insert4(verts, 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 4 + 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 8 + 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 12 + 16 * i, 0, 0, 0, 0);
+				atY -= charHeight;
+				atX = leftX;
+				i++;
+				continue;
+			}
+
+			float wuv = font->charWid[cha] / (float)font->imgSize;
+			float wxy = ratio*(font->charWid[cha] / (float)font->charSize);
+			float u = (cha % 16);
+			float v = 15 - (cha / 16);
+		
+			Insert4(verts, 16 * i, atX, atY, (u) / 16, (v) / 16);
+			Insert4(verts, 4 + 16 * i, atX, atY + charHeight, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 8 + 16 * i, atX + wxy, atY + charHeight, (u) / 16 + wuv, (v + 1) / 16);
+			Insert4(verts, 12 + 16 * i, atX + wxy, atY, (u) / 16 + wuv, (v) / 16);
+			
+			atX += wxy;
+			i++;
+			if (i==TEXT_BATCH) {
+				textContainer.SubVB(0, 4 * 4 * TEXT_BATCH, verts);
+				textContainer.Draw();
+				i = 0;
+			}
+		}
+		// Fill the rest with space
+		for (int i = ((atChar!=-1)+text.length())%TEXT_BATCH; i < TEXT_BATCH; i++) {
+			for (int j = 0; j < 16; j++) {// stop if 10 characters are zeros (aka. \n) - might be more work than filling the rest with zeros
+				verts[i * 16 + j] = 0;
+			}
+		}
+		
+		textContainer.SubVB(0, 4 * 4 * TEXT_BATCH, verts);
+		textContainer.Draw();
+	}
+	void DrawRect() {
+		rectContainer.Draw();
+	}
+	void DrawRect(float x, float y) {
+		GuiTransform(x, y);
+		rectContainer.Draw();
+	}
+	void DrawRect(float x, float y, float w, float h) {
+		GuiTransform(x, y);
+		GuiSize(w, h);
+		rectContainer.Draw();
+	}
+	void DrawRect(float x, float y, float w, float h, float r, float g, float b, float a) {
+		GuiTransform(x, y);
+		GuiSize(w, h);
+		GuiColor(r, g, b, a);
+		rectContainer.Draw();
 	}
 
 	std::vector<Light*> lights;

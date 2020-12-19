@@ -5,11 +5,12 @@ MagicStaff::MagicStaff(float x,float y,float z) {
 	SetName("MagicStaff");
 
 	// Load meshes
-	staff.AddMesh(dManager::GetMesh("staff"));
-	dManager::AddComponent(&staff);
-	fireball.AddMesh(dManager::GetMesh("fireball"));
-	dManager::AddComponent(&fireball);
+	mesh.AddMesh(dManager::GetMesh("staff"));
+	mesh.AddMesh(dManager::GetMesh("fireball"));
+	dManager::AddComponent(&mesh);
 
+	idle.SetData(dManager::GetAnim("MagicStaffIdle"));
+	idle.running = true;
 	// Load animations
 	//idle.SetData(dManager::GetAnim("idle"));
 	//idle.running = true;
@@ -19,16 +20,13 @@ MagicStaff::MagicStaff(float x,float y,float z) {
 }
 
 void MagicStaff::PreComponents() {
-	/*Location body;
+	Location body;
 	body.Translate(GetPos());
 	body.Rotate(GetRot());
-	staff.SetMatrix(body.mat());
+	mesh.SetMatrix(0,body.mat());
 	
-	//body.Rotate(idle.GetRot("fireball"));
-	//body.Translate(idle.GetPos("fireball"));
-	fireball.SetMatrix(body.mat());
-	*/
-
+	body.Matrix(idle.GetTransform("fireball"));
+	mesh.SetMatrix(1,body.mat());
 }
 void MagicStaff::Update(float delta) {
 	//idle.Update(delta);

@@ -15,6 +15,7 @@
 #include "Managers/FileManager.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
+#include "UI/Font.h"
 
 // This class is the renderer class
 // It handles textures, lights and shaders
@@ -40,8 +41,10 @@ namespace renderer {
 	WindowTypes GetLastWindowType();
 	float AlterW(float w);
 	float AlterH(float h);
-	float AlterX(float x);
-	float AlterY(float y);
+	float AlterSW(float w);
+	float AlterSH(float h);
+	float AlterX(int x);
+	float AlterY(int y);
 
 	bool HasFocus();
 
@@ -53,7 +56,8 @@ namespace renderer {
 	Activated or deactivate cursor
 	*/
 	void SetCursorMode(bool f);
-
+	double GetMX();
+	double GetMY();
 	GLFWwindow* GetWindow();
 	/*
 	Starts glfw, shaders and base projection matrix
@@ -72,6 +76,7 @@ namespace renderer {
 	void SetCallbacks(
 		void(*key)(int, int),
 		void(*mouse)(double, double, int, int),
+		void(*scroll)(double, double),
 		void(*drag)(double, double),
 		void(*resize)(int, int),
 		void(*focus)(int));
@@ -96,6 +101,7 @@ namespace renderer {
 	void ObjectProjection(glm::mat4 m);
 	void ObjectColor(float r, float g, float b, float a);
 	void GuiTransform(float x, float y);
+	void GuiSize(float w, float h);
 	void GuiColor(float r, float g, float b, float a);
 
 	// Texture
@@ -107,6 +113,22 @@ namespace renderer {
 	Closest Lights need to be bound before drawing mesh
 	*/
 	void DrawMesh(MeshData* meshData, glm::mat4 trans);
+	
+	// Global Character Limit
+	/*
+	x, y - is position of text
+	centerX/Y - center x,y or not
+	Call GuiColor and GuiTransform (and bind shader) before calling this function. Font is bound in the function
+	atChar - position of the marker (-1 for no marker)
+	*/
+	void DrawText(Font *font, const std::string&,bool center,float height,int atChar);
+	/*
+	Call GuiColor, GuiSize and GuiTransform (and bind shader) before calling this function.
+	*/
+	void DrawRect();
+	void DrawRect(float x,float y);
+	void DrawRect(float x,float y,float w,float h);
+	void DrawRect(float x,float y,float w,float h,float r,float g,float b,float a);
 
 	// Light
 	void AddLight(Light* l);

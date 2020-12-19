@@ -2,9 +2,12 @@
 
 NetPlayer::NetPlayer(AnimData *data, float x, float y, float z) {
 	position = glm::vec3(x, y, z);
-	/*idle->Initialize(data);
-	idle->running = true;
-	idle->fps = 12;*/
+
+	mesh.AddMesh(dManager::GetMesh(""));
+
+
+	slash.SetData(dManager::GetAnim("PlayerIdle"));
+	slash.running = true;
 }
 void NetPlayer::PreComponents() {
 	/*

@@ -1,9 +1,27 @@
 #include "DataManager.h"
 
-
 #include <Windows.h>
 
+
 namespace dManager {
+
+	std::vector<TimedFunc> functions;
+	void AddTimedFunction(std::function<void()> func, float time) {
+		functions.push_back(TimedFunc(func,time));
+	}
+	void Update(float delta) {
+		int n = 0;
+		for (TimedFunc& f : functions) {
+			f.time -= delta;
+			if (f.time < 0) {
+				f.func();
+				functions.erase(functions.begin() + n);
+				n--;
+			}
+			n++;
+		}
+	}
+
 	GameState currentState = menu;
 	GameState GetGameState() {
 		return currentState;
@@ -11,25 +29,13 @@ namespace dManager {
 	void SetGameState(GameState s) {
 		currentState = s;
 	}
-
-	std::unordered_map<std::string, Dimension> dimensions;
-	Dimension* loadedDim = nullptr;
-	void AddDimension(const std::string& s, Dimension dim) {
-		dimensions[s] = dim;
-	}
-	Dimension* GetDimension() {
-		return loadedDim;
-	}
-	void SetDimension(const std::string& s) {
-		loadedDim = &dimensions[s];
-	}
 	
 	std::unordered_map<std::string, AnimData> animations;
-	void AddAnim(const std::string& name, const std::string& path) {
-		animations[name] = AnimData();
-		int err = fManager::LoadAnim(&animations[name], path);
+	void AddAnim(const std::string& file) {
+		animations[file] = AnimData();
+		int err = fManager::LoadAnim(&animations[file], file);
 		if (err != fManager::Success)
-			animations[name].hasError = true;
+			animations[file].hasError = true;
 	}
 	AnimData* GetAnim(const std::string& name) {
 		if (animations.count(name) == 0) {
@@ -40,11 +46,11 @@ namespace dManager {
 	}
 	
 	std::unordered_map<std::string, BoneData> bones;
-	void AddBone(const std::string& name, const std::string& path) {
-		bones[name] = BoneData();
-		int err = fManager::LoadBone(&bones[name], path);
+	void AddBone(const std::string& file) {
+		bones[file] = BoneData();
+		int err = fManager::LoadBone(&bones[file], file);
 		if (err != fManager::Success)
-			bones[name].hasError = true;
+			bones[file].hasError = true;
 	}
 	BoneData* GetBone(const std::string& name) {
 		if (bones.count(name) == 0) {
@@ -55,11 +61,11 @@ namespace dManager {
 	}
 	
 	std::unordered_map<std::string, MeshData> meshes;
-	void AddMesh(const std::string& name, const std::string& path) {
-		meshes[name] = MeshData();
-		int err = fManager::LoadMesh(&meshes[name], path);
+	void AddMesh(const std::string& file) {
+		meshes[file] = MeshData();
+		int err = fManager::LoadMesh(&meshes[file], file);
 		if (err != fManager::Success)
-			meshes[name].hasError = true;
+			meshes[file].hasError = true;
 	}
 	MeshData* GetMesh(const std::string& name) {
 		if (meshes.count(name) == 0) {
@@ -80,16 +86,16 @@ namespace dManager {
 	}
 	
 	std::unordered_map<std::string, CollData> colliders;
-	void AddColl(const std::string& name, const std::string& path) {
-		colliders[name] = CollData();
-		int err = fManager::LoadColl(&colliders[name], path);
+	void AddColl(const std::string& file) {
+		colliders[file] = CollData();
+		int err = fManager::LoadColl(&colliders[file], file);
 		if (err != fManager::Success)
-			meshes[name].hasError = true;
+			meshes[file].hasError = true;
 	}
-	CollData* AddColl(const std::string& name) {
+	/*CollData* AddColl(const std::string& name) {
 		colliders[name] = CollData();
 		return &colliders[name];
-	}
+	}*/
 	CollData* GetColl(const std::string& name) {
 		if (colliders.count(name) == 0) {
 			bug::out < bug::RED < "Cannot find CollData '" < name < "'\n";

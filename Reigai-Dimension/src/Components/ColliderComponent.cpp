@@ -18,6 +18,9 @@ void Location::Translate(glm::vec3 v) {
 void Location::Scale(glm::vec3 v) {
 	loc *= glm::scale(v);
 }
+void Location::Matrix(glm::mat4 m) {
+	loc *= m;
+}
 glm::mat4 Location::mat() {
 	return loc;
 }

@@ -9,9 +9,9 @@ void AnimationComponent::SetData(AnimData* data) {
 int AnimationComponent::GetFrame() {
 	return frame;
 }
-glm::mat4 AnimationComponent::GetTransform(int index) {
+glm::mat4 AnimationComponent::GetTransform(std::string index) {
 	if (data != nullptr) {
-		return data->bones[index].GetValue(GetFrame());
+		return data->transforms[index].GetValue(GetFrame());
 	}
 	return glm::mat4(1);
 }

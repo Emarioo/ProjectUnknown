@@ -9,10 +9,10 @@ class MeshData {
 public:
 	MeshData(){}
 	
-	MaterialType material;
+	MaterialType material=MaterialType::ColorMat;
 	std::string texture;
-	glm::vec3 position;
-	glm::vec3 rotation;
+	glm::vec3 position=glm::vec3(1);
+	glm::vec3 rotation=glm::vec3(1);
 	BufferContainer container;
 	
 	bool hasError = false;

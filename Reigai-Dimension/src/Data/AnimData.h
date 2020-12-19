@@ -33,7 +33,7 @@ class AnimData {
 public:
 	AnimData(){}
 	// unordered_map?
-	std::vector<Transforms> bones;
+	std::unordered_map<std::string,Transforms> transforms;
 
 	unsigned short frameStart = 0;
 	unsigned short frameEnd = 0;
