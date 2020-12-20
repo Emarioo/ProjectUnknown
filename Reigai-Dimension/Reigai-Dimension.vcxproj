@@ -163,7 +163,7 @@
     <ClCompile Include="src\Components\AnimationComponent.cpp" />
     <ClCompile Include="src\Components\BoneComponent.cpp" />
     <ClCompile Include="src\Components\ColliderComponent.cpp" />
-    <ClCompile Include="src\Components\MeshComponent.cpp" />
+    <ClCompile Include="src\Components\RenderComponent.cpp" />
     <ClCompile Include="src\Components\MetaComponent.cpp" />
     <ClCompile Include="src\Core\Creation.cpp" />
     <ClCompile Include="src\Core\Gamecore.cpp" />
@@ -203,7 +203,7 @@
     <ClInclude Include="src\Components\AnimationComponent.h" />
     <ClInclude Include="src\Components\BoneComponent.h" />
     <ClInclude Include="src\Components\ColliderComponent.h" />
-    <ClInclude Include="src\Components\MeshComponent.h" />
+    <ClInclude Include="src\Components\RenderComponent.h" />
     <ClInclude Include="src\Components\MetaComponent.h" />
     <ClInclude Include="src\Core\Gamecore.h" />
     <ClInclude Include="src\Core\StartMenu.h" />

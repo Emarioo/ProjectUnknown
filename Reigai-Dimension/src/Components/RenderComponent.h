@@ -4,9 +4,9 @@
 #include "Data/MeshData.h"
 #include "Components/BoneComponent.h"
 
-class MeshComponent{
+class RenderComponent{
 public:
-	MeshComponent() {}
+	RenderComponent() {}
 	
 	BoneComponent* bone=nullptr;
 	void SetBone(BoneComponent* comp);

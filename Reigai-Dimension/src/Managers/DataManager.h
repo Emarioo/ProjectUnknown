@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include "World/Dimension.h"
-#include "Components/MeshComponent.h"
+#include "Components/RenderComponent.h"
 #include "Components/ColliderComponent.h"
 #include "Managers/FileManager.h"
 #include <vector>
@@ -61,8 +61,8 @@ namespace dManager {
 	*/
 	CollData* GetColl(const std::string& name);
 
-	void AddComponent(MeshComponent* comp);
+	void AddComponent(RenderComponent* comp);
 	void AddComponent(ColliderComponent* comp);
-	std::vector<MeshComponent*> *GetMeshComponents();
+	std::vector<RenderComponent*> *GetRenderComponents();
 	std::vector<ColliderComponent*> *GetColliderComponents();
 }

@@ -21,12 +21,26 @@ public:
 		return val;
 	}
 };
+template<typename T, size_t N>
+void ReadBytes(std::ifstream* f, T* d) {
+	f->read(reinterpret_cast<char*>(&(d[0])), sizeof(T) * N);
+}
 int main(int argc, char* argv[]) {
 
 	/*for (int i = 0; i < 256;i++) {
 		bug::c(i);
 		bug::out + i + " color? \n";
 	}*/
+
+	std::ifstream in("data/servers.txt",std::ios::binary);
+
+	char aa;
+
+	ReadBytes<char, 1>(&in, &aa);
+
+	std::cout << (&aa)[0] << std::endl;
+	
+
 	if (false) {
 		std::cout << "Expect buffer crash since GLFW functions hasn't been created" << std::endl;
 		//MeshData* temp = new MeshData();
@@ -46,7 +60,7 @@ int main(int argc, char* argv[]) {
 	std::cout << a.color << "\n";
 	*/
 
-	gamecore::Init();
+	//gamecore::Init();
 	std::cin.get();
 	return 0;
 }

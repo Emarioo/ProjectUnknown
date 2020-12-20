@@ -24,7 +24,7 @@ public:
 	bool doMove;
 	glm::vec3 Movement(float delta);
 
-	MeshComponent mesh;
+	RenderComponent mesh;
 	BoneComponent bone;
 	AnimationComponent animation;
 	ColliderComponent collider;

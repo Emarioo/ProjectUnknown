@@ -53,32 +53,10 @@ namespace fManager {
 		f->read(reinterpret_cast<char*>(&buf), sizeof(T));
 		return buf;
 	}*/
-	std::ifstream* fileToRead=nullptr;
-	void ReadFromFile(std::ifstream* f) {
-		if (f != nullptr) {
-			fileToRead = f;
-		}
-	}
-	/*
-	Return the first read data
-	*/
-	template<typename T>
-	T Read(T* buffer,size_t count) {
-		if (fileToRead != nullptr) {
-			fileToRead->read(reinterpret_cast<char*>(&buffer[0]), sizeof(T) * count);
-			return buffer[0];
-		}
-		return T;
-	}
-	template<typename T>
-	T Read() {
-		if (fileToRead != nullptr) {
-			T temp;
-			fileToRead->read(reinterpret_cast<char*>(&temp), sizeof(T));
-			return temp;
-		}
-		return T;
-	}
+	/*template<typename T,size_t N>
+	void ReadBytes(std::ifstream *f, T (&d)[N]) {
+		f->read(reinterpret_cast<char*>(&d[0]), sizeof(T)*N);
+	}*/
 	/*
 	template<typename T, size_t N>
 	void ReadBytes(std::ifstream* f, T* d) {
@@ -122,7 +100,6 @@ namespace fManager {
 		path = "assets/meshes/"+path+".mesh";
 		bool debug = false;
 		std::ifstream file(path, std::ios::binary);
-		ReadFromFile(&file);
 		if (!file) {
 			file.close();
 			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
@@ -141,8 +118,8 @@ namespace fManager {
 
 		char buf[2];
 		unsigned short valu[3];
-		Read<unsigned short>(valu,3);
-		//file.read(reinterpret_cast<char*>(&valu[0]), 2 * 3);// Vertex Count
+		//ReadBytes<unsigned short,3>(&file,valu);
+		file.read(reinterpret_cast<char*>(&valu[0]), 2 * 3);// Vertex Count
 		unsigned short posC = valu[0];
 		unsigned short colorC = valu[1];
 		unsigned short triC = valu[2];
@@ -151,9 +128,8 @@ namespace fManager {
 			bug::out < "Colors: " < colorC + bug::end;
 			bug::out < "Triangles: " < triC + bug::end;
 		}
-		int texLen = (unsigned char) Read<char>();
-		//file.read(buf, 1);// Texture Name Length
-		//int texLen = (unsigned char)buf[0];
+		file.read(buf, 1);// Texture Name Length
+		int texLen = (unsigned char)buf[0];
 		if (debug)
 			bug::out < "TextureLen: " < texLen + bug::end;
 
@@ -167,8 +143,7 @@ namespace fManager {
 				bug::out < bug::RED < "Corruption at '" < path < "' : missing " < (atByte - fileSize) < " bytes\n";
 				return Corrupt;
 			}
-			Read<char>(name,texLen);
-			//file.read(name, texLen);// Texture Name
+			file.read(name, texLen);// Texture Name
 			for (int i = 0; i < texLen; i++) {
 				texName += name[i];
 			}
@@ -181,8 +156,7 @@ namespace fManager {
 		}
 
 		float* place = new float[6];
-		Read<float>(place, 6);
-		//file.read(reinterpret_cast<char*>(&place[0]), 4 * 6);
+		file.read(reinterpret_cast<char*>(&place[0]), 4 * 6);
 		if (debug) {
 			bug::out < "Position " < place[0] < " " < place[1] < " " < place[2] + bug::end;
 			bug::out < "Rotation " < place[3] < " " < place[4] < " " < place[5] + bug::end;
@@ -198,19 +172,16 @@ namespace fManager {
 		}
 
 		float* uPos = new float[uPosS];
-		Read<float>(uPos,uPosS);
-		//file.read(reinterpret_cast<char*>(&uPos[0]), 4 * uPosS); // Positions
+		file.read(reinterpret_cast<char*>(&uPos[0]), 4 * uPosS); // Positions
 		//std::cout << "Unique Pos" << std::endl;
 
 		float* uColor = new float[uColorS];
-		Read<float>(uColor, uColorS);
-		//file.read(reinterpret_cast<char*>(&uColor[0]), 4 * uColorS);// Colors
+		file.read(reinterpret_cast<char*>(&uColor[0]), 4 * uColorS);// Colors
 
 		//std::cout << "Unique Color" << std::endl;
 
 		unsigned short* tris = new unsigned short[trisS];
-		Read<unsigned short>(tris, trisS);
-		//file.read(reinterpret_cast<char*>(&tris[0]), 2 * trisS);// Triangles
+		file.read(reinterpret_cast<char*>(&tris[0]), 2 * trisS);// Triangles
 		//std::cout << "Triangles" << std::endl;
 		if (debug) {
 			bug::out <bug::LIME< "  Vectors\n";

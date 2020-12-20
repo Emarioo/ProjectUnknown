@@ -315,7 +315,7 @@ namespace gamecore {
 			// Run preComponents here?
 			renderer::SwitchBlendDepth(false);
 			renderer::BindShader(MaterialType::ColorMat);
-			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+			for (RenderComponent* m : *dManager::GetRenderComponents()) {
 				for (int i = 0; i < m->meshes.size(); i++) {
 					MeshData* mesh = m->meshes[i];
 					if (mesh != nullptr) {
@@ -331,7 +331,7 @@ namespace gamecore {
 				}
 			}
 			renderer::BindShader(MaterialType::TextureMat);
-			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+			for (RenderComponent* m : *dManager::GetRenderComponents()) {
 				for (int i = 0; i < m->meshes.size(); i++) {
 					MeshData* mesh = m->meshes[i];
 					if (mesh != nullptr) {
@@ -342,7 +342,7 @@ namespace gamecore {
 				}
 			}
 			renderer::BindShader(MaterialType::AnimationMat);
-			for (MeshComponent* m : *dManager::GetMeshComponents()) {
+			for (RenderComponent* m : *dManager::GetRenderComponents()) {
 				if (m->bone != nullptr) {
 					int count = m->bone->bone->count;
 					glm::mat4* mats = new glm::mat4[count];

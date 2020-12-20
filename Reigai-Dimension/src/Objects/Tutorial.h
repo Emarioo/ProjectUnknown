@@ -9,7 +9,7 @@ public:
 	void Update(float delta) override;
 	std::vector<ColliderComponent*> GetColliders() override;
 
-	MeshComponent parkour;
+	RenderComponent parkour;
 
 	ColliderComponent collider;
 

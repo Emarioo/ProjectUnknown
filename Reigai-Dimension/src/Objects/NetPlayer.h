@@ -8,7 +8,7 @@ public:
 	void PreComponents() override;
 	void Update(float delta) override;
 
-	MeshComponent mesh;
+	RenderComponent mesh;
 	BoneComponent bone;
 	AnimationComponent slash;
 

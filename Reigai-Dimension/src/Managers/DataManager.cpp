@@ -104,16 +104,16 @@ namespace dManager {
 		return nullptr;
 	}
 
-	std::vector<MeshComponent*> meshComponents;
+	std::vector<RenderComponent*> renderComponents;
 	std::vector<ColliderComponent*> collComponents;
-	void AddComponent(MeshComponent* comp) {
-		meshComponents.push_back(comp);
+	void AddComponent(RenderComponent* comp) {
+		renderComponents.push_back(comp);
 	}
 	void AddComponent(ColliderComponent* comp) {
 		collComponents.push_back(comp);
 	}
-	std::vector<MeshComponent*>* GetMeshComponents() {
-		return &meshComponents;
+	std::vector<RenderComponent*>* GetRenderComponents() {
+		return &renderComponents;
 	}
 	std::vector<ColliderComponent*>* GetColliderComponents() {
 		return &collComponents;
