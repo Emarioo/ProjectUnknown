@@ -23,7 +23,7 @@ void main()
 #shader fragment
 #version 330 core
 
-layout(location = 0) out vec4 o_Color;
+layout(location = 0) out vec4 oColor;
 
 in vec2 fUV;
 //flat in vec3 fNormal;
@@ -41,5 +41,5 @@ void main()
 
 	o_Color = v_Color * (vec4(ambient, 1.f) + vec4(bright*diff, 1));
 	*/
-	o_Color = texture(u_Textures, fUV);
+	oColor = texture(u_Textures, fUV);
 };

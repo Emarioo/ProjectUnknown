@@ -97,12 +97,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -114,14 +114,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -131,12 +131,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -148,98 +148,33 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Components\AnimationComponent.cpp" />
-    <ClCompile Include="src\Components\BoneComponent.cpp" />
-    <ClCompile Include="src\Components\ColliderComponent.cpp" />
-    <ClCompile Include="src\Components\RenderComponent.cpp" />
-    <ClCompile Include="src\Components\MetaComponent.cpp" />
-    <ClCompile Include="src\Core\Creation.cpp" />
-    <ClCompile Include="src\Core\Gamecore.cpp" />
-    <ClCompile Include="src\Core\StartMenu.cpp" />
-    <ClCompile Include="src\Data\AnimData.cpp" />
-    <ClCompile Include="src\Data\BoneData.cpp" />
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\GameStates.cpp" />
     <ClCompile Include="src\Objects\Goblin.cpp" />
-    <ClCompile Include="src\UI\Font.cpp" />
-    <ClCompile Include="src\UI\IElement.cpp" />
-    <ClCompile Include="src\UI\Text.cpp" />
-    <ClCompile Include="src\Managers\DataManager.cpp" />
-    <ClCompile Include="src\Managers\FileManager.cpp" />
-    <ClCompile Include="src\Managers\InterfaceManager.cpp" />
-    <ClCompile Include="src\Managers\ObjectManager.cpp" />
-    <ClCompile Include="src\Objects\ClientPlayer.cpp" />
-    <ClCompile Include="src\Objects\Cube.cpp" />
-    <ClCompile Include="src\Objects\GameObject.cpp" />
     <ClCompile Include="src\Objects\MagicStaff.cpp" />
-    <ClCompile Include="src\Objects\NetPlayer.cpp" />
-    <ClCompile Include="src\Objects\OTemplate.cpp" />
     <ClCompile Include="src\Objects\Tutorial.cpp" />
-    <ClCompile Include="src\Rendering\BufferContainer.cpp" />
-    <ClCompile Include="src\Rendering\Camera.cpp" />
-    <ClCompile Include="src\Rendering\Light.cpp" />
-    <ClCompile Include="src\Rendering\Renderer.cpp" />
-    <ClCompile Include="src\Rendering\Shader.cpp" />
-    <ClCompile Include="src\Rendering\Texture.cpp" />
-    <ClCompile Include="src\Utility\Debugger.cpp" />
-    <ClCompile Include="src\Utility\ExtraFunc.cpp" />
-    <ClCompile Include="src\Utility\GameOptions.cpp" />
-    <ClCompile Include="src\Utility\Keyboard.cpp" />
-    <ClCompile Include="src\Utility\Languages.cpp" />
-    <ClCompile Include="src\World\Dimension.cpp" />
+    <ClCompile Include="src\UI\PauseMenu.cpp" />
+    <ClCompile Include="src\UI\StartMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="src\Components\AnimationComponent.h" />
-    <ClInclude Include="src\Components\BoneComponent.h" />
-    <ClInclude Include="src\Components\ColliderComponent.h" />
-    <ClInclude Include="src\Components\RenderComponent.h" />
-    <ClInclude Include="src\Components\MetaComponent.h" />
-    <ClInclude Include="src\Core\Gamecore.h" />
-    <ClInclude Include="src\Core\StartMenu.h" />
-    <ClInclude Include="src\Data\AnimData.h" />
-    <ClInclude Include="src\Data\BoneData.h" />
-    <ClInclude Include="src\Data\CollData.h" />
-    <ClInclude Include="src\Data\MeshData.h" />
+    <ClInclude Include="src\GameStates.h" />
     <ClInclude Include="src\Objects\Goblin.h" />
-    <ClInclude Include="src\UI\Font.h" />
-    <ClInclude Include="src\UI\IElement.h" />
-    <ClInclude Include="src\UI\Text.h" />
-    <ClInclude Include="src\UI\WorldItem.h" />
-    <ClInclude Include="src\Managers\DataManager.h" />
-    <ClInclude Include="src\Managers\FileManager.h" />
-    <ClInclude Include="src\Managers\InterfaceManager.h" />
-    <ClInclude Include="src\Managers\ObjectManager.h" />
-    <ClInclude Include="src\Objects\ClientPlayer.h" />
-    <ClInclude Include="src\Objects\Cube.h" />
-    <ClInclude Include="src\Objects\GameObject.h" />
     <ClInclude Include="src\Objects\MagicStaff.h" />
-    <ClInclude Include="src\Objects\NetPlayer.h" />
-    <ClInclude Include="src\Objects\OTemplate.h" />
     <ClInclude Include="src\Objects\Tutorial.h" />
-    <ClInclude Include="src\Rendering\BufferContainer.h" />
-    <ClInclude Include="src\Rendering\Camera.h" />
-    <ClInclude Include="src\Rendering\Light.h" />
-    <ClInclude Include="src\Rendering\Renderer.h" />
-    <ClInclude Include="src\Rendering\Shader.h" />
-    <ClInclude Include="src\Rendering\Texture.h" />
-    <ClInclude Include="src\Utility\Debugger.h" />
-    <ClInclude Include="src\Utility\ExtraFunc.h" />
-    <ClInclude Include="src\Utility\GameOptions.h" />
-    <ClInclude Include="src\Utility\Keyboard.h" />
-    <ClInclude Include="src\Utility\Languages.h" />
-    <ClInclude Include="src\World\Biome.h" />
-    <ClInclude Include="src\World\Dimension.h" />
+    <ClInclude Include="src\UI\Menu.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Reigai-Dimension.rc" />
@@ -249,12 +184,21 @@
     <Image Include="icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assets\shaders\animation.shader" />
+    <None Include="assets\shaders\colorWeight.shader" />
     <None Include="assets\shaders\color.shader" />
+    <None Include="assets\shaders\experiment.shader" />
     <None Include="assets\shaders\interface.shader" />
+    <None Include="assets\shaders\lightSource.shader" />
     <None Include="assets\shaders\outline.shader" />
+    <None Include="assets\shaders\simpleDepth.shader" />
     <None Include="assets\shaders\terrain.shader" />
     <None Include="assets\shaders\texture.shader" />
+    <None Include="assets\shaders\textureWeight.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Engine\Engine.vcxproj">
+      <Project>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,0 +1,372 @@
+# Script by Emarioo / Datolsson, Updated 2020-12-22
+# Watch Datolsson on youtube for more information
+# If any error occurs please contact Datolsson on youtube so I can update this script
+
+import bpy
+import struct
+
+
+standard_color=[0.8,0.8,0.8,1]
+meshDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/meshes/"
+animDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/animations/"
+collDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/colliders/"
+boneDir="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/bones/"
+
+framePerSecond=24
+
+# Select an object in OBJECT mode and run script to generate files
+ 
+# Loop at end of animation name to make it a Loop
+# Supported Interpolation: Beizer, Linear, Constant
+# C at the end of a mesh to make it a collider
+
+# --- ISSUES --- 
+# Improved support for modifiers?
+# Blender has 3 Vertex Colors for every triangle while my game has one vertex color for every vertex
+#  what happens when one vertex uses different vertex colors?
+
+# Do not change the code below
+
+def MeshFile(original,object):
+    # Create File
+    file = open(meshDir+original.name+".mesh","wb")# CHANGED
+    
+    # Determine what type of mesh
+    type=0 # 0=Color  1=UV  2=Color with weights  3=UV with weights 
+    singleColor=standard_color
+    
+    triC=0
+    for poly in object.data.polygons:
+        if len(poly.vertices)==4:
+            triC=triC+2
+        else:
+            triC=triC+1
+    useWeight=False
+    for mod in object.modifiers:
+        if mod.name=="Armature":
+            useWeight=True
+            type=type+2
+            break
+    useTexture=False
+    textureName=""
+    useVertexColor=False
+    if not object.active_material==None:
+        if object.active_material.use_nodes:
+            base = object.active_material.node_tree.nodes["Material Output"].inputs["Surface"].links[0].from_node.inputs["Base Color"]
+            if len(base.links)>0:
+                if base.links[0].from_node.name=="Image Texture":
+                    type=type+1
+                    useTexture=True
+                    tempName = base.links[0].from_node.image.name
+                    textureName = tempName[0:len(tempName)-4]
+                elif base.links[0].from_node.name=="Vertex Color":
+                    useVertexColor=True;
+            else:
+                singleColor = object.active_material.diffuse_color
+    
+    # Acquire Data
+    verC=len(object.data.vertices)
+    
+    uniqueColor=[]
+    indexColor=[]
+    if useTexture:
+        for u in object.data.uv_layers.active.data:
+            same = False
+            for i in range(0,len(uniqueColor)):
+                if uniqueColor[i][0]==u.uv[0] and uniqueColor[i][1]==u.uv[1]:
+                    same=True
+                    indexColor.append(i)
+                    break
+            
+            if not same:
+                indexColor.append(len(uniqueColor))
+                uniqueColor.append([u.uv[0],u.uv[1]]);
+                #file.write(struct.pack("=ff",u.uv[0],u.uv[1]))
+                
+    # Should the line below be changed to something easier to understand?
+    elif useVertexColor:
+        for c in object.data.vertex_colors.active.data:
+            same = False
+            for i in range(0,len(uniqueColor)):
+                if uniqueColor[i][0]==c.color[0] and uniqueColor[i][1]==c.color[1] and uniqueColor[i][2]==c.color[2] and uniqueColor[i][3]==c.color[3]:
+                    same=True
+                    indexColor.append(i)
+                    break
+                
+            if not same:
+                indexColor.append(len(uniqueColor))
+                uniqueColor.append([c.color[0],c.color[1],c.color[2],c.color[3]]);
+                #file.write(struct.pack("=ffff",c.color[0],c.color[1],c.color[2],c.color[3]))
+    else:
+        indexColor.append(len(uniqueColor))
+        uniqueColor.append([singleColor[0],singleColor[1],singleColor[2],singleColor[3]]);
+        #file.write(struct.pack("=ffff",singleColor[0],singleColor[1],singleColor[2],singleColor[3]))
+    
+    colorC=len(uniqueColor)
+    
+    uniqueWeight=[]
+    indexWeight=[]
+    if useWeight:
+        for ve in object.data.vertices:
+            weight=[-1,-1,-1,0,0,0]
+            # Grab the most important weights
+            for gr in ve.groups:
+                lowW=gr.weight
+                lowB=gr.group
+                for i in range(0,3):
+                    if lowW>weight[3+i]:
+                        temp=[weight[i],weight[3+i]]
+                        weight[i]=lowB
+                        weight[3+i]=lowW
+                        lowB=temp[0]
+                        lowW=temp[1]
+            
+            same=False
+            for i in range(0,len(uniqueWeight)):
+                same2=True
+                for j in range(0,6):
+                    if not uniqueWeight[i][j]==weight[j]:
+                        same2=False
+                        break
+                
+                if same2:
+                    same=True
+                    indexWeight.append(i)
+                    break
+            
+            if not same:
+                indexWeight.append(len(uniqueWeight))
+                uniqueWeight.append([weight[0],weight[1],weight[2],weight[3],weight[4],weight[5]])
+                #leng=weight[3]+weight[4]+weight[5]
+                #file.write(struct.pack("=BBBfff",weight[0]+1,weight[1]+1,weight[2]+1,weight[3]/leng,weight[4]/leng,weight[5]/leng))
+
+    weightC=len(uniqueWeight)
+    
+    # Write Mesh Information
+    file.write(struct.pack("=B",type))
+    file.write(struct.pack("=H",verC))# Vertex Count
+    file.write(struct.pack("=H",colorC))
+    if useTexture:
+        file.write(struct.pack("=B",len(textureName)))
+        file.write(bytearray(textureName,"UTF-8"))
+    if useWeight:
+        file.write(struct.pack("=H",weightC))
+    file.write(struct.pack("=H",triC))# Triangle Count (Maximum 65536)
+    
+    # Write Mesh Data
+    for v in object.data.vertices:
+        file.write(struct.pack("=fff",v.co[0]*-1,v.co[2],v.co[1]))# x y z is switched to -x z y
+    
+    for c in uniqueColor:
+        if useTexture:
+           file.write(struct.pack("=ff",c[0],c[1]))
+        else:
+            file.write(struct.pack("=ffff",c[0],c[1],c[2],c[3]))
+    
+    if useWeight:
+        for w in uniqueWeight:
+            leng=w[3]+w[4]+w[5]
+            file.write(struct.pack("=BBBfff",w[0]+1,w[1]+1,w[2]+1,w[3]/leng,w[4]/leng,w[5]/leng))
+            # NOTE: 1 is added to bone index because -1 is not a valid number as a byte
+  
+    # Write index information for Triangles
+    for poly in object.data.polygons:
+        v = poly.vertices
+        if type<2:
+            if len(v)==4:
+                l=[0,0,0,0]
+                if useTexture or not colorC==1:
+                    l=[indexColor[v[0]],indexColor[v[1]],indexColor[v[2]],indexColor[v[3]]]
+                file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
+                file.write(struct.pack("=HHHHHH",v[2],l[2],v[3],l[3],v[0],l[0]))
+            else:
+                l=[0,0,0,0]
+                if useTexture or not colorC==1:
+                    l=[indexColor[v[0]],indexColor[v[1]],indexColor[v[2]]]
+                file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
+        else:
+            if len(v)==4:
+                l=[0,0,0,0]
+                if useTexture or not colorC==1:
+                    l=[indexColor[v[0]],indexColor[v[1]],indexColor[v[2]],indexColor[v[3]]]
+                w=[indexWeight[v[0]],indexWeight[v[1]],indexWeight[v[2]],indexWeight[v[3]]]
+                file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
+                file.write(struct.pack("=HHHHHHHHH",v[2],l[2],w[1],v[3],l[3],w[3],v[0],l[0],w[0]))
+            else:
+                l=[0,0,0,0]
+                if useTexture or not colorC==1:
+                    l=[indexColor[v[0]],indexColor[v[1]],indexColor[v[2]]]
+                w=[indexWeight[v[0]],indexWeight[v[1]],indexWeight[v[2]],indexWeight[v[3]]]
+                file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
+    
+    
+    # Cleanup
+    file.close()
+
+def AnimFile(action,objects):
+    # Create file
+    file = open(animDir+action.name+".anim","wb")
+
+    # Write Anim Information
+    fstart = int(action.frame_range[0])
+    fend = int(action.frame_range[1])
+
+    file.write(struct.pack("=H",fstart))
+    file.write(struct.pack("=H",fend))
+    file.write(struct.pack("=f",framePerSecond))
+
+    file.write(struct.pack("=B",action.name[len(action.name)-1]=='L'))
+
+    file.write(struct.pack("=B",len(objects)))
+
+    # Write Data
+    xyz="XYZ"
+    for group in action.groups:
+        if group.name=="Object Transforms":
+            file.write(struct.pack("=B",4))
+            file.write(bytearray("Main","UTF-8"))
+        else:
+            file.write(struct.pack("=B",len(group.name)))
+            file.write(bytearray(group.name,"UTF-8"))
+        
+        for i in range(fstart,fend):
+            bpy.context.scene.frame_set(i)
+            
+            
+        for curve in group.channels:
+            curveInt=0
+            curves=[0,0,0,0,0,0,0,0,0]
+            # Code used to switch z and y
+            con=0
+            if curve.array_index==2:
+                con=1
+            elif curve.array_index==1:
+                con=2
+                
+            if curve.data_path[len(curve.data_path)-1]=="n":
+                con=con+0
+            elif curve.data_path[len(curve.data_path)-1]=="r":
+                con=con+3
+            elif curve.data_path[len(curve.data_path)-1]=="e":
+                con=con+6
+                
+            curves[con]=1
+                    
+        for i in range(0,9):
+            curveInt += curves[i]*pow(2,i);
+            
+        file.write(struct.pack("=H",curveInt));
+            
+        for curve in group.channels:
+            if curve.is_empty or curve.mute or not curve.is_valid:# is this safe?
+                continue
+            
+            ind=curve.array_index
+            if ind==2:
+                ind=1
+            elif ind==1:
+                ind=2
+            file.write(struct.pack("=H",len(curve.keyframe_points)))
+            
+            for key in curve.keyframe_points:
+                pol=key.interpolation
+                if pol=="LINEAR":
+                    pol="L"
+                elif pol=="BEZIER":
+                    pol="B"
+                else:
+                    pol="C"
+                
+                # x component needs to be inversed if z and y switches
+                if curve.array_index==0:
+                    file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1]*-1))
+                else:
+                    file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1]))  
+    # Cleanup
+    file.close()
+
+def BoneFile(original, temp):
+    # Creating file
+    boneFile = open(boneDir+original.name+".bone","wb")
+    
+    # Loading data
+    boneCount = len(temp.data.bones)
+    boneFile.write(struct.pack("=B",boneCount))
+    
+    boneNames={}
+    
+    for index in range(0,boneCount):
+        bone = temp.data.bones[index]
+            
+        boneNames[bone.name]=index
+        
+    for index in range(0,boneCount):
+        bone = temp.data.bones[index]
+        
+        boneFile.write(struct.pack("=B",len(bone.name)))
+        boneFile.write(bytearray(bone.name,"UTF-8"))
+        
+        for i in range(0,4):
+            for j in range(0,4):
+                boneFile.write(struct.pack("=f",bone.matrix_local[i][j]))
+                
+        boneFile.write(struct.pack("=B",len(bone.children)))
+        for i in range(0,len(bone.children)):
+            boneFile.write(struct.pack("=B",boneNames[bone.children[i].name]))
+    
+    # Cleanup
+    boneFile.close()
+
+if not bpy.context.object==None:
+    bpy.ops.object.select_all(action="DESELECT")
+  
+    if bpy.context.object.mode=="OBJECT":
+        objects = [bpy.context.object]
+        for o in bpy.context.object.children:
+            objects.append(o)
+        
+        actions = []
+      
+        for object in objects:
+            if not object.hide_get():
+                if not object.animation_data==None:
+                    if not object.animation_data.action==None:
+                        if not object.animation_data.action.name in actions:
+                            actions.append(object.animation_data.action)
+                    
+                if object.name[len(object.name)-1]=="C":
+                    pass
+                
+                elif object.type=="MESH":
+                    # Applying modifiers
+                    temp=object.copy()
+                    temp.data=object.data.copy()
+                    bpy.context.scene.collection.objects.link(temp)
+                    temp.select_set(True)
+                    bpy.context.view_layer.objects.active=temp
+                    for mod in temp.modifiers: # FILTER FOR MODIFIERS [ MIRROR , ... ]
+                        if mod.name=="Mirror":
+                            bpy.ops.object.modifier_apply(modifier=mod.name)
+                   
+                    MeshFile(object,temp)
+                    bpy.ops.object.delete()
+                    
+                elif object.type=="ARMATURE":
+                    # Applying modifiers
+                    temp=object.copy()
+                    temp.data=object.data.copy()
+                    bpy.context.scene.collection.objects.link(temp)
+                    temp.select_set(True)
+                    bpy.context.view_layer.objects.active=temp
+                    for mod in temp.modifiers:# FILTER FOR MODIFIERS
+                        bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    BoneFile(object,temp)
+                    bpy.ops.object.delete()
+        
+        for act in actions:
+            AnimFile(act,objects)
+    else:
+        print("Switch to object mode!")
+else:
+    print("Select an object!")

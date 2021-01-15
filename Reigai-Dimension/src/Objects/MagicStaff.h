@@ -1,16 +1,16 @@
 #pragma once
 
-#include "GameObject.h"
+#include "Engine/GameObject.h"
 
-class MagicStaff : public GameObject {
+class MagicStaff : public engine::GameObject {
 public:
 	MagicStaff(float x,float y,float z);
 	void PreComponents() override;
 	void Update(float delta) override;
-	std::vector<ColliderComponent*> GetColliders() override;
+	std::vector<engine::ColliderComponent*> GetColliders() override;
 
-	RenderComponent mesh;
+	//RenderComponent mesh;
 
-	AnimationComponent idle;
+	//AnimationComponent idle;
 
 };
