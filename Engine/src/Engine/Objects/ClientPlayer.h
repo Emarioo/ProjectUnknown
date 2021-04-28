@@ -3,36 +3,29 @@
 #include <glm/glm.hpp>
 #include <Windows.h>
 
-#include "GameObject.h"
-#include "Rendering/Camera.h"
+#include "../GameObject.h"
+#include "../Rendering/Camera.h"
 namespace engine {
 	class ClientPlayer : public GameObject {
 	public:
-		/*
-		SetCamera, SetPosition
-		*/
-		/*
-		Setup player Components
-		*/
 		ClientPlayer();
-		Camera* camera;
-		void SetCamera(Camera* cam);
 
-		void PreComponents() override;
 		void Update(float delta) override;
-		std::vector<ColliderComponent*> GetColliders() override;
-		bool doMove;
-		glm::vec3 Movement(float delta);
-
-		engine::RenderComponent mesh;
-		BoneComponent bone;
-		AnimationComponent animation;
-		ColliderComponent collider;
+		virtual glm::vec3 Movement(float delta);
 
 		bool freeCam = false;
-		bool moveCam = true;
+		bool thirdPerson = false;
+		bool flight = false;
+
 		bool sprintMode = false;
 		bool crouchMode = false;
+
+		bool freeCamT= false;
+		bool thirdPersonT= false;
+		bool flightT = false;
+
+		bool crouchT = false;
+
 		float walkSpeed = 4.0f;
 		float sprintSpeed = 7.0f;
 		float camSpeed = 2.0f;
@@ -40,8 +33,7 @@ namespace engine {
 		float jumpForce = 10.0f;
 
 		bool onGround = false;
-		float velY = 0;
-		float gravity = -0.1f;
+		float gravity = -0.3f;
 
 	private:
 	};

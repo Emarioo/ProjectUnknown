@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include "Managers/AssetManager.h"
+
 namespace engine {
 	
 	WindowTypes windowType = WindowBorderless;
@@ -346,6 +348,7 @@ namespace engine {
 
 		AddShader(ShaderColor,"color");
 		AddShader(ShaderColorBone,"colorWeight");
+		
 		AddShader(ShaderUV,"texture");
 		AddShader(ShaderUVBone,"textureWeight");
 		AddShader(ShaderInterface,"interface");
@@ -353,6 +356,7 @@ namespace engine {
 		AddShader(ShaderLight,"lightSource");
 		AddShader(ShaderDepth,"simpleDepth");
 		AddShader(ShaderExperiment,"experiment");
+		AddShader(ShaderTerrain,"terrain");
 
 		AddTextureAsset("blank");
 
@@ -562,21 +566,12 @@ namespace engine {
 		if (currentShader != nullptr)
 			currentShader->SetVec4("uColor", r, g, b, a);
 	}
-	std::unordered_map<std::string, Texture> textures;
 	void BindTexture(int slot, const std::string& name) {
-		if (textures.count(name)>0) {
-			//bug::out < textures.count(name) < bug::end;
-			textures[name].Bind(slot);
+		Texture* texture = GetTextureAsset(name);
+		if (texture != nullptr) {
+			texture->Bind(slot);
 		} else {
 			bug::out < bug::RED <  "Cannot find texture '" < name < "'\n";
-		}
-	}
-	void AddTextureAsset(const std::string& name) {// Change this system so it is simular to every other system. FileExist?
-		std::string path = "assets/textures/" + name+".png";
-		if (FileExist(path)) {
-			textures[name] = Texture(path);
-		} else {
-			bug::out < bug::RED < "Cannot find Texture '" < path < bug::end;
 		}
 	}
 	
@@ -874,16 +869,15 @@ namespace engine {
 			currentShader->SetFloat(u + "outerCutOff", 0);
 		}
 	}
-	void PassMaterial(Material& material) {
-		if (!material.diffuse_map1.empty()) {
-			BindTexture(1, material.diffuse_map1);
-			currentShader->SetInt("uMaterial.diffuse_map", 1);
+	void PassMaterial(int index, Material* material) {
+		if (!material->diffuse_map.empty()) {
+			//bug::out < material->diffuse_map < bug::end;
+			//bug::out < (currentShader==GetShader(ShaderColorBone)) < bug::end;
+			BindTexture(index+1, material->diffuse_map);// + 1 because of shadow_map on 0
+			currentShader->SetInt("uMaterials["+std::to_string(index)+"].diffuse_map", index+1);
 		}
-		if (!material.normal_map2.empty()) {
-			BindTexture(2, material.normal_map2);
-			currentShader->SetInt("uMaterial.normal_map", 2);
-		}
-		currentShader->SetVec3("uMaterial.specular", material.specular);
-		currentShader->SetFloat("uMaterial.shininess", material.shininess);
+		currentShader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
+		currentShader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
+		currentShader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
 	}
 }

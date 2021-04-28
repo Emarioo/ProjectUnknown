@@ -13,10 +13,10 @@ namespace engine {
 	void SetDimension(const std::string& s) {
 		loadedDim = &dimensions[s];
 	}
-
-	ClientPlayer* player;
+	
+	ClientPlayer* playerReference=nullptr;
 	ClientPlayer* GetPlayer() {
-		return player;
+		return playerReference;
 	}
 	std::vector<GameObject*> gameObjects;
 	GameObject* AddObject(GameObject* object) {
@@ -43,9 +43,16 @@ namespace engine {
 	std::vector<GameObject*>& GetObjects() {
 		return gameObjects;
 	}
-	void InitPlayer() {
-		player = new ClientPlayer();
-		AddObject(player);
-		player->SetCamera(GetCamera());
+	GameObject* GetObjectByName(const std::string& name) {
+		for (GameObject* n : gameObjects) {
+			if (n->name == name) {
+				return n;
+			}
+		}
+		return nullptr;
+	}
+	void AddPlayer(ClientPlayer* o) {
+		playerReference = o;
+		AddObject(o);
 	}
 }

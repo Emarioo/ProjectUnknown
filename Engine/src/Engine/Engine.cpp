@@ -12,19 +12,33 @@ namespace engine {
 	glm::mat4& GetLightProj() {
 		return lightProjection;
 	}
+	BufferContainer temp_;
 	void Initialize() {
+		bug::Enable(true);
 		InitRenderer();
+		InitSound();
 		InitInterface();
-		InitPlayer();
+		ReadOptions();
+
+		float vMap[]{0,0,0,1,0,0,1,0,1,0,0,1};
+		unsigned int iMap[]{0,1,2,2,3,0};
+
+		temp_.Setup(true,vMap,4*3,iMap,6);
+		temp_.SetAttrib(0, 3, 3, 0);
+
 		UpdateKeyboard(false);
 
 		depthBuffer.Init();
-		float near_plane = 1.f, far_plane = 7.5f;
+		float near_plane = 1.f, far_plane = 20.5f;
 		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
 	}
+	void Uninitialize() {
+		UninitSound();
 
-	int vecLimit = 100;
-	int lineLimit = 100;
+	}
+
+	int vecLimit = 500;
+	int lineLimit = 3000;
 	BufferContainer hitbox;
 	float* hitboxVec;
 	unsigned int* hitboxInd;
@@ -34,39 +48,33 @@ namespace engine {
 	}
 
 	void UpdateObjects(float delta) {
-		GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
+		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
 
 		for (int i = 0; i < GetObjects().size(); i++) {
-			GetObjects().at(i)->velocity = glm::vec3(0, 0, 0);
+			GetObjects().at(i)->finalVelocity = glm::vec3(0, 0, 0);
 		}
 		// Additional Player Movement
-		GetPlayer()->velocity += GetPlayer()->Movement(delta);
-
+		engine::GetPlayer()->finalVelocity += GetPlayer()->Movement(delta);
+		
 		// Sort slowest velocity first
 		for (int i = 0; i < GetObjects().size(); i++) {
 			GameObject* o0 = GetObjects().at(i);
-			MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
+			//MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
 
-			if (ms != nullptr) {
+			/*if (ms != nullptr) {
 				o0->velocity += glm::vec3(ms->floats[0], ms->floats[1], ms->floats[2]);
-			}
-
-			if (o0->GetColliders().size() > 0) {
-				// If velocity has changed then go trough the list of all objects again
-				for (int j = i + 1; j < GetObjects().size(); j++) {
+			}*/
+			
+			if (o0->collisionComponent.isActive) {
+				for (int j = i + 1; j < GetObjects().size();j++) {
 					GameObject* o1 = GetObjects().at(j);
-					if (o0->IsClose(o1)) {
-
-						glm::vec3 v = o0->WillCollide(o1, delta);
-						if (v != o0->velocity) {
-							o0->velocity = v;
-							/* Reset static velocity?
-							MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
-							if (ms != nullptr) {
-								ms->floats[0] = 0;
-								ms->floats[1] = 0;
-								ms->floats[2] = 0;
-							}*/
+					if (o1->collisionComponent.isActive) {
+						if (o0->IsClose(o1)) {
+							glm::vec3 vel = o0->WillCollide(o1, delta);
+							if (vel != o0->velocity) {
+								//bug::out < "Collide " < o1->name <bug::end;
+								o0->velocity = vel;
+							}
 						}
 					}
 				}
@@ -75,13 +83,6 @@ namespace engine {
 
 			o0->Update(delta);
 		}
-		if (!GetPlayer()->freeCam) {
-			GetCamera()->position = GetPlayer()->position;
-		} else if (GetPlayer()->freeCam && GetPlayer()->moveCam) {
-
-		} else {
-
-		}
 
 		UpdateViewMatrix();
 
@@ -89,13 +90,6 @@ namespace engine {
 			GetDimension()->CleanChunks();
 
 		// Update dimension
-
-		// Update mesh transformations should maybe be moved to render
-		for (GameObject* o : GetObjects()) {
-			if (o->renderMesh) {
-				o->PreComponents();
-			}
-		}
 	}
 	void UpdateUI(float delta) {
 		UpdateTimedFunc(delta);
@@ -105,39 +99,94 @@ namespace engine {
 	bool reachedLimit = false;
 	void RenderRawObjects() {
 		for (GameObject* o : GetObjects()) {
-			for (int i = 0; i < o->renderComponent.meshes.size(); i++) {
-				MeshData* mesh = o->renderComponent.meshes[i];
-				if (mesh != nullptr) {
-					PassTransform(o->renderComponent.matrices[i]);
-					mesh->Draw();
+			if (o->renderComponent.model != nullptr) {
+				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
+					Mesh* mesh = o->renderComponent.model->meshes[i];
+					if (mesh != nullptr) {
+						PassTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+						mesh->Draw();
+					}
 				}
 			}
 		}
 	}
 	void RenderObjects() {
-		// Run preComponents here?
+		// Update mesh transformations should maybe be moved to render
+		for (GameObject* o : GetObjects()) {
+			if (o->renderMesh) {
+				engine::Location body;
+				body.Translate(o->position);
+				body.Rotate(o->rotation);
+
+				o->renderComponent.matrix = body.mat();
+
+			}
+		}
 		if (BindShader(ShaderColor)) {
 			PassProjection();
 			GetShader()->SetVec3("uCamera", GetCamera()->position);
 			for (GameObject* o : GetObjects()) {
-				BindLights(o->position);
-				for (int i = 0; i < o->renderComponent.meshes.size(); i++) {
-					MeshData* mesh = o->renderComponent.meshes[i];
-					if (mesh != nullptr) {
-						if (mesh->shaderType == ShaderColor) {// The shader might not be called here. so binding lights may be unecessary
-							PassMaterial(mesh->material);
-							PassTransform(o->renderComponent.matrices[i]);
-							mesh->Draw();
-						}
-					} else {
-						if (!o->renderComponent.hasError) {
-							bug::out < bug::RED < "MeshData in MeshComponent is nullptr\n";
-							o->renderComponent.hasError = true;
+				if (o->renderComponent.model != nullptr) {
+					BindLights(o->position);
+					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
+						Mesh* mesh = o->renderComponent.model->meshes[i];
+						if (mesh != nullptr) {
+							if (mesh->shaderType == ShaderColor) {// The shader might not be called here. so binding lights may be unecessary
+								for (int i = 0; i < mesh->materials.size()&&i<4;i++) {// Maximum of 4 materials
+									PassMaterial(i,mesh->materials[i]);
+									//bug::out < i < bug::end;
+								}
+								PassTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+								mesh->Draw();
+							}
+						} else {
+							if (!o->renderComponent.hasError) {
+								bug::out < bug::RED < "Mesh in Model is nullptr\n";
+								o->renderComponent.hasError = true;
+							}
 						}
 					}
 				}
 			}
 		}
+		
+		if (BindShader(ShaderColorBone)) {
+			PassProjection();
+			GetShader()->SetVec3("uCamera", GetCamera()->position);
+			for (GameObject* o : GetObjects()) {
+				if (o->renderComponent.model != nullptr) {
+					BindLights(o->position);
+					if (o->renderComponent.model->armature != nullptr) {
+						if (!o->renderComponent.model->armature->hasError) {
+							int count = o->renderComponent.model->armature->bones.size();
+							std::vector<glm::mat4> mats(count);
+							o->renderComponent.GetArmatureTransforms(mats);
+							for (int i = 0; i < count; i++) {
+								GetShader(ShaderColorBone)->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
+							}
+						}
+					}
+					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
+						Mesh* mesh = o->renderComponent.model->meshes[i];
+						if (mesh != nullptr) {
+							if (mesh->shaderType == ShaderColorBone) {// The shader might not be called here. so binding lights may be unecessary
+								for (int i = 0; i < mesh->materials.size() && i < 4; i++) {// Maximum of 4 materials
+									PassMaterial(i, mesh->materials[i]);
+								}
+								PassTransform(o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
+								mesh->Draw();
+							}
+						} else {
+							if (!o->renderComponent.hasError) {
+								bug::out < bug::RED < "Mesh in Model is nullptr\n";
+								o->renderComponent.hasError = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		
 		/*
 		if (BindShader(ShaderUV)) {
 			UpdateViewMatrix();
@@ -197,60 +246,109 @@ namespace engine {
 					}
 				}
 			}
-		}
+		}*/
+		
 		if (BindShader(ShaderOutline)) {
-			UpdateViewMatrix();
+			PassProjection();
 			PassTransform(glm::mat4(1));
 			PassColor(1, 1, 1, 1);
 			glLineWidth(2.f);
+			/*
+			GameObject* n = GetObjectByName("Player");
+			if (n != nullptr) {
+				CollisionComponent& c = n->collisionComponent;
+
+				int atVec = 0;
+				int atInd = 0;
+				int startV = 0;
+				
+				bug::out < c.points.size() <" "< c.coll->quad.size() < bug::end;
+				for (int i = 0; i < c.points.size(); i++) {
+					glm::vec3 v = c.points[i];
+					hitboxVec[atVec++] = v.x;
+					hitboxVec[atVec++] = v.y;
+					hitboxVec[atVec++] = v.z;
+				}
+				for (int i = 0; i < c.coll->quad.size() / 4; i++) {
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+				}
+				/*
+				for (int i = 0; i < c.coll->tri.size() / 3; i++) {
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+				}
+				// Clear the rest
+				for (int i = atVec; i < vecLimit * 3; i++) {
+					hitboxVec[i] = 0;
+				}
+				for (int i = atInd; i < lineLimit * 2; i++) {
+					hitboxVec[i] = 0;
+				}
+
+				hitbox.SubVB(0, vecLimit * 3, hitboxVec);
+				hitbox.SubIB(0, lineLimit * 2, hitboxInd);
+				hitbox.Draw();
+			}*/
+
+			
 			for (GameObject* o : GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
-				if (o->renderHitbox) {
+				if (o->renderHitbox && o->collisionComponent.isActive) {
 					int atVec = 0;
 					int atInd = 0;
+					CollisionComponent& c = o->collisionComponent;
 					// algorithm for removing line duplicates?
-					for (ColliderComponent* c : o->GetColliders()) {
-						if (c->coll != nullptr) {
-							int startV = atVec;
-							if (atVec + c->points.size() * 3 > 3 * vecLimit) {
-								if (!reachedLimit)
-									bug::out < bug::RED < "Line limit does not allow " < (atVec < c->points.size() * 3) < " points" < bug::end;
-								reachedLimit = true;
-								break;
-							} else if (atInd + c->coll->quad.size() * 8 + c->coll->tri.size() * 6 > 2 * lineLimit) {
-								if (!reachedLimit)
-									bug::out < bug::RED < "Line limit does not allow " < ((atInd < c->coll->quad.size() * 8 < c->coll->tri.size() * 6) / 2) < " lines:" < bug::end;
-								reachedLimit = true;
-								break;
-							}
-							for (int i = 0; i < c->points.size(); i++) {
-								glm::vec3 v = c->points[i];
-								hitboxVec[atVec++] = v.x;
-								hitboxVec[atVec++] = v.y;
-								hitboxVec[atVec++] = v.z;
-							}
-							for (int i = 0; i < c->coll->quad.size() / 4; i++) {
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c->coll->quad[i * 4 + 0];
-							}
-
-							for (int i = 0; i < c->coll->tri.size() / 3; i++) {
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 1];
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 2];
-								hitboxInd[atInd++] = atVec + c->coll->tri[i * 3 + 0];
-							}
-						}
+					// Adding hitboxes together?
+					int startV = atVec;
+					
+					if (atVec + c.points.size() * 3 > 3 * vecLimit) {
+						if (!reachedLimit)
+							bug::out < bug::RED < "Line limit does not allow " < (atVec+c.points.size() * 3)<"/"<(3*vecLimit) < " points" < bug::end;
+						reachedLimit = true;
+						continue;
+					} else if (atInd + c.coll->quad.size() * 8 + c.coll->tri.size() * 6 > 2 * lineLimit) {
+						if (!reachedLimit)
+							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 8 + c.coll->tri.size() * 6)<"/"<(2*lineLimit) < " lines:" < bug::end;
+						reachedLimit = true;
+						continue;
 					}
+					for (int i = 0; i < c.points.size(); i++) {
+						glm::vec3 v = c.points[i];
+						hitboxVec[atVec++] = v.x;
+						hitboxVec[atVec++] = v.y;
+						hitboxVec[atVec++] = v.z;
+					}
+					for (int i = 0; i < c.coll->quad.size() / 4; i++) {
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+					}
+					/*
+					for (int i = 0; i < c.coll->tri.size() / 3; i++) {
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+					}*/
 					// Clear the rest
-					for (int i = atVec; i < vecLimit; i++) {
+					for (int i = atVec; i < vecLimit*3; i++) {
 						hitboxVec[i] = 0;
 					}
 					for (int i = atInd; i < lineLimit * 2; i++) {
@@ -261,32 +359,38 @@ namespace engine {
 					hitbox.Draw();
 				}
 			}
-		}*/
-		MeshData* lightCube = GetMeshAsset("LightCube");
+		}
+		/*
+		Mesh* lightCube = GetMeshAsset("LightCube");
 		if (lightCube!=nullptr) {
 			if (BindShader(ShaderLight)) {
 				PassProjection();
+				//bug::out < "ea" < GetLights().size()< bug::end;
 				for (Light* l : GetLights()) {
-					if (l->lightType != LightType::Direction) {
+					//if (l->lightType != LightType::Direction) {
+						//bug::out < "rend light" < bug::end;
 						GetShader(ShaderCurrent)->SetVec3("uLightColor", l->diffuse);
 						PassTransform(glm::translate(l->position));
 						lightCube->Draw();
-					}
+					//}
 				}
 			}
 		}
-		/*
-		BindShader("terrain");
-		if (loadedDim != nullptr) {
-			BindTexture("blank");
-			for (Chunk c : loadedDim->loadedChunks) {
-				Location base;
-				base.Translate(glm::vec3(c.x*(loadedDim->chunkSize), 0, c.z*(loadedDim->chunkSize)));
-				ObjectTransform(base.mat());
-				c.con.Draw();
-			}
-		}*/
+		*/
 		
+		if (BindShader(ShaderTerrain)) {
+			PassProjection();
+			Dimension* dim = GetDimension();
+			if (dim != nullptr) {
+				BindTexture(0,"blank");
+				for (Chunk c : dim->loadedChunks) {
+					Location base;
+					base.Translate(glm::vec3(c.x * (dim->chunkSize), 0, c.z * (dim->chunkSize)));
+					PassTransform(base.mat());
+					c.con.Draw();
+				}
+			}
+		}
 	}
 	void RenderUI() {
 		RenderInterface();
@@ -296,8 +400,8 @@ namespace engine {
 		hitbox.type = 1;
 		hitbox.Setup(true, nullptr, 3 * vecLimit, nullptr, 2 * lineLimit);
 		hitbox.SetAttrib(0, 3, 3, 0);
-		hitboxVec = new float[vecLimit * 3];
-		hitboxInd = new unsigned int[lineLimit * 2];
+		hitboxVec = new float[vecLimit * 3]{0,0,0,1,0,0,0,1,0,0,0,1};
+		hitboxInd = new unsigned int[lineLimit * 2]{0,1,0,2,0,3};
 
 		// Loop
 		int lastTime = GetTime();

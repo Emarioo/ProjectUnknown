@@ -95,15 +95,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;src;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -112,32 +113,34 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;src;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -146,33 +149,43 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\GameStates.cpp" />
+    <ClCompile Include="src\Inventory\Container.cpp" />
+    <ClCompile Include="src\Inventory\Item.cpp" />
+    <ClCompile Include="src\Objects\Gnorg.cpp" />
     <ClCompile Include="src\Objects\Goblin.cpp" />
     <ClCompile Include="src\Objects\MagicStaff.cpp" />
+    <ClCompile Include="src\Objects\Player.cpp" />
     <ClCompile Include="src\Objects\Tutorial.cpp" />
+    <ClCompile Include="src\UI\GameMenu.cpp" />
     <ClCompile Include="src\UI\PauseMenu.cpp" />
     <ClCompile Include="src\UI\StartMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\GameStates.h" />
+    <ClInclude Include="src\Inventory\Container.h" />
+    <ClInclude Include="src\Inventory\Item.h" />
+    <ClInclude Include="src\Objects\Gnorg.h" />
     <ClInclude Include="src\Objects\Goblin.h" />
     <ClInclude Include="src\Objects\MagicStaff.h" />
+    <ClInclude Include="src\Objects\Player.h" />
     <ClInclude Include="src\Objects\Tutorial.h" />
     <ClInclude Include="src\UI\Menu.h" />
   </ItemGroup>

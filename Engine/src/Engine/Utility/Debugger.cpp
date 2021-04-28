@@ -2,6 +2,13 @@
 
 #include <Windows.h>
 
+#if PR_DEBUG == 1
+#define DEBUG_MODE() true
+#else
+#define DEBUG_MODE() false
+#endif
+
+
 namespace bug {
 	
 	char end = '\n';
@@ -9,29 +16,58 @@ namespace bug {
 	debugs outs;
 	HANDLE hConsole = GetStdHandle(-11);
 	
+	std::vector<std::string> debugVarOn;
+	bool is(const std::string& name) {
+		if (DEBUG_MODE()) {
+			for (auto s : debugVarOn) {
+				if (name == s) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	void set(const std::string& name, bool on) {
+		if (DEBUG_MODE()) {
+			if (on) {
+				for (auto s : debugVarOn) {
+					if (name == s) {
+						return;
+					}
+				}
+				debugVarOn.push_back(name);
+			} else {
+				for (int i = 0; i < debugVarOn.size(); i++) {
+					if (debugVarOn[i] == name) {
+						debugVarOn.erase(debugVarOn.begin() + i);
+						break;
+					}
+				}
+			}
+		}
+	}
+	bool debug_override = false;
+	void ENABLE_DEBUG_OVERRIDE(){
+		debug_override = true;
+	}
 	bool resetColor = true;
-	bool doPrint = true;
-	void on() {
-		doPrint = true;
-	}
-	void off() {
-		doPrint = false;
-	}
-	void set(bool b) {
-		doPrint = b;
+	/*
+	Enabled in Engine.cpp if debug mode
+	*/
+	bool doPrint = false;
+	void Enable(bool state) {
+		if(DEBUG_MODE()||debug_override)
+			doPrint = state;
 	}
 	debug debug::operator<(const std::string& s) {
 		if (doPrint) {
 			if (s.size() > 0){
 				if (s.back() == end) {
 					std::cout << s;
-					//std::cout << print << s;
-					//print.clear();
 					if (resetColor) {
 						SetConsoleTextAttribute(hConsole, GRAY1);
 					}
 				} else {
-					//print+=s;
 					std::cout << s;
 					if (spaces)
 						std::cout << " ";
@@ -75,6 +111,14 @@ namespace bug {
 	debug debug::operator<(glm::vec4 v) {
 		if (doPrint) {
 			std::cout << "[" << v.x << " " << v.y << " " << v.z <<" "<< v.w << "]";
+			if (spaces)
+				std::cout << " ";
+		}
+		return *this;
+	}
+	debug debug::operator<(glm::quat q) {
+		if (doPrint) {
+			std::cout << "[" << q.w << " " << q.x << " " << q.y << " " << q.z << "]";
 			if (spaces)
 				std::cout << " ";
 		}

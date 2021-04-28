@@ -2,6 +2,7 @@
 
 #include "Rendering/Renderer.h"
 #include "Managers/InterfaceManager.h"
+#include "Sound/SoundManager.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions
@@ -16,6 +17,7 @@ namespace engine {
 	 Use GetEventCallbacks if you need to handle mouse and key events
 	*/
 	void Initialize();
+	void Uninitialize();
 
 	/*
 	Update IElements, Timed Functions

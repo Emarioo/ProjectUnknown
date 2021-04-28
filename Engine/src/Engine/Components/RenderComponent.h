@@ -1,11 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "Data/MeshData.h"
-#include "Components/BoneComponent.h"
-#include "Components/AnimationComponent.h"
-
-#include "Managers/DataManager.h"
+#include "Animator.h"
+#include "Model.h"
+#include "Managers/AssetManager.h"
 
 namespace engine {
 
@@ -13,18 +11,17 @@ namespace engine {
 	public:
 		RenderComponent();
 
-		BoneComponent bone;
-		AnimationComponent anim;
-		void SetBone(const std::string& data);
-		void SetAnim(const std::string& data);
-
-		std::vector<MeshData*> meshes;
-		std::vector<glm::mat4> matrices;
-		void AddMesh(const std::string& data);
-		void SetMatrix(int index, glm::mat4 m);
+		Animator animator;
+		Model* model=nullptr;
+		glm::mat4 matrix=glm::mat4(1);
+		
+		void SetModel(const std::string& name);
+		/*
+		Parameter is an array of glm::mat4 with bones.size()
+		*/
+		void GetArmatureTransforms(std::vector<glm::mat4>& mats);
 
 		bool hasError = false;
-		bool enabled = false;
 
 	private:
 

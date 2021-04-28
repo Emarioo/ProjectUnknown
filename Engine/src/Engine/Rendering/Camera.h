@@ -3,19 +3,28 @@
 
 class Camera {
 public:
-	Camera() {}
-	glm::vec3 position=glm::vec3(0,0,0);
-	glm::vec3 rotation=glm::vec3(0,0,0);
+	Camera();
+	glm::vec3 position;
+	glm::vec3 rotation;
 
-	void SetPos(float x, float y, float z) {
+	void SetPosition(float x, float y, float z) {
 		position.x = x;
 		position.y = y;
 		position.z = z;
 	}
-	void SetRot(float x, float y, float z) {
+	void SetPosition(glm::vec3 v) {
+		position.x = v.x;
+		position.y = v.y;
+		position.z = v.z;
+	}
+	void SetRotation(float x, float y, float z) {
 		rotation.x = x;
 		rotation.y = y;
 		rotation.z = z;
 	}
-	//glm::vec3 LookVector();
+	void SetRotation(glm::vec3 v) {
+		rotation.x = v.x;
+		rotation.y = v.y;
+		rotation.z = v.z;
+	}
 };

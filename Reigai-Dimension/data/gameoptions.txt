@@ -1,4 +1,4 @@
 ioctaves 6
 flacunarity 2
-fscale 50
+fscale 100
 fpersistance 0.5

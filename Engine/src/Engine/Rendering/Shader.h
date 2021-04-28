@@ -22,6 +22,7 @@ namespace engine {
 		ShaderLight,
 		ShaderDepth,
 		ShaderExperiment,
+		ShaderTerrain,
 
 		ShaderCurrent // This shader should always be last to "mark the end" of the enum
 	};

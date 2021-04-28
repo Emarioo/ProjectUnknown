@@ -28,9 +28,16 @@ namespace bug {
 	};
 	extern char end;
 	
-	void on();
-	void off();
-	void set(bool);
+	/*
+	FileManager : LoadMesh, LoadAnimation, LoadCollider, LoadArmature
+	*/
+	bool is(const std::string& name);
+	/*
+	FileManager : LoadMesh, LoadAnimation, LoadCollider, LoadArmature
+	*/
+	void set(const std::string& name, bool on);
+	void Enable(bool state);
+	void ENABLE_DEBUG_OVERRIDE();
 
 	struct debug {
 		bool spaces = false;
@@ -41,6 +48,7 @@ namespace bug {
 		debug operator<(glm::ivec3 v);
 		debug operator<(glm::vec3 v);
 		debug operator<(glm::vec4 v);
+		debug operator<(glm::quat q);
 		debug operator<(glm::mat4 v);
 		debug operator<(float f);
 		debug operator<(double d);

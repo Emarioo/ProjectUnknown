@@ -18,62 +18,75 @@ namespace UI {
 		red->NewTransition(&hideAlone)->Fade(1.f, 0.f,0.f, 0.f,2.f);
 		*/
 		IElement* alone = NewElement("playAlone", 5);
-		alone->AddTag(menu);
-		alone->Col({ 63, 63, 107 })->Text(GetFont(), "Play Alone", 30, { 0.9f })->
-			conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
-		alone->NewTransition(&hideStart)->Move(-300, 0, 1)->Fade({ 63, 63, 107, 0 }, 0.8);
-		alone->NewTransition(&alone->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
-		alone->OnClick = [](int mx, int my, int button, int action) {
-			hideStart = true;
-			showAlone = true;
-		};
-
+		{
+			alone->AddTag(menu);
+			alone->Col({ 63, 63, 107 });
+			alone->Text(GetFont(), "Play Alone", 30, { 0.9f });
+			alone->conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
+			alone->NewTransition(&hideStart)->Move(-300, 0, 1)->Fade({ 63, 63, 107, 0 }, 0.8);
+			alone->NewTransition(&alone->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
+			alone->OnClick = [](int mx, int my, int button, int action) {
+				hideStart = true;
+				showAlone = true;
+			};
+		}
 		IElement* aloneScroll = NewElement("aloneScroll", 0);
-		aloneScroll->AddTag(menu);
-		aloneScroll->Col({ 100, 0 })->conX.Left(20 - 300)->conY.Center(0.f)->conW.Center(260)->conH.Center(1.f);
-		aloneScroll->NewTransition(&showAlone)->Move(300, 0, 1)->Fade({ 100, 0 }, 0.8);
-
+		{
+			aloneScroll->AddTag(menu);
+			aloneScroll->Col({ 100, 0 });
+			aloneScroll->conX.Left(20 - 300)->conY.Center(0.f)->conW.Center(260)->conH.Center(1.f);
+			aloneScroll->NewTransition(&showAlone)->Move(300, 0, 1)->Fade({ 100, 0 }, 0.8);
+		}
 		IElement* aloneBack = NewElement("aloneBack", 2);
-		aloneBack->AddTag(menu);
-		aloneBack->Col({ 63, 63, 107, 0 })->Text(GetFont(), "Back", 30, { 0.9f })->
-			conX.Right(20 - 250)->conY.Bottom(20)->conW.Center(200)->conH.Center(100);
-		aloneBack->NewTransition(&showAlone)->Move(-250, 0, 1)->Fade({ 63, 63, 107, 1 }, 0.8);
-		aloneBack->NewTransition(&aloneBack->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
-		aloneBack->OnClick = [](int mx, int my, int button, int action) {
-			hideStart = false;
-			showAlone = false;
-			editWorld = false;
-		};
-
+		{
+			aloneBack->AddTag(menu);
+			aloneBack->Col({ 63, 63, 107, 0 });
+			aloneBack->Text(GetFont(), "Back", 30, { 0.9f });
+			aloneBack->conX.Right(20 - 250)->conY.Bottom(20)->conW.Center(200)->conH.Center(100);
+			aloneBack->NewTransition(&showAlone)->Move(-250, 0, 1)->Fade({ 63, 63, 107, 1 }, 0.8);
+			aloneBack->NewTransition(&aloneBack->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
+			aloneBack->OnClick = [](int mx, int my, int button, int action) {
+				hideStart = false;
+				showAlone = false;
+				editWorld = false;
+			};
+		}
 		IElement* editDesc = NewElement("editDesc", 1);
-		editDesc->AddTag(menu);
-		editDesc->Col({ 63, 63, 107, 0 })->Text(GetFont(), "Description\n of this world\nPlay Time: 0s\n...", { 0.9f })->
-			conX.Left(aloneScroll, 20)->conY.Top(20)->conW.Center(260)->conH.Center(0.5f);
-		editDesc->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
+		{
+			editDesc->AddTag(menu);
+			editDesc->Col({ 63, 63, 107, 0 });
+			editDesc->Text(GetFont(), "Description\n of this world\nPlay Time: 0s\n...", { 0.9f });
+			editDesc->conX.Left(aloneScroll, 20)->conY.Top(20)->conW.Center(260)->conH.Center(0.5f);
+			editDesc->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
+		}
 
 		IElement* editPlay = NewElement("editPlay", 1);
-		editPlay->AddTag(menu);
-		editPlay->Col({ 63, 63, 107, 0 })->Text(GetFont(), "Play!", 30, { 0.9f })->
-			conX.Left(aloneScroll, 20)->conY.Top(editDesc, 10)->conW.Center(260)->conH.Center(80);
-		editPlay->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
-		editPlay->NewTransition(&editPlay->isHolding)->Fade({ 63 / 3, 63, 107 / 3, 1 }, 0.15);
-		editPlay->OnClick = [=](int mx, int my, int button, int action) {
-			//GetElement("aloneWorld" + std::to_string(editId))->SetText(editName->GetText());
-			//bug::out < "Play" < bug::end;
-			UIFadeOn();
-			AddTimedFunction([=]() {
-				// Load world data
-				SetGameState(Play);
-				UIFadeOff();
-			}, 1.f);
-		};
+		{
+			editPlay->AddTag(menu);
+			editPlay->Col({ 63, 63, 107, 0 });
+			editPlay->Text(GetFont(), "Play!", 30, { 0.9f });
+			editPlay->conX.Left(aloneScroll, 20)->conY.Top(editDesc, 10)->conW.Center(260)->conH.Center(80);
+			editPlay->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
+			editPlay->NewTransition(&editPlay->isHolding)->Fade({ 63 / 3, 63, 107 / 3, 1 }, 0.15);
+			editPlay->OnClick = [=](int mx, int my, int button, int action) {
+				//GetElement("aloneWorld" + std::to_string(editId))->SetText(editName->GetText());
+				//bug::out < "Play" < bug::end;
+				UIFadeOn();
+				AddTimedFunction([=]() {
+					// Load world data
+					SetGameState(Play);
+					UIFadeOff();
+				}, 1.f);
+			};
+		}
 
 		IElement* last = nullptr;
 		for (int i = 0; i < 5; i++) {
 			IElement* world = NewElement("aloneWorld" + std::to_string(i), 1);
 			world->AddTag(menu);
-			world->Col({ 83, 83, 127, 0 })->Text(GetFont(), "World Name " + std::to_string(i), 30, { 0.9f })->
-				conX.Left(30 - 300)->conW.Center(240)->conH.Center(80);
+			world->Col({ 83, 83, 127, 0 });
+			world->Text(GetFont(), "World Name " + std::to_string(i), 30, { 0.9f });
+			world->conX.Left(30 - 300)->conW.Center(240)->conH.Center(80);
 			if (last == nullptr)
 				world->conY.Top(30);
 			else

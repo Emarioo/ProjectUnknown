@@ -61,4 +61,17 @@ namespace engine {
 		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * pow(t, 2) + pow(t, 3));
 		return va;
 	}
+	std::string Crypt(const std::string& word, const std::string& key, bool encrypt) {
+		std::string out = "";
+		for (int i = 0; i < word.length();i++) {
+			int at = word[i];
+			for (int j = 0; j < key.length();j++) {
+				int val = (i - j) * key[j];
+				if (encrypt) at += val;
+				else at -= val;
+			}
+			out += (at % 256);
+		}
+		return out;
+	}
 }

@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reigai-Dimension", "Reigai-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcxproj", "{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ReigaiDim-Installer", "ReigaiDim-Installer\ReigaiDim-Installer.vdproj", "{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,10 @@ Global
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x64.Build.0 = Release|x64
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.ActiveCfg = Release|Win32
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.Build.0 = Release|Win32
+		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Debug|x64.ActiveCfg = Debug
+		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Debug|x86.ActiveCfg = Debug
+		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Release|x64.ActiveCfg = Release
+		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,17 @@
+Main weapon
+
+Armor and it's durability?
+
+Health, Stamina, Mana indication
+
+Spells and skills
+
+Chat
+
+Status effects
+
+Gathered resources/loot
+
+Utility
+ potions, food, grapling hook?
+

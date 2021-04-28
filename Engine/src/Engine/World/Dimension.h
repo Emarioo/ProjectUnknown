@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "Utility/GameOptions.h"
+#include "Objects/ClientPlayer.h"
 
 #include <vector>
 #include "Biome.h"
@@ -22,15 +23,13 @@ namespace engine {
 
 	class Dimension {
 	public:
-		Dimension() {}
-		Dimension(int s) {
-			seed = s;
-		}
+		Dimension();
+		Dimension(int s);
 		int seed = 0;
 		int* randomMap;
 		int randomMapSize = 10;
 
-		glm::vec3* playerPos;
+		ClientPlayer* player;
 		/*
 		Minimum of 2
 		*/
@@ -45,7 +44,7 @@ namespace engine {
 		std::vector<Chunk> loadedChunks;
 		std::vector<Biome> biomes;
 
-		void Init(glm::vec3* playerPos);
+		void Init(ClientPlayer* player);
 
 		void UpdateAllChunks();
 		void CleanChunks(); // Reload chunks
@@ -72,7 +71,7 @@ namespace engine {
 
 	};
 	/*
-	Dimension controlls the layout of the world
+	Dimensions control the layout of the world
 	  Terrain, Mountains, Cities, Ruins, Dungeons, Monster Spawning Areas, Monster Movement(AI pathfinding)
 	  Interactable objects are stored in Dimension and updated in management. Like monsters, players, chests, workshops
 	  Minerals and materials from the world is stored in Dimension?

@@ -1,17 +1,12 @@
 #include "Tutorial.h"
 
 Tutorial::Tutorial(float x, float y, float z) {
+	name = "Tutorial";
 	SetPosition(x, y, z);
 
-	renderComponent.AddMesh("Floor");
+	renderComponent.SetModel("Terrain");
+	collisionComponent.SetCollider(renderComponent.model->colliderName);
 
-}
-void Tutorial::PreComponents() {
-	engine::Location body;
-	body.Translate(position);
-	body.Rotate(rotation);
-
-	renderComponent.SetMatrix(0, body.mat());
 }
 void Tutorial::Update(float delta) {
 	

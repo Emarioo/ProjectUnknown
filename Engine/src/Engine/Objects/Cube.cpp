@@ -163,17 +163,6 @@ void Cube::GenMesh(float r,float g,float b,float a) {
 	container.SetAttrib(1,4,10,3);
 	container.SetAttrib(2,3,10,7);
 }
-void Cube::PreComponents() {
-	/*
-	Location body;
-	body.Translate(position);
-	body.Rotate(rotation);
-	renderer::ObjectTransform(body.mat());
-	//renderer::BindLights(position);
-	std::cout << "ye" << std::endl;
-	container.Draw();
-	*/
-}
 void Cube::Update(float delta) {
 	
 }

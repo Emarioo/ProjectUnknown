@@ -9,10 +9,11 @@
 
 #include "Utility/Utilities.h"
 
-#include "Data/AnimData.h"
-#include "Data/MeshData.h"
-#include "Data/CollData.h"
-#include "Data/BoneData.h"
+#include "Components/Animation.h"
+#include "Components/Mesh.h"
+#include "Components/Collider.h"
+#include "Components/Armature.h"
+#include "Components/Model.h"
 #include "Utility/Debugger.h"
 
 namespace engine {
@@ -22,7 +23,7 @@ namespace engine {
 		Syntax,
 		Corrupt
 	};
-	int FileExist(std::string path);
+	int FileExist(const std::string& path);
 	/*
 	Remember to handle the returned error status
 	File path without txt required
@@ -32,30 +33,40 @@ namespace engine {
 	Remember to handle the error status
 	File path without txt required
 	*/
-	std::vector<std::string> ReadFileList(std::string path, int* err);
+	std::vector<std::string> ReadFileList(const std::string& path, int* err);
 	/*
 	Remember to handle the returned error status
-File path without txt required
+	File path without txt required
 	*/
-	int WriteTextFile(std::string path, std::vector<std::string> text);
+	int WriteTextFile(const std::string& path, std::vector<std::string> text);
+	/*
+	File path is converted to "assets/materials/"+path+".material"
+	Returned object's hasError is true if any errors occur
+	*/
+	void LoadMaterial(Material* data, const std::string& path);
 	/*
 	File path is converted to "assets/meshes/"+path+".mesh"
-	Can return NotFound, Corrupt
+	Returned object's hasError is true if any errors occur
 	*/
-	int LoadMesh(MeshData* da, std::string path);
+	void LoadMesh(Mesh* data, const std::string& path);
 	/*
-	File path is converted to "assets/animations/"+path+".anim"
-	Can return NotFound, Corrupt
+	File path is converted to "assets/animations/"+path+".animation"
+	Returned object's hasError is true if any errors occur
 	*/
-	int LoadAnim(AnimData* da, std::string path);
+	void LoadAnimation(Animation* data, const std::string& path);
 	/*
-	File path is converted to "assets/colliders/"+path+".coll"
-	Can return NotFound, Corrupt
+	File path is converted to "assets/colliders/"+path+".collider"
+	Returned object's hasError is true if any errors occur
 	*/
-	int LoadColl(CollData* da, std::string path);
+	void LoadCollider(Collider* data, const std::string& path);
 	/*
-	File path is converted to "assets/bones/"+path+".bone"
-	Can return NotFound, Corrupt
+	File path is converted to "assets/armatures/"+path+".armature"
+	Returned object's hasError is true if any errors occur
 	*/
-	int LoadBone(BoneData* da, std::string path);
+	void LoadArmature(Armature* data, const std::string& path);
+	/*
+	File path is converted to "assets/colliders/"+path+".model"
+	Returned object's hasError is true if any errors occur
+	*/
+	void LoadModel(Model* data, const std::string& path);
 }

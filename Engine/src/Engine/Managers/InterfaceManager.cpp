@@ -149,7 +149,7 @@ namespace engine {
 		GuiColor(0.9, 0.8, 0.7, 1);
 		GuiTransform(-1+0.01, 1-0.06);
 		GuiSize(1, 1);
-		glm::vec3 pos = GetPlayer()->position;
+		glm::vec3 pos = GetCamera()->position;
 		glm::vec3 rot = GetCamera()->rotation;
 		
 		DrawString(&font1,
@@ -305,7 +305,8 @@ namespace engine {
 		font1.Data("consolas42");
 
 		uiFade = NewElement("uiFade",100);
-		uiFade->Col({ 0, 0 })->conX.Center(0)->conY.Center(0)->conW.Center(1.f)->conH.Center(1.f);
+		uiFade->Col({ 0, 0 });
+		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(1.f)->conH.Center(1.f);
 		uiFade->NewTransition(&uiFadeBool)->Fade({ 0, 1 }, 1.f);
 
 		SetPauseMode(true);

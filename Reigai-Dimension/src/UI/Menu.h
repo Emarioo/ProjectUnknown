@@ -7,5 +7,6 @@
 namespace UI {
 	void InitStartMenu();
 	void InitPauseMenu();
+	void InitGameMenu();
 	
 }

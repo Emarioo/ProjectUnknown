@@ -5,6 +5,11 @@
 
 namespace engine {
 
+	Dimension::Dimension() {}
+	Dimension::Dimension(int s) {
+		seed = s;
+	}
+
 	std::uniform_int_distribution<> distr(0, 100000);
 	std::mt19937 randomSeed;
 	void Dimension::SetRandomMap(int seed) {
@@ -17,10 +22,13 @@ namespace engine {
 	}
 	int Dimension::GetRandom(int x, int z) {// TODO: NICE RANDOM THING
 		int ind = 0;
-		int one = x * 2 + z * 2;// (x%randomMapSize)*(1 + x / randomMapSize);
-		int two = x + z * 6;// (z%randomMapSize)*(1 + z / randomMapSize);
+		/*
+		Earth Map: -2 * x + z * z - z;
 
-		ind = (int)(one + two) % ((int)pow(randomMapSize, 2));
+		*/
+		int sum = -5 * x*x*x + z * z - z;
+
+		ind = (int)(sum) % ((int)pow(randomMapSize, 2));
 		if (ind < 0)
 			ind *= -1;
 		//ind = (x%randomMapSize) + (z%randomMapSize)*randomMapSize;
@@ -30,7 +38,7 @@ namespace engine {
 	}
 	int tick = 0;
 	void Dimension::CleanChunks() {
-		int px = playerPos->x / chunkSize, pz = playerPos->z / chunkSize;
+		int px = player->position.x / chunkSize, pz = player->position.z / chunkSize;
 		for (int i = 0; i < loadedChunks.size(); i++) {
 			Chunk* c = &loadedChunks.at(i);
 			float dx = c->x - px;
@@ -70,11 +78,11 @@ namespace engine {
 	/*
 	Add Biomes before INIT
 	*/
-	void Dimension::Init(glm::vec3* player) {
+	void Dimension::Init(ClientPlayer* player) {
 		chunkPoints = chunkSize + 1;
 		randomMap = new int[pow(randomMapSize, 2)];
 		SetRandomMap(seed);
-		playerPos = player;
+		this->player = player;
 
 		int chunkArea = viewDistance;
 
@@ -130,11 +138,13 @@ namespace engine {
 				vMap[(z * chunkPoints + x) * 8 + 0] = v[0] - chunk->x * chunkSize;
 				vMap[(z * chunkPoints + x) * 8 + 1] = v[1];
 				vMap[(z * chunkPoints + x) * 8 + 2] = v[2] - chunk->z * chunkSize;
+				
 				vMap[(z * chunkPoints + x) * 8 + 3] = v[3];
 				vMap[(z * chunkPoints + x) * 8 + 4] = v[4];
 				vMap[(z * chunkPoints + x) * 8 + 5] = v[5];
 				vMap[(z * chunkPoints + x) * 8 + 6] = x % 2;
 				vMap[(z * chunkPoints + x) * 8 + 7] = z % 2;
+				
 				// TODO: Set normals
 			}
 		}
@@ -168,6 +178,20 @@ namespace engine {
 		}
 		totalNoise /= maxHeight * 100000;
 
+		/*amplitude = 1;
+		frequency = 1;
+		float totalNoise2 = 0;
+		for (int o = 0; o < octaves; o++) {
+			float noise = GetNoise(v[2] / scale * frequency, v[0] / scale * frequency);
+
+			totalNoise2 += noise * amplitude;
+			amplitude *= persistance;
+			frequency *= lacunarity;
+		}
+		totalNoise2 /= maxHeight * 100000;
+
+		totalNoise = (totalNoise + totalNoise2);*/
+
 		// Get Biome from totalnoise
 		float r0 = 0;
 		for (Biome b : biomes) {
@@ -176,9 +200,10 @@ namespace engine {
 			}
 			r0 = b.r;
 		}
+		//bug::outs < v[3] < v[4] < v[5] < bug::end;
 	}
 	float Dimension::TerHeightAtPlayer() {
-		float v[]{ (int)(playerPos->x),0,(int)(playerPos->z),1,1,1 };
+		float v[]{ (int)(player->position.x),0,(int)(player->position.z),1,1,1 };
 		GetBiome(v);
 		return v[1];
 	}

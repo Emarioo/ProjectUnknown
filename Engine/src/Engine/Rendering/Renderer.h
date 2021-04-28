@@ -13,7 +13,7 @@
 
 #include "Texture.h"
 #include "Shader.h"
-#include "Managers/FileManager.h"
+#include "Components/Material.h"
 #include "Rendering/Light.h"
 #include "Camera.h"
 #include "UI/Font.h"
@@ -118,8 +118,7 @@ namespace engine {
 
 	// Texture
 	void BindTexture(int slot, const std::string& name);
-	void AddTextureAsset(const std::string& name);
-
+	
 	// Render
 	/*
 	Closest Lights need to be bound before drawing mesh
@@ -153,5 +152,5 @@ namespace engine {
 	void PassLight(DirLight* light);
 	void PassLight(int index, PointLight* light);
 	void PassLight(int index, SpotLight* light);
-	void PassMaterial(Material& material);
+	void PassMaterial(int index, Material* material);
 }

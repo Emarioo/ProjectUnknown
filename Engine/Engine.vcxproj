@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -19,23 +19,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engine\Components\AnimationComponent.h" />
-    <ClInclude Include="src\Engine\Components\BoneComponent.h" />
-    <ClInclude Include="src\Engine\Components\ColliderComponent.h" />
+    <ClInclude Include="src\Engine\Components\Collider.h" />
+    <ClInclude Include="src\Engine\Components\CollisionComponent.h" />
+    <ClInclude Include="src\Engine\Components\Material.h" />
     <ClInclude Include="src\Engine\Components\MetaComponent.h" />
     <ClInclude Include="src\Engine\Components\RenderComponent.h" />
+    <ClInclude Include="src\Engine\Components\Animator.h" />
+    <ClInclude Include="src\Engine\Components\Model.h" />
+    <ClInclude Include="src\Engine\Objects\ClientPlayer.h" />
     <ClInclude Include="src\Engine\Rendering\FrameBuffer.h" />
-    <ClInclude Include="src\Engine\Rendering\Material.h" />
     <ClInclude Include="src\Engine\Engine.h" />
-    <ClInclude Include="src\Engine\Data\AnimData.h" />
-    <ClInclude Include="src\Engine\Data\BoneData.h" />
-    <ClInclude Include="src\Engine\Data\CollData.h" />
-    <ClInclude Include="src\Engine\Data\MeshData.h" />
-    <ClInclude Include="src\Engine\Managers\DataManager.h" />
+    <ClInclude Include="src\Engine\Components\Animation.h" />
+    <ClInclude Include="src\Engine\Components\Armature.h" />
+    <ClInclude Include="src\Engine\Components\Mesh.h" />
+    <ClInclude Include="src\Engine\Managers\AssetManager.h" />
     <ClInclude Include="src\Engine\Managers\FileManager.h" />
     <ClInclude Include="src\Engine\Managers\InterfaceManager.h" />
     <ClInclude Include="src\Engine\Managers\ObjectManager.h" />
-    <ClInclude Include="src\Engine\Objects\ClientPlayer.h" />
     <ClInclude Include="src\Engine\Objects\Cube.h" />
     <ClInclude Include="src\Engine\GameObject.h" />
     <ClInclude Include="src\Engine\Objects\NetPlayer.h" />
@@ -45,6 +45,10 @@
     <ClInclude Include="src\Engine\Rendering\Renderer.h" />
     <ClInclude Include="src\Engine\Rendering\Shader.h" />
     <ClInclude Include="src\Engine\Rendering\Texture.h" />
+    <ClInclude Include="src\Engine\Sound\SoundBuffer.h" />
+    <ClInclude Include="src\Engine\Sound\SoundManager.h" />
+    <ClInclude Include="src\Engine\Sound\SoundSource.h" />
+    <ClInclude Include="src\Engine\Sound\SoundStream.h" />
     <ClInclude Include="src\Engine\UI\Font.h" />
     <ClInclude Include="src\Engine\UI\IElement.h" />
     <ClInclude Include="src\Engine\UI\Text.h" />
@@ -52,7 +56,7 @@
     <ClInclude Include="src\Engine\Utility\Debugger.h" />
     <ClInclude Include="src\Engine\Utility\Utilities.h" />
     <ClInclude Include="src\Engine\Utility\GameOptions.h" />
-    <ClInclude Include="src\Engine\Utility\Keyboard.h" />
+    <ClInclude Include="src\Engine\Keyboard.h" />
     <ClInclude Include="src\Engine\Utility\Languages.h" />
     <ClInclude Include="src\vendor\glm\common.hpp" />
     <ClInclude Include="src\vendor\glm\detail\compute_common.hpp" />
@@ -339,20 +343,20 @@
     <ClInclude Include="src\vendor\glm\vec3.hpp" />
     <ClInclude Include="src\vendor\glm\vec4.hpp" />
     <ClInclude Include="src\vendor\glm\vector_relational.hpp" />
+    <ClInclude Include="src\vendor\Libaudio.h" />
     <ClInclude Include="src\vendor\stb_image\stb_image.h" />
     <ClInclude Include="src\Engine\World\Biome.h" />
     <ClInclude Include="src\Engine\World\Dimension.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engine\Components\AnimationComponent.cpp" />
-    <ClCompile Include="src\Engine\Components\BoneComponent.cpp" />
-    <ClCompile Include="src\Engine\Components\ColliderComponent.cpp" />
+    <ClCompile Include="src\Engine\Components\Collider.cpp" />
+    <ClCompile Include="src\Engine\Components\CollisionComponent.cpp" />
     <ClCompile Include="src\Engine\Components\MetaComponent.cpp" />
+    <ClCompile Include="src\Engine\Components\Model.cpp" />
     <ClCompile Include="src\Engine\Components\RenderComponent.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
-    <ClCompile Include="src\Engine\Data\AnimData.cpp" />
-    <ClCompile Include="src\Engine\Data\BoneData.cpp" />
-    <ClCompile Include="src\Engine\Managers\DataManager.cpp" />
+    <ClCompile Include="src\Engine\Components\Animation.cpp" />
+    <ClCompile Include="src\Engine\Managers\AssetManager.cpp" />
     <ClCompile Include="src\Engine\Managers\FileManager.cpp" />
     <ClCompile Include="src\Engine\Managers\InterfaceManager.cpp" />
     <ClCompile Include="src\Engine\Managers\ObjectManager.cpp" />
@@ -360,12 +364,18 @@
     <ClCompile Include="src\Engine\Objects\Cube.cpp" />
     <ClCompile Include="src\Engine\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engine\Objects\NetPlayer.cpp" />
+    <ClCompile Include="src\Engine\Components\Animator.cpp" />
     <ClCompile Include="src\Engine\Rendering\BufferContainer.cpp" />
     <ClCompile Include="src\Engine\Rendering\Camera.cpp" />
     <ClCompile Include="src\Engine\Rendering\FrameBuffer.cpp" />
     <ClCompile Include="src\Engine\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Engine\Rendering\Shader.cpp" />
     <ClCompile Include="src\Engine\Rendering\Texture.cpp" />
+    <ClCompile Include="src\Engine\Sound\Sound3D.cpp" />
+    <ClCompile Include="src\Engine\Sound\SoundBuffer.cpp" />
+    <ClCompile Include="src\Engine\Sound\SoundManager.cpp" />
+    <ClCompile Include="src\Engine\Sound\SoundSource.cpp" />
+    <ClCompile Include="src\Engine\Sound\SoundStream.cpp" />
     <ClCompile Include="src\Engine\UI\Font.cpp" />
     <ClCompile Include="src\Engine\UI\IElement.cpp" />
     <ClCompile Include="src\Engine\UI\Text.cpp" />
@@ -375,6 +385,7 @@
     <ClCompile Include="src\Engine\Utility\Keyboard.cpp" />
     <ClCompile Include="src\Engine\Utility\Languages.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
+    <ClCompile Include="src\vendor\Libaudio.cpp" />
     <ClCompile Include="src\vendor\stb_image\stb_image.cpp" />
     <ClCompile Include="src\Engine\World\Dimension.cpp" />
   </ItemGroup>
@@ -572,31 +583,39 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -605,9 +624,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -616,25 +635,25 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -643,9 +662,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -654,8 +673,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -104,6 +104,7 @@ namespace engine {
 		//float r = 1, g = 1, b = 1, a = 1;
 		Color color;
 
+		// What is this?
 		bool isBlank = false;
 
 		bool isEditable = false;
@@ -121,15 +122,15 @@ namespace engine {
 
 		Text text;
 
-		IElement* Texture(const std::string& texture);
-		IElement* Col(const Color& color);
-		IElement* Blank();
+		void Texture(const std::string& texture);
+		void Col(const Color& color);
+		void Blank();
 		/*
 		Fit text in this element
 		*/
-		IElement* Text(Font* f, const std::string& s, const Color& color);
-		IElement* Text(Font* f, const std::string& s, int charHeight, const Color& color);
-		IElement* Text(Font* f, const std::string& s, float charHeight, const Color& color);
+		void Text(Font* f, const std::string& s, const Color& color);
+		void Text(Font* f, const std::string& s, int charHeight, const Color& color);
+		void Text(Font* f, const std::string& s, float charHeight, const Color& color);
 
 		void SetText(const std::string& s);
 		const std::string& GetText();

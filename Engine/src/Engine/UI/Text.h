@@ -2,7 +2,7 @@
 
 #include "Rendering/BufferContainer.h"
 #include "Rendering/Renderer.h"
-#include "Utility/Keyboard.h"
+#include "Keyboard.h"
 #include "Font.h"
 
 namespace engine {

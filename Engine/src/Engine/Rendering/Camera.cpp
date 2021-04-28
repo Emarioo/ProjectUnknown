@@ -1,7 +1,6 @@
 #include "Camera.h"
 
 
-/*
-glm::vec3 Camera::LookVector() {
-	return glm::vec3(0, 0, 0);
-}*/
+Camera::Camera() : 
+	position({ 0,0,0 }), rotation({ 0,0,0 })
+{}

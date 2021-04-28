@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../GameObject.h"
 #include "Objects/ClientPlayer.h"
+#include "World/Dimension.h"
 
 namespace engine {
 
@@ -16,8 +16,7 @@ namespace engine {
 	ClientPlayer* GetPlayer();
 
 	std::vector<GameObject*>& GetObjects();
-	/*
-	Create player
-	*/
-	void InitPlayer();
+	GameObject* GetObjectByName(const std::string& name);
+	
+	void AddPlayer(ClientPlayer* player);
 }

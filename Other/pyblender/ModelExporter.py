@@ -1,4 +1,4 @@
-# Script by Emarioo / Datolsson, Updated 2020-01-08
+# Script by Emarioo / Datolsson, Updated 2021-01-20
 # Watch Datolsson on youtube for more information
 # If any error occurs please contact Datolsson on youtube so I can update this script
 
@@ -15,44 +15,21 @@ import math
 from mathutils import Matrix
 from mathutils import Vector
 
-#D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/
-
-# Pressing Export Models
-#  In Selection (multiple meshes, bones, armatures)
-#   Loop through collection and Load Object and it's children
-#  Loading Object
-#   If object's name == data's name then make an own model
-#   Else if names are different then don't make model and only make a mesh and dump into existing model. 
-#    If no collection then show warning that object has no collection
-#   data is a mesh and has not been load this time then load that mesh
-#  Loading Mesh
-#   if name of mesh exist then don't load
-#   
-#  Custom animatin groups
-
 # How To use
-#   Select an object in OBJECT mode and run the script to generate files
+#   1. Select a collection with no collection child
+#       if you select collection with children then the object you have selected
+#       will be loaded as an independent model
+#   2. Be in OBJECT mode
+#   3. Press Export Models in Model Exporter tab in the 3d viewport
+#     (Define your path/directory first and run this script if you don't see the tab)
 #
 # Notes
 #   Supported Interpolation: Beizer, Linear, Constant
 #   C at the end of a mesh to make it a collider.
 #   Collider Mesh only supports quad polygons
-#   The only currently supported rotation type is Euler ZYX.
-#   Remember to use the right action name. It might contain ...Action.001
-#   Consider recalculating normals if they are wierd
-#
 #
 # Check out this link if you want to change quaternions to euler rotation:
 #   https://blender.stackexchange.com/questions/40711/how-to-convert-quaternions-keyframes-to-euler-ones-in-several-actions
-#
-# --- ISSUES --- 
-#   Improved support for modifiers?
-#   Blender has 3 Vertex Colors for every triangle while my game has one vertex color for every vertex
-#    what happens when one vertex uses different vertex colors?
-#   Support for Quaternions
-#   Issue when renaming things like modifiers...
-#   More Material support
-#   Filter unused FCurves
 
 # Change the code below at your own risk!
 
@@ -63,14 +40,29 @@ axisConvert = Matrix((
 (0.0,-1.0, 0.0, 0.0),
 (0.0, 0.0, 0.0, 1.0)))
         
-def MeshFile(path,original,object):
-    out=['INFO',original.name]
-    # Create File
-    file = open(path+original.name+".mesh","wb")# CHANGED
+def WriteMesh(path,original):
+    out=['INFO',original.data.name]
     
-    # Determine what type of mesh
-    type=0 # 0=VertexColor  1=UV  2=VertexColor with weights  3=UV with weights 
-    singleColor=[1,1,1]
+    bpy.ops.object.select_all(action="DESELECT")
+    # Make a copy of the object and apply modifiers
+    object=original.copy()
+    object.data=original.data.copy()
+    bpy.context.scene.collection.objects.link(object)
+    object.select_set(True)
+    bpy.context.view_layer.objects.active=object
+    
+    print(bpy.context.object)
+    
+    if object.modifiers.find("Triangulate")==-1:
+        object.modifiers.new("Triangulate",'TRIANGULATE')
+        #object.modifiers["Triangulate"].quad_method="SHORTEST_DIAGONAL"
+                            
+    for mod in object.modifiers:
+        if not mod.type=='ARMATURE':
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+                                     
+    # Create File
+    file = open(path+original.data.name+".mesh","wb")# CHANGED
     
     triC=0
     for poly in object.data.polygons:
@@ -78,72 +70,62 @@ def MeshFile(path,original,object):
             triC=triC+2
         else:
             triC=triC+1
-    useWeight=False
-    for mod in object.modifiers:
-        if mod.name=="Armature":
-            useWeight=True
-            type=type+2
+    useArmature=False
+    for mod in original.modifiers:
+        if mod.type=='ARMATURE':
+            useArmature=True
             break
-    
-    useTexture=False
-    textureName=""
-    useVertexColor=False
-    if not object.active_material==None:
-        if object.active_material.use_nodes:
-            base = object.active_material.node_tree.nodes["Material Output"].inputs["Surface"].links[0].from_node.inputs["Base Color"]
-            if len(base.links)>0:
-                if base.links[0].from_node.name=="Image Texture":
-                    type=type+1
-                    useTexture=True
-                    tempName = base.links[0].from_node.image.name
-                    textureName = tempName[0:len(tempName)-4]
-                elif base.links[0].from_node.name=="Vertex Color":
-                    useVertexColor=True;
-            else:
-                singleColor = object.active_material.diffuse_color
-        else:
-            singleColor = object.active_material.diffuse_color
     
     # Acquire Data
     verC=len(object.data.vertices)
     
+    # Combine UV and Material index
     uniqueColor=[]
     indexColor=[]
-    if useTexture:
+    if not object.data.uv_layers.active==None:
+        tempU=[]
+        tempI=[]
         for u in object.data.uv_layers.active.data:
+            tempI.append(len(tempU))
+            tempU.append([u.uv[0],u.uv[1],0]);
+            
+        for poly in object.data.polygons:
+            lo = poly.loop_indices
+            for i in range(0,len(lo)):
+                tempU[tempI[lo[i]]][2]=poly.material_index
+                #print(str(indexColor[lo[i]])+" "+str(poly.material_index))
+        #print("--")
+        for u in tempU:
+            #print(u)
             same = False
             for i in range(0,len(uniqueColor)):
-                if uniqueColor[i][0]==u.uv[0] and uniqueColor[i][1]==u.uv[1]:
+                if uniqueColor[i][0]==u[0] and uniqueColor[i][1]==u[1] and uniqueColor[i][2]==u[2]:
                     same=True
                     indexColor.append(i)
                     break
             
             if not same:
                 indexColor.append(len(uniqueColor))
-                uniqueColor.append([u.uv[0],u.uv[1]]);
-                #file.write(struct.pack("=ff",u.uv[0],u.uv[1]))
-                
-    elif useVertexColor:
-        for c in object.data.vertex_colors.active.data:
+                uniqueColor.append(u);
+    else:
+        for poly in object.data.polygons:
             same = False
             for i in range(0,len(uniqueColor)):
-                if uniqueColor[i][0]==c.color[0] and uniqueColor[i][1]==c.color[1] and uniqueColor[i][2]==c.color[2]:
+                if uniqueColor[i][2]==poly.material_index:
                     same=True
                     indexColor.append(i)
                     break
-                
+            
             if not same:
-                indexColor.append(len(uniqueColor))
-                uniqueColor.append([c.color[0],c.color[1],c.color[2]]);
-    else:
-        indexColor.append(len(uniqueColor))
-        uniqueColor.append([singleColor[0],singleColor[1],singleColor[2]]);
-    
+                for i in poly.vertices:
+                    indexColor.append(len(uniqueColor))
+                uniqueColor.append([0,0,poly.material_index]);
+       
     colorC=len(uniqueColor)
     
     uniqueWeight=[]
     indexWeight=[]
-    if useWeight:
+    if useArmature:
         for ve in object.data.vertices:
             weight=[0,0,0,0,0,0]
             # Grab the most important weights
@@ -180,30 +162,29 @@ def MeshFile(path,original,object):
     weightC=len(uniqueWeight)
     
     # Write Mesh Information
-    file.write(struct.pack("=B",type))
-    file.write(struct.pack("=H",verC))# Vertex Count
+    file.write(struct.pack("=B",1 if useArmature else 0))
+    file.write(struct.pack("=H",verC))# Vertex Count (Maximum 65536)
     file.write(struct.pack("=H",colorC))
-    if useTexture:
-        file.write(struct.pack("=B",len(textureName)))
-        file.write(bytearray(textureName,"UTF-8"))
-    if useWeight:
+    file.write(struct.pack("=B",len(object.data.materials)))
+    for mat in object.data.materials:
+        file.write(struct.pack("=B",len(mat.name)))
+        file.write(bytearray(mat.name,"UTF-8"))
+        
+    if useArmature:
         file.write(struct.pack("=H",weightC))
     file.write(struct.pack("=H",triC))# Triangle Count (Maximum 65536)
     
     # Write Mesh Data
     for ver in object.data.vertices:
         v = Vector((ver.co[0],ver.co[1],ver.co[2],0))
-        if original.modifiers.find("Armature")==-1:
-            v=axisConvert@v
+        #if not useArmature:
+        #    v=axisConvert@v
         file.write(struct.pack("=fff",v[0],v[1],v[2]))# SWITCH Y Z
     
     for c in uniqueColor:
-        if useTexture:
-           file.write(struct.pack("=ff",c[0],c[1]))
-        else:
-            file.write(struct.pack("=fff",c[0],c[1],c[2]))
-    
-    if useWeight:
+        file.write(struct.pack("=fff",c[0],c[1],c[2]))
+            
+    if useArmature:
         for w in uniqueWeight:
             leng=w[3]+w[4]+w[5]
             file.write(struct.pack("=BBBfff",w[0],w[1],w[2],w[3]/leng,w[4]/leng,w[5]/leng))
@@ -212,48 +193,41 @@ def MeshFile(path,original,object):
     for poly in object.data.polygons:
         v = poly.vertices
         lo = poly.loop_indices
-        if type<2:
+        if not useArmature:
             if len(v)==3:
-                l=[0,0,0]
-                if useTexture or not colorC==1:
-                    l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]]]
+                l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]]]
                 file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
-            elif len(v)==4:
-                l=[0,0,0,0]
-                if useTexture or not colorC==1:
-                    l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]],indexColor[lo[3]]]
-                file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
-                file.write(struct.pack("=HHHHHH",v[2],l[2],v[3],l[3],v[0],l[0]))
+#            elif len(v)==4:
+#                l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]],indexColor[lo[3]]]
+#                file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
+#                file.write(struct.pack("=HHHHHH",v[2],l[2],v[3],l[3],v[0],l[0]))
             else:
                 out=['WARNING',"Triangulate failed in "+original.name]
                 #print("Cannot have more than five vertices per quad!")
         else:
             if len(v)==3:
-                l=[0,0,0]
-                if useTexture or not colorC==1:
-                    l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]]]
+                l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]]]
                 w=[indexWeight[v[0]],indexWeight[v[1]],indexWeight[v[2]]]
                 file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
-            elif len(v)==4:
-                l=[0,0,0,0]
-                if useTexture or not colorC==1:
-                    l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]],indexColor[lo[3]]]
-                w=[indexWeight[v[0]],indexWeight[v[1]],indexWeight[v[2]],indexWeight[v[3]]]
-                file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
-                file.write(struct.pack("=HHHHHHHHH",v[2],l[2],w[2],v[3],l[3],w[3],v[0],l[0],w[0]))
+#            elif len(v)==4:
+#                l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]],indexColor[lo[3]]]
+#                w=[indexWeight[v[0]],indexWeight[v[1]],indexWeight[v[2]],indexWeight[v[3]]]
+#                file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
+#                file.write(struct.pack("=HHHHHHHHH",v[2],l[2],w[2],v[3],l[3],w[3],v[0],l[0],w[0]))
             else:
                 out=['WARNING',"Triangulate failed in "+original.name]
                 #print("Cannot have more than five vertices per quad!")
     
     # Cleanup
     file.close()
+    bpy.ops.object.delete()
     return out
 
-def AnimFile(path,object):
-    action=object.animation_data.action
+def WriteAnimation(path, action, object):
     out = ['INFO', action.name]
+    
     # Create file
-    file = open(path+action.name+".anim","wb")
+    file = open(path+action.name+".animation","wb")
 
     # Write Anim Information
     fstart = int(action.frame_range[0])
@@ -261,7 +235,7 @@ def AnimFile(path,object):
 
     file.write(struct.pack("=H",fstart))
     file.write(struct.pack("=H",fend))
-    file.write(struct.pack("=f",24)) # Frame per second
+    file.write(struct.pack("=f",25)) # Frame per second
     
     objects=0
     for group in action.groups:
@@ -290,7 +264,7 @@ def AnimFile(path,object):
                 file.write(struct.pack("=I",id))
            
         curveInt=0
-        curves=[0,0,0,0,0,0,0,0,0]
+        curves=[0,0,0,0,0,0,0,0,0,0,0,0,0]
         for curve in group.channels:
             if curve.is_empty or curve.mute or not curve.is_valid:# is this safe?
                 continue
@@ -298,12 +272,12 @@ def AnimFile(path,object):
             con=0
             if curve.data_path[-8:]=="location":
                 con=0
-            elif curve.data_path[-5:]=="scale":
-                con=3
-            elif curve.data_path[-10:]=="quaternion":
-                con=6
             elif curve.data_path[-5:]=="euler":
                 con=3#print("Euler for rotation is not allowed please change it to Quaternions. Check python script for more information.")
+            elif curve.data_path[-5:]=="scale":
+                con=6
+            elif curve.data_path[-10:]=="quaternion":
+                con=9
             
             con=con+curve.array_index
             # Code used to switch z and y
@@ -320,12 +294,12 @@ def AnimFile(path,object):
             
             curves[con]=1
                     
-        for i in range(0,9):
+        for i in range(0,13):
             curveInt += curves[i]*pow(2,i);
             
         file.write(struct.pack("=H",curveInt));
         
-        for i in range(0,9):
+        for i in range(0,13):
             
             if curves[i]==0:
                 continue
@@ -335,12 +309,12 @@ def AnimFile(path,object):
                 con=0
                 if curve.data_path[-8:]=="location":
                     con=0
-                elif curve.data_path[-5:]=="scale":
-                    con=3
-                elif curve.data_path[-10:]=="quaternion":
-                    con=6
                 elif curve.data_path[-5:]=="euler":
                     con=3
+                elif curve.data_path[-5:]=="scale":
+                    con=6
+                elif curve.data_path[-10:]=="quaternion":
+                    con=9
                 
                 # Switch y and z
                 ind=curve.array_index
@@ -373,44 +347,104 @@ def AnimFile(path,object):
                         pol="C"
                     
                     file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1])) 
+            
+    # Cleanup
+    file.close()
+    return out
+
+def WriteMaterial(path,material):
+    out = ['INFO',material.name]
+    # Creating file
+    file = open(path+material.name+".material","wb")
+    
+    textureName=""
+    color = material.diffuse_color
+    if material.use_nodes:
+        surfaceNode = material.node_tree.nodes["Material Output"].inputs["Surface"].links[0].from_node
+        base = surfaceNode.inputs["Base Color"]
+        color = [1,1,1]
+        if len(base.links)>0:
+            if base.links[0].from_node.name=="Image Texture":
+                tempName = base.links[0].from_node.image.name
+                textureName = tempName[0:len(tempName)-4]
+            else:
+                out = ['WARNING',"Only Image Texture node allowed in Material "+material.name]
+        else:
+            color = base.default_value
+    
+    
+    file.write(struct.pack("=B",len(textureName)))
+    if len(textureName)>0:
+        file.write(bytearray(textureName,"UTF-8"))
+    
+    file.write(struct.pack("=fff",color[0],color[1],color[2]))
+    file.write(struct.pack("=fff",material.specular_color[0],material.specular_color[1],material.specular_color[2]))
+    file.write(struct.pack("=f",material.specular_intensity))
     
     # Cleanup
     file.close()
     return out
 
-def BoneFile(path, original, temp):
-    out = ['INFO',original.name]
+def WriteArmature(path, original):
+    out = ['INFO',original.data.name]
     # Creating file
-    boneFile = open(path+original.name+".bone","wb")
+    file = open(path+original.data.name+".armature","wb")
+    
+    bpy.ops.object.select_all(action="DESELECT")
+    # Make a copy of the object and apply modifiers
+    object=original.copy()
+    object.data=original.data.copy()
+    bpy.context.scene.collection.objects.link(object)
+    object.select_set(True)
+    bpy.context.view_layer.objects.active=object
+                       
+    for mod in object.modifiers:
+        bpy.ops.object.modifier_apply(modifier=mod.name)
     
     # Loading data
-    boneCount = len(temp.data.bones)
-    boneFile.write(struct.pack("=B",boneCount))
+    boneCount = len(object.data.bones)
+    file.write(struct.pack("=B",boneCount))
     
-    for bone in temp.data.bones:
-        index = temp.data.bones.find(bone.parent.name) if bone.parent else 0
+    for bone in object.data.bones:
+        index = object.data.bones.find(bone.parent.name) if bone.parent else 0
         
         # axisConvert to switch Y-axis and Z-axis
         #  applying axisConvert to root bone will apply it to all other bones as well
-        local_matrix = axisConvert@bone.matrix_local
+        local_matrix = bone.matrix_local
         if bone.parent:
             local_matrix = (bone.parent.matrix_local).inverted() @ bone.matrix_local
        
         local_matrix = local_matrix.transposed()
         inv_model_matrix = bone.matrix_local.inverted().transposed()
         
-        boneFile.write(struct.pack("=I",index))
-        boneFile.write(struct.pack("=16f",*local_matrix[0],*local_matrix[1],*local_matrix[2],*local_matrix[3]))
-        boneFile.write(struct.pack("=16f",*inv_model_matrix[0],*inv_model_matrix[1],*inv_model_matrix[2],*inv_model_matrix[3]))
+        file.write(struct.pack("=I",index))
+        file.write(struct.pack("=16f",*local_matrix[0],*local_matrix[1],*local_matrix[2],*local_matrix[3]))
+        file.write(struct.pack("=16f",*inv_model_matrix[0],*inv_model_matrix[1],*inv_model_matrix[2],*inv_model_matrix[3]))
       
     # Cleanup
-    boneFile.close()
+    file.close()
+    bpy.ops.object.delete()
     return out
 
-def CollFile(path,original,object):
-    out=['INFO',original.name]
+def WriteCollider(path,original):
+    out=['INFO',original.data.name]
     # Create File
-    file = open(path+original.name+".coll","wb")
+    file = open(path+original.data.name+".collider","wb")
+    
+    bpy.ops.object.select_all(action="DESELECT")
+    # Make a copy of the object and apply modifiers
+    object=original.copy()
+    object.data=original.data.copy()
+    bpy.context.scene.collection.objects.link(object)
+    object.select_set(True)
+    bpy.context.view_layer.objects.active=object
+    
+    # Uncomment when triangles are supported
+    #if object.modifiers.find("Triangulate")==-1:
+    #    object.modifiers.new("Triangulate",'TRIANGULATE')
+    
+    for mod in object.modifiers:
+        bpy.ops.object.modifier_apply(modifier=mod.name)
     
     # Determine amount of data
     furthest=0
@@ -449,114 +483,197 @@ def CollFile(path,original,object):
    
     # Cleanup
     file.close()
-    
+    bpy.ops.object.delete()
     return out
 
-def LoadFilesM(meshPath,collPath,bonePath):
+def WriteModel(path,name,objects,armature,animations,collider):
+    out=['INFO',name]
+    # Create File
+    file = open(path+name+".model","wb")
+    
+    file.write(struct.pack("=B",len(armature)))
+    file.write(bytearray(armature,"UTF-8"))
+    
+    file.write(struct.pack("=B",len(animations)))
+    for a in animations:
+        file.write(struct.pack("=B",len(a)))
+        file.write(bytearray(a,"UTF-8"))
+    
+    file.write(struct.pack("=B",len(objects)))
+    for o in objects:
+        file.write(struct.pack("=B",len(o.data.name)))
+        file.write(bytearray(o.data.name,"UTF-8"))
+ 
+        local_matrix = (axisConvert@o.matrix_local).transposed()
+       
+        file.write(struct.pack("=16f",*local_matrix[0],*local_matrix[1],*local_matrix[2],*local_matrix[3]))
+    
+    file.write(struct.pack("=B",len(collider)))
+    file.write(bytearray(collider,"UTF-8"))
+    
+    # Cleanup
+    file.close()
+    return out
+
+def LogPriority(IN,msg):
+    if IN[0]=='INFO':
+        if msg[0]=='INFO':
+            IN[1]=IN[1]+msg[1]+", "
+        else:
+            IN=msg
+    elif IN[0]=='WARNING':
+        if msg[0]=='WARNING':
+            IN[1]=IN[1]+msg[1]+", "
+        elif msg[0]=='ERROR':
+            IN=msg
+    elif IN[0]=='ERROR':
+        if msg[0]=='ERROR':
+            IN[1]=IN[1]+msg[1]+", "
+    
+    return IN
+
+def LoadFiles(modelPath,animationPath,materialPath,meshPath,colliderPath,armaturePath):
     out=['INFO','Loaded ']
     
-    loadedMeshes = []
-    
-    if bpy.context.object.mode=="OBJECT":
-        for o in bpy.context.selected_objects:
+    modelName=""
+    allObjects=[]
+    if bpy.context.mode=='OBJECT':
+        if len(bpy.context.collection.children)==0:
+            collection=bpy.context.collection
+            modelName=collection.name
             
-    else:
-        out=['ERROR',"Switch to object mode!"]
-    
-    if not bpy.context.object==None:
-        if bpy.context.object.mode=="OBJECT":
-            bpy.ops.object.select_all(action="DESELECT")
-            objects = [bpy.context.object]
-            for o in bpy.context.object.children:
-                objects.append(o)
-          
-            for object in objects:
-                if not object.hide_get():
-                    if object.type=="MESH" or object.type=="ARMATURE":
-                        collider = True if object.name[len(object.name)-1]=="C" else False
-                        
-                        # Make a copy of the object and apply modifiers
-                        temp=object.copy()
-                        temp.data=object.data.copy()
-                        bpy.context.scene.collection.objects.link(temp)
-                        temp.select_set(True)
-                        bpy.context.view_layer.objects.active=temp
-                        
-                        message = ['NONE',""]
-                        
-                        # Create file
-                        if object.type=="MESH":
-                            if collider:
-                                for mod in temp.modifiers:
-                                    bpy.ops.object.modifier_apply(modifier=mod.name)
-                                        
-                                message = CollFile(collPath,object,temp)
-                               
-                            else:
-                                if temp.modifiers.find("Triangulate")==-1:
-                                    temp.modifiers.new("Triangulate",'TRIANGULATE')
-                                    temp.modifiers["Triangulate"].quad_method="SHORTEST_DIAGONAL"
-                            
-                                for mod in temp.modifiers:
-                                    bpy.ops.object.modifier_apply(modifier=mod.name)
-                                        
-                                message = MeshFile(meshPath,object,temp)
-                            
-                        elif object.type=="ARMATURE":
-                            # Read Animation
-                            if not object.animation_data==None:
-                                if not object.animation_data.action==None:
-                                    message = AnimFile(animPath,object)
-                                    if out[0]=='INFO':
-                                        if message[0]=='INFO':
-                                            out[1]=out[1]+message[1]+", "
-                                        else:
-                                            out=message
-                                    elif out[0]=='WARNING':
-                                        if message[0]=='WARNING':
-                                            out[1]=out[1]+message[1]+", "
-                                        elif message[0]=='ERROR':
-                                            out=message
-                                    elif out[0]=='ERROR':
-                                        if message[0]=='ERROR':
-                                            out[1]=out[1]+message[1]+", "
-                                        
-                            for mod in temp.modifiers:
-                                bpy.ops.object.modifier_apply(modifier=mod.name)
-                            
-                            message = BoneFile(bonePath,object,temp)
-                        
-                        if out[0]=='INFO':
-                            if message[0]=='INFO':
-                                out[1]=out[1]+message[1]+", "
-                            else:
-                                out=message
-                        elif out[0]=='WARNING':
-                            if message[0]=='WARNING':
-                                out[1]=out[1]+message[1]+", "
-                            elif message[0]=='ERROR':
-                                out=message
-                        elif out[0]=='ERROR':
-                            if message[0]=='ERROR':
-                                out[1]=out[1]+message[1]+", "
-                            
-                        bpy.ops.object.delete()
+            for child in collection.objects:
+                if not child.hide_get():
+                    allObjects.append(child)
+                    
         else:
-            out=['ERROR',"Switch to object mode!"]
+            if not bpy.context.object==None:
+                allObjects.append(bpy.context.object)
+                if bpy.context.object.type=='MESH' and not bpy.context.object.name[len(child.name)-1]=="C":
+                    modelName = bpy.context.object.name
+        
+        loadedMeshes = []
+        loadedColliders = []
+        loadedArmatures = []
+        loadedActions = []
+        modelArmature=""
+        modelObjects = []
+        modelAnimations = []
+        modelCollider = ""
+        for child in allObjects:
+            # Animation data
+            if not child.animation_data==None:
+                loadedActions=[]
+                for track in child.animation_data.nla_tracks:
+                    for strip in track.strips:
+                        action=strip.action
+                
+                        isLoaded = False
+                        for act in loadedActions:
+                            if act == action.name:
+                                isLoaded=True
+                                break
+                        
+                        if isLoaded:
+                            continue
+                        loadedActions.append(action.name)
+                        
+                        out = LogPriority(out,WriteAnimation(animationPath,action,child))
+                        if child.type=='ARMATURE':
+                            modelAnimations.append(action.name)
+            
+            # Other stuff
+            if child.type=='MESH':
+                if child.name[len(child.name)-1]=="C":
+                    isLoaded=False
+                    for l in loadedColliders:
+                        if l==child.data.name:
+                            isLoaded=True
+                    
+                    modelCollider=child.data.name
+                    
+                    if isLoaded:
+                        continue
+                    
+                    loadedColliders.append(child.data.name)
+                    
+                    out = LogPriority(out,WriteCollider(colliderPath,child))
+                        
+                else:
+                    isLoaded=False
+                    for l in loadedMeshes:
+                        if l==child.data.name:
+                            isLoaded=True
+                    
+                    modelObjects.append(child)
+                    
+                    if isLoaded:
+                        continue
+                    loadedMeshes.append(child.data.name)
+                    
+                    out = LogPriority(out, WriteMesh(meshPath,child))
+                    #print(child)
+                    #print(child.data)
+                    #print(len(child.data.materials))
+                    for mat in child.data.materials:
+                        out = LogPriority(out,WriteMaterial(materialPath,mat))
+                    
+            elif child.type=='ARMATURE':
+                isLoaded=False
+                for l in loadedArmatures:
+                    if l==child.data.name:
+                        isLoaded=True
+                
+                if isLoaded:
+                    continue
+                
+                loadedArmatures.append(child.data.name)
+                
+                out = LogPriority(out,WriteArmature(armaturePath,child))
+                
+                modelArmature=child.data.name
+                
+        if not modelName=="":
+            out = LogPriority(out,WriteModel(modelPath,modelName,modelObjects,modelArmature,modelAnimations,modelCollider))   
     else:
-        out=['ERROR',"Select an object!"]
-    
+        out=["ERROR","Must be in Object Mode!"]
     out[1]=out[1][:-2]
     
     return out
 
+#def LoadFilesA(animPath):
+#    out=['INFO','Loaded ']
+#    
+#    loadedAnims = []
+#    
+#    if not bpy.context.object==None:
+#        if bpy.context.object.mode=="OBJECT":
+#            object = bpy.context.object
+#            if not object.hide_get():
+#                if object.type=="ARMATURE":
+#                    if not object.animation_data==None:
+#                        if not object.animation_data.action==None:
+#                            out = LogPriority(out,WriteAnimation(animPath,object))
+
+#                        
+#        else:
+#            out=['ERROR',"Switch to object mode!"]
+#    else:
+#        out=['ERROR',"Select an object!"]
+#    
+#    out[1]=out[1][:-2]
+#    
+#    return out
+
 # The code below is for prefererences
 class MyProperty(bpy.types.PropertyGroup):
     myGlobal : bpy.props.StringProperty(name="Global Path")
+    myMaterial : bpy.props.StringProperty(name="Material Path")
     myMesh : bpy.props.StringProperty(name="Mesh Path")
-    myColl : bpy.props.StringProperty(name="Coll Path")
-    myBone : bpy.props.StringProperty(name="Bone Path")
-    myAnim : bpy.props.StringProperty(name="Anim Path")
+    myCollider : bpy.props.StringProperty(name="Collider Path")
+    myArmature : bpy.props.StringProperty(name="Armature Path")
+    myModel : bpy.props.StringProperty(name="Model Path")
+    myAnimation : bpy.props.StringProperty(name="Animation Path")
     
 class MExportPanel(bpy.types.Panel):
     bl_label = "Model Exporter"
@@ -571,17 +688,18 @@ class MExportPanel(bpy.types.Panel):
         mexport = scene.mexport
         
         layout.prop(mexport,"myGlobal")
+        layout.prop(mexport,"myMaterial")
         layout.prop(mexport,"myMesh")
-        layout.prop(mexport,"myColl")
-        layout.prop(mexport,"myBone")
-        layout.prop(mexport,"myAnim")
+        layout.prop(mexport,"myCollider")
+        layout.prop(mexport,"myArmature")
+        layout.prop(mexport,"myModel")
+        layout.prop(mexport,"myAnimation")
         layout.operator("object.mexport_models");
-        layout.operator("object.mexport_animations");
 
 # The code below is for exporting models
-class MExportOperatorM(bpy.types.Operator):
+class MExportOperator(bpy.types.Operator):
     bl_label = "Export Models"
-    bl_idname = "object.export_models"
+    bl_idname = "object.mexport_models"
     
     def execute(self, context):
         scene = context.scene
@@ -589,45 +707,32 @@ class MExportOperatorM(bpy.types.Operator):
         
         if me.myGlobal=="":
             me.myGlobal="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/"
+        if me.myMaterial=="":
+            me.myMaterial="materials"
         if me.myMesh=="":
             me.myMesh="meshes"
-        if me.myColl=="":
-            me.myColl="colliders"
-        if me.myBone=="":
-            me.myBone="bones"
+        if me.myCollider=="":
+            me.myCollider="colliders"
+        if me.myArmature=="":
+            me.myArmature="armatures"
+        if me.myModel=="":
+            me.myModel="models"
+        if me.myAnimation=="":
+            me.myAnimation="animations"
         
         glob = me.myGlobal if me.myGlobal[-1]=='/' else me.myGlobal+'/'
-        message = LoadFilesM(
+        message = LoadFiles(
+                glob+(me.myModel if me.myModel[-1]=='/' else me.myModel+'/'),
+                glob+(me.myAnimation if me.myAnimation[-1]=='/' else me.myAnimation+'/'),
+                glob+(me.myMaterial if me.myMaterial[-1]=='/' else me.myMaterial+'/'),
                 glob+(me.myMesh if me.myMesh[-1]=='/' else me.myMesh+'/'),
-                glob+(me.myColl if me.myColl[-1]=='/' else me.myColl+'/'),
-                glob+(me.myBone if me.myBone[-1]=='/' else me.myBone+'/')
+                glob+(me.myCollider if me.myCollider[-1]=='/' else me.myCollider+'/'),
+                glob+(me.myArmature if me.myArmature[-1]=='/' else me.myArmature+'/')
         )
         self.report({message[0]}, message[1])
         return {"FINISHED"}
     
-#This code is for animations
-class MExportOperatorA(bpy.types.Operator):
-    bl_label = "Export Models"
-    bl_idname = "object.mexport_animations"
-    
-    def execute(self, context):
-        scene = context.scene
-        me = scene.mexport
-        # If directorys are empty
-        #D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/
-        if me.myGlobal=="":
-            me.myGlobal="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/"
-        if me.myAnim=="":
-            me.myAnim="animations"
-            
-        glob = me.myGlobal if me.myGlobal[-1]=='/' else me.myGlobal+'/'
-        message = LoadFilesA(
-                glob+(me.myAnim if me.myAnim[-1]=='/' else me.myAnim+'/')
-        )
-        self.report({message[0]}, message[1])
-        return {"FINISHED"}
-    
-classes = [MyProperty,MExportPanel,MExportOperatorM,MExportOperatorA,MExportMenu]
+classes = [MyProperty,MExportPanel,MExportOperator]
 
 def register():
     for cls in classes:

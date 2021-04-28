@@ -5,8 +5,8 @@
 namespace engine {
 	class NetPlayer : public engine::GameObject {
 	public:
-		NetPlayer(AnimData* data, float x, float y, float z);
-		void PreComponents() override;
+		NetPlayer(float x, float y, float z);
+		
 		void Update(float delta) override;
 
 		//RenderComponent mesh;

@@ -1,14 +1,18 @@
 #include "FileManager.h"
 #include <sys/stat.h>
 
+#include "AssetManager.h"
+
+#define error(x) if(x==true){data->hasError=true;return;}
+
 namespace engine {
 
-	int FileExist(std::string path) {
+	int FileExist(const std::string& path) {
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
 	}
-	int WriteTextFile(std::string path, std::vector<std::string> text) {
-		path += ".txt";
+	int WriteTextFile(const std::string& path_, std::vector<std::string> text) {
+		std::string path = path_+".txt";
 		std::ofstream file(path);
 		std::vector<std::string> out;
 		if (!file) {
@@ -25,9 +29,9 @@ namespace engine {
 		return Success;
 	}
 
-	std::vector<std::string> ReadFileList(std::string path, int* err) {
+	std::vector<std::string> ReadFileList(const std::string& path_, int* err) {
 		*err = Success;
-		path  += ".txt";
+		std::string path = path_+ ".txt";
 		std::ifstream file(path);
 
 		std::vector<std::string> out;
@@ -112,126 +116,181 @@ namespace engine {
 		file.close();
 		return text;
 	}
-	int LoadMesh(MeshData* da, std::string path) {
-		path = "assets/meshes/"+path+".mesh";
-		bool debug = false;
+	void LoadMaterial(Material* data, const std::string& path_) {
+		if (data == nullptr)
+			return;
+		std::string path = "assets/materials/" + path_ + ".material";
+		std::ifstream file(path, std::ios::binary);
+		ReadFromFile(&file, path);
+		if (!file) {
+			file.close();
+			bug::out < bug::RED < "Cannot find '" < path < "'\n";
+			return;
+		}
+
+		unsigned char lenMap;
+		error(Read<unsigned char>(&lenMap));
+
+		char* tempMap = new char[lenMap];
+		error(Read<char>(tempMap, lenMap));
+		if (lenMap > 0) {
+			data->diffuse_map = "";
+			for (int i = 0; i < lenMap; i++)
+				data->diffuse_map += tempMap[i];
+		}
+		if (bug::is("load_mat_info")) bug::outs < "Name:" < data->diffuse_map < bug::end;
+
+		float d[3];
+		error(Read<float>(d,3));
+		data->diffuse_color = { d[0],d[1],d[2] };
+		if (bug::is("load_mat_info")) bug::outs < "Color:" < data->diffuse_color < bug::end;
+		
+
+		error(Read<float>(d,3));
+		data->specular = { d[0],d[1],d[2] };
+		if (bug::is("load_mat_info")) bug::outs < "Specular:" < data->specular < bug::end;
+
+		error(Read<float>(&data->shininess));
+		if (bug::is("load_mat_info")) bug::outs < "Shininess:" < data->shininess < bug::end;
+
+		// Cleanup
+		delete tempMap;
+		file.close();
+
+		// Dependecies
+		if (data->diffuse_map!="blank")
+			AddTextureAsset(data->diffuse_map);
+
+	}
+	void LoadMesh(Mesh* data, const std::string& path_) {
+		if (data == nullptr)
+			return;
+		std::string path = "assets/meshes/"+path_+".mesh";
 		std::ifstream file(path, std::ios::binary);
 		ReadFromFile(&file,path);
 		if (!file) {
 			file.close();
 			bug::out < bug::RED < "Cannot find '" < path < "'\n";
-			return NotFound;
+			return;
 		}
 
-		unsigned char type;
-		if(Read<unsigned char>(&type)) return Corrupt;
-		if (debug) bug::outs < "Type:" < type < bug::end;
-		bool useWeight = false;
-		bool useTexture = false;
-		if (type == 0) {
-
-		} else if (type == 1) {
-			useTexture = true;
-		} else if (type == 2) {
-			useWeight = true;
-		} else if (type == 3) {
-			useWeight = true;
-			useTexture = true;
-		}
+		unsigned char useArmature;
+		error(Read<unsigned char>(&useArmature));
+		if (bug::is("load_mesh_info")) bug::outs < "Armature:" < useArmature < bug::end;
 	
-		unsigned short posC;
-		if (Read<unsigned short>(&posC)) return Corrupt;
-		if (debug) bug::outs < "Points:" < posC < bug::end;
+		unsigned short pointCount;
+		error(Read<unsigned short>(&pointCount));
+		if (bug::is("load_mesh_info")) bug::outs < "Points:" < pointCount < bug::end;
 
-		unsigned short colorC;
-		if (Read<unsigned short>(&colorC)) return Corrupt;
-		if (debug) bug::outs < "Colors:" < colorC < bug::end;
+		unsigned short textureCount;
+		error(Read<unsigned short>(&textureCount));
+		if (bug::is("load_mesh_info")) bug::outs < "Colors:" < textureCount < bug::end;
 		
+		unsigned char materialCount;
+		error(Read<unsigned char>(&materialCount));
+		if (bug::is("load_mesh_info")) bug::outs < "Materials:" < materialCount < bug::end;
+
+		std::vector<std::string> materials;
+		for (int i = 0; i < materialCount;i++) {
+			unsigned char lenName;
+			error(Read<unsigned char>(&lenName));
+			
+			char* materialName = new char[lenName];
+			error(Read<char>(materialName,lenName));
+			std::string name;
+			for (int j = 0; j < lenName; j++)
+				name += materialName[j];
+			if (bug::is("load_mesh_info")) bug::outs < " Material"<i<":" < lenName< name < bug::end;
+
+			materials.push_back(name);
+		}
+		/*
 		int cStride = 3;
-		std::string texName;
+		std::string texName="blank";
 		if (useTexture) {
 			cStride = 2;
 			unsigned char texLen;
-			if (Read<unsigned char>(&texLen)) return Corrupt;
-			if (debug)
+			error(Read<unsigned char>(&texLen));
+			if (bug::is("load_mesh_info"))
 				bug::outs < "TextureLen:" < texLen < bug::end;
 			char* name = new char[texLen];
 			
-			if(Read<char>(name, texLen)) return Corrupt;
+			error(Read<char>(name, texLen));
 			for (int i = 0; i < texLen; i++) {
 				texName += name[i];
 			}
-			if (debug)
+			if (bug::is("load_mesh_info"))
 				bug::outs < "Texture:" < texName < bug::end;
 			delete name;
 		}
-		unsigned short weightC=0;
-		if (useWeight) {
-			if (Read<unsigned short>(&weightC)) return Corrupt;
-			if (debug) bug::outs < "Weights:" < weightC < bug::end;
+		*/
+		unsigned short weightCount=0;
+		if (useArmature) {
+			error(Read<unsigned short>(&weightCount));
+			if (bug::is("load_mesh_info")) bug::outs < "Weights:" < weightCount < bug::end;
 		}
-		unsigned short triC;
-		if(Read<unsigned short>(&triC)) return Corrupt;
-		if (debug) bug::outs < "Triangles:" < triC < bug::end;
+		unsigned short triangleCount;
+		error(Read<unsigned short>(&triangleCount));
+		if (bug::is("load_mesh_info")) bug::outs < "Triangles:" < triangleCount < bug::end;
 		
-		int uPosS = 3 * posC;
-		float* uPos = new float[uPosS];
-		if(Read<float>(uPos, uPosS)) return Corrupt;
-		if (debug&&false) {
+		int uPointSize = 3 * pointCount;
+		float* uPoint = new float[uPointSize];
+		error(Read<float>(uPoint, uPointSize));
+		if (bug::is("load_mesh_vectors")) {
 			bug::out < bug::LIME < "  Vectors\n";
-			for (int i = 0; i < 3 * posC; i++) {
-				bug::out < uPos[i] < " ";
+			for (int i = 0; i < 3 * pointCount; i++) {
+				bug::out < uPoint[i] < " ";
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					bug::out < bug::end;
 			}
 		}
 
-		int uColorS = colorC * cStride;
-		float* uColor = new float[uColorS];
-		if (Read<float>(uColor, uColorS)) return Corrupt;
-		if (debug) {
+		int uTextureSize = textureCount * 3;
+		float* uTexture = new float[uTextureSize];
+		error(Read<float>(uTexture, uTextureSize));
+		if (bug::is("load_mesh_colors")) {
 			bug::out < bug::LIME < "  Colors\n";
-			for (int i = 0; i < colorC * cStride; i++) {
-				bug::out < uColor[i] < " ";
-				if ((i + 1) / (cStride) == (float)(i + 1) / (cStride))
+			for (int i = 0; i < textureCount * 3; i++) {
+				bug::out < uTexture[i] < " ";
+				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					bug::out < bug::end;
 			}
 		}
 
 		// Weight
-		int uWeightS = weightC * 3;
+		int uWeightS = weightCount * 3;
 		int* uWeightI = new int[uWeightS];
 		float* uWeightF = new float[uWeightS];
-		if (useWeight) {
-			if (debug)
+		if (useArmature) {
+			if (bug::is("load_mesh_weights"))
 				bug::out < bug::LIME < "  Weights\n";
-			for (int i = 0; i < weightC; i++) {
+			for (int i = 0; i < weightCount; i++) {
 				char index[3];
 				float floats[3];
-				if (Read<char>(index, 3)) return Corrupt;
+				error(Read<char>(index, 3));
 				
-				if (Read<float>(floats, 3)) return Corrupt;
+				error(Read<float>(floats, 3));
 				uWeightI[i * 3] = index[0];
 				uWeightI[i * 3 + 1] = index[1];
 				uWeightI[i * 3 + 2] = index[2];
 				uWeightF[i * 3] = floats[0];
 				uWeightF[i * 3 + 1] = floats[1];
 				uWeightF[i * 3 + 2] = floats[2];
-				if (debug)
+				if (bug::is("load_mesh_weights"))
 					bug::outs < (int)uWeightI[i * 3] < (int)uWeightI[i * 3 + 1] < (int)uWeightI[i * 3 + 2] < uWeightF[i * 3] < uWeightF[i * 3 + 1] < uWeightF[i * 3 + 2] < bug::end;
 			}
 		}
 
 		int tStride = 6;
-		if (useWeight)
+		if (useArmature)
 			tStride = 9;
-		int trisS = triC * tStride;
+		int trisS = triangleCount * tStride;
 		unsigned short* tris = new unsigned short[trisS];
-		if (Read<unsigned short>(tris, trisS)) return Corrupt;
+		error(Read<unsigned short>(tris, trisS));
 		
-		if (debug) {
+		if (bug::is("load_mesh_triangles")) {
 			bug::out <bug::LIME< "  Triangles\n";
-			for (int i = 0; i < tStride * triC; i++) {
+			for (int i = 0; i < tStride * triangleCount; i++) {
 				bug::out < tris[i] < " ";
 				if ((i + 1) / (tStride) == (float)(i + 1) / (tStride))
 					bug::out < bug::end;
@@ -239,17 +298,18 @@ namespace engine {
 		}
 
 		std::vector<unsigned short> indexNormal;
-		std::vector<float> uniqueNormal;
-		for (int i = 0; i < triC; i++) {
+		std::vector<float> uNormal;
+		for (int i = 0; i < triangleCount; i++) {
 			for (int j = 0; j < 3 * 3; j++) {
-				if (tris[i * tStride + j / 3 * 2] * 3 + j - j / 3 * 3 > uPosS) {
+				if (tris[i * tStride + j / 3 * 2] * 3 + j - j / 3 * 3 > uPointSize) {
 					bug::out < bug::RED + "Corruption at '" + path < "' : Triangle Index\n";
-					return Corrupt;
+					data->hasError = true;
+					return;
 				}
 			}
-			glm::vec3 p0(uPos[tris[i * tStride + 0 * tStride / 3] * 3 + 0], uPos[tris[i * tStride + 0 * tStride / 3] * 3 + 1], uPos[tris[i * tStride + 0 * tStride / 3] * 3 + 2]);
-			glm::vec3 p1(uPos[tris[i * tStride + 1 * tStride / 3] * 3 + 0], uPos[tris[i * tStride + 1 * tStride / 3] * 3 + 1], uPos[tris[i * tStride + 1 * tStride / 3] * 3 + 2]);
-			glm::vec3 p2(uPos[tris[i * tStride + 2 * tStride / 3] * 3 + 0], uPos[tris[i * tStride + 2 * tStride / 3] * 3 + 1], uPos[tris[i * tStride + 2 * tStride / 3] * 3 + 2]);
+			glm::vec3 p0(uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 2]);
+			glm::vec3 p1(uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 2]);
+			glm::vec3 p2(uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 2]);
 			//std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
 			//std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
 			//std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
@@ -259,35 +319,34 @@ namespace engine {
 			//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
 
 			bool same = false;
-			for (int j = 0; j < uniqueNormal.size() / 3; j++) {
-				if (uniqueNormal[j * 3 + 0] == norm.x && uniqueNormal[j * 3 + 1] == norm.y && uniqueNormal[j * 3 + 2] == norm.z) {
+			for (int j = 0; j < uNormal.size() / 3; j++) {
+				if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
 					same = true;
 					indexNormal.push_back(j);
 					break;
 				}
 			}
 			if (!same) {
-				uniqueNormal.push_back(norm.x);
-				uniqueNormal.push_back(norm.y);
-				uniqueNormal.push_back(norm.z);
-				indexNormal.push_back(uniqueNormal.size() / 3 - 1);
+				uNormal.push_back(norm.x);
+				uNormal.push_back(norm.y);
+				uNormal.push_back(norm.z);
+				indexNormal.push_back(uNormal.size() / 3 - 1);
 			}
 		}
-		if (debug)
-		{
+		if (bug::is("load_mesh_normals")) {
 			bug::out < bug::LIME < "  Normals\n";
-			for (int i = 0; i < uniqueNormal.size(); i++) {
-				bug::out < uniqueNormal[i] < " ";
+			for (int i = 0; i < uNormal.size(); i++) {
+				bug::out < uNormal[i] < " ";
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					bug::out < bug::end;
 			}
 		}
 		
 		std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
-		unsigned int* tout = new unsigned int[triC * 3];
+		unsigned int* triangleOut = new unsigned int[triangleCount * 3];
 
 		int uvStride = 1+(tStride) / 3;
-		for (int i = 0; i < triC; i++) {
+		for (int i = 0; i < triangleCount; i++) {
 			for (int t = 0; t < 3; t++) {
 				bool same = false;
 				for (int v = 0; v < uniqueVertex.size() / (uvStride); v++) {
@@ -297,27 +356,27 @@ namespace engine {
 						continue;
 					if (uniqueVertex[v * uvStride + 2] != tris[i * tStride + 1 + t * tStride / 3])
 						continue;
-					if (useWeight) {
+					if (useArmature) {
 						if (uniqueVertex[v * uvStride + 3] != tris[i * tStride + 2 + t * tStride / 3])
 							continue;
 					}
 					same = true;
-					tout[i * 3 + t] = v;
+					triangleOut[i * 3 + t] = v;
 					break;
 				}
 				if (!same) {
-					tout[i * 3 + t] = uniqueVertex.size()/(uvStride);
+					triangleOut[i * 3 + t] = uniqueVertex.size()/(uvStride);
 
 					uniqueVertex.push_back(tris[i * tStride + 0 + t * tStride / 3]);
 					uniqueVertex.push_back(indexNormal[i]);
 					uniqueVertex.push_back(tris[i * tStride + 1 + t * tStride / 3]);
-					if (useWeight) {
+					if (useArmature) {
 						uniqueVertex.push_back(tris[i * tStride + 2 + t * tStride / 3]);
 					}
 				}
 			}
 		}
-		if (debug) {
+		if (bug::is("load_mesh_?")) {
 			bug::out < bug::LIME < "  Special" < bug::end;
 			for (int i = 0; i < uniqueVertex.size() / (uvStride); i++) {
 				for (int j = 0; j < uvStride; j++) {
@@ -327,209 +386,144 @@ namespace engine {
 			}
 		}
 
-		int vStride = 3 + cStride + 3;
-		if (useWeight)
+		int vStride = 3 + 3 + 3;
+		if (useArmature)
 			vStride += 6;
-		float* vout = new float[(uniqueVertex.size() / uvStride) * vStride];
+		float* vertexOut = new float[(uniqueVertex.size() / uvStride) * vStride];
 		for (int i = 0; i < uniqueVertex.size() / uvStride; i++) {
 			// Position
 			for (int j = 0; j < 3; j++) {
-				if (uniqueVertex[i * uvStride] * 3 + j > uPosS) {
+				if (uniqueVertex[i * uvStride] * 3 + j > uPointSize) {
 					bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
-					return Corrupt;
+					data->hasError=true;
+					return;
 				}
-				vout[i * vStride + j] = uPos[uniqueVertex[i * uvStride] * 3 + j];
+				vertexOut[i * vStride + j] = uPoint[uniqueVertex[i * uvStride] * 3 + j];
 			}
 			// Normal
 			for (int j = 0; j < 3; j++) {
-				if (uniqueVertex[i * uvStride + 1] * 3 + j > uniqueNormal.size()) {
+				if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
 					bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
-					return Corrupt;
+					data->hasError = true;
+					return;
 				}
-				vout[i * vStride + 3 + j] = uniqueNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
+				vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
 			}
 			// UV
-			for (int j = 0; j < cStride; j++) {
-				if (uniqueVertex[i * uvStride + 2] * cStride + j > uColorS) {
+			for (int j = 0; j < 3; j++) {
+				if (uniqueVertex[i * uvStride + 2] * 3 + j > uTextureSize) {
 					bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
-					return Corrupt;
-				}
-				vout[i * vStride + 3 + 3 + j] = uColor[uniqueVertex[i * uvStride + 2] * cStride + j];
+					bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
+					data->hasError = true;
+					return;
+				}else
+					vertexOut[i * vStride + 3 + 3 + j] = uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
 			}
-			if (useWeight) {
+			if (useArmature) {
 				// Bone Index
 				for (int j = 0; j < 3; j++) {
 					if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 						bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
-						return Corrupt;
+						data->hasError = true;
+						return;
 					}
-					vout[i * vStride + 3 + cStride+3 + j] = uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
+					vertexOut[i * vStride + 3 + 3 + 3 + j] = uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
 				}
 				// Weight
 				for (int j = 0; j < 3; j++) {
 					if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 						bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
-						return Corrupt;
+						data->hasError = true;
+						return;
 					}
-					vout[i * vStride + 3 + cStride+3+3 + j] = uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
+					vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
 				}
 			}
-
 		}
 
-		if (debug) {
-			bug::outs < bug::LIME < "VertexBuffer " < (uniqueVertex.size() / uvStride) < "*" < (vStride) < " IndexBuffer " < (triC) < "*3" < bug::end;
+		if (bug::is("load_mesh_buffer")) {
+			bug::outs < bug::LIME < "VertexBuffer " < (uniqueVertex.size() / uvStride) < "*" < (vStride) < " IndexBuffer " < (triangleCount) < "*3" < bug::end;
 		}
 		/*
 		for (int i = 0; i < (uniqueVertex.size() / uvStride) * vStride; i++) {
-			std::cout << vout[i] << " ";
+			std::cout << vertexOut[i] << " ";
 			if ((i + 1) / (vStride) == (float)(i + 1) / (vStride))
 				std::cout << std::endl;
 		}
-		for (int i = 0; i < triC*3; i++) {
-			std::cout << tout[i] << " ";
+		for (int i = 0; i < triangleCount*3; i++) {
+			std::cout << triangleOut[i] << " ";
 			if ((i + 1) / (3) == (float)(i + 1) / (3))
 				std::cout << std::endl;
+		}*/
+		
+		file.close();
+		
+		if (useArmature == 0) {
+			data->shaderType = ShaderColor;
+		} else if (useArmature == 1) {
+			data->shaderType = ShaderColorBone;
 		}
-		*/
-
-		float vertices[] = {
-			// positions          // normals           // texture coords
-			-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-			 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-			 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-			 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-			-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-			 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-			 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-			-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-			-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-			-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-			 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-			 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-			 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-			-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-			 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-			 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-			 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-			-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-			-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-			 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-			 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-			 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-			-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-			-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-		};
-		unsigned int indices[36];
-		for (int i = 0; i < 36;i++)
-			indices[i] = i;
-
-		if (da != nullptr) {
-			if (!da->hasError) {
-				da->material.normal_map2 = "brickwall_normal";
-				if (type == 0) {
-					da->shaderType = ShaderColor;
-					da->material.diffuse_map1 = "blank";
-				} else if (type == 1) {
-					da->shaderType = ShaderColor;
-					//da->material.diffuse_map1 = "brickwall";
-					da->material.diffuse_map1 = texName;
-				} else if (type == 2) {
-					da->shaderType = ShaderColorBone;
-				} else if (type == 3) {
-					da->shaderType = ShaderUVBone;
-				}
-				/*
-				da->container.Setup(false, vertices, 36, indices, 36);
-				da->container.SetAttrib(0, 3, 8, 0);// Position
-				da->container.SetAttrib(1, 3, 8, 3);// Normal
-				da->container.SetAttrib(2, 2, 8, 6);// UV
-				*/
-				
-				da->container.Setup(false, vout, (uniqueVertex.size() / uvStride) * vStride, tout, triC * 3);
-				da->container.SetAttrib(0, 3, vStride, 0);// Position
-				da->container.SetAttrib(1, 3, vStride, 3);// Normal
-				da->container.SetAttrib(2, cStride, vStride, 3 + 3);// Color
-				if (useWeight) {
-					da->container.SetAttrib(3, 3, vStride, 3 + cStride + 3);// Bone Index
-					da->container.SetAttrib(4, 3, vStride, 3 + cStride + 3 + 3);// Weight
-				}
-				
-			}
+		for (std::string& mat : materials) {
+			AddMaterialAsset(mat);
+			data->materials.push_back(GetMaterialAsset(mat));
+		}
+		
+		data->container.Setup(false, vertexOut, (uniqueVertex.size() / uvStride) * vStride, triangleOut, triangleCount * 3);
+		data->container.SetAttrib(0, 3, vStride, 0);// Position
+		data->container.SetAttrib(1, 3, vStride, 3);// Normal
+		data->container.SetAttrib(2, 3, vStride, 3 + 3);// Color
+		if (useArmature) {
+			data->container.SetAttrib(3, 3, vStride, 3 + 3 + 3);// Bone Index
+			data->container.SetAttrib(4, 3, vStride, 3 + 3 + 3 + 3);// Weight
 		}
 
 		// Cleanup
-		delete uPos;
-		delete uColor;
+		delete uPoint;
+		delete uTexture;
 		delete uWeightI;
 		delete uWeightF;
 		delete tris;
-		delete vout;
-		delete tout;
-		file.close();
-		return Success;
+		delete vertexOut;
+		delete triangleOut;
 	}
-	int LoadAnim(AnimData* da, std::string path) {
-		path = "assets/animations/" + path + ".anim";
-		bool debug = 0;
+	void LoadAnimation(Animation* data, const std::string& path_) {
+		if (data == nullptr)
+			return;
+		std::string path = "assets/animations/" + path_ + ".animation";
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
 			bug::out < bug::RED < "Cannot find '" < path < "'\n";
-			return NotFound;
+			return;
 		}
 		ReadFromFile(&file, path);
 		
-		unsigned short start;
-		if (Read<unsigned short>(&start)) return Corrupt;
+		data->name = path_;
 
-		unsigned short end;
-		if (Read<unsigned short>(&end)) return Corrupt;
-		if (debug) bug::out < "Start-End: " < start <"-"<end< bug::end;
+		error(Read<unsigned short>(&data->frameStart));
 
-		float speed;
-		if (Read<float>(&speed)) return Corrupt;
-		if (debug) bug::out < "Speed: " < speed < bug::end;
+		error(Read<unsigned short>(&data->frameEnd));
+		if (bug::is("load_anim_info")) bug::out < "Start-End: " < data->frameStart <"-"< data->frameEnd < bug::end;
+
+		error(Read<float>(&data->defaultSpeed));
+		if (bug::is("load_anim_info")) bug::out < "Speed: " < data->defaultSpeed < bug::end;
 		
 		unsigned char objects;
-		if (Read<unsigned char>(&objects)) return Corrupt;
-		if (debug) bug::out < "Object: " < (int)objects < bug::end;
-
-		if (da != nullptr) {
-			da->frameStart = start;
-			da->frameEnd = end;
-			da->defaultSpeed = speed;
-		}
+		error(Read<unsigned char>(&objects));
+		if (bug::is("load_anim_info")) bug::out < "Object: " < (int)objects < bug::end;
+		
 		for (int i = 0; i < objects; i++) {
 		
 			int index;
-			if (Read<int>(&index)) return Corrupt;
+			error(Read<int>(&index));
 
 			unsigned short curves;
-			if (Read<unsigned short>(&curves)) return Corrupt;
+			error(Read<unsigned short>(&curves));
 
-			if (debug)
-				std::cout << "Object " << i << " " << curves << std::endl;
+			if (bug::is("load_anim_frames")) std::cout << "Object " << i << " " << curves << std::endl;
 
-			bool curveB[10]{ 0,0,0,0,0,0,0,0,0,0 };
-			for (int j = 9; j >= 0; j--) {
+			bool curveB[13]{ 0,0,0,0,0,0,0,0,0,0,0,0,0 };
+			for (int j = 12; j >= 0; j--) {
 				if (0  <= curves - pow(2, j)) {
 					curves -= pow(2, j);
 					curveB[j] = 1;
@@ -538,54 +532,50 @@ namespace engine {
 				}
 			}
 
-			da->objects[index]=(FCurves());
-			FCurves* fCurves = &da->objects[index];
+			data->objects[index]=FCurves();
+			FCurves* fCurves = &data->objects[index];
 
-			for (int j = 0; j < 9; j++) {
+			for (int j = 0; j < 13; j++) {
 				if (curveB[j]) {
 					unsigned short keys;
-					if (Read<unsigned short>(&keys)) return Corrupt;
-					if (debug)
-						std::cout << " Curve " << j << " " << (int)keys << std::endl;
+					error(Read<unsigned short>(&keys));
+					if (bug::is("load_anim_frames")) std::cout << " Curve " << j << " " << (int)keys << std::endl;
 					
 					fCurves->fcurves[j] = FCurve();
 					FCurve* fcurve = &fCurves->fcurves[j];
 
 					for (int k = 0; k < keys; k++) {
 						char polation;
-						if (Read<char>(&polation)) return Corrupt;
+						error(Read<char>(&polation));
 						
 						unsigned short frame;
-						if (Read<unsigned short>(&frame)) return Corrupt;
+						error(Read<unsigned short>(&frame));
 
 						float value;
-						if (Read<float>(&value)) return Corrupt;
-						if (debug)
-							bug::outs < "  Key" < polation < frame < value < bug::end;
+						error(Read<float>(&value));
+						if (bug::is("load_anim_frames")) bug::outs < "  Key" < polation < frame < value < bug::end;
 						
 						fcurve->frames.push_back(Keyframe(polation, frame, value));
 					}
 				}
 			}
-			//delete cname;
 		}
+
 		// Cleanup
 		file.close();
-		return Success;
 	}
-	int LoadColl(CollData* da, std::string path) { // TODO: More efficient by removing unneccecery for loops
-		path = "assets/colliders/" + path + ".coll";
-		bool debug = false;
+	void LoadCollider(Collider* data, const std::string& path_) { // TODO: More efficient by removing unneccecery for loops
+		std::string path = "assets/colliders/" + path_ + ".collider";
 		std::ifstream file(path, std::ios::binary);
 		ReadFromFile(&file,path);
 		
 		std::uint16_t vC;
-		if(Read<std::uint16_t>(&vC)) return Corrupt;
-		if (debug) std::cout << "Points: " << vC << std::endl;
-
+		error(Read<std::uint16_t>(&vC));
+		if (bug::is("load_coll_info")) std::cout << "Points: " << vC << std::endl;
+		
 		std::uint16_t qC;
-		if (Read<std::uint16_t>(&qC)) return Corrupt;
-		if (debug) std::cout << "Quad: " << qC << std::endl;
+		error(Read<std::uint16_t>(&qC));
+		if (bug::is("load_coll_info")) std::cout << "Quad: " << qC << std::endl;
 		
 		/* Not supported - REMEMBER TO DELETE WHEN TRIANGLES ARE SUPPORTED
 		std::uint16_t tC;
@@ -594,36 +584,36 @@ namespace engine {
 		*/
 
 		float furthest;
-		if (Read<float>(&furthest)) return Corrupt;
-		if (debug) std::cout << "Furthest: " << furthest << std::endl;
+		error(Read<float>(&furthest));
+		if (bug::is("load_coll_info")) std::cout << "Furthest: " << furthest << std::endl;
 
-		da->furthestPoint = furthest;
+		data->furthestPoint = furthest;
 
 		int vS = vC * 3;
 		int qS = qC * 4;
 		// int tS = tC * 3;
 
 		float* uV = new float[vS];
-		if (Read<float>(uV,vS)) return Corrupt;
+		error(Read<float>(uV,vS));
 
 		std::uint16_t* uQ = new std::uint16_t[qS];
-		if (Read<std::uint16_t>(uQ, qS)) return Corrupt;
+		error(Read<std::uint16_t>(uQ, qS));
 		/*
 		std::uint16_t* uT = new std::uint16_t[tS];
 		if (Read<std::uint16_t>(uT, tS)) return Corrupt;
 		*/
-		if (debug) std::cout << "Vectors" << std::endl;
+		if (bug::is("load_coll_vectors")) std::cout << "Vectors" << std::endl;
 		for (int i = 0; i < vC; i++) {
-			da->points.push_back(glm::vec3(uV[i * 3], uV[i * 3 + 1], uV[i * 3 + 2]));
-			if (debug) std::cout << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
+			data->points.push_back(glm::vec3(uV[i * 3], uV[i * 3 + 1], uV[i * 3 + 2]));
+			if (bug::is("load_coll_vectors")) std::cout << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
 		}
-		if (debug) std::cout << "Quads" << std::endl;;
+		if (bug::is("load_coll_quads")) std::cout << "Quads" << std::endl;;
 		for (int i = 0; i < qC; i++) {
 			for (int j = 0; j < 4; j++) {
-				da->quad.push_back(uQ[i * 4 + j]);
-				if (debug) std::cout << uQ[i * 4 + j] << " ";
+				data->quad.push_back(uQ[i * 4 + j]);
+				if (bug::is("load_coll_quads")) std::cout << uQ[i * 4 + j] << " ";
 			}
-			if (debug) std::cout << std::endl;
+			if (bug::is("load_coll_quads")) std::cout << std::endl;
 		}
 		/*
 		if (debug) std::cout << "Triangles" << std::endl;;
@@ -640,73 +630,156 @@ namespace engine {
 		delete uQ;
 		//delete uT; REMEMBER TO ADD THIS WHEN TRIANGLES ARE SUPPORTED
 		file.close();
-		return Success;
 	}
-	int LoadBone(BoneData* da, std::string path) {
-		path = "assets/bones/" + path + ".bone";
-		bool debug = 0;
+	void LoadArmature(Armature* data, const std::string& path_) {
+		std::string path = "assets/armatures/" + path_ + ".armature";
 		std::ifstream file(path, std::ios::binary);
 		if (!file) {
 			file.close();
 			bug::out < bug::RED < "Cannot find '" < path < "'\n";
-			return NotFound;
+			data->hasError = true;
+			return;
 		}
 		ReadFromFile(&file, path);
 
 		unsigned char boneCount;
-		if (Read<unsigned char>(&boneCount)) return Corrupt;
-		if (debug) bug::out < "Bone Count: " < (int)boneCount < bug::end;
+		error(Read<unsigned char>(&boneCount));
+		if (bug::is("load_arma_info")) bug::out < "Bone Count: " < (int)boneCount < bug::end;
 
 		// Acquire and Load Data
 		for (int i = 0; i < boneCount; i++) {
 			Bone b;
-			if (Read<int>(&b.parent)) return Corrupt;
-			if (debug) bug::out < " Parent: " < (int)b.parent < bug::end;
-			/*
-			glm::vec3 loc(0);
-			glm::vec3 rot(0);
-			glm::vec3 sca(0);
-			if (Read<glm::vec3>(&loc)) return Corrupt;
-			//if (Read<glm::vec3>(&rot)) return Corrupt;
-			//if (Read<glm::vec3>(&sca)) return Corrupt;
-			bug::out < loc < bug::end;
-			b.localMat = glm::translate(loc);
-				/*glm::rotate(rot.x,glm::vec3(1,0,0))
-				*glm::rotate(rot.y,glm::vec3(0,1,0))
-				*glm::rotate(rot.z,glm::vec3(0,0,1))
-				*glm::scale(sca);/*
-			if (Read<glm::vec3>(&loc)) return Corrupt;
-			//if (Read<glm::vec3>(&rot)) return Corrupt;
-			//if (Read<glm::vec3>(&sca)) return Corrupt;
-			b.invModel = glm::translate(loc);
-				/* glm::rotate(rot.x, glm::vec3(1, 0, 0))
-				* glm::rotate(rot.y, glm::vec3(0, 1, 0))
-				* glm::rotate(rot.z, glm::vec3(0, 0, 1))
-				* glm::scale(sca);/*
-			*/
+			error(Read<int>(&b.parent));
+			if (bug::is("load_arma_bones")) bug::out < " Parent: " < (int)b.parent < bug::end;
+			
 			for (int x = 0; x < 4; x++){
 				for (int y = 0; y < 4; y++) {
-					if (Read<float>(&b.localMat[x][y])) return Corrupt;
+					error(Read<float>(&b.localMat[x][y]));
 				}
 			}
+			if (bug::is("load_arma_matrix")) bug::out < b.localMat < bug::end;
 			for (int x = 0; x < 4; x++) {
 				for (int y = 0; y < 4; y++) {
-					if (Read<float>(&b.invModel[x][y])) return Corrupt;
+					error(Read<float>(&b.invModel[x][y]));
 				}
 			}
-
-			if (debug) bug::out < b.localMat < bug::end;
-			if (debug) bug::out < b.invModel < bug::end;
+			if (bug::is("load_arma_matrix")) bug::out < b.invModel < bug::end;
 			
-			da->bones.push_back(b);
+			data->bones.push_back(b);
+		}
+		// Cleanup
+		file.close();
+	}
+	void LoadModel(Model* data, const std::string& path_) {
+		std::string path = "assets/models/" + path_ + ".model";
+		std::ifstream file(path, std::ios::binary);
+		if (!file) {
+			file.close();
+			bug::out < bug::RED < "Cannot find '" < path < "'\n";
+			data->hasError = true;
+			return;
+		}
+		ReadFromFile(&file, path);
+
+		unsigned char lenArmature;
+		error(Read<unsigned char>(&lenArmature));
+		if (bug::is("load_model_info")) bug::out < "Armature Len: " < (int)lenArmature < bug::end;
+		
+		std::string armName = "";
+		if (lenArmature>0) {
+			char* cArmature = new char[lenArmature];
+			error(Read<char>(cArmature, lenArmature));
+			for (int j = 0; j < lenArmature; j++) {
+				armName += cArmature[j];
+			}
+			if (bug::is("load_model_info")) bug::out < "Armature Name: " < armName < bug::end;
 		}
 
-		//bug::out < (glm::translate(glm::vec3(2, 3, 4))) < bug::end;
-		//bug::out < (glm::rotate(0.5f,glm::vec3(1, 0, 0))) < bug::end;
+		unsigned char animCount;
+		error(Read<unsigned char>(&animCount));
+		if (bug::is("load_model_info")) bug::out < "Animation Count: " < (int)animCount < bug::end;
+		
+		std::vector<std::string> animations;
+		for (int i = 0; i < animCount; i++) {
+			unsigned char lenName;
+			error(Read<unsigned char>(&lenName));
+			//if (bug::is("load_model_info")) bug::out < "Model Name Len: " < (int)lenName < bug::end;
 
+			char* cName = new char[lenName];
+			error(Read<char>(cName, lenName));
+			std::string name = "";
+			for (int j = 0; j < lenName; j++) {
+				name += cName[j];
+			}
+			if (bug::is("load_model_info")) bug::out < "Animation Name: " < name < bug::end;
+			animations.push_back(name);
+		}
+
+		unsigned char meshCount;
+		error(Read<unsigned char>(&meshCount));
+		if (bug::is("load_model_info")) bug::out < "Mesh Count: " < (int)meshCount < bug::end;
+
+		std::vector<std::string> meshes;
+		std::vector<glm::mat4> matrices;
+		for (int i = 0; i < meshCount;i++) {
+			unsigned char lenName;
+			error(Read<unsigned char>(&lenName));
+			//if (bug::is("load_model_mesh")) bug::out < "Model Name Len: " < (int)lenName < bug::end;
+
+			char* cName=new char[lenName];
+			error(Read<char>(cName, lenName));
+			std::string name = "";
+			for (int j = 0; j < lenName;j++) {
+				name += cName[j];
+			}
+			if (bug::is("load_model_mesh")) bug::out < "Model Name: " < name < bug::end;
+
+			glm::mat4 mat(1);
+			for (int x = 0; x < 4; x++) {
+				for (int y = 0; y < 4; y++) {
+					error(Read<float>(&mat[x][y]));
+				}
+			}
+			if (bug::is("load_model_matrix")) bug::out < mat < bug::end;
+
+			meshes.push_back(name);
+			matrices.push_back(mat);
+		}
+
+		unsigned char lenCollider;
+		error(Read<unsigned char>(&lenCollider));
+		if (bug::is("load_model_info")) bug::out < "Collider Len: " < (int)lenCollider < bug::end;
+
+
+		std::string colliderName;
+		if (lenCollider > 0) {
+			char* cCollider = new char[lenCollider];
+			error(Read<char>(cCollider, lenCollider));
+			for (int j = 0; j < lenCollider; j++) {
+				colliderName += cCollider[j];
+			}
+			if (bug::is("load_model_info")) bug::out < "Collider Name: " < colliderName < bug::end;
+		}
+	
 		// Cleanup
-
 		file.close();
-		return Success;
+
+		// Dependecies
+		if (!armName.empty()) {
+			AddArmatureAsset(armName);
+			data->SetArmature(armName);
+		}
+		for (int i = 0; i < animations.size(); i++) {
+			AddAnimationAsset(animations[i]);
+			data->AddAnimation(animations[i]);
+		}
+		for (int i = 0; i < meshes.size();i++) {
+			AddMeshAsset(meshes[i]);
+			data->AddMesh(meshes[i], matrices[i]);
+		}
+		if (!colliderName.empty()) {
+			AddColliderAsset(colliderName);
+			data->SetCollider(colliderName);
+		}
 	}
 }

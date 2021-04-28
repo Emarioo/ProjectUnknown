@@ -340,38 +340,32 @@ namespace engine {
 	IElement::~IElement() {
 
 	}
-	IElement* IElement::Texture(const std::string& texture) {
+	void IElement::Texture(const std::string& texture) {
 		this->texture = texture;
-		return this;
 	}
-	IElement* IElement::Col(const Color& c) {
+	void IElement::Col(const Color& c) {
 		color = c;
-		return this;
 	}
-	IElement* IElement::Blank() {
+	void IElement::Blank() {
 		isBlank = true;
-		return this;
 	}
 
-	IElement* IElement::Text(Font* f, const std::string& s, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, const Color& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetText(s);
-		return this;
 	}
-	IElement* IElement::Text(Font* f, const std::string& s, int charHeight, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, int charHeight, const Color& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
 		text.SetText(s);
-		return this;
 	}
-	IElement* IElement::Text(Font* f, const std::string& s, float charHeight, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, float charHeight, const Color& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
 		text.SetText(s);
-		return this;
 	}
 	void IElement::SetText(const std::string& s) {
 		text.SetText(s);

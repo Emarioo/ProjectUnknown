@@ -1,5 +1,7 @@
 #include "Goblin.h"
 
+#include "Engine/Keyboard.h"
+
 Goblin::Goblin(float x, float y, float z) {
 	SetPosition(x, y, z);
 	/*
@@ -9,16 +11,27 @@ Goblin::Goblin(float x, float y, float z) {
 	*/
 	//renderComponent.SetBone("goblin_skeleton");
 	
-	renderComponent.AddMesh("TestMesh");
+	renderComponent.SetModel("Player");
+	renderComponent.animator.Enable("goblin_idle", {0,true,0.5,1});
+	renderComponent.animator.Enable("goblin_run", {0,true,0.5,1});
+	//bug::out < renderComponent.model->animations[0]->name < bug::end;
+	//renderComponent.animator.Disable("ArmatureAction");
+	//renderComponent.animator.running = true;
+	//renderComponent.animator.loop = true;
 }
-void Goblin::PreComponents() {
-	engine::Location body;
-	body.Translate(position);
-	body.Rotate(rotation);
-
-	renderComponent.SetMatrix(0, body.mat());
-}
+float blending = 0;
+float speed = 1.7;
 void Goblin::Update(float delta) {
-	renderComponent.anim.Update(delta);
-	
+	if (engine::IsKey(GLFW_KEY_W)) {
+		if (blending < 1 && speed>0)
+			blending += speed * delta;
+	} else {
+		if (blending > 0)
+			blending -= speed * delta;
+	}
+
+	renderComponent.animator.Blend("goblin_idle",blending);
+	renderComponent.animator.Blend("goblin_run",1-blending);
+
+	renderComponent.animator.Update(delta);
 }
