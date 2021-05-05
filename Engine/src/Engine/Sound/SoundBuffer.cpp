@@ -1,5 +1,7 @@
 #include "SoundBuffer.h"
 
+#include "Managers/FileManager.h"
+
 #include "Libaudio.h"
 
 bool al_check_error() {
@@ -35,17 +37,19 @@ namespace engine {
 
 	}
 	void SoundBuffer::Init(const char* path) {
-		//TEST_ERROR("buffer generation");
-		ALsizei size, freq;
-		int channels, bps;
-		char* bufferData = LoadWAV(path, channels, freq, bps, size);
-		ALenum format = to_al_format(channels, bps);
-		
-		alCall(alGenBuffers(1, &id));
+		if (engine::FileExist(path)) {
+			//TEST_ERROR("buffer generation");
+			ALsizei size, freq;
+			int channels, bps;
+			char* bufferData = LoadWAV(path, channels, freq, bps, size);
+			ALenum format = to_al_format(channels, bps);
 
-		alCall(alBufferData(id, format, bufferData, size, freq));
-		
-		delete bufferData;
+			alCall(alGenBuffers(1, &id));
+
+			alCall(alBufferData(id, format, bufferData, size, freq));
+
+			delete bufferData;
+		}
 	}
 	void SoundBuffer::Delete() {
 		alCall(alDeleteBuffers(1, &id));

@@ -1,4 +1,5 @@
 #include "SoundStream.h"
+#include "Managers/FileManager.h"
 
 namespace engine {
 
@@ -24,20 +25,22 @@ namespace engine {
 
 	}
 	void SoundStream::Init(const std::string& path) {
-		int channels, bps;
-		bufferData = LoadWAV(path, channels, bufferFreq, bps, bufferSize);
-		bufferFormat = to_al_format(channels, bps);
-		
-		alCall(alGenBuffers(NUM_BUFFERS, &buffer_id[0]));
+		if (engine::FileExist(path)) {
+			int channels, bps;
+			bufferData = LoadWAV(path, channels, bufferFreq, bps, bufferSize);
+			bufferFormat = to_al_format(channels, bps);
 
-		for (std::size_t i = 0; i < NUM_BUFFERS; ++i)
-			alCall(alBufferData(buffer_id[i], bufferFormat, &bufferData[i * BUFFER_SIZE], BUFFER_SIZE, bufferFreq));
-		
-		source.Init();
+			alCall(alGenBuffers(NUM_BUFFERS, &buffer_id[0]));
 
-		alCall(alSourceQueueBuffers(source.id,NUM_BUFFERS,&buffer_id[0]));
-		
-		cursor = NUM_BUFFERS * BUFFER_SIZE;
+			for (std::size_t i = 0; i < NUM_BUFFERS; ++i)
+				alCall(alBufferData(buffer_id[i], bufferFormat, &bufferData[i * BUFFER_SIZE], BUFFER_SIZE, bufferFreq));
+
+			source.Init();
+
+			alCall(alSourceQueueBuffers(source.id, NUM_BUFFERS, &buffer_id[0]));
+
+			cursor = NUM_BUFFERS * BUFFER_SIZE;
+		}
 	}
 	void SoundStream::UpdateStream() {
 		ALint buffersProcessed = 0;
