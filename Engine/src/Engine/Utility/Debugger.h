@@ -8,6 +8,15 @@
 #include "glm/glm.hpp"
 
 namespace bug {
+	/* DEBUG CMDS
+		FileManager
+		LoadMaterial
+		LoadMesh All Weights Triangles Vectors Colors Normals
+		LoadAnimation All Frames
+		LoadCollider All Vectors Quads
+		LoadArmature All Bones Matrix
+		LoadModel All Mesh Matrix
+	*/
 	enum TerminalCode {
 		BLACK,
 		OCEAN,
@@ -28,13 +37,8 @@ namespace bug {
 	};
 	extern char end;
 	
-	/*
-	FileManager : LoadMesh, LoadAnimation, LoadCollider, LoadArmature
-	*/
 	bool is(const std::string& name);
-	/*
-	FileManager : LoadMesh, LoadAnimation, LoadCollider, LoadArmature
-	*/
+	
 	void set(const std::string& name, bool on);
 	void Enable(bool state);
 	void ENABLE_DEBUG_OVERRIDE();

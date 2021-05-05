@@ -128,6 +128,8 @@ namespace engine {
 			return;
 		}
 
+		bool dGeneral = bug::is("LoadMaterial");
+
 		unsigned char lenMap;
 		error(Read<unsigned char>(&lenMap));
 
@@ -138,20 +140,20 @@ namespace engine {
 			for (int i = 0; i < lenMap; i++)
 				data->diffuse_map += tempMap[i];
 		}
-		if (bug::is("load_mat_info")) bug::outs < "Name:" < data->diffuse_map < bug::end;
+		if (dGeneral) bug::outs < "Name:" < data->diffuse_map < bug::end;
 
 		float d[3];
 		error(Read<float>(d,3));
 		data->diffuse_color = { d[0],d[1],d[2] };
-		if (bug::is("load_mat_info")) bug::outs < "Color:" < data->diffuse_color < bug::end;
+		if (dGeneral) bug::outs < "Color:" < data->diffuse_color < bug::end;
 		
 
 		error(Read<float>(d,3));
 		data->specular = { d[0],d[1],d[2] };
-		if (bug::is("load_mat_info")) bug::outs < "Specular:" < data->specular < bug::end;
+		if (dGeneral) bug::outs < "Specular:" < data->specular < bug::end;
 
 		error(Read<float>(&data->shininess));
-		if (bug::is("load_mat_info")) bug::outs < "Shininess:" < data->shininess < bug::end;
+		if (dGeneral) bug::outs < "Shininess:" < data->shininess < bug::end;
 
 		// Cleanup
 		delete tempMap;
@@ -174,21 +176,29 @@ namespace engine {
 			return;
 		}
 
+		bool dGeneral = bug::is("LoadMesh");
+		bool dAll = bug::is("LoadMesh.All");
+		bool dWeights = bug::is("LoadMesh.Weights");
+		bool dTriangles = bug::is("LoadMesh.Triangles");
+		bool dVectors = bug::is("LoadMesh.Vectors");
+		bool dColors = bug::is("LoadMesh.Colors");
+		bool dNormals = bug::is("LoadMesh.Normals");
+
 		unsigned char useArmature;
 		error(Read<unsigned char>(&useArmature));
-		if (bug::is("load_mesh_info")) bug::outs < "Armature:" < useArmature < bug::end;
+		if (dAll||dGeneral) bug::outs < "Armature:" < useArmature < bug::end;
 	
 		unsigned short pointCount;
 		error(Read<unsigned short>(&pointCount));
-		if (bug::is("load_mesh_info")) bug::outs < "Points:" < pointCount < bug::end;
+		if (dAll||dGeneral) bug::outs < "Points:" < pointCount < bug::end;
 
 		unsigned short textureCount;
 		error(Read<unsigned short>(&textureCount));
-		if (bug::is("load_mesh_info")) bug::outs < "Colors:" < textureCount < bug::end;
+		if (dAll||dGeneral) bug::outs < "Colors:" < textureCount < bug::end;
 		
 		unsigned char materialCount;
 		error(Read<unsigned char>(&materialCount));
-		if (bug::is("load_mesh_info")) bug::outs < "Materials:" < materialCount < bug::end;
+		if (dAll || dGeneral) bug::outs < "Materials:" < materialCount < bug::end;
 
 		std::vector<std::string> materials;
 		for (int i = 0; i < materialCount;i++) {
@@ -200,7 +210,7 @@ namespace engine {
 			std::string name;
 			for (int j = 0; j < lenName; j++)
 				name += materialName[j];
-			if (bug::is("load_mesh_info")) bug::outs < " Material"<i<":" < lenName< name < bug::end;
+			if (dAll || dGeneral) bug::outs < " Material"<i<":" < lenName< name < bug::end;
 
 			materials.push_back(name);
 		}
@@ -227,16 +237,16 @@ namespace engine {
 		unsigned short weightCount=0;
 		if (useArmature) {
 			error(Read<unsigned short>(&weightCount));
-			if (bug::is("load_mesh_info")) bug::outs < "Weights:" < weightCount < bug::end;
+			if (dAll || dWeights) bug::outs < "Weights:" < weightCount < bug::end;
 		}
 		unsigned short triangleCount;
 		error(Read<unsigned short>(&triangleCount));
-		if (bug::is("load_mesh_info")) bug::outs < "Triangles:" < triangleCount < bug::end;
+		if (dAll || dTriangles) bug::outs < "Triangles:" < triangleCount < bug::end;
 		
 		int uPointSize = 3 * pointCount;
 		float* uPoint = new float[uPointSize];
 		error(Read<float>(uPoint, uPointSize));
-		if (bug::is("load_mesh_vectors")) {
+		if (dAll || dVectors) {
 			bug::out < bug::LIME < "  Vectors\n";
 			for (int i = 0; i < 3 * pointCount; i++) {
 				bug::out < uPoint[i] < " ";
@@ -248,7 +258,7 @@ namespace engine {
 		int uTextureSize = textureCount * 3;
 		float* uTexture = new float[uTextureSize];
 		error(Read<float>(uTexture, uTextureSize));
-		if (bug::is("load_mesh_colors")) {
+		if (dAll || dColors) {
 			bug::out < bug::LIME < "  Colors\n";
 			for (int i = 0; i < textureCount * 3; i++) {
 				bug::out < uTexture[i] < " ";
@@ -262,7 +272,7 @@ namespace engine {
 		int* uWeightI = new int[uWeightS];
 		float* uWeightF = new float[uWeightS];
 		if (useArmature) {
-			if (bug::is("load_mesh_weights"))
+			if (dAll || dWeights)
 				bug::out < bug::LIME < "  Weights\n";
 			for (int i = 0; i < weightCount; i++) {
 				char index[3];
@@ -276,7 +286,7 @@ namespace engine {
 				uWeightF[i * 3] = floats[0];
 				uWeightF[i * 3 + 1] = floats[1];
 				uWeightF[i * 3 + 2] = floats[2];
-				if (bug::is("load_mesh_weights"))
+				if (dAll || dWeights)
 					bug::outs < (int)uWeightI[i * 3] < (int)uWeightI[i * 3 + 1] < (int)uWeightI[i * 3 + 2] < uWeightF[i * 3] < uWeightF[i * 3 + 1] < uWeightF[i * 3 + 2] < bug::end;
 			}
 		}
@@ -288,7 +298,7 @@ namespace engine {
 		unsigned short* tris = new unsigned short[trisS];
 		error(Read<unsigned short>(tris, trisS));
 		
-		if (bug::is("load_mesh_triangles")) {
+		if (dAll || dTriangles) {
 			bug::out <bug::LIME< "  Triangles\n";
 			for (int i = 0; i < tStride * triangleCount; i++) {
 				bug::out < tris[i] < " ";
@@ -333,7 +343,7 @@ namespace engine {
 				indexNormal.push_back(uNormal.size() / 3 - 1);
 			}
 		}
-		if (bug::is("load_mesh_normals")) {
+		if (dAll || dNormals) {
 			bug::out < bug::LIME < "  Normals\n";
 			for (int i = 0; i < uNormal.size(); i++) {
 				bug::out < uNormal[i] < " ";
@@ -376,6 +386,7 @@ namespace engine {
 				}
 			}
 		}
+		/*
 		if (bug::is("load_mesh_?")) {
 			bug::out < bug::LIME < "  Special" < bug::end;
 			for (int i = 0; i < uniqueVertex.size() / (uvStride); i++) {
@@ -385,6 +396,7 @@ namespace engine {
 				bug::out < bug::end;
 			}
 		}
+		*/
 
 		int vStride = 3 + 3 + 3;
 		if (useArmature)
@@ -441,7 +453,7 @@ namespace engine {
 			}
 		}
 
-		if (bug::is("load_mesh_buffer")) {
+		if (dAll || dGeneral) {
 			bug::outs < bug::LIME < "VertexBuffer " < (uniqueVertex.size() / uvStride) < "*" < (vStride) < " IndexBuffer " < (triangleCount) < "*3" < bug::end;
 		}
 		/*
@@ -496,6 +508,11 @@ namespace engine {
 			bug::out < bug::RED < "Cannot find '" < path < "'\n";
 			return;
 		}
+
+		bool dGeneral = bug::is("LoadAnimation");
+		bool dAll = bug::is("LoadAnimation.All");
+		bool dFrames = bug::is("LoadAnimation.Frames");
+
 		ReadFromFile(&file, path);
 		
 		data->name = path_;
@@ -503,14 +520,14 @@ namespace engine {
 		error(Read<unsigned short>(&data->frameStart));
 
 		error(Read<unsigned short>(&data->frameEnd));
-		if (bug::is("load_anim_info")) bug::out < "Start-End: " < data->frameStart <"-"< data->frameEnd < bug::end;
+		if (dAll||dGeneral) bug::out < "Start-End: " < data->frameStart <"-"< data->frameEnd < bug::end;
 
 		error(Read<float>(&data->defaultSpeed));
-		if (bug::is("load_anim_info")) bug::out < "Speed: " < data->defaultSpeed < bug::end;
+		if (dAll || dGeneral) bug::out < "Speed: " < data->defaultSpeed < bug::end;
 		
 		unsigned char objects;
 		error(Read<unsigned char>(&objects));
-		if (bug::is("load_anim_info")) bug::out < "Object: " < (int)objects < bug::end;
+		if (dAll || dGeneral) bug::out < "Object: " < (int)objects < bug::end;
 		
 		for (int i = 0; i < objects; i++) {
 		
@@ -520,7 +537,7 @@ namespace engine {
 			unsigned short curves;
 			error(Read<unsigned short>(&curves));
 
-			if (bug::is("load_anim_frames")) std::cout << "Object " << i << " " << curves << std::endl;
+			if (dAll || dFrames) std::cout << "Object " << i << " " << curves << std::endl;
 
 			bool curveB[13]{ 0,0,0,0,0,0,0,0,0,0,0,0,0 };
 			for (int j = 12; j >= 0; j--) {
@@ -539,7 +556,7 @@ namespace engine {
 				if (curveB[j]) {
 					unsigned short keys;
 					error(Read<unsigned short>(&keys));
-					if (bug::is("load_anim_frames")) std::cout << " Curve " << j << " " << (int)keys << std::endl;
+					if (dAll || dFrames) std::cout << " Curve " << j << " " << (int)keys << std::endl;
 					
 					fCurves->fcurves[j] = FCurve();
 					FCurve* fcurve = &fCurves->fcurves[j];
@@ -553,7 +570,7 @@ namespace engine {
 
 						float value;
 						error(Read<float>(&value));
-						if (bug::is("load_anim_frames")) bug::outs < "  Key" < polation < frame < value < bug::end;
+						if (dAll || dFrames) bug::outs < "  Key" < polation < frame < value < bug::end;
 						
 						fcurve->frames.push_back(Keyframe(polation, frame, value));
 					}
@@ -569,13 +586,18 @@ namespace engine {
 		std::ifstream file(path, std::ios::binary);
 		ReadFromFile(&file,path);
 		
+		bool dGeneral = bug::is("LoadCollider");
+		bool dAll = bug::is("LoadCollider.All");
+		bool dVectors = bug::is("LoadCollider.Vectors");
+		bool dQuads = bug::is("LoadCollider.Quads");
+
 		std::uint16_t vC;
 		error(Read<std::uint16_t>(&vC));
-		if (bug::is("load_coll_info")) std::cout << "Points: " << vC << std::endl;
+		if (dGeneral || dAll) std::cout << "Points: " << vC << std::endl;
 		
 		std::uint16_t qC;
 		error(Read<std::uint16_t>(&qC));
-		if (bug::is("load_coll_info")) std::cout << "Quad: " << qC << std::endl;
+		if (dGeneral || dAll) std::cout << "Quad: " << qC << std::endl;
 		
 		/* Not supported - REMEMBER TO DELETE WHEN TRIANGLES ARE SUPPORTED
 		std::uint16_t tC;
@@ -585,7 +607,7 @@ namespace engine {
 
 		float furthest;
 		error(Read<float>(&furthest));
-		if (bug::is("load_coll_info")) std::cout << "Furthest: " << furthest << std::endl;
+		if (dGeneral || dAll) std::cout << "Furthest: " << furthest << std::endl;
 
 		data->furthestPoint = furthest;
 
@@ -602,18 +624,18 @@ namespace engine {
 		std::uint16_t* uT = new std::uint16_t[tS];
 		if (Read<std::uint16_t>(uT, tS)) return Corrupt;
 		*/
-		if (bug::is("load_coll_vectors")) std::cout << "Vectors" << std::endl;
+		if (dGeneral || dVectors) std::cout << "Vectors" << std::endl;
 		for (int i = 0; i < vC; i++) {
 			data->points.push_back(glm::vec3(uV[i * 3], uV[i * 3 + 1], uV[i * 3 + 2]));
-			if (bug::is("load_coll_vectors")) std::cout << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
+			if (dGeneral || dVectors) std::cout << uV[i * 3] << " " << uV[i * 3 + 1] << " " << uV[i * 3 + 2] << std::endl;
 		}
-		if (bug::is("load_coll_quads")) std::cout << "Quads" << std::endl;;
+		if (dGeneral || dQuads) std::cout << "Quads" << std::endl;;
 		for (int i = 0; i < qC; i++) {
 			for (int j = 0; j < 4; j++) {
 				data->quad.push_back(uQ[i * 4 + j]);
-				if (bug::is("load_coll_quads")) std::cout << uQ[i * 4 + j] << " ";
+				if (dGeneral || dQuads) std::cout << uQ[i * 4 + j] << " ";
 			}
-			if (bug::is("load_coll_quads")) std::cout << std::endl;
+			if (dGeneral || dQuads) std::cout << std::endl;
 		}
 		/*
 		if (debug) std::cout << "Triangles" << std::endl;;
@@ -640,30 +662,36 @@ namespace engine {
 			data->hasError = true;
 			return;
 		}
+
+		bool dGeneral = bug::is("LoadArmature");
+		bool dAll = bug::is("LoadArmature.All");
+		bool dBones = bug::is("LoadArmature.Bones");
+		bool dMatrix = bug::is("LoadArmature.Matrix");
+
 		ReadFromFile(&file, path);
 
 		unsigned char boneCount;
 		error(Read<unsigned char>(&boneCount));
-		if (bug::is("load_arma_info")) bug::out < "Bone Count: " < (int)boneCount < bug::end;
+		if (dGeneral||dAll) bug::out < "Bone Count: " < (int)boneCount < bug::end;
 
 		// Acquire and Load Data
 		for (int i = 0; i < boneCount; i++) {
 			Bone b;
 			error(Read<int>(&b.parent));
-			if (bug::is("load_arma_bones")) bug::out < " Parent: " < (int)b.parent < bug::end;
+			if (dBones||dAll) bug::out < " Parent: " < (int)b.parent < bug::end;
 			
 			for (int x = 0; x < 4; x++){
 				for (int y = 0; y < 4; y++) {
 					error(Read<float>(&b.localMat[x][y]));
 				}
 			}
-			if (bug::is("load_arma_matrix")) bug::out < b.localMat < bug::end;
+			if (dMatrix||dAll) bug::out < b.localMat < bug::end;
 			for (int x = 0; x < 4; x++) {
 				for (int y = 0; y < 4; y++) {
 					error(Read<float>(&b.invModel[x][y]));
 				}
 			}
-			if (bug::is("load_arma_matrix")) bug::out < b.invModel < bug::end;
+			if (dMatrix||dAll) bug::out < b.invModel < bug::end;
 			
 			data->bones.push_back(b);
 		}
@@ -679,11 +707,17 @@ namespace engine {
 			data->hasError = true;
 			return;
 		}
+
+		bool dGeneral = bug::is("LoadModel");
+		bool dAll = bug::is("LoadModel.All");
+		bool dMesh = bug::is("LoadModel.Mesh");
+		bool dMatrix = bug::is("LoadModel.Matrix");
+
 		ReadFromFile(&file, path);
 
 		unsigned char lenArmature;
 		error(Read<unsigned char>(&lenArmature));
-		if (bug::is("load_model_info")) bug::out < "Armature Len: " < (int)lenArmature < bug::end;
+		if (dGeneral||dAll) bug::out < "Armature Len: " < (int)lenArmature < bug::end;
 		
 		std::string armName = "";
 		if (lenArmature>0) {
@@ -692,12 +726,12 @@ namespace engine {
 			for (int j = 0; j < lenArmature; j++) {
 				armName += cArmature[j];
 			}
-			if (bug::is("load_model_info")) bug::out < "Armature Name: " < armName < bug::end;
+			if (dGeneral || dAll) bug::out < "Armature Name: " < armName < bug::end;
 		}
 
 		unsigned char animCount;
 		error(Read<unsigned char>(&animCount));
-		if (bug::is("load_model_info")) bug::out < "Animation Count: " < (int)animCount < bug::end;
+		if (dGeneral || dAll) bug::out < "Animation Count: " < (int)animCount < bug::end;
 		
 		std::vector<std::string> animations;
 		for (int i = 0; i < animCount; i++) {
@@ -711,13 +745,13 @@ namespace engine {
 			for (int j = 0; j < lenName; j++) {
 				name += cName[j];
 			}
-			if (bug::is("load_model_info")) bug::out < "Animation Name: " < name < bug::end;
+			if (dGeneral || dAll) bug::out < "Animation Name: " < name < bug::end;
 			animations.push_back(name);
 		}
 
 		unsigned char meshCount;
 		error(Read<unsigned char>(&meshCount));
-		if (bug::is("load_model_info")) bug::out < "Mesh Count: " < (int)meshCount < bug::end;
+		if (dGeneral || dAll) bug::out < "Mesh Count: " < (int)meshCount < bug::end;
 
 		std::vector<std::string> meshes;
 		std::vector<glm::mat4> matrices;
@@ -732,7 +766,7 @@ namespace engine {
 			for (int j = 0; j < lenName;j++) {
 				name += cName[j];
 			}
-			if (bug::is("load_model_mesh")) bug::out < "Model Name: " < name < bug::end;
+			if (dMesh || dAll) bug::out < "Model Name: " < name < bug::end;
 
 			glm::mat4 mat(1);
 			for (int x = 0; x < 4; x++) {
@@ -740,7 +774,7 @@ namespace engine {
 					error(Read<float>(&mat[x][y]));
 				}
 			}
-			if (bug::is("load_model_matrix")) bug::out < mat < bug::end;
+			if (dMatrix||dAll) bug::out < mat < bug::end;
 
 			meshes.push_back(name);
 			matrices.push_back(mat);
@@ -748,7 +782,7 @@ namespace engine {
 
 		unsigned char lenCollider;
 		error(Read<unsigned char>(&lenCollider));
-		if (bug::is("load_model_info")) bug::out < "Collider Len: " < (int)lenCollider < bug::end;
+		if (dGeneral||dAll) bug::out < "Collider Len: " < (int)lenCollider < bug::end;
 
 
 		std::string colliderName;
@@ -758,7 +792,7 @@ namespace engine {
 			for (int j = 0; j < lenCollider; j++) {
 				colliderName += cCollider[j];
 			}
-			if (bug::is("load_model_info")) bug::out < "Collider Name: " < colliderName < bug::end;
+			if (dGeneral||dAll) bug::out < "Collider Name: " < colliderName < bug::end;
 		}
 	
 		// Cleanup
