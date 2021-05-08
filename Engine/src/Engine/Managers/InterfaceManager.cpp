@@ -75,11 +75,15 @@ namespace engine {
 	void UpdateInterface(float delta) {
 		//if (GetMenu() == Startup) {
 		for (auto p : elements) {
-			p->HoverEvent(GetMX(), GetMY());
+			if (p->HasTags()) {
+				p->HoverEvent(GetMX(), GetMY());
+			}
 		}
 		for (auto p : elements) {
-			p->InternalUpdate(delta);
-			p->Update(delta);
+			if (p->HasTags()) {
+				p->InternalUpdate(delta);
+				p->Update(delta);
+			}
 		}
 		//}
 	}
@@ -88,8 +92,10 @@ namespace engine {
 		//bug::outs < "KeyEvent" < key < action < bug::end;
 		
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->KeyEvent(key,action)) {
-				bug::out < elements[i]->name < bug::end;
+			if (elements[i]->HasTags()) {
+				if (elements[i]->KeyEvent(key, action)) {
+					bug::out < elements[i]->name < bug::end;
+				}
 			}
 		}
 		if (keyEvent !=nullptr) {
@@ -102,10 +108,12 @@ namespace engine {
 		
 		std::string name = "";
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->ClickEvent(mx, my, button, action)) {
-				name = elements[i]->name;
-				//bug::out < "gone" <bug::end;
-				break;
+			if (elements[i]->HasTags()) {
+				if (elements[i]->ClickEvent(mx, my, button, action)) {
+					name = elements[i]->name;
+					//bug::out < "gone" <bug::end;
+					break;
+				}
 			}
 		}
 		if (mouseEvent != nullptr) {
@@ -116,8 +124,10 @@ namespace engine {
 	void ScrollEvent(double yoffset) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "ScrollEvent" < xoffset < yoffset < bug::end;
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->ScrollEvent(yoffset)) {
-				//break;
+			if (elements[i]->HasTags()) {
+				if (elements[i]->ScrollEvent(yoffset)) {
+					//break;
+				}
 			}
 		}
 	}
@@ -125,11 +135,15 @@ namespace engine {
 	void DragEvent(double mx, double my) {
 		//bug::outs < "DragEvent" < mx < my < bug::end;
 		//if (GetMenu() == Startup) {
-		/*
+		/* Moved to update function
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			elements[i]->HoverEvent(mx, my);
-		}
-		*/
+			if (elements[i]->HasTags()) {
+				if (elements[i]->HoverEvent(mx, my)) {
+
+				}
+			}
+		}*/
+		
 		//}
 	}
 	void ResizeEvent(int width, int height) {
@@ -141,9 +155,11 @@ namespace engine {
 	void RenderInterface() {
 		SwitchBlendDepth(true);
 		BindShader(ShaderInterface);
-		//if (GetMenu()==Startup) {
+		
 		for (auto& p : elements) {
-			p->Draw();
+			if (p->HasTags()) {
+				p->Draw();
+			}
 		}
 		
 		GuiColor(0.9, 0.8, 0.7, 1);

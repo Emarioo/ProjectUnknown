@@ -21,6 +21,12 @@ namespace UI {
 				}, 1.f);
 			};*/
 		}
+		IElement* inventory = NewElement("inventory", 0);
+		{
+			inventory->AddTag([=]() {return true; });
+			inventory->Col({80});
+			inventory->conX.Right(20)->conY.Center(0)->conW.Center(0.25f)->conH.Center(0.8f);
+		}
 
 
 	}

@@ -49,6 +49,8 @@ namespace engine {
 			alCall(alBufferData(id, format, bufferData, size, freq));
 
 			delete bufferData;
+		} else {
+			// TODO: Error code
 		}
 	}
 	void SoundBuffer::Delete() {

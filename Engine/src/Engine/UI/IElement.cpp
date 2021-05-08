@@ -407,7 +407,6 @@ namespace engine {
 	}
 
 	bool IElement::ClickEvent(int mx, int my, int button, int action) {
-		if (!HasTags()) return false;
 		if (action == 1)
 			isSelected = false;
 		//bug::outs < name < isSelected < bug::end;
@@ -426,7 +425,6 @@ namespace engine {
 		return false;
 	}
 	bool IElement::ScrollEvent(double scroll) {
-		if (!HasTags()) return false;
 		if (isHovering) {
 			if (OnScroll != nullptr) {
 				OnScroll(scroll);
@@ -436,7 +434,6 @@ namespace engine {
 		return false;
 	}
 	bool IElement::HoverEvent(int mx, int my) {
-		if (!HasTags()) return false;
 		if (Inside(mx, my)) {
 			isHovering = true;
 			if (OnHover != nullptr) {
@@ -450,8 +447,6 @@ namespace engine {
 		return false;
 	}
 	bool IElement::KeyEvent(int key, int action) {
-		if (!HasTags()) 
-			return false;
 		if (isSelected) {
 			if (isEditable) {
 				text.EditText(key, action);
@@ -469,16 +464,15 @@ namespace engine {
 	}
 	*/
 	void IElement::InternalUpdate(float delta) {
-		if (!HasTags()) return;
 		for (ITransition& t : transitions) {
 			t.Update(delta);
 		}
 	}
 	void IElement::Update(float delta) {
-		if (!HasTags()) return;
+		
 	}
 	void IElement::Draw() {
-		if (!HasTags()) return;
+		
 		// Move constrain calculations somewhere?
 		w = conW.Value(0);
 		h = conH.Value(0);

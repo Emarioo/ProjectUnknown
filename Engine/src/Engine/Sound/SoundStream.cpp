@@ -40,6 +40,8 @@ namespace engine {
 			alCall(alSourceQueueBuffers(source.id, NUM_BUFFERS, &buffer_id[0]));
 
 			cursor = NUM_BUFFERS * BUFFER_SIZE;
+		} else {
+			//TODO: Error code
 		}
 	}
 	void SoundStream::UpdateStream() {

@@ -150,9 +150,17 @@ namespace engine {
 		std::vector<ITransition> transitions;
 		ITransition* NewTransition(bool* activator);
 		ITransition* NewTransition(std::function<bool()> activator);
-
+		/*
+		True if mouse is held on element.
+		*/
 		bool isHolding = false;
+		/*
+		True if item has been clicked on. Used for typing text
+		*/
 		bool isSelected = false;
+		/*
+		True if Mouse is hovering over element.
+		*/
 		bool isHovering = false;
 
 		std::function<void(int mx, int my, int button, int action)> OnClick = nullptr;
