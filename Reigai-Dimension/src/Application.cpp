@@ -5,7 +5,7 @@
 #include "Objects/Tutorial.h"
 #include "Objects/Player.h"
 
-#include "UI/Menu.h"
+#include "UI/UIHandler.h"
 
 float ang = 0;
 float vel = 0.001;
@@ -303,9 +303,7 @@ int main(int argc, char*argv[]) {
 
 	SetGameState(Play);
 
-	UI::InitStartMenu();
-	UI::InitPauseMenu();
-	UI::InitGameMenu();
+	UI::InitializeUI();
 
 	float v[]{
 		-1,-1,0,0,

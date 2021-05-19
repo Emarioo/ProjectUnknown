@@ -39,6 +39,19 @@ namespace engine {
 		uiFadeBool = false;
 	}
 
+	std::vector<ISystem*> iSystems;
+	void NewSystem(ISystem* s) {
+		iSystems.push_back(s);
+	}
+	ISystem* GetSystem(const std::string& s) {
+		for (ISystem* o : iSystems) {
+			if (o->name == s) {
+				return o;
+			}
+		}
+		return nullptr;
+	}
+
 	std::vector<IElement*> elements;
 	IElement* NewElement(const std::string& name,int priority) {
 		IElement* ie = new IElement(name, priority);
@@ -79,11 +92,17 @@ namespace engine {
 				p->HoverEvent(GetMX(), GetMY());
 			}
 		}
+		for (auto p : iSystems) {
+			p->HoverEvent(GetMX(), GetMY());
+		}
 		for (auto p : elements) {
 			if (p->HasTags()) {
 				p->InternalUpdate(delta);
 				p->Update(delta);
 			}
+		}
+		for (auto p : iSystems) {
+			p->Update(delta);
 		}
 		//}
 	}
@@ -91,6 +110,9 @@ namespace engine {
 	void KeyEvent(int key, int action) {
 		//bug::outs < "KeyEvent" < key < action < bug::end;
 		
+		for (auto p : iSystems) {
+			p->KeyEvent(key,action);
+		}
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			if (elements[i]->HasTags()) {
 				if (elements[i]->KeyEvent(key, action)) {
@@ -105,7 +127,9 @@ namespace engine {
 	std::function<void(double, double, int, int,const std::string&)> mouseEvent;
 	void MouseEvent(double mx, double my, int button, int action) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "MouseEvent" < mx < my < button < action < bug::end;
-		
+		for (auto p : iSystems) {
+			p->MouseEvent(mx,my,button, action);
+		}
 		std::string name = "";
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			if (elements[i]->HasTags()) {
@@ -123,6 +147,9 @@ namespace engine {
 	std::function<void(double)> scrollEvent = nullptr;
 	void ScrollEvent(double yoffset) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "ScrollEvent" < xoffset < yoffset < bug::end;
+		for (auto p : iSystems) {
+			p->ScrollEvent(yoffset);
+		}
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			if (elements[i]->HasTags()) {
 				if (elements[i]->ScrollEvent(yoffset)) {

@@ -999,6 +999,9 @@
     <ClInclude Include="src\Engine\Components\Collider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\UI\ISystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine\Components\RenderComponent.cpp">
@@ -1116,6 +1119,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Components\Collider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\UI\ISystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

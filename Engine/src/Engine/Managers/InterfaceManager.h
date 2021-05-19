@@ -3,6 +3,7 @@
 #include "Managers/AssetManager.h"
 #include "Managers/ObjectManager.h"
 #include "UI/IElement.h"
+#include "UI/ISystem.h"
 
 #include <unordered_map>
 
@@ -42,6 +43,9 @@ namespace engine {
 	/*
 	AddFont function?
 	*/
+
+	void NewSystem(ISystem* s);
+	ISystem* GetSystem(const std::string& name);
 
 	IElement* NewElement(const std::string& name,int priority);
 	/*

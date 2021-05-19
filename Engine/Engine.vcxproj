@@ -51,6 +51,7 @@
     <ClInclude Include="src\Engine\Sound\SoundStream.h" />
     <ClInclude Include="src\Engine\UI\Font.h" />
     <ClInclude Include="src\Engine\UI\IElement.h" />
+    <ClInclude Include="src\Engine\UI\ISystem.h" />
     <ClInclude Include="src\Engine\UI\Text.h" />
     <ClInclude Include="src\Engine\UI\WorldItem.h" />
     <ClInclude Include="src\Engine\Utility\Debugger.h" />
@@ -378,6 +379,7 @@
     <ClCompile Include="src\Engine\Sound\SoundStream.cpp" />
     <ClCompile Include="src\Engine\UI\Font.cpp" />
     <ClCompile Include="src\Engine\UI\IElement.cpp" />
+    <ClCompile Include="src\Engine\UI\ISystem.cpp" />
     <ClCompile Include="src\Engine\UI\Text.cpp" />
     <ClCompile Include="src\Engine\Utility\Debugger.cpp" />
     <ClCompile Include="src\Engine\Utility\Utilities.cpp" />
