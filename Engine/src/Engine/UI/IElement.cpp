@@ -471,7 +471,7 @@ namespace engine {
 	void IElement::Update(float delta) {
 		
 	}
-	void IElement::Draw() {
+	void IElement::Render() {
 		
 		// Move constrain calculations somewhere?
 		w = conW.Value(0);

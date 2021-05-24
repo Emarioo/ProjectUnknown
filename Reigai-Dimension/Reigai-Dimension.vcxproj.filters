@@ -21,9 +21,6 @@
     <ClInclude Include="src\Objects\Goblin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\Menu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\GameStates.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,7 +45,10 @@
     <ClInclude Include="src\UI\Inventory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI\UIHandler.h">
+    <ClInclude Include="src\UI\MenuCreation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Items\ItemHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -117,7 +117,10 @@
     <ClCompile Include="src\UI\Inventory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\UI\UIHandler.cpp">
+    <ClCompile Include="src\UI\MenuCreation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Items\ItemHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

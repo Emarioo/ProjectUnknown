@@ -15,7 +15,7 @@ public:
 	void Update(float delta) override;
 	glm::vec3 Movement(float delta);
 
-	Inventory::Container* inventory;
+	//Container* inventory;
 
 private:
 };

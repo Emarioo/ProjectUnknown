@@ -13,5 +13,5 @@ public:
 	void Update(float delta) override;
 	void Render() override;
 
-	Container container;
+	Container* container; // Refrence to current inventory to be shown.
 };

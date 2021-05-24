@@ -1,4 +1,4 @@
-#include "InterfaceManager.h"
+#include "UIHandler.h"
 
 namespace engine {
 
@@ -185,8 +185,11 @@ namespace engine {
 		
 		for (auto& p : elements) {
 			if (p->HasTags()) {
-				p->Draw();
+				p->Render();
 			}
+		}
+		for (auto p : iSystems) {
+			p->Render();
 		}
 		
 		GuiColor(0.9, 0.8, 0.7, 1);

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Managers/AssetManager.h"
-#include "Managers/ObjectManager.h"
+#include "Handlers/AssetHandler.h"
 #include "UI/IElement.h"
 #include "UI/ISystem.h"
 

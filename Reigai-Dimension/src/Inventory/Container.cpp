@@ -98,3 +98,9 @@ bool Container::IsFull() {
 void Container::Draw() {
 
 }
+int Container::GetSlotWidth(){
+	return slotWidth;
+}
+int Container::GetSlotHeight() {
+	return slotHeight;
+}

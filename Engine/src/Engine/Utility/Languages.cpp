@@ -1,6 +1,6 @@
 #include "Languages.h"
 
-#include "Managers/FileManager.h"
+#include "Handlers/FileHandler.h"
 
 #include <map>
 #include <vector>

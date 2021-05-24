@@ -47,6 +47,14 @@ public:
 	true if all slots are occupied
 	*/
 	bool IsFull();
+	/*
+	Get slotWidth
+	*/
+	int GetSlotWidth();
+	/*
+	Get slotHeight
+	*/
+	int GetSlotHeight();
 
 private:
 

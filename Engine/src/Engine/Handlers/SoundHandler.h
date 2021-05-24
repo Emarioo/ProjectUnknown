@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SoundStream.h"
+#include "Sound/SoundStream.h"
 
 namespace engine {
 	// returns false if error

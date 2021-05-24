@@ -4,7 +4,7 @@
 #include "Components/CollisionComponent.h"
 #include "Components/RenderComponent.h"
 
-#include "Managers/AssetManager.h"
+#include "Handlers/AssetHandler.h"
 
 namespace engine {
 	class GameObject {

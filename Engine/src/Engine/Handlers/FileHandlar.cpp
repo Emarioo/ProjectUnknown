@@ -1,7 +1,7 @@
-#include "FileManager.h"
+#include "FileHandler.h"
 #include <sys/stat.h>
 
-#include "AssetManager.h"
+#include "AssetHandler.h"
 
 #define error(x) if(x==true){data->hasError=true;return;}
 

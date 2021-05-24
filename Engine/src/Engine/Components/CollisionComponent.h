@@ -5,7 +5,7 @@
 #include <string>
 #include "Rendering/BufferContainer.h"
 #include "Rendering/Renderer.h"
-#include "Managers/AssetManager.h"
+#include "Handlers/AssetHandler.h"
 
 namespace engine {
 	class Location {

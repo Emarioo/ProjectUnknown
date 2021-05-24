@@ -1,4 +1,4 @@
-#include "UIHandler.h"
+#include "MenuCreation.h"
 
 #include "Inventory.h"
 
@@ -8,7 +8,7 @@ namespace UI {
 		InitStartMenu();
 		InitPauseMenu();
 		InitGameMenu();
-
+		
 		engine::NewSystem(uiInventory=new Inventory("PlayerInventory"));
 	}
 }

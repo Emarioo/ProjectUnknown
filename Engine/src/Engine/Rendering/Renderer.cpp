@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-#include "Managers/AssetManager.h"
+#include "Handlers/AssetHandler.h"
 
 namespace engine {
 	
@@ -572,6 +572,13 @@ namespace engine {
 			texture->Bind(slot);
 		} else {
 			bug::out < bug::RED <  "Cannot find texture '" < name < "'\n";
+		}
+	}
+	void BindTexture(int slot, Texture* texture) {
+		if (texture != nullptr) {
+			texture->Bind(slot);
+		} else {
+			bug::out < bug::RED < "Texture is null '" < texture->filepath <"'\n";
 		}
 	}
 	

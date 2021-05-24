@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "Managers/FileManager.h"
+#include "Handlers/FileHandler.h"
 #include <vector>
 #include "Rendering/Texture.h"
 #include "Utility/Debugger.h"

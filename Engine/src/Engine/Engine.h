@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Rendering/Renderer.h"
-#include "Managers/InterfaceManager.h"
-#include "Sound/SoundManager.h"
+#include "Handlers/ObjectHandler.h"
+#include "Handlers/UIHandler.h"
+#include "Handlers/SoundHandler.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions

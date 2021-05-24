@@ -118,6 +118,8 @@ namespace engine {
 
 	// Texture
 	void BindTexture(int slot, const std::string& name);
+	// Texture
+	void BindTexture(int slot, Texture* texture);
 	
 	// Render
 	/*

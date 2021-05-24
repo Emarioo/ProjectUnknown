@@ -1,4 +1,4 @@
-#include "Menu.h"
+#include "MenuCreation.h"
 
 namespace UI {
 	bool hideStart = false;

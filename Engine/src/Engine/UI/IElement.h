@@ -175,7 +175,7 @@ namespace engine {
 
 		void InternalUpdate(float delta);
 		virtual void Update(float delta);
-		virtual void Draw();
+		virtual void Render();
 
 		bool Inside(float mx, float my);
 	};
