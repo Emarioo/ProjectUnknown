@@ -24,7 +24,6 @@ namespace engine {
 		MetaComponent metaComponent;
 		CollisionComponent collisionComponent;
 
-		glm::vec3 finalVelocity;
 		std::string name;
 		void SetName(std::string name);
 		std::string& GetName();

@@ -169,12 +169,15 @@
     <ClCompile Include="src\Inventory\Container.cpp" />
     <ClCompile Include="src\Inventory\Item.cpp" />
     <ClCompile Include="src\Items\ItemHandler.cpp" />
+    <ClCompile Include="src\GameHandler.cpp" />
     <ClCompile Include="src\Objects\Gnorg.cpp" />
     <ClCompile Include="src\Objects\Goblin.cpp" />
     <ClCompile Include="src\Objects\MagicStaff.cpp" />
     <ClCompile Include="src\Objects\Player.cpp" />
     <ClCompile Include="src\Objects\Tutorial.cpp" />
     <ClCompile Include="src\UI\GameMenu.cpp" />
+    <ClCompile Include="src\UI\Hotbar.cpp" />
+    <ClCompile Include="src\UI\InfoBar.cpp" />
     <ClCompile Include="src\UI\Inventory.cpp" />
     <ClCompile Include="src\UI\PauseMenu.cpp" />
     <ClCompile Include="src\UI\StartMenu.cpp" />
@@ -186,11 +189,14 @@
     <ClInclude Include="src\Inventory\Container.h" />
     <ClInclude Include="src\Inventory\Item.h" />
     <ClInclude Include="src\Items\ItemHandler.h" />
+    <ClInclude Include="src\GameHandler.h" />
     <ClInclude Include="src\Objects\Gnorg.h" />
     <ClInclude Include="src\Objects\Goblin.h" />
     <ClInclude Include="src\Objects\MagicStaff.h" />
     <ClInclude Include="src\Objects\Player.h" />
     <ClInclude Include="src\Objects\Tutorial.h" />
+    <ClInclude Include="src\UI\Hotbar.h" />
+    <ClInclude Include="src\UI\InfoBar.h" />
     <ClInclude Include="src\UI\Inventory.h" />
     <ClInclude Include="src\UI\MenuCreation.h" />
   </ItemGroup>

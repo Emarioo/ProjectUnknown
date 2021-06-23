@@ -7,8 +7,8 @@ namespace UI {
 
 		IElement* chatBox = NewElement("chatBox",0);
 		{
-			chatBox->AddTag([=]() {return IsKey(GLFW_KEY_E); });
-			chatBox->Col({ 50 });
+			chatBox->AddTag([=]() {return IsKey(GLFW_KEY_T); });
+			chatBox->Color({ 50 });
 			chatBox->Text(GetFont(), "Chatbox", 30, { 0.9f });
 			chatBox->conX.Left(20)->conY.Bottom(20)->conW.Center(0.25f)->conH.Center(0.33f);
 			//back->NewTransition([=]() {return !GetPauseMode(); })->Move(-200, 0, 1)->Fade({ 50, 0 }, 0.8);

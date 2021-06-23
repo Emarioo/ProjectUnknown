@@ -16,20 +16,39 @@ Container::~Container() {
 	itemArray.clear();
 }
 bool Container::AddItem(Item* item) {
-	int index = -1;
+	int emptySlot = -1;
 	for (int i = 0; i < slotWidth * slotHeight;i++) {
-		if (itemArray[i]==nullptr) {
-			itemArray[i] == item;
-			totalItemCount += item->count;
-			return true;
-		} else if(itemArray[i]->GetName() == item->GetName()) {
-			//if (itemArray[i]->GetCount()+item->GetCount() <= item->GetMaxCount()) {
+		if (itemArray[i] == nullptr) {
+			if (emptySlot == -1) 
+				emptySlot = i;
+		}else if (itemArray[i]->GetName() == item->GetName() && itemArray[i]) {
+			int diff = itemArray[i]->maxCount - itemArray[i]->count;
+			if (diff >= item->count) {
 				itemArray[i]->count += item->count;
+				item->count = 0;
 				totalItemCount += item->count;
 				return true;
-			//}
+			} else {
+				itemArray[i]->count += diff;
+				item->count -= diff;
+			}
 		}
 	}
+	if (item->count != 0) {
+		if (emptySlot != -1) {
+			for (int i = emptySlot; i < slotWidth * slotHeight; i++) {
+				if (itemArray[i] == nullptr) {
+					if (item->count>item->maxCount) {
+						itemArray[i] = new Item(item->name, item->maxCount);// TODO: ERROR: COPY META DATA!
+						item->count -= item->maxCount;
+					} else {
+						itemArray[i] = item;
+						return true;
+					}
+				}
+			}
+		} else return false;
+	} else return true;
 	return false;
 }
 bool Container::AddItem(Item* item, int slotX, int slotY) {
@@ -47,7 +66,7 @@ bool Container::AddItem(Item* item, int slotX, int slotY) {
 	}
 	return false;
 }
-Item* Container::RemoveItem(const std::string& name) {
+Item* Container::TakeItem(const std::string& name) {
 	for (int i = 0; i < slotWidth * slotHeight;i++) {
 		if (itemArray[i]!=nullptr) {
 			if (itemArray[i]->GetName() == name) {
@@ -60,7 +79,7 @@ Item* Container::RemoveItem(const std::string& name) {
 	}
 	return nullptr;
 }
-Item* Container::RemoveItem(int slotX, int slotY) {
+Item* Container::TakeItem(int slotX, int slotY) {
 	if (slotWidth > slotX && slotHeight > slotY) {
 		int index = slotY * slotWidth + slotX;
 		if (itemArray[index] != nullptr) {

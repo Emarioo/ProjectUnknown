@@ -11,7 +11,7 @@ namespace UI {
 		IElement* back = NewElement("pauseBack", 0);
 		{
 			back->AddTag([=]() {return IsGameState(Play); });
-			back->Col({ 50 });
+			back->Color({ 50 });
 			back->Text(GetFont(), "Back", 30, { 0.9f });
 			back->conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
 			back->NewTransition([=]() {return !GetPauseMode(); })->Move(-200, 0, 1)->Fade({ 50, 0 }, 0.8);

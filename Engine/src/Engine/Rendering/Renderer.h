@@ -42,12 +42,30 @@ namespace engine {
 	void SetWindowType(WindowTypes t);
 	WindowTypes GetWindowType();
 	WindowTypes GetLastWindowType();
-	float AlterW(float w);
-	float AlterH(float h);
-	float AlterSW(float w);
-	float AlterSH(float h);
-	float AlterX(int x);
-	float AlterY(int y);
+	/*
+	From pixel to screen range (-1 to 1)
+	*/
+	float ToFloatScreenX(int x);
+	/*
+	From pixel to screen range (-1 to 1)
+	*/
+	float ToFloatScreenY(int y);
+	/*
+	From pixel to screen range (-1 to 1)
+	*/
+	float ToFloatScreenW(float w);
+	/*
+	From pixel to screen range (-1 to 1)
+	*/
+	float ToFloatScreenH(float h);
+	/*
+	From percentage (0 to 1) to screen range (-1 to 1)
+	*/
+	float PercentToFloatScreenW(float w);
+	/*
+	From percentage (0 to 1) to screen range (-1 to 1)
+	*/
+	float PercentToFloatScreenH(float h);
 
 	bool HasFocus();
 

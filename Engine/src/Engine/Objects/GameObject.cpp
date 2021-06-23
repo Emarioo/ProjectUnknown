@@ -74,7 +74,7 @@ namespace engine {
 	glm::vec3 GameObject::WillCollide(GameObject* o1, float delta) {
 		CollisionComponent& c0 = collisionComponent;
 		CollisionComponent& c1 = o1->collisionComponent;
-		glm::vec3 out = finalVelocity;
+		glm::vec3 out = velocity;
 
 		int times = 0;
 		while (times++ < 1) {
@@ -155,7 +155,6 @@ namespace engine {
 				if (hasHit)
 					out = newOut;
 			}
-			
 		}
 		return out * -1.f;
 	}

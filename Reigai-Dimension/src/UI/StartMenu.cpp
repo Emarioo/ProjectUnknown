@@ -20,7 +20,7 @@ namespace UI {
 		IElement* alone = NewElement("playAlone", 5);
 		{
 			alone->AddTag(menu);
-			alone->Col({ 63, 63, 107 });
+			alone->Color({ 63, 63, 107 });
 			alone->Text(GetFont(), "Play Alone", 30, { 0.9f });
 			alone->conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
 			alone->NewTransition(&hideStart)->Move(-300, 0, 1)->Fade({ 63, 63, 107, 0 }, 0.8);
@@ -33,14 +33,14 @@ namespace UI {
 		IElement* aloneScroll = NewElement("aloneScroll", 0);
 		{
 			aloneScroll->AddTag(menu);
-			aloneScroll->Col({ 100, 0 });
+			aloneScroll->Color({ 100, 0 });
 			aloneScroll->conX.Left(20 - 300)->conY.Center(0.f)->conW.Center(260)->conH.Center(1.f);
 			aloneScroll->NewTransition(&showAlone)->Move(300, 0, 1)->Fade({ 100, 0 }, 0.8);
 		}
 		IElement* aloneBack = NewElement("aloneBack", 2);
 		{
 			aloneBack->AddTag(menu);
-			aloneBack->Col({ 63, 63, 107, 0 });
+			aloneBack->Color({ 63, 63, 107, 0 });
 			aloneBack->Text(GetFont(), "Back", 30, { 0.9f });
 			aloneBack->conX.Right(20 - 250)->conY.Bottom(20)->conW.Center(200)->conH.Center(100);
 			aloneBack->NewTransition(&showAlone)->Move(-250, 0, 1)->Fade({ 63, 63, 107, 1 }, 0.8);
@@ -54,7 +54,7 @@ namespace UI {
 		IElement* editDesc = NewElement("editDesc", 1);
 		{
 			editDesc->AddTag(menu);
-			editDesc->Col({ 63, 63, 107, 0 });
+			editDesc->Color({ 63, 63, 107, 0 });
 			editDesc->Text(GetFont(), "Description\n of this world\nPlay Time: 0s\n...", { 0.9f });
 			editDesc->conX.Left(aloneScroll, 20)->conY.Top(20)->conW.Center(260)->conH.Center(0.5f);
 			editDesc->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
@@ -63,7 +63,7 @@ namespace UI {
 		IElement* editPlay = NewElement("editPlay", 1);
 		{
 			editPlay->AddTag(menu);
-			editPlay->Col({ 63, 63, 107, 0 });
+			editPlay->Color({ 63, 63, 107, 0 });
 			editPlay->Text(GetFont(), "Play!", 30, { 0.9f });
 			editPlay->conX.Left(aloneScroll, 20)->conY.Top(editDesc, 10)->conW.Center(260)->conH.Center(80);
 			editPlay->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
@@ -84,7 +84,7 @@ namespace UI {
 		for (int i = 0; i < 5; i++) {
 			IElement* world = NewElement("aloneWorld" + std::to_string(i), 1);
 			world->AddTag(menu);
-			world->Col({ 83, 83, 127, 0 });
+			world->Color({ 83, 83, 127, 0 });
 			world->Text(GetFont(), "World Name " + std::to_string(i), 30, { 0.9f });
 			world->conX.Left(30 - 300)->conW.Center(240)->conH.Center(80);
 			if (last == nullptr)

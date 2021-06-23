@@ -13,10 +13,6 @@ namespace engine {
 	void DelObject(GameObject* object);
 	void DelObject(const std::string& name);
 
-	ClientPlayer* GetPlayer();
-
 	std::vector<GameObject*>& GetObjects();
 	GameObject* GetObjectByName(const std::string& name);
-	
-	void AddPlayer(ClientPlayer* player);
 }

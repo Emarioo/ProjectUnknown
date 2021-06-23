@@ -80,23 +80,23 @@ namespace engine {
 	bool HasFocus() {
 		return hasFocus;
 	}
-	float AlterW(float w) {
-		return 2.f * (w) / Width();
-	}
-	float AlterH(float h) {
-		return 2.f * (h) / Height();
-	}
-	float AlterSW(float w) {
-		return 2 * w;
-	}
-	float AlterSH(float h) {
-		return 2 * h;
-	}
-	float AlterX(int x) {
+	float ToFloatScreenX(int x) {
 		return 2 * x / Width() - 1;
 	}
-	float AlterY(int y) {
+	float ToFloatScreenY(int y) {
 		return 1 - 2 * y / Height();
+	}
+	float ToFloatScreenW(float w) {
+		return 2.f * (w) / Width();
+	}
+	float ToFloatScreenH(float h) {
+		return 2.f * (h) / Height();
+	}
+	float PercentToFloatScreenW(float w) {
+		return 2 * w;
+	}
+	float PercentToFloatScreenH(float h) {
+		return 2 * h;
 	}
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
@@ -288,6 +288,7 @@ namespace engine {
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
 		SetWinSize(mode->width / 6, mode->height / 6, mode->width / 1.5, mode->height / 1.5);
+		//SetWinSize(mode->width / 6, mode->height / 6, 500, 500);
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

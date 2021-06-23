@@ -18,7 +18,8 @@ public:
 	void Draw();
 	/*
 	Add 'item' to an empty spot in the container
-	return true if successful (false could mean inventory is full)
+	return true if all items was put into container. False if some remain in itemstack
+	remember to remove mouse held reference to item.
 	*/
 	bool AddItem(Item* item);
 	/*
@@ -27,18 +28,18 @@ public:
 	*/
 	bool AddItem(Item* item, int slotX, int slotY);
 	/*
-	Remove first found item with specified name
-	*/
-	Item* RemoveItem(const std::string& name);
-	/*
 	Return nullptr if slot is empty
 	*/
 	Item* ItemAt(int slotX, int slotY);
 	/*
+	Remove first found item with specified name
+	*/
+	Item* TakeItem(const std::string& name);
+	/*
 	Remove item from slot
 	return nullpointer if slot is empty or non-existent
 	*/
-	Item* RemoveItem(int slotX, int slotY);
+	Item* TakeItem(int slotX, int slotY);
 	/*
 	Will also return false if slot is outside the array
 	*/

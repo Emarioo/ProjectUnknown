@@ -1,17 +1,20 @@
 #pragma once
 
-#include "Engine/UI/ISystem.h"
+#include "Engine/UI/IBase.h"
 #include "Inventory/Container.h"
 
-class Inventory : public engine::ISystem {
+class Inventory : public engine::IBase {
 public:
 	Inventory(const std::string& name);
-	/*
-	Override of functions
-	*/
-	void MouseEvent(double mx, double my, int button, int action) override;
+	
+	bool active;
+	bool IsActive();
+
+	bool ClickEvent(int mx, int my, int button, int action) override;
+	bool KeyEvent(int key, int action) override;
+	
 	void Update(float delta) override;
 	void Render() override;
 
-	Container* container; // Refrence to current inventory to be shown.
+	Container* container=nullptr; // Reference to current container to be shown.
 };

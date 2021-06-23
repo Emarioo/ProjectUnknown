@@ -16,8 +16,6 @@ Player::Player(float x,float y,float z) {
 float playerAnimBlending = 0;
 float playerAnimSpeed = 1.7;
 void Player::Update(float delta) {
-	Movement(delta);
-
 	if (engine::IsKey(GLFW_KEY_W)) {
 		if (playerAnimBlending < 1 && playerAnimSpeed>0)
 			playerAnimBlending += playerAnimSpeed * delta;
@@ -36,6 +34,8 @@ void Player::Update(float delta) {
 	renderComponent.animator.Blend("goblin_run", 1 - playerAnimBlending);
 
 	renderComponent.animator.Update(delta);
+
+	Movement(delta);
 }
 glm::vec3 Player::Movement(float delta) {
 	Camera* camera = engine::GetCamera();
@@ -137,6 +137,7 @@ glm::vec3 Player::Movement(float delta) {
 
 	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
 	
+	velocity = glm::vec3(0);
 	if (freeCam) {
 		camera->position += nmove * delta;
 	} else {
@@ -151,8 +152,8 @@ glm::vec3 Player::Movement(float delta) {
 		}
 		camera->position = camPos.vec();
 	}
-
-	return nmove;
+	
+	//return nmove;
 	/*
 	if (GetDimension() != nullptr) {
 		float terHeight = GetDimension()->TerHeightAtPlayer();

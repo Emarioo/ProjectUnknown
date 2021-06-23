@@ -434,9 +434,9 @@ namespace engine {
 	}
 	void Text::DrawString(float alpha, bool f) {
 		// Dynamic
-		float actualHeight = AlterH(charHeight);
+		float actualHeight = ToFloatScreenH(charHeight);
 		if (!staticHeight) {
-			actualHeight = ((*elemW / 2 * Width()) / PixelWidth(true)) * AlterH(64);
+			actualHeight = ((*elemW / 2 * Width()) / PixelWidth(true)) * ToFloatScreenH(64);
 			float a = *elemH / PixelHeight(false);
 			if (a < 1)
 				actualHeight *= a;

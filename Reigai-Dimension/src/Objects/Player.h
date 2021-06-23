@@ -15,6 +15,15 @@ public:
 	void Update(float delta) override;
 	glm::vec3 Movement(float delta);
 
+	float health = 20;
+	float maxHealth = 100;
+	float stamina = 20;
+	float maxStamina = 60;
+	float hunger = 80;
+	float maxHunger = 100;
+	float mana = 9;
+	float maxMana = 20;
+
 	//Container* inventory;
 
 private:

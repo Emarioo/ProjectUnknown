@@ -50,38 +50,31 @@ namespace engine {
 	void UpdateObjects(float delta) {
 		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
 
-		for (int i = 0; i < GetObjects().size(); i++) {
-			GetObjects().at(i)->finalVelocity = glm::vec3(0, 0, 0);
-		}
 		// Additional Player Movement
-		engine::GetPlayer()->finalVelocity += GetPlayer()->Movement(delta);
-		
+		//engine::GetPlayer()->finalVelocity += GetPlayer()->Movement(delta);
+
 		// Sort slowest velocity first
 		for (int i = 0; i < GetObjects().size(); i++) {
 			GameObject* o0 = GetObjects().at(i);
-			//MetaStrip* ms = o0->metaData.GetMeta(Velocity, Pos, None);
 
-			/*if (ms != nullptr) {
-				o0->velocity += glm::vec3(ms->floats[0], ms->floats[1], ms->floats[2]);
-			}*/
-			
+			o0->Update(delta);
+			/*
 			if (o0->collisionComponent.isActive) {
 				for (int j = i + 1; j < GetObjects().size();j++) {
 					GameObject* o1 = GetObjects().at(j);
 					if (o1->collisionComponent.isActive) {
 						if (o0->IsClose(o1)) {
-							glm::vec3 vel = o0->WillCollide(o1, delta);
-							if (vel != o0->velocity) {
+
+							glm::vec3 newVelocity = o0->WillCollide(o1, delta);
+							if (newVelocity != o0->velocity) { // Collision
 								//bug::out < "Collide " < o1->name <bug::end;
-								o0->velocity = vel;
+								o0->velocity = newVelocity;
 							}
 						}
 					}
 				}
-			}
+			}*/
 			o0->position += o0->velocity * delta;
-
-			o0->Update(delta);
 		}
 
 		UpdateViewMatrix();

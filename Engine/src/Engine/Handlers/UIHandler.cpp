@@ -39,12 +39,12 @@ namespace engine {
 		uiFadeBool = false;
 	}
 
-	std::vector<ISystem*> iSystems;
-	void NewSystem(ISystem* s) {
-		iSystems.push_back(s);
+	std::vector<IBase*> iBases;
+	void NewBase(IBase* s) {
+		iBases.push_back(s);
 	}
-	ISystem* GetSystem(const std::string& s) {
-		for (ISystem* o : iSystems) {
+	IBase* GetBase(const std::string& s) {
+		for (IBase* o : iBases) {
 			if (o->name == s) {
 				return o;
 			}
@@ -92,7 +92,7 @@ namespace engine {
 				p->HoverEvent(GetMX(), GetMY());
 			}
 		}
-		for (auto p : iSystems) {
+		for (auto p : iBases) {
 			p->HoverEvent(GetMX(), GetMY());
 		}
 		for (auto p : elements) {
@@ -101,7 +101,7 @@ namespace engine {
 				p->Update(delta);
 			}
 		}
-		for (auto p : iSystems) {
+		for (auto p : iBases) {
 			p->Update(delta);
 		}
 		//}
@@ -110,7 +110,7 @@ namespace engine {
 	void KeyEvent(int key, int action) {
 		//bug::outs < "KeyEvent" < key < action < bug::end;
 		
-		for (auto p : iSystems) {
+		for (auto p : iBases) {
 			p->KeyEvent(key,action);
 		}
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
@@ -127,8 +127,8 @@ namespace engine {
 	std::function<void(double, double, int, int,const std::string&)> mouseEvent;
 	void MouseEvent(double mx, double my, int button, int action) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "MouseEvent" < mx < my < button < action < bug::end;
-		for (auto p : iSystems) {
-			p->MouseEvent(mx,my,button, action);
+		for (auto p : iBases) {
+			p->ClickEvent(mx,my,button, action);
 		}
 		std::string name = "";
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
@@ -147,7 +147,7 @@ namespace engine {
 	std::function<void(double)> scrollEvent = nullptr;
 	void ScrollEvent(double yoffset) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "ScrollEvent" < xoffset < yoffset < bug::end;
-		for (auto p : iSystems) {
+		for (auto p : iBases) {
 			p->ScrollEvent(yoffset);
 		}
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
@@ -188,12 +188,12 @@ namespace engine {
 				p->Render();
 			}
 		}
-		for (auto p : iSystems) {
+		for (auto p : iBases) {
 			p->Render();
 		}
 		
 		GuiColor(0.9, 0.8, 0.7, 1);
-		GuiTransform(-1+0.01, 1-0.06);
+		GuiTransform(-1+0.01, -1+0.06);
 		GuiSize(1, 1);
 		glm::vec3 pos = GetCamera()->position;
 		glm::vec3 rot = GetCamera()->rotation;
@@ -351,7 +351,7 @@ namespace engine {
 		font1.Data("consolas42");
 
 		uiFade = NewElement("uiFade",100);
-		uiFade->Col({ 0, 0 });
+		uiFade->Color({ 0, 0 });
 		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(1.f)->conH.Center(1.f);
 		uiFade->NewTransition(&uiFadeBool)->Fade({ 0, 1 }, 1.f);
 

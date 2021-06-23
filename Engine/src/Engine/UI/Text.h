@@ -29,6 +29,9 @@ namespace engine {
 		void SetText(const std::string& text);
 
 		float* elemW = nullptr, * elemH = nullptr;
+		/*
+		Alternative to this function? How does it even work?
+		*/
 		void ElemWH(float*, float*);
 
 		float xpos = 0, ypos = 0;

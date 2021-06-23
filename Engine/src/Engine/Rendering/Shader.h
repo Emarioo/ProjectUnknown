@@ -51,6 +51,7 @@ namespace engine {
 		void SetIVec3(const std::string& name, glm::ivec3);
 		void SetVec4(const std::string& name, float f0, float f1, float f2, float f3);
 		void SetMatrix(const std::string& name, glm::mat4 v);
+		
 		unsigned int GetUniformLocation(const std::string& name);
 		std::string shaderPath;
 		unsigned int programID;

@@ -1,339 +1,9 @@
 #include "IElement.h"
 
 namespace engine {
-	Color::Color()
-		: r(0), g(0), b(0), a(1) {}
-	Color::Color(float f) 
-		: r(f),g(f),b(f),a(1) { }
-	Color::Color(int i) 
-		: r(i/256.f), g(i/256.f), b(i/256.f), a(1) { }
-	Color::Color(float f, float a)
-		: r(f), g(f), b(f), a(a) { }
-	Color::Color(int i, float a)
-		: r(i / 256.f), g(i / 256.f), b(i / 256.f), a(a) { }
-	Color::Color(float red, float green, float blue)
-		: r(red), g(green), b(blue), a(1) { }
-	Color::Color(int red, int green, int blue)
-		: r(red / 256.f), g(green / 256.f), b(blue / 256.f), a(1) { }
-	Color::Color(float red, float green, float blue, float alpha)
-		: r(red),g(green),b(blue),a(alpha) { }
-	Color::Color(int red, int green, int blue, float alpha)
-		: r(red / 256.f), g(green / 256.f), b(blue / 256.f), a(alpha) { }
 
-	IConstraint::IConstraint(IElement* e, bool use_xAxis) : parent(e), xAxis(use_xAxis) {}
-	IElement* IConstraint::Center(int pos) {
-		center = true;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Center(float pos) {
-		center = true;
-		if (xAxis) raw = AlterSW(pos);
-		else raw = AlterSH(pos);
-		return parent;
-	}
-	IElement* IConstraint::Center(IElement* element, int pos) {
-		center = true;
-		elem = element;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Center(IElement* element, float pos) {
-		center = true;
-		elem = element;
-		if (xAxis) raw = AlterSW(pos);
-		else raw = AlterSH(pos);
-		return parent;
-	}
-	IElement* IConstraint::Left(int pos) {
-		xAxis = true;
-		side = false;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Left(float pos) {
-		xAxis = true;
-		side = false;
-		raw = AlterSW(pos);
-		return parent;
-	}
-	IElement* IConstraint::Left(IElement* element, int pos) {
-		xAxis = true;
-		side = false;
-		isPixel = true;
-		elem = element;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Left(IElement* element, float pos) {
-		xAxis = true;
-		side = false;
-		elem = element;
-		raw = AlterSW(pos);
-		return parent;
-	}
-	IElement* IConstraint::Right(int pos) {
-		xAxis = true;
-		side = true;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Right(float pos) {
-		xAxis = true;
-		side = true;
-		raw = AlterSW(pos);
-		return parent;
-	}
-	IElement* IConstraint::Right(IElement* element, int pos) {
-		xAxis = true;
-		side = true;
-		isPixel = true;
-		elem = element;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Right(IElement* element, float pos) {
-		xAxis = true;
-		side = true;
-		elem = element;
-		raw = AlterSW(pos);
-		return parent;
-	}
-	IElement* IConstraint::Bottom(int pos) {
-		xAxis = false;
-		side = false;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Bottom(float pos) {
-		xAxis = false;
-		side = false;
-		raw = AlterSH(pos);
-		return parent;
-	}
-	IElement* IConstraint::Bottom(IElement* element, int pos) {
-		xAxis = false;
-		side = false;
-		isPixel = true;
-		elem = element;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Bottom(IElement* element, float pos) {
-		xAxis = false;
-		side = false;
-		elem = element;
-		raw = AlterSH(pos);
-		return parent;
-	}
-	IElement* IConstraint::Top(int pos) {
-		xAxis = true;
-		side = true;
-		isPixel = true;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Top(float pos) {
-		xAxis = true;
-		side = true;
-		raw = AlterSH(pos);
-		return parent;
-	}
-	IElement* IConstraint::Top(IElement* element, int pos) {
-		xAxis = false;
-		side = true;
-		isPixel = true;
-		elem = element;
-		raw = pos;
-		return parent;
-	}
-	IElement* IConstraint::Top(IElement* element, float pos) {
-		xAxis = false;
-		side = true;
-		elem = element;
-		raw = AlterSH(pos);
-		return parent;
-	}
-	void IConstraint::Add(int pos) {
-		raw += pos;
-	}
-	void IConstraint::Add(float pos) {
-		if (xAxis) raw += AlterSW(pos);
-		else raw += AlterSH(pos);
-	}
-	float IConstraint::Value(float f) {
-		if (xAxis) {
-			float temp = raw;
-			float ex = 0;
-			float ew = 0;
-			if (isPixel) {
-				temp = AlterW(raw);
-			}
-			if (elem != nullptr) {
-				ex = elem->x;
-				ew = elem->w;
-			}
-			if (center) {
-				if (elem == nullptr) return temp;
-				else return elem->x + temp;
-			} else if (side) {
-				if (elem == nullptr) return 1 - temp - f / 2;
-				else return ex - (ew + f) / 2 - temp;
-			} else {
-				if (elem == nullptr) return temp - 1 + f / 2;
-				else return ex + (ew + f) / 2 + temp;
-			}
-		} else {
-			float temp = raw;
-			float ey = 0;
-			float eh = 0;
-			if (isPixel) {
-				temp = AlterH(raw);
-			}
-			if (elem != nullptr) {
-				ey = elem->y;
-				eh = elem->h;
-			}
-			if (center) {
-				if (elem == nullptr) return temp;
-				else return elem->y + temp;
-			} else if (side) {
-				if (elem == nullptr) return 1 - temp - f / 2;
-				else return ey - (eh + f) / 2 - temp;
-			} else {
-				if (elem == nullptr) return temp - 1 + f / 2;
-				else return ey + (eh + f) / 2 + temp;
-			}
-		}
-
-		return 0;
-	}
-	ITransition::ITransition(bool* act) {
-		activator = act;
-	}
-	ITransition::ITransition(std::function<bool()> act) {
-		activatorF = act;
-	}
-	ITransition* ITransition::Fade(const Color& c, float time) {
-		fade = true;
-		color = c;
-		fadeS = 1 / time;
-		return this;
-	}
-	ITransition* ITransition::Move(int f0, int f1, float time) {
-		move = true;
-		movePixel = true;
-		x = f0;
-		y = f1;
-		moveS = 1 / time;
-		return this;
-	}
-	ITransition* ITransition::Move(float f0, float f1, float time) {
-		move = true;
-		x = f0;
-		y = f1;
-		moveS = 1 / time;
-		return this;
-	}
-	ITransition* ITransition::Size(int f0, int f1, float time) {
-		size = true;
-		sizePixel = true;
-		w = f0;
-		h = f1;
-		sizeS = 1 / time;
-		return this;
-	}
-	ITransition* ITransition::Size(float f0, float f1, float time) {
-		size = true;
-		w = f0;
-		h = f1;
-		sizeS = 1 / time;
-		return this;
-	}
-	float ITransition::ValueX() {
-		if (movePixel) {
-			return AlterW(x * moveT);
-		} else {
-			return x * moveT;
-		}
-	}
-	float ITransition::ValueY() {
-		if (movePixel) {
-			return AlterH(y * moveT);
-		} else {
-			return y * moveT;
-		}
-	}
-	float ITransition::ValueW() {
-		if (sizePixel) {
-			return AlterW(w * sizeT);
-		} else {
-			return w * sizeT;
-		}
-	}
-	float ITransition::ValueH() {
-		if (sizePixel) {
-			return AlterH(h * sizeT);
-		} else {
-			return h * sizeT;
-		}
-	}
-	void ITransition::Update(float delta) {
-		/*if (func != nullptr) {
-			if (*activator || funcT > 0)
-				funcT += funcS * delta;
-			if (funcT >= 1 && funcT < 1 + funcS * delta)
-				func(funcData);
-			if (funcT > 1 && !*activator)
-				funcT = 0;
-		}*/
-		bool on = activator != nullptr ? *activator : activatorF();
-		if (fade) {
-			if (on) {
-				fadeT += fadeS * delta;
-			} else {
-				fadeT -= fadeS * delta;
-			}
-			
-			if (fadeT < 0) {
-				fadeT = 0;
-			} else if (fadeT > 1) {
-				fadeT = 1;
-			}
-		}
-		if (move) {
-			if (on) {
-				moveT += moveS * delta;
-			} else {
-				moveT -= moveS * delta;
-			}
-			if (moveT < 0) {
-				moveT = 0;
-			} else if (moveT > 1) {
-				moveT = 1;
-			}
-		}
-		if (size) {
-			if (on) {
-				sizeT += sizeS * delta;
-			} else {
-				sizeT -= sizeS * delta;
-			}
-			if (sizeT < 0) {
-				sizeT = 0;
-			} else if (sizeT > 1) {
-				sizeT = 1;
-			}
-		}
-	}
 	IElement::IElement(const std::string& name, int priority) :
-		name(name), conX(IConstraint(this, true)), conY(IConstraint(this, false)),
-		conW(IConstraint(this, true)), conH(IConstraint(this, false)), priority(priority)
+		IBase(name), priority(priority)
 	{
 		text.ElemWH(&w, &h);
 	}
@@ -343,25 +13,21 @@ namespace engine {
 	void IElement::Texture(const std::string& texture) {
 		this->texture = texture;
 	}
-	void IElement::Col(const Color& c) {
-		color = c;
-	}
 	void IElement::Blank() {
 		isBlank = true;
 	}
-
-	void IElement::Text(Font* f, const std::string& s, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, const IColor& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetText(s);
 	}
-	void IElement::Text(Font* f, const std::string& s, int charHeight, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, int charHeight, const IColor& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
 		text.SetText(s);
 	}
-	void IElement::Text(Font* f, const std::string& s, float charHeight, const Color& color) {
+	void IElement::Text(Font* f, const std::string& s, float charHeight, const IColor& color) {
 		text.Setup(f, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
@@ -558,8 +224,8 @@ namespace engine {
 		}
 	}
 	bool IElement::Inside(float mx, float my) {
-		mx = AlterX(mx);
-		my = AlterY(my);
+		mx = ToFloatScreenX(mx);
+		my = ToFloatScreenY(my);
 		//bug::outs < mx<my< x < y < w < h < bug::end;
 		//bug::outs < (mx > x - w / 2) < (mx<x + w / 2) < (my>w - h / 2) < (my < y + h / 2) < bug::end;
 		return mx > x - w / 2 && mx<x + w / 2 && my>y - h / 2 && my < y + h / 2;

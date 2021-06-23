@@ -14,10 +14,6 @@ namespace engine {
 		loadedDim = &dimensions[s];
 	}
 	
-	ClientPlayer* playerReference=nullptr;
-	ClientPlayer* GetPlayer() {
-		return playerReference;
-	}
 	std::vector<GameObject*> gameObjects;
 	GameObject* AddObject(GameObject* object) {
 		gameObjects.push_back(object);
@@ -50,9 +46,5 @@ namespace engine {
 			}
 		}
 		return nullptr;
-	}
-	void AddPlayer(ClientPlayer* o) {
-		playerReference = o;
-		AddObject(o);
 	}
 }

@@ -7,6 +7,10 @@
 
 #include "UI/MenuCreation.h"
 
+#include "Items/ItemHandler.h"
+
+#include "GameHandler.h"
+
 float ang = 0;
 float vel = 0.001;
 engine::Light* light;
@@ -44,6 +48,7 @@ void Update(float delta) {
 }
 bool pauseRender = false;
 engine::BufferContainer cont;
+engine::BufferContainer itemContainer2;
 void Render() {
 	using namespace engine;
 	SwitchBlendDepth(false);
@@ -87,6 +92,12 @@ void Render() {
 		}
 	}
 	RenderUI();
+	engine::GuiTransform(0, 0);
+	engine::GuiSize(1, 1);
+	engine::GuiColor(1, 1, 1, 1);
+	//engine::BindTexture(0, "items0");
+	//itemContainer2.Draw();
+	//engine::DrawRect(0,0,0.5,0.5);
 }
 void OnKey(int key, int action) {
 	if (IsGameState(Play)) {
@@ -202,7 +213,7 @@ void CustomDimension() {
 	gray.Flat(0.5,1,1,0);
 	noise.AddBiome(gray);
 	Dimension& dim = noise;
-	dim.Init(engine::GetPlayer());
+	dim.Init(GetPlayer());
 	engine::AddDimension("classic",dim);
 	engine::SetDimension("classic");
 }
@@ -215,6 +226,7 @@ int main(int argc, char*argv[]) {
 	}
 
 	engine::Initialize();
+	InitItemHandler();
 
 	engine::GetEventCallbacks(OnKey,OnMouse,nullptr,nullptr);
 
@@ -259,12 +271,16 @@ int main(int argc, char*argv[]) {
 	engine::AddModelAsset("Tutorial");
 	engine::AddModelAsset("Terrain");
 	engine::AddModelAsset("Gnorg");
+
 	//bug::out < a->Get(0)->Get(0)->frames[1].value < bug::end;
 	//engine::AddAnimationAsset("ArmatureAction");
 	//engine::GetModelAsset("Player")->AddAnimation("ArmatureAction");
 
 	//engine::AddTextureAsset("brickwall");
 	//engine::AddTextureAsset("brickwall_normal");
+
+	//engine::AddTextureAsset("items0");
+	//engine::AddTextureAsset("magicstaff_fireball");
 
 	melody.Init("assets/sounds/melody.wav");
 
@@ -284,10 +300,11 @@ int main(int argc, char*argv[]) {
 	//engine::AddObject(new Goblin(0, -3, 0));
 	//engine::AddObject(new Goblin(0, 0, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
-	Player* player = new Player(0, 0, 0);
+	Player* player = new Player(0, 15, 0);
 	player->flight = true;
 	//player->renderHitbox = true;
-	engine::AddPlayer(player);
+	SetPlayer(player);
+	engine::AddObject(player);
 	//Tutorial* tutorial = new Tutorial(0, 0, 0);
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);

@@ -1,17 +1,17 @@
 #pragma once
 
 #include <string>
-#include "Engine/Engine.h"
 
 class Item {
 public:
 	Item();
+	Item(const std::string& name);
+	Item(const std::string& name, int count);
 
 	const std::string& GetName();
 
-	void Draw(float x, float y);
-
-	int count;
+	int count = 0;
+	int maxCount = 50;
 	std::string name;
 private:
 
