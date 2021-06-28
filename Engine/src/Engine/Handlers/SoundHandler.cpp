@@ -34,7 +34,7 @@ namespace engine {
 	bool InitSound() {
 		ALvoid* data;
 		ALint source_state;
-
+		std::cout << "Waiting for Sound..." << std::endl;
 		ALboolean enumeration = alCall(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"));
 		if (enumeration == AL_FALSE)
 

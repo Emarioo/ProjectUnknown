@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Engine/UI/IBase.h"
-#include "Inventory/Container.h"
+#include "Items/Container.h"
 #include "Engine/Engine.h"
 
-class InfoBar : public engine::IBase {
+class Infobar : public engine::IBase {
 public:
-	InfoBar(const std::string& name);
+	Infobar(const std::string& name);
 
 	bool active;
 	bool IsActive();

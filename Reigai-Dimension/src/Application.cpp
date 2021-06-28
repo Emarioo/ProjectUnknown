@@ -5,11 +5,12 @@
 #include "Objects/Tutorial.h"
 #include "Objects/Player.h"
 
-#include "UI/MenuCreation.h"
+#include "UI/InterfaceManager.h"
 
 #include "Items/ItemHandler.h"
 
 #include "GameHandler.h"
+#include "GameStates.h"
 
 float ang = 0;
 float vel = 0.001;
@@ -91,13 +92,10 @@ void Render() {
 			}
 		}
 	}
+	// Render IBase, IElement...
 	RenderUI();
-	engine::GuiTransform(0, 0);
-	engine::GuiSize(1, 1);
-	engine::GuiColor(1, 1, 1, 1);
-	//engine::BindTexture(0, "items0");
-	//itemContainer2.Draw();
-	//engine::DrawRect(0,0,0.5,0.5);
+	// Render custom things like items dragged by the mouse
+	UI::Render();
 }
 void OnKey(int key, int action) {
 	if (IsGameState(Play)) {
@@ -107,7 +105,7 @@ void OnKey(int key, int action) {
 				if (engine::GetDimension() != nullptr)
 					engine::GetDimension()->UpdateAllChunks();
 			}
-			if (key == GLFW_KEY_G) {// AT: Magic Editor
+			if (key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
 				/*IElement* el = GetElement("editor_script");
 				if (el != nullptr) {
 					if (!el->selected) {
@@ -140,17 +138,18 @@ void OnKey(int key, int action) {
 	}
 }
 
-// TODO: Do something about that const string. It's not supposed to be there.
+//  Do something about that const string. It's not supposed to be there.
 void OnMouse(double mx,double my,int button,int action,const std::string& elementName) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
 	if (IsGameState(Play)) {
 		if (action == 0) {
-			if (engine::GetPauseMode()) {
+			if (engine::GetPauseMode()) { // Unpause in pause menu if clicking on anything
 				engine::SetPauseMode(false);
 			}
 		}
 	}
 }
+// Is this really supposed to be here?
 void CustomDimension() {
 	using namespace engine;
 	float a = 5 * engine::GetOptionf("scale") / 500;
@@ -215,7 +214,7 @@ void CustomDimension() {
 	Dimension& dim = noise;
 	dim.Init(GetPlayer());
 	engine::AddDimension("classic",dim);
-	engine::SetDimension("classic");
+	//engine::SetDimension("classic");
 }
 int main(int argc, char*argv[]) {
 	// debug override
@@ -224,7 +223,7 @@ int main(int argc, char*argv[]) {
 			if (argv[i] == "debug") bug::ENABLE_DEBUG_OVERRIDE();
 		}
 	}
-
+	bug::Enable(true);
 	engine::Initialize();
 	InitItemHandler();
 

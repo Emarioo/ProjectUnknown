@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/UI/IBase.h"
-#include "Inventory/Container.h"
+#include "Items/Container.h"
 
 class Inventory : public engine::IBase {
 public:

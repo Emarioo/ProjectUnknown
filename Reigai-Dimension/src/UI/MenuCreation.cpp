@@ -3,10 +3,9 @@
 #include "Inventory.h"
 #include "InfoBar.h"
 #include "Hotbar.h"
-#include "Engine/Rendering/Renderer.h"
 
 Inventory* uiInventory;
-InfoBar* uiInfoBar;
+Infobar* uiInfoBar;
 Hotbar* uiHotbar;
 namespace UI {
 	void InitializeUI() {
@@ -25,6 +24,6 @@ namespace UI {
 		
 		engine::AddTextureAsset("containers/hotbar");
 		engine::NewBase(uiHotbar = new Hotbar("PlayerHotbar"));
-		uiHotbar->conX.Center(0.f)->conY.Bottom(0.1f)->conW.Center(550 / 1920.f / 2)->conH.Center(226 / 1080.f / 2)->SetFixed();
+		uiHotbar->conX.Center(0.f)->conY.Bottom(0.05f)->conW.Center(608 / 1920.f)->conH.Center(64 / 1080.f)->SetFixed();
 	}
 }

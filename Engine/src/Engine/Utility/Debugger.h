@@ -2,10 +2,12 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
-#include "Rendering/Shader.h"
+//#include "Rendering/Shader.h"
 
 #include "glm/glm.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 namespace bug {
 	/* DEBUG CMDS

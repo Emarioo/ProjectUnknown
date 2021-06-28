@@ -13,10 +13,6 @@ public:
 	Container(const std::string& name, int slotW, int slotH);
 	~Container();
 	/*
-	Draw container background and all items in the container
-	*/
-	void Draw();
-	/*
 	Add 'item' to an empty spot in the container
 	return true if all items was put into container. False if some remain in itemstack
 	remember to remove mouse held reference to item.
@@ -26,11 +22,12 @@ public:
 	Add 'item' to the specified slot
 	return true if successful (false could mean slot is non-existent or not empty)
 	*/
-	bool AddItem(Item* item, int slotX, int slotY);
+	bool AddItemAt(Item* item, int slotX, int slotY);
 	/*
 	Return nullptr if slot is empty
 	*/
-	Item* ItemAt(int slotX, int slotY);
+	Item* GetItemAt(int slotX, int slotY);
+	Item** GetItemPointerAt(int slotX, int slotY);
 	/*
 	Remove first found item with specified name
 	*/
@@ -39,7 +36,15 @@ public:
 	Remove item from slot
 	return nullpointer if slot is empty or non-existent
 	*/
-	Item* TakeItem(int slotX, int slotY);
+	Item* TakeItemAt(int slotX, int slotY);
+	/*
+	Items in 'a' is moved to 'b' (this is important logic, find out why in the function)
+	'button' and 'action' determines how items should be moved
+	left click switches 'a' and 'b'
+	right click puts half of 'a' into 'b'
+	holding shift key switches 'a' and 'b' (b is moved into a)
+	*/
+	void SwitchItem(Item** a, Item** b,int button, int action);
 	/*
 	Will also return false if slot is outside the array
 	*/
@@ -64,6 +69,7 @@ private:
 	int slotWidth=0;
 	int slotHeight=0;
 
+	// Change to normal array?
 	std::vector<Item*> itemArray;
 
 	int totalItemCount=0;

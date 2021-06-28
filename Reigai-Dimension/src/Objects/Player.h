@@ -4,17 +4,40 @@
 #include <Windows.h>
 
 #include "Engine/GameObject.h"
-#include "Engine/Objects/ClientPlayer.h"
 
-#include "Inventory/Container.h"
+#include "Items/Container.h"
 
-class Player : public engine::ClientPlayer {
+class Player : public engine::GameObject {
 public:
 	Player(float x,float y,float z);
 
 	void Update(float delta) override;
 	glm::vec3 Movement(float delta);
 
+	// Movement and camera
+	bool freeCam = false;
+	bool thirdPerson = false;
+	bool flight = false;
+
+	bool sprintMode = false;
+	bool crouchMode = false;
+
+	bool freeCamT = false;
+	bool thirdPersonT = false;
+	bool flightT = false;
+
+	bool crouchT = false;
+
+	float walkSpeed = 4.0f;
+	float sprintSpeed = 7.0f;
+	float camSpeed = 2.0f*5;
+	float camFastSpeed = 13.0f*10;
+	float jumpForce = 10.0f;
+
+	bool onGround = false;
+	float gravity = -0.3f;
+
+	// Stats
 	float health = 20;
 	float maxHealth = 100;
 	float stamina = 20;
@@ -23,8 +46,6 @@ public:
 	float maxHunger = 100;
 	float mana = 9;
 	float maxMana = 20;
-
-	//Container* inventory;
 
 private:
 };

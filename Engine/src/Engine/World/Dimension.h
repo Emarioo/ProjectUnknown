@@ -29,22 +29,24 @@ namespace engine {
 		int* randomMap;
 		int randomMapSize = 10;
 
-		ClientPlayer* player;
+		GameObject* player;
 		/*
 		Minimum of 2
 		*/
 		float viewDistance = 15;
 
 		// float chunkDetail = 1;
-		int chunkSize = 10;
+		int chunkSize = 20;
 		/*
 		Set in Init() and is always (chunkSize+1)/chunkDetail
 		*/
 		int chunkPoints = 0;
+		// Map used in updateChunk
+		float* vMap;
 		std::vector<Chunk> loadedChunks;
 		std::vector<Biome> biomes;
 
-		void Init(ClientPlayer* player);
+		void Init(GameObject* player);
 
 		void UpdateAllChunks();
 		void CleanChunks(); // Reload chunks

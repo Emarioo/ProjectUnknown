@@ -123,13 +123,19 @@ namespace engine {
 	// Resize
 	int resizingWin = 0;
 
-	double renMouseX;
-	double renMouseY;
-	double GetMX() {
+	float renMouseX;
+	float renMouseY;
+	float GetMouseX() {
 		return renMouseX;
 	}
-	double GetMY() {
+	float GetMouseY() {
 		return renMouseY;
+	}
+	float GetFloatMouseX() {
+		return ToFloatScreenX(renMouseX);
+	}
+	float GetFloatMouseY() {
+		return ToFloatScreenY(renMouseY);
 	}
 	GLFWwindow* window;
 	GLFWwindow* GetWindow() {
@@ -281,10 +287,12 @@ namespace engine {
 	}
 
 	void InitRenderer() {
+		std::cout << "Waiting for glfw" << std::endl;
 		if (!glfwInit()) {
 			std::cout << "Not Init Window!" << std::endl;
 			return;
 		}
+		std::cout << "Done with GLFW" << std::endl;
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
 		SetWinSize(mode->width / 6, mode->height / 6, mode->width / 1.5, mode->height / 1.5);
@@ -303,6 +311,7 @@ namespace engine {
 			std::cout << "Terminate Window!" << std::endl;
 			return;
 		}
+		std::cout << "Created window" << std::endl;
 
 		//SetWindowType(WindowBorder);
 		SetWindowType(WindowBorderless);
@@ -312,7 +321,7 @@ namespace engine {
 			std::cout << "Error!" << std::endl;
 			return;
 		}
-
+		std::cout << "Created Context" << std::endl;
 		glfwSetKeyCallback(window, KeyCallback);
 		glfwSetMouseButtonCallback(window, MouseCallback);
 		glfwSetScrollCallback(window, ScrollCallback);

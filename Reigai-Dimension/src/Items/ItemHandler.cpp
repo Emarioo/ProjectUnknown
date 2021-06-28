@@ -1,7 +1,6 @@
 #include "ItemHandler.h"
 
 #include <unordered_map>
-#include "Engine/Engine.h"
 
 engine::BufferContainer itemContainer;
 std::unordered_map<std::string, short> itemMap;
@@ -19,14 +18,16 @@ void InitItemHandler() {
 	itemMap["BlueRock"] = 2;
 	itemMap["Lava"] = 3;
 }
-
 int imageSize=512;
 int itemWidth=8;
 float size=1.f/itemWidth;
-void DrawItem(const std::string& name, int count, float x, float y,float w, float h) {
+void DrawItem(Item* item, float x, float y,float w, float h) {
+	if (item == nullptr)
+		return;
+
 	short index = 0;
-	if (itemMap.count(name) > 0) {
-		index = itemMap[name];
+	if (itemMap.count(item->GetName()) > 0) {
+		index = itemMap[item->GetName()];
 	}
 
 	float u = (index%itemWidth)*size;
@@ -48,9 +49,9 @@ void DrawItem(const std::string& name, int count, float x, float y,float w, floa
 	itemContainer.SubVB(0,16,vertices);
 	engine::BindTexture(0, "items/items0");
 	itemContainer.Draw();
-	if (count != 1) {
+	if (item->count != 1) {
 		//engine::GuiColor(1, 1, 1, 1);
 		engine::GuiTransform(x+w/6,y+h/4);
-		engine::DrawString(engine::GetFont(), std::to_string(count), true, h*0.6, -1);
+		engine::DrawString(engine::GetFont(), std::to_string(item->count), true, h*0.6, -1);
 	}
 }

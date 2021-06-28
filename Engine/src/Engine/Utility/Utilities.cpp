@@ -74,4 +74,7 @@ namespace engine {
 		}
 		return out;
 	}
+	int GetTime() {
+		return std::chrono::system_clock::now().time_since_epoch().count() / 10000;
+	}
 }

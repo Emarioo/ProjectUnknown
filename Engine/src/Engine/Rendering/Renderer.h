@@ -80,8 +80,10 @@ namespace engine {
 	Activate or deactivate cursor
 	*/
 	void SetCursorMode(bool f);
-	double GetMX();
-	double GetMY();
+	float GetMouseX();
+	float GetMouseY();
+	float GetFloatMouseX();
+	float GetFloatMouseY();
 	GLFWwindow* GetWindow();
 	/*
 	Starts glfw, projection matrix, rect and text container

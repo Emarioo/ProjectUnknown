@@ -1,21 +1,21 @@
-#include "InfoBar.h"
+#include "Infobar.h"
 
 #include "GLFW/glfw3.h"
 
 #include "GameHandler.h"
 
-InfoBar::InfoBar(const std::string& name) : engine::IBase(name) {
+Infobar::Infobar(const std::string& name) : engine::IBase(name) {
 	active = true;
 }
-bool InfoBar::IsActive() {
+bool Infobar::IsActive() {
 	return active;
 }
-void InfoBar::Update(float delta) {
+void Infobar::Update(float delta) {
 	if (IsActive()) {
 
 	}
 }
-void InfoBar::Render() {
+void Infobar::Render() {
 	//bug::out < "Invetory Draw" < bug::end;
 	if (IsActive()) {
 		// Inventory background

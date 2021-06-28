@@ -39,6 +39,7 @@ namespace engine {
 	int tick = 0;
 	void Dimension::CleanChunks() {
 		int px = player->position.x / chunkSize, pz = player->position.z / chunkSize;
+		int befTime = engine::GetTime();
 		for (int i = 0; i < loadedChunks.size(); i++) {
 			Chunk* c = &loadedChunks.at(i);
 			float dx = c->x - px;
@@ -61,7 +62,12 @@ namespace engine {
 				c->z -= 2 * dz - abs(dz) / dz;
 				UpdateChunk(c);
 			}
+			if (engine::GetTime()-befTime>40) {
+				break;
+			}
 		}
+		//int aftTime = engine::GetTime();
+		//bug::out < (aftTime - befTime) < bug::end;
 		/*
 		for each chunk
 			if chunk is outside player range
@@ -78,9 +84,10 @@ namespace engine {
 	/*
 	Add Biomes before INIT
 	*/
-	void Dimension::Init(ClientPlayer* player) {
+	void Dimension::Init(GameObject* player) {
 		chunkPoints = chunkSize + 1;
 		randomMap = new int[pow(randomMapSize, 2)];
+		vMap = new float[pow(chunkPoints, 2) * 8];
 		SetRandomMap(seed);
 		this->player = player;
 
@@ -128,7 +135,7 @@ namespace engine {
 	 Done after cordinates have been changed.
 	*/
 	void Dimension::UpdateChunk(Chunk* chunk) {
-		float* vMap = new float[pow(chunkPoints, 2) * 8];
+		//float* vMap = new float[pow(chunkPoints, 2) * 8];
 
 		for (int z = 0; z < chunkPoints; z++) {
 			for (int x = 0; x < chunkPoints; x++) {
@@ -149,7 +156,7 @@ namespace engine {
 			}
 		}
 		chunk->con.SubVB(0, pow(chunkPoints, 2) * 8, vMap);
-		delete vMap;
+		//delete vMap; vMap is reused
 	}
 	void Dimension::GetBiome(float* v) {
 		// pers = 0.5, lacu=2, oct=5, scale=500

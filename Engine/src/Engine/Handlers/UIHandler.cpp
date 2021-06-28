@@ -89,11 +89,11 @@ namespace engine {
 		//if (GetMenu() == Startup) {
 		for (auto p : elements) {
 			if (p->HasTags()) {
-				p->HoverEvent(GetMX(), GetMY());
+				p->HoverEvent(GetMouseX(), GetMouseY());
 			}
 		}
 		for (auto p : iBases) {
-			p->HoverEvent(GetMX(), GetMY());
+			p->HoverEvent(GetMouseX(), GetMouseY());
 		}
 		for (auto p : elements) {
 			if (p->HasTags()) {

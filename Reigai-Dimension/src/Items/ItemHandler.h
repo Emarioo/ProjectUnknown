@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "Engine/Engine.h"
+#include "Item.h"
 
 void InitItemHandler();
-
-void DrawItem(const std::string& name, int count, float x, float y, float w, float h);
+void DrawItem(Item* item, float x, float y, float w, float h);

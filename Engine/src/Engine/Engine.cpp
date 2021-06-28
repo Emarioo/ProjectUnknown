@@ -1,7 +1,5 @@
 #include "Engine.h"
 
-#include <chrono>
-
 namespace engine {
 	
 	FrameBuffer depthBuffer;
@@ -14,8 +12,9 @@ namespace engine {
 	}
 	BufferContainer temp_;
 	void Initialize() {
-		bug::Enable(true);
+		std::cout << "Waiting for Renderer..." << std::endl;
 		InitRenderer();
+		std::cout << "Renderer done..." << std::endl;
 		InitSound();
 		InitInterface();
 		ReadOptions();
@@ -42,10 +41,6 @@ namespace engine {
 	BufferContainer hitbox;
 	float* hitboxVec;
 	unsigned int* hitboxInd;
-
-	int GetTime() {
-		return std::chrono::system_clock::now().time_since_epoch().count() / 10000;
-	}
 
 	void UpdateObjects(float delta) {
 		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();

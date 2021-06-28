@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <chrono>
 
 namespace engine {
 	std::vector<std::string> SplitString(std::string text, std::string delim);
@@ -14,6 +15,8 @@ namespace engine {
 	std::string Crypt(const std::string& word,const std::string& key, bool encrypt);
 
 	void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3);
+
+	int GetTime();
 
 	template<typename Base, typename T>
 	inline bool instanceof(const T*) {
