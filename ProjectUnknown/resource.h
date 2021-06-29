@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Reigai_Dimension.rc
+// Used by ProjectUnknown.rc
 //
 #define IDI_ICON1                       102
 

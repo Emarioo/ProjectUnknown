@@ -6,11 +6,11 @@
 
 Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container = new Container("Player Inv.",5,5);
-	container->AddItem(new Item("Rock",23));
-	container->AddItem(new Item("BlueRock",320));
-	container->AddItem(new Item("Lava",50));
-	container->AddItem(new Item("Rock",250));
-	container->AddItem(new Item("Lava", 111));
+	container->AddItem(new Item(FlintItem,23));
+	container->AddItem(new Item(StickItem,320));
+	container->AddItem(new Item(FiberItem,50));
+	container->AddItem(new Item(StickItem,250));
+	container->AddItem(new Item(FiberItem, 111));
 }
 bool Inventory::IsActive() {
 	return active;

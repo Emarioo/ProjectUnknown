@@ -1,0 +1,36 @@
+Item categorization/classification
+(Items should be scientific to some degree. Actual stone or rock is to weak to be used as head for an axe. Flint is more durable)
+
+Resources
+	Stick, Flint, Fiber
+	Wood: different tiers
+	Stone: a few types
+	Copper/Tin/Iron ore
+	Crystal: Different kinds
+
+Handmade resources
+	Bronze/brass/invar, Refined wood
+
+Tools
+	Axe/Pickaxe: Crude(stick, flint, fiber), <?>, Copper
+	Farming tool, fishing rod, compass, map, 
+
+Weapons
+	Sword: Crude(stick, flint, fiber), <?>, Copper
+	Dagger, Shield, Bow, Hammer,  
+
+Magic
+	Magic Ring of ?
+		Allows the player to use mana for spells. 
+		Tiers: Nature(fiber, flowers, crystal), Metal(copper, crystal), 
+	Soul Crystal(crystal, )
+		transfers items from your corpse to your new body
+		Tiers: Weak(6? items), Strong(12? items)
+	Soul Binder(crystal, )
+		Used to bind your soul to a location when you die. (Respawn point)
+	Mana Crystal
+		Stores mana. Can also be transfered. Overflowing mana from the player is stored in the crystal
+		Tiers: Rough(crystal, ), Fine(), 
+	Teleportation Crystal(crystal, )
+		Consumes a lot of mana depending on how many items you have
+		Tiers: ?

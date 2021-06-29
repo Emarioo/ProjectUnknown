@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reigai-Dimension", "Reigai-Dimension\Reigai-Dimension.vcxproj", "{497A2588-E2DA-44F3-8F83-06A9A1BB3408}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectUnknown", "ProjectUnknown\ProjectUnknown.vcxproj", "{497A2588-E2DA-44F3-8F83-06A9A1BB3408}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine\Engine.vcxproj", "{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ReigaiDim-Installer", "ReigaiDim-Installer\ReigaiDim-Installer.vdproj", "{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +31,6 @@ Global
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x64.Build.0 = Release|x64
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.ActiveCfg = Release|Win32
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.Build.0 = Release|Win32
-		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Debug|x64.ActiveCfg = Debug
-		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Debug|x86.ActiveCfg = Debug
-		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Release|x64.ActiveCfg = Release
-		{DDE3B2B5-F623-48A9-A380-DFB1324E79B1}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,22 +1,18 @@
 #include "ItemHandler.h"
 
-#include <unordered_map>
-
 engine::BufferContainer itemContainer;
-std::unordered_map<std::string, short> itemMap;
-
 void InitItemHandler() {
-	engine::AddTextureAsset("items/items0");
+	engine::AddTextureAsset("items/resources0");
 	
 	unsigned int ind[]{ 0,1,2,2,3,0 };
 	
 	itemContainer.Setup(true,nullptr,16,ind,6);
 	itemContainer.SetAttrib(0, 4, 4, 0);
-	
-	itemMap["Unkown"] = 0;
-	itemMap["Rock"] = 1;
-	itemMap["BlueRock"] = 2;
-	itemMap["Lava"] = 3;
+}
+void FillItemWithData(Item* item) {
+	item->type = (ItemType) (1+item->name/64);
+
+	// What about meta data?
 }
 int imageSize=512;
 int itemWidth=8;
@@ -25,16 +21,15 @@ void DrawItem(Item* item, float x, float y,float w, float h) {
 	if (item == nullptr)
 		return;
 
-	short index = 0;
-	if (itemMap.count(item->GetName()) > 0) {
-		index = itemMap[item->GetName()];
+	short index = item->name;
+	if (item->type == ResourceType) {
+		engine::BindTexture(0, "items/resources0");
 	}
-
 	float u = (index%itemWidth)*size;
 	float v = ((int)((itemWidth-1)-index/itemWidth))*size;
 	
 	y -= h; // offsetting
-
+	/*
 	float vertices[16]{
 		x,y,u,v,
 		x + w,y,u+size,v,
@@ -47,8 +42,10 @@ void DrawItem(Item* item, float x, float y,float w, float h) {
 	engine::GuiTransform(0, 0);
 	
 	itemContainer.SubVB(0,16,vertices);
-	engine::BindTexture(0, "items/items0");
 	itemContainer.Draw();
+	*/
+	engine::DrawUVRect(x,y,w,h,u,v,size,size);
+
 	if (item->count != 1) {
 		//engine::GuiColor(1, 1, 1, 1);
 		engine::GuiTransform(x+w/6,y+h/4);

@@ -10,10 +10,10 @@ Hotbar::Hotbar(const std::string& name) : engine::IBase(name) {
 	active = true;
 	
 	container = new Container("Player Hotbar", 9, 1);
-	container->AddItem(new Item("Rock", 23));
-	container->AddItem(new Item("BlueRock", 10));
-	container->AddItem(new Item("Lava", 50));
-	container->AddItem(new Item("Rock", 250));
+	container->AddItem(new Item(FiberItem, 23));
+	container->AddItem(new Item(FlintItem, 10));
+	container->AddItem(new Item(StickItem, 50));
+	container->AddItem(new Item(FlintItem, 250));
 	
 }
 bool Hotbar::IsActive() {

@@ -63,9 +63,12 @@
     <ClInclude Include="src\Dungeons\Dungeon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Items\ItemMeta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Reigai-Dimension.rc">
+    <ResourceCompile Include="ProjectUnknown.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
@@ -136,6 +139,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Dungeons\Dungeon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Items\ItemMeta.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -24,7 +24,7 @@
     <ProjectGuid>{497A2588-E2DA-44F3-8F83-06A9A1BB3408}</ProjectGuid>
     <RootNamespace>ReigaiDimension</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>Reigai-Dimension</ProjectName>
+    <ProjectName>ProjectUnknown</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -171,6 +171,7 @@
     <ClCompile Include="src\Items\Item.cpp" />
     <ClCompile Include="src\Items\ItemHandler.cpp" />
     <ClCompile Include="src\GameHandler.cpp" />
+    <ClCompile Include="src\Items\ItemMeta.cpp" />
     <ClCompile Include="src\Objects\Gnorg.cpp" />
     <ClCompile Include="src\Objects\Goblin.cpp" />
     <ClCompile Include="src\Objects\MagicStaff.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="src\Items\Item.h" />
     <ClInclude Include="src\Items\ItemHandler.h" />
     <ClInclude Include="src\GameHandler.h" />
+    <ClInclude Include="src\Items\ItemMeta.h" />
     <ClInclude Include="src\Objects\Gnorg.h" />
     <ClInclude Include="src\Objects\Goblin.h" />
     <ClInclude Include="src\Objects\MagicStaff.h" />
@@ -200,7 +202,7 @@
     <ClInclude Include="src\UI\Inventory.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Reigai-Dimension.rc" />
+    <ResourceCompile Include="ProjectUnknown.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="favicon.ico" />

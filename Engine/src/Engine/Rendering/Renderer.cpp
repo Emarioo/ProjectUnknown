@@ -256,6 +256,7 @@ namespace engine {
 	float verts[4 * 4 * TEXT_BATCH];
 	BufferContainer textContainer;
 	BufferContainer rectContainer;
+	BufferContainer uvRectContainer;
 
 	std::unordered_map<ShaderType, Shader*> shaders;
 	Shader* currentShader = nullptr;
@@ -393,6 +394,9 @@ namespace engine {
 		};
 		rectContainer.Setup(false, temp,16, temp2, 6);
 		rectContainer.SetAttrib(0, 4, 4, 0);
+
+		uvRectContainer.Setup(true, temp, 16, temp2, 6);
+		uvRectContainer.SetAttrib(0, 4, 4, 0);
 
 		BindShader(ShaderInterface);
 		GuiSize(1, 1);
@@ -722,6 +726,19 @@ namespace engine {
 		GuiSize(w, h);
 		GuiColor(r, g, b, a);
 		rectContainer.Draw();
+	}
+	void DrawUVRect(float x, float y, float xw, float yh, float u, float v, float uw, float vh) {
+		GuiTransform(0, 0);
+		GuiSize(1, 1);
+		GuiColor(1, 1, 1, 1);
+		float vertices[16]{
+			x,y,u,v,
+			x,y+yh,u,v+vh,
+			x + xw,y + yh,u + uw,v + vh,
+			x+xw,y,u+uw,v
+		};
+		uvRectContainer.SubVB(0, 16, vertices);
+		uvRectContainer.Draw();
 	}
 
 	std::vector<Light*> lights;

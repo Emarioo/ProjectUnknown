@@ -161,6 +161,10 @@ namespace engine {
 	void DrawRect(float x,float y);
 	void DrawRect(float x,float y,float w,float h);
 	void DrawRect(float x,float y,float w,float h,float r,float g,float b,float a);
+	/*
+	Calls GuiSize(1,1), GuiTransform(1, 1) and also GuiColor(1,1,1,1)
+	*/
+	void DrawUVRect(float x, float y, float xw, float yh, float u, float v, float uw, float vh);
 
 	// Light
 	void AddLight(Light* l);

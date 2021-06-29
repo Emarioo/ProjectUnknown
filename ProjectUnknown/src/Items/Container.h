@@ -31,7 +31,7 @@ public:
 	/*
 	Remove first found item with specified name
 	*/
-	Item* TakeItem(const std::string& name);
+	Item* TakeItem(ItemName name);
 	/*
 	Remove item from slot
 	return nullpointer if slot is empty or non-existent

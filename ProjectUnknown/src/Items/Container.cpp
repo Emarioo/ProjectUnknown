@@ -77,7 +77,7 @@ bool Container::AddItemAt(Item* item, int slotX, int slotY) {
 	}
 	return false;
 }
-Item* Container::TakeItem(const std::string& name) {
+Item* Container::TakeItem(ItemName name) {
 	for (int i = 0; i < slotWidth * slotHeight;i++) {
 		if (itemArray[i]!=nullptr) {
 			if (itemArray[i]->GetName() == name) {
