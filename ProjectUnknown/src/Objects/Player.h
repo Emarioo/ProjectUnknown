@@ -1,11 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <Windows.h>
 
 #include "Engine/GameObject.h"
-
-#include "Items/Container.h"
 
 class Player : public engine::GameObject {
 public:

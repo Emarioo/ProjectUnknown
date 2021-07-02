@@ -29,25 +29,10 @@ void DrawItem(Item* item, float x, float y,float w, float h) {
 	float v = ((int)((itemWidth-1)-index/itemWidth))*size;
 	
 	y -= h; // offsetting
-	/*
-	float vertices[16]{
-		x,y,u,v,
-		x + w,y,u+size,v,
-		x + w,y + h,u+size,v+size,
-		x,y + h,u,v+size
-	};
-
-	engine::GuiColor(1, 1, 1, 1);
-	engine::GuiSize(1, 1);
-	engine::GuiTransform(0, 0);
 	
-	itemContainer.SubVB(0,16,vertices);
-	itemContainer.Draw();
-	*/
 	engine::DrawUVRect(x,y,w,h,u,v,size,size);
 
 	if (item->count != 1) {
-		//engine::GuiColor(1, 1, 1, 1);
 		engine::GuiTransform(x+w/6,y+h/4);
 		engine::DrawString(engine::GetFont(), std::to_string(item->count), true, h*0.6, -1);
 	}
