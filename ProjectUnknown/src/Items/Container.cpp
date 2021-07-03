@@ -122,7 +122,7 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 		//bug::out < "SwitchItemLocation pointer is nullptr" < bug::end;
 		return;
 	}
-	if (engine::IsKey(GLFW_KEY_LEFT_SHIFT)) {
+	if (engine::IsKey(GLFW_KEY_LEFT_CONTROL)) {
 		Item** temp = a;
 		a = b;
 		b = temp;
@@ -151,13 +151,21 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 	} else if(button==1&&action==1) { // Right click - split
 		if (*a!=nullptr&&*b==nullptr) {
 			if ((*a)->count > 1) {
-				*b = new Item((*a)->GetName(), (*a)->count / 2.f);
-				(*a)->count -= (*a)->count / 2.f;
+				*b = new Item((*a)->GetName(), 1);
+				(*a)->count -= 1;
 			}
 		} else if (*a == nullptr && *b != nullptr) {
 			if ((*b)->count > 1) {
 				*a = new Item((*b)->GetName(), (*b)->count / 2);
 				(*b)->count -= (*b)->count / 2;
+			}
+		}
+		else if (*a != nullptr && *b != nullptr) {
+			if ((*a)->GetName() == (*b)->GetName()) {
+				if ((*a)->count > 1) {
+					(*b)->count++;
+					(*a)->count--;
+				}
 			}
 		}
 	}
