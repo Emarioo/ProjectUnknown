@@ -60,7 +60,7 @@
     <ClInclude Include="src\Engine\Utility\Utilities.h" />
     <ClInclude Include="src\Engine\Utility\GameOptions.h" />
     <ClInclude Include="src\Engine\Keyboard.h" />
-    <ClInclude Include="src\Engine\Utility\Languages.h" />
+    <ClInclude Include="src\Engine\Languages.h" />
     <ClInclude Include="src\vendor\glm\common.hpp" />
     <ClInclude Include="src\vendor\glm\detail\compute_common.hpp" />
     <ClInclude Include="src\vendor\glm\detail\compute_vector_relational.hpp" />

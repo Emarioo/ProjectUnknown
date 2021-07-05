@@ -4,11 +4,16 @@
 #include "GLFW/glfw3.h"
 #include "InterfaceManager.h"
 
+#include "KeyBinding.h"
+
 Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container = new Container("Player Inv.",5,5);
-	/*container->AddItem(new Item("Flint",3));
-	container->AddItem(new Item("Stick",5));
-	container->AddItem(new Item("Fiber",8));*/
+	container->AddItem(new Item("Potato", 3));
+	container->AddItem(new Item("Baked Potato", 1));
+	container->AddItem(new Item("Butter", 3));
+	container->AddItem(new Item("Raw Meat", 3));
+	container->AddItem(new Item("Steak", 5));
+	container->AddItem(new Item("Carrot", 8));
 }
 bool Inventory::IsActive() {
 	return active;
@@ -56,7 +61,7 @@ bool Inventory::ClickEvent(int mx, int my, int button, int action) {
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (key==GLFW_KEY_E) {
+	if (TestKeyAction(KeyInventory,key)) {
 		if (action == 1) {
 			active = !active;
 			engine::SetCursorMode(active);

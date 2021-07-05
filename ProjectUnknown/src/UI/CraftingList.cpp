@@ -5,6 +5,8 @@
 #include "GLFW/glfw3.h"
 #include "InterfaceManager.h"
 
+#include "KeyBinding.h"
+
 CraftingList::CraftingList(const std::string& name) : engine::IBase(name) {
 
 }
@@ -89,7 +91,7 @@ bool CraftingList::ClickEvent(int mx, int my, int button, int action) {
 	return false;
 }
 bool CraftingList::KeyEvent(int key, int action) {
-	if (key == GLFW_KEY_E) {
+	if (TestKeyAction(KeyCrafting,key)) {
 		if (action == 1) {
 			active = !active;
 			engine::SetCursorMode(active);
@@ -193,6 +195,15 @@ void CraftingList::Render() {
 
 		CraftingCategory* category = GetCategory(selectedCategory);
 		if (category != nullptr) {
+
+			float catX = w * 4 / 512.f;
+			float catY = h * 4 / 850.f;
+			float catGap = h * 68 / 850.f;
+
+			// Category Marking
+			engine::BindTexture(0, "blank");
+			engine::DrawRect(x + catX, y + h - catY - catGap * selectedCategory + scrolling -ih, iw, ih, 0.5, 0.5, 1, 0.5);
+
 			// Crafting list
 			engine::GuiArea(x,y+bottomH,w,h-bottomH);
 

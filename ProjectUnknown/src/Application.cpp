@@ -12,6 +12,8 @@
 #include "GameHandler.h"
 #include "GameStates.h"
 
+#include "KeyBinding.h"
+
 float ang = 0;
 float vel = 0.001;
 engine::Light* light;
@@ -252,6 +254,33 @@ int main(int argc, char*argv[]) {
 //	bug::set("load_model_matrix", 1);
 
 	//bug::set("load_mat_info", 1);
+
+	// Key Action
+	// Read key bindings from file
+	engine::FileReport err;
+	std::vector<std::string> keyData = engine::ReadTextFile("data/keybindings.dat", &err);
+	if (err == engine::FileReport::Success) {
+		for (std::string str : keyData) {
+			std::vector<std::string> split = engine::SplitString(str, "=");
+			if (split.size() == 2) {
+				ActionKey keyName = (ActionKey)std::stoi(split[0]);
+				int code = std::stoi(split[1]);
+				AddKeyAction(keyName, code);
+			}
+		}
+	} else {
+		bug::out < "Error with key bindings. Creating standard bindings\n";
+		AddKeyAction(KeyForward, GLFW_KEY_W);
+		AddKeyAction(KeyRight, GLFW_KEY_D);
+		AddKeyAction(KeyBack, GLFW_KEY_S);
+		AddKeyAction(KeyLeft, GLFW_KEY_A);
+		AddKeyAction(KeyJump, GLFW_KEY_SPACE);
+		AddKeyAction(KeyCrouch, GLFW_KEY_LEFT_SHIFT);
+		AddKeyAction(KeySprint, GLFW_KEY_F);
+		AddKeyAction(KeyInventory, GLFW_KEY_E);
+		AddKeyAction(KeyCrafting, GLFW_KEY_C);
+		AddKeyAction(KeyPause, GLFW_KEY_ESCAPE);
+	}
 
 	//engine::AddAnimAsset("goblin_slash");
 	//engine::AddBoneAsset("goblin_skeleton");

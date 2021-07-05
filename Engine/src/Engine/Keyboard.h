@@ -11,5 +11,4 @@ namespace engine {
 	Use GLFW_KEY_A for simplicity
 	*/
 	bool IsKey(int key);
-
 }

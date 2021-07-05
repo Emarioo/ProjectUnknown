@@ -2,6 +2,8 @@
 
 #include "Engine/Engine.h"
 
+#include "KeyBinding.h"
+
 Player::Player(float x,float y,float z) {
 	name = "Player";
 	weight = 1;
@@ -16,14 +18,14 @@ Player::Player(float x,float y,float z) {
 float playerAnimBlending = 0;
 float playerAnimSpeed = 1.7;
 void Player::Update(float delta) {
-	if (engine::IsKey(GLFW_KEY_W)) {
+	if (IsKeyActionDown(KeyForward)) {
 		if (playerAnimBlending < 1 && playerAnimSpeed>0)
 			playerAnimBlending += playerAnimSpeed * delta;
 	} else {
 		if (playerAnimBlending > 0)
 			playerAnimBlending -= playerAnimSpeed * delta;
 	}
-	if (engine::IsKey(GLFW_KEY_LEFT_SHIFT)) {
+	if (IsKeyActionDown(KeyCrouch)) {
 		renderComponent.animator.enabledAnimations["goblin_run"].speed = 
 			flight||freeCam? camFastSpeed/camSpeed : sprintSpeed/walkSpeed;
 	} else {
@@ -69,17 +71,17 @@ glm::vec3 Player::Movement(float delta) {
 		} else {
 			thirdPersonT = false;
 		}
-		sprintMode = engine::IsKey(GLFW_KEY_LEFT_SHIFT);
+		sprintMode = IsKeyActionDown(KeySprint);
 
 		float speed = walkSpeed;
 		if (freeCam||flight) {
 			speed = camSpeed;
 			if (sprintMode) speed = camFastSpeed;
 
-			if (engine::IsKey(GLFW_KEY_SPACE)) {
+			if (IsKeyActionDown(KeyJump)) {
 				move.y += speed;
 			}
-			if (engine::IsKey(GLFW_KEY_LEFT_CONTROL)) {
+			if (IsKeyActionDown(KeyCrouch)) {
 				move.y -= speed;
 			}
 			if(flight)
@@ -88,7 +90,7 @@ glm::vec3 Player::Movement(float delta) {
 			velocity.y += gravity;
 			if (sprintMode) speed = sprintSpeed;
 
-			if (engine::IsKey(GLFW_KEY_SPACE)) {
+			if (IsKeyActionDown(KeyJump)) {
 				if (onGround) {
 					velocity.y = 5;
 					onGround = false;
@@ -96,16 +98,16 @@ glm::vec3 Player::Movement(float delta) {
 			}
 		}
 
-		if (engine::IsKey(GLFW_KEY_W)) {
+		if (IsKeyActionDown(KeyForward)) {
 			move.z -= speed;
 		}
-		if (engine::IsKey(GLFW_KEY_S)) {
+		if (IsKeyActionDown(KeyBack)) {
 			move.z += speed;
 		}
-		if (engine::IsKey(GLFW_KEY_D)) {
+		if (IsKeyActionDown(KeyRight)) {
 			move.x += speed;
 		}
-		if (engine::IsKey(GLFW_KEY_A)) {
+		if (IsKeyActionDown(KeyLeft)) {
 			move.x -= speed;
 		}
 		/*

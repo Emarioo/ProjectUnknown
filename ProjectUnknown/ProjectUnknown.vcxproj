@@ -175,6 +175,7 @@
     <ClCompile Include="src\GameHandler.cpp" />
     <ClCompile Include="src\Items\ItemMeta.cpp" />
     <ClCompile Include="src\Items\ItemType.cpp" />
+    <ClCompile Include="src\KeyBinding.cpp" />
     <ClCompile Include="src\Objects\Gnorg.cpp" />
     <ClCompile Include="src\Objects\Goblin.cpp" />
     <ClCompile Include="src\Objects\MagicStaff.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="src\GameHandler.h" />
     <ClInclude Include="src\Items\ItemMeta.h" />
     <ClInclude Include="src\Items\ItemType.h" />
+    <ClInclude Include="src\KeyBinding.h" />
     <ClInclude Include="src\Objects\Gnorg.h" />
     <ClInclude Include="src\Objects\Goblin.h" />
     <ClInclude Include="src\Objects\MagicStaff.h" />

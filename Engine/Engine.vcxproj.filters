@@ -57,9 +57,6 @@
     <ClInclude Include="src\Engine\Utility\GameOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Utility\Languages.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\World\Biome.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1006,6 +1003,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\UI\ITransition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Languages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
