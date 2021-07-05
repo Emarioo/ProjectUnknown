@@ -17,28 +17,29 @@
 #include "Utility/Debugger.h"
 
 namespace engine {
-	enum FileReport {
+	enum class FileReport {
 		Success,
 		NotFound,
 		Syntax,
 		Corrupt
 	};
-	int FileExist(const std::string& path);
+	bool FileExist(const std::string& path);
+	/*
 	/*
 	Remember to handle the returned error status
 	File path without txt required
-	*/
-	std::string ReadFile(std::string path, int* err);
+	std::string ReadFile(std::string path, FileReport* err);*/
+
 	/*
 	Remember to handle the error status
-	File path without txt required
+	Full file path
 	*/
-	std::vector<std::string> ReadFileList(const std::string& path, int* err);
+	std::vector<std::string> ReadTextFile(const std::string& path, FileReport* err);
 	/*
 	Remember to handle the returned error status
-	File path without txt required
+	Full file path
 	*/
-	int WriteTextFile(const std::string& path, std::vector<std::string> text);
+	FileReport WriteTextFile(const std::string& path, std::vector<std::string> text);
 	/*
 	File path is converted to "assets/materials/"+path+".material"
 	Returned object's hasError is true if any errors occur

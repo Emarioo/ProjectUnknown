@@ -10,60 +10,90 @@ Hotbar::Hotbar(const std::string& name) : engine::IBase(name) {
 	active = true;
 	
 	container = new Container("Player Hotbar", 9, 1);
-	container->AddItem(new Item(FiberItem, 23));
-	container->AddItem(new Item(FlintItem, 10));
-	container->AddItem(new Item(StickItem, 50));
-	container->AddItem(new Item(FlintItem, 250));
+	/*container->AddItem(new Item("Fiber", 23));
+	container->AddItem(new Item("Flint", 8));
+	container->AddItem(new Item("Stick", 35));
+	container->AddItem(new Item("Flint", 1));*/
 	
 }
 bool Hotbar::IsActive() {
 	return active;
 }
 bool Hotbar::ClickEvent(int mx, int my, int button, int action) {
-	CalcConstraints();
+	if (IsActive()) {
+		CalcConstraints();
 
-	float mouseX = engine::ToFloatScreenX(mx);
-	float mouseY = engine::ToFloatScreenY(my);
+		float mouseX = engine::ToFloatScreenX(mx);
+		float mouseY = engine::ToFloatScreenY(my);
 
-	// Check if mouse is inside inventory
-	if (mouseX > x - w / 2 && mouseX<x + w / 2 &&
-		mouseY>y - h / 2 && mouseY < y + h / 2) {
-		
-		// If there is a container
-		if (container != nullptr) {
-			float sw = w * (64 / 608.f);
-			float sh = h;// *(64 / 64.f);
+		//bug::outs < "mx " < mouseX < x < (x+w) < "\nmy" < mouseY < y < (y+h) < bug::end;
 
-			float gap = w * 4 / 608.f;
+		// Check if mouse is inside inventory
+		if (mouseX > x && mouseX<x + w &&
+			mouseY>y && mouseY < y + h) {
 
-			float row = (mouseX - x + w / 2) / (sw+gap);
-			float col = (mouseY - y - h / 2) / -sh;
+			// If there is a container
+			if (container != nullptr) {
+				float sw = w * 64 / 608.f;
+				float sh = h;// *64 / 64.f;
 
-			//bug::outs < row < col < bug::end;
+				float gap = w * 4 / 608.f;
 
-			float rawRow = (row - (int)row) * (sw + gap); // Ignore gap
+				float col = (mouseX - x) / (sw + gap);
 
-			if (rawRow < sw && row > 0 && col > 0 && row < container->GetSlotWidth() && col < container->GetSlotHeight()) {
-				
-				Item** heldItem = UI::GetHeldItemPointer();
-				Item** item = container->GetItemPointerAt((int)row, (int)col);
+				//bug::outs < "col" < col < bug::end;
+				//float row = (y+h-mouseY) / sh;
 
-				if (item != nullptr) {
-					container->SwitchItem(heldItem, item, button, action);
+				//bug::outs < row < col < bug::end;
+
+				float rawCol = (col - (int)col) * (sw + gap); // Ignore gap
+
+				if (rawCol < sw && 0 <= col && col <= container->GetSlotWidth()) {
+
+					Item** heldItem = UI::GetHeldItemPointer();
+					Item** item = container->GetItemPointerAt((int)col, 0);
+
+					if (item != nullptr) {
+						container->SwitchItem(heldItem, item, button, action);
+					}
 				}
 			}
 		}
 	}
-
 	return false;
 }
+Item* inf=nullptr;
 void Hotbar::Update(float delta) {
 	if (IsActive()) {
-
+		if (container != nullptr) {
+			if (inf == nullptr) {
+				inf = new Item("Flint",20);
+			}
+			bool temp = container->AddItemAt(inf, 0, 0);
+			if (temp) {
+				inf = new Item("Fiber", 20);
+			}
+			else {
+				inf->SetItem("Fiber", 20);
+			}
+			temp = container->AddItemAt(inf, 1, 0);
+			if (temp) {
+				inf = new Item("Stick", 20);
+			}
+			else {
+				inf->SetItem("Stick", 20);
+			}
+			temp = container->AddItemAt(inf, 2, 0);
+			if (temp) {
+				inf = new Item("Flint", 20);
+			}
+			else {
+				inf->SetItem("Flint", 20);
+			}
+		}
 	}
 }
 void Hotbar::Render() {
-	//bug::out < "Invetory Draw" < bug::end;
 	if (IsActive()) {
 		// Inventory background
 		engine::BindTexture(0, "containers/hotbar");
@@ -88,8 +118,8 @@ void Hotbar::Render() {
 				if (item != nullptr) {
 					// Draw item
 					DrawItem(item,
-						x - w / 2 + sx * (sw+gap), y + h / 2,
-						sw, sh);
+						x + sx * (sw+gap), y+h,
+						sw, sh,1,1,1,1);
 				}
 			}
 		}

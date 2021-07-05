@@ -5,14 +5,18 @@
 Item::Item() {
 
 }
-Item::Item(ItemName name)
-	: name(name), count(1) {
-	FillItemWithData(this);
+Item::Item(const std::string& name)
+	: type(GetItemType(name)), count(1) {
+	
 }
-Item::Item(ItemName name, int count)
-	: name(name), count(count) {
-	FillItemWithData(this);
+Item::Item(const std::string& name, int count)
+	: type(GetItemType(name)), count(count) {
+
 }
-ItemName Item::GetName() {
-	return name;
+void Item::SetItem(const std::string& name, int count) {
+	type = GetItemType(name);
+	count = count;
+}
+std::string Item::GetName() {
+	return type.name;
 }

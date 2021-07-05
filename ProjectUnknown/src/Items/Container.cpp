@@ -2,6 +2,8 @@
 
 #include "Engine/Keyboard.h"
 
+#include "ItemHandler.h"
+
 #include <iostream>
 
 #include <GLFW/glfw3.h>
@@ -27,8 +29,8 @@ bool Container::AddItem(Item* item) {
 		if (itemArray[i] == nullptr) {
 			if (emptySlot == -1) 
 				emptySlot = i;
-		}else if (itemArray[i]->GetName() == item->GetName() && itemArray[i]) {
-			int diff = itemArray[i]->maxCount - itemArray[i]->count;
+		}else if (itemArray[i]->GetName() == item->GetName()) {
+			int diff = itemArray[i]->type.maxCount - itemArray[i]->count;
 			if (diff >= item->count) {
 				itemArray[i]->count += item->count;
 				item->count = 0;
@@ -45,10 +47,10 @@ bool Container::AddItem(Item* item) {
 		if (emptySlot != -1) {
 			for (int i = emptySlot; i < slotWidth * slotHeight; i++) {
 				if (itemArray[i] == nullptr) {
-					if (item->count>item->maxCount) {
-						itemArray[i] = new Item(item->name, item->maxCount);// TODO: ERROR: COPY META DATA!
-						item->count -= item->maxCount;
-						totalItemCount += item->maxCount;
+					if (item->count>item->type.maxCount) {
+						itemArray[i] = new Item(item->type.name, item->type.maxCount);// TODO: ERROR: COPY META DATA!
+						item->count -= item->type.maxCount;
+						totalItemCount += item->type.maxCount;
 					} else {
 						itemArray[i] = item;
 						totalItemCount += item->count;
@@ -69,26 +71,66 @@ bool Container::AddItemAt(Item* item, int slotX, int slotY) {
 			itemArray[index] = item;
 			totalItemCount += item->count;
 			return true;
-		} else if (itemArray[index]->GetName() == item->GetName()) {
-			itemArray[index]->count += item->count;
-			totalItemCount += item->count;
-			return true;
+		}
+		else if (itemArray[index]->GetName() == item->GetName()) {
+			int need = itemArray[index]->type.maxCount - itemArray[index]->count;
+			if (need < item->count){
+				itemArray[index]->count += need;
+				item->count -= need;
+				totalItemCount += need;
+				return false;
+			}
+			else {
+				itemArray[index]->count += item->count;
+				item->count = 0;
+				totalItemCount += item->count;
+				return true;
+			}
 		}
 	}
 	return false;
 }
-Item* Container::TakeItem(ItemName name) {
+bool Container::HasItem(const std::string& name, int count) {
+	for (int i = 0; i < slotWidth * slotHeight; i++) {
+		if (itemArray[i] != nullptr) {
+			if (itemArray[i]->GetName() == name) {
+				count -= itemArray[i]->count;
+				if (count < 1)
+					return true;
+			}
+		}
+	}
+	return false;
+}
+int Container::GetItemCount(const std::string& name) {
+	int out=0;
+	for (int i = 0; i < slotWidth * slotHeight; i++) {
+		if (itemArray[i] != nullptr) {
+			if (itemArray[i]->GetName() == name) {
+				out += itemArray[i]->count;
+			}
+		}
+	}
+	return out;
+}
+bool Container::RemoveItem(const std::string& name, int count) {
 	for (int i = 0; i < slotWidth * slotHeight;i++) {
 		if (itemArray[i]!=nullptr) {
 			if (itemArray[i]->GetName() == name) {
 				totalItemCount -= itemArray[i]->count;
-				Item* temp = itemArray[i];
-				itemArray[i] = nullptr;
-				return temp;
+				int canRemove = count - itemArray[i]->count;
+				if (canRemove < 0) {
+					itemArray[i]->count -= count;
+					return true;
+				}
+				else {
+					count -= itemArray[i]->count;
+					itemArray[i] = nullptr;
+				}
 			}
 		}
 	}
-	return nullptr;
+	return false;
 }
 Item* Container::TakeItemAt(int slotX, int slotY) {
 	if (slotWidth > slotX && slotHeight > slotY) {
@@ -105,6 +147,12 @@ Item* Container::TakeItemAt(int slotX, int slotY) {
 Item* Container::GetItemAt(int slotX, int slotY) {
 	if (slotWidth > slotX && slotHeight > slotY) {
 		int index = slotY * slotWidth + slotX;
+		return itemArray[index];
+	}
+	return nullptr;
+}
+Item* Container::GetItemAt(int index) {
+	if (0 < index && index < itemArray.size()) {
 		return itemArray[index];
 	}
 	return nullptr;
@@ -130,16 +178,16 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 	if (button==0&&action==1) {// Left click - switch 
 		if (*a != nullptr && *b != nullptr) {
 			if ((*a)->GetName() == (*b)->GetName()) {
-				int bNeed = (*b)->maxCount - (*b)->count;
+				int bNeed = (*b)->type.maxCount - (*b)->count;
 				if (bNeed != 0) {
 					if ((*a)->count > bNeed) {
-						(*b)->count = (*b)->maxCount;
+						(*b)->count = (*b)->type.maxCount;
 						(*a)->count -= bNeed;
 					}
 					else {
 						(*b)->count += (*a)->count;
+						delete (*a);
 						(*a) = nullptr;
-						//delete (*a); LEAK!!!
 					}
 					return;
 				}
@@ -154,6 +202,10 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 				*b = new Item((*a)->GetName(), 1);
 				(*a)->count -= 1;
 			}
+			else {
+				*b = *a;
+				*a = nullptr;
+			}
 		} else if (*a == nullptr && *b != nullptr) {
 			if ((*b)->count > 1) {
 				*a = new Item((*b)->GetName(), (*b)->count / 2);
@@ -166,23 +218,22 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 					(*b)->count++;
 					(*a)->count--;
 				}
+				else {
+					(*b)->count++;
+					delete *a;
+					*a = nullptr;
+				}
 			}
 		}
 	}
 }
-bool Container::IsEmpty(int slotX, int slotY) {
-	if (slotWidth > slotX && slotHeight > slotY) {
-		return itemArray[slotY * slotWidth + slotX] == nullptr;
-	} else {
-		return false;
-	}
-}
-bool Container::IsFull() {
+int Container::EmptySlots() {
+	int slots=0;
 	for (int i = 0; i < slotWidth * slotHeight;i++) {
-		if(itemArray[i]==nullptr)
-			return false;
+		if (itemArray[i] == nullptr)
+			slots++;
 	}
-	return true;
+	return slots;
 }
 int Container::GetSlotWidth(){
 	return slotWidth;

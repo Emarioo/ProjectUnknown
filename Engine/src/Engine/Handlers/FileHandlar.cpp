@@ -7,17 +7,17 @@
 
 namespace engine {
 
-	int FileExist(const std::string& path) {
+	bool FileExist(const std::string& path) {
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
 	}
-	int WriteTextFile(const std::string& path_, std::vector<std::string> text) {
-		std::string path = path_+".txt";
+	FileReport WriteTextFile(const std::string& path_, std::vector<std::string> text) {
+		std::string path = path_;
 		std::ofstream file(path);
 		std::vector<std::string> out;
 		if (!file) {
 			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
-			return NotFound;
+			return FileReport::NotFound;
 		} else {
 			for (int i = 0; i < text.size(); i++) {
 				if (i != 0)
@@ -26,17 +26,17 @@ namespace engine {
 			} 
 		}
 		file.close();
-		return Success;
+		return FileReport::Success;
 	}
 
-	std::vector<std::string> ReadFileList(const std::string& path_, int* err) {
-		*err = Success;
-		std::string path = path_+ ".txt";
+	std::vector<std::string> ReadTextFile(const std::string& path_, FileReport* err) {
+		*err = FileReport::Success;
+		std::string path = path_;
 		std::ifstream file(path);
 
 		std::vector<std::string> out;
 		if (!file) {
-			*err = NotFound;
+			*err = FileReport::NotFound;
 			bug::out < bug::RED <"Cannot find file '" < path  <"'\n";
 			return out;
 		}
@@ -98,8 +98,8 @@ namespace engine {
 		}
 		return false;
 	}
-
-	std::string ReadFile(std::string path, int* err) {
+	/*
+	std::string ReadFile(std::string path, FileReport* err) {
 		*err = Success;
 		path  += ".txt";
 		std::ifstream file(path);
@@ -115,7 +115,7 @@ namespace engine {
 		}
 		file.close();
 		return text;
-	}
+	}*/
 	void LoadMaterial(Material* data, const std::string& path_) {
 		if (data == nullptr)
 			return;

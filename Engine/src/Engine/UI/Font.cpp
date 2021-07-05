@@ -8,8 +8,8 @@ namespace engine {
 	}
 	void Font::Data(const std::string& name) {
 		std::string path = "assets/fonts/" + name;
-		int err = 0;
-		std::vector<std::string> list = ReadFileList(path, &err);
+		FileReport err;
+		std::vector<std::string> list = ReadTextFile(path+".txt", &err);
 		if (err == FileReport::Success) {
 			if (list.size() == 2) {
 				charWid[0] = std::stoi(list.at(0));

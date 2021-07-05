@@ -141,13 +141,13 @@ void OnKey(int key, int action) {
 //  Do something about that const string. It's not supposed to be there.
 void OnMouse(double mx,double my,int button,int action,const std::string& elementName) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
-	if (IsGameState(Play)) {
+	/*if (IsGameState(Play)) {
 		if (action == 0) {
 			if (engine::GetPauseMode()) { // Unpause in pause menu if clicking on anything
 				engine::SetPauseMode(false);
 			}
 		}
-	}
+	}*/
 }
 // Is this really supposed to be here?
 void CustomDimension() {
@@ -316,7 +316,7 @@ int main(int argc, char*argv[]) {
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
 	CustomDimension();
-
+	//bug::out < "Here" < bug::end;
 	SetGameState(Play);
 
 	UI::InitializeUI();
@@ -335,6 +335,6 @@ int main(int argc, char*argv[]) {
 	cont.Setup(false,v,16,i,6);
 	cont.SetAttrib(0,2,4,0);
 	cont.SetAttrib(1,2,4,2);
-
+	//bug::out < "Here" < bug::end;
 	engine::Start(Update, Render);
 }

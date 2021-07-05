@@ -14,8 +14,8 @@ public:
 	~Container();
 	/*
 	Add 'item' to an empty spot in the container
-	return true if all items was put into container. False if some remain in itemstack
-	remember to remove mouse held reference to item.
+	return true if all items was put into container. False if item still has items
+	
 	*/
 	bool AddItem(Item* item);
 	/*
@@ -27,11 +27,21 @@ public:
 	Return nullptr if slot is empty
 	*/
 	Item* GetItemAt(int slotX, int slotY);
+	/*
+	Return nullpptr if slot is empty
+	*/
+	Item* GetItemAt(int index);
 	Item** GetItemPointerAt(int slotX, int slotY);
+	/*
+	Self explanatory
+	*/
+	//Item* GetItem(ItemType type);
+	bool HasItem(const std::string& name, int count);
+	int GetItemCount(const std::string& name);
 	/*
 	Remove first found item with specified name
 	*/
-	Item* TakeItem(ItemName name);
+	bool RemoveItem(const std::string& name, int count);
 	/*
 	Remove item from slot
 	return nullpointer if slot is empty or non-existent
@@ -45,14 +55,7 @@ public:
 	holding shift key switches 'a' and 'b' (b is moved into a)
 	*/
 	void SwitchItem(Item** a, Item** b,int button, int action);
-	/*
-	Will also return false if slot is outside the array
-	*/
-	bool IsEmpty(int slotX, int slotY);
-	/*
-	true if all slots are occupied
-	*/
-	bool IsFull();
+	int EmptySlots();
 	/*
 	Get slotWidth
 	*/

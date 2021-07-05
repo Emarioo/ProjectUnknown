@@ -1,6 +1,7 @@
 #include "InterfaceManager.h"
 
 #include "Inventory.h"
+#include "CraftingList.h"
 #include "Infobar.h"
 #include "Hotbar.h"
 
@@ -11,8 +12,21 @@
 
 namespace UI {
 	Inventory* uiInventory;
+	Inventory* GetInventory() {
+		return uiInventory;
+	}
+	CraftingList* uiCrafting;
+	CraftingList* GetCraftingList() {
+		return uiCrafting;
+	}
 	Infobar* uiInfobar;
+	Infobar* GetInfobar() {
+		return uiInfobar;
+	}
 	Hotbar* uiHotbar;
+	Hotbar* GetHotbar() {
+		return uiHotbar;
+	}
 	void InitializeUI() {
 		InitStartMenu();
 		InitPauseMenu();
@@ -22,14 +36,20 @@ namespace UI {
 		engine::NewBase(uiInventory = new Inventory("PlayerInventory"));
 		uiInventory->conX.Right(0.f)->conY.Center(0.f)
 			->conW.Center(440 / 1920.f)->conH.Center(850 / 1080.f)->SetFixed();
-
+		
+		engine::AddTextureAsset("containers/craftinglist");
+		engine::NewBase(uiCrafting = new CraftingList("PlayerCrafting"));
+		uiCrafting->conX.Right(uiInventory,0.005f)->conY.Center(0.f)
+			->conW.Center(512 / 1920.f)->conH.Center(850 / 1080.f)->SetFixed();
+			
 		engine::AddTextureAsset("containers/infobar");
 		engine::NewBase(uiInfobar = new Infobar("PlayerInfobar"));
-		uiInfobar->conX.Left(0.f)->conY.Top(0.f)->conW.Center(550 / 1920.f / 2)->conH.Center(226 / 1080.f / 2)->SetFixed();
-
+		uiInfobar->conX.Left(0.f)->conY.Top(0.f)->conW.Center(550 / 1920.f / 2 )->conH.Center(226 / 1080.f / 2 )->SetFixed();
+		
 		engine::AddTextureAsset("containers/hotbar");
 		engine::NewBase(uiHotbar = new Hotbar("PlayerHotbar"));
-		uiHotbar->conX.Center(0.f)->conY.Bottom(0.05f)->conW.Center(608 / 1920.f)->conH.Center(64 / 1080.f)->SetFixed();
+		uiHotbar->conX.Center(0.f)->conY.Bottom(0.02f)->conW.Center(608 / 1920.f)->conH.Center(64 / 1080.f)->SetFixed();
+		
 	}
 	Item* heldItem;
 	void SetHeldItem(Item* item) {
@@ -50,24 +70,26 @@ namespace UI {
 		return &heldItem;
 	}
 	void Render() {
-		if (uiInventory->IsActive()){
-			float iw = 64 / 1920.f*2;
-			float ih = 64 / 1080.f*2;
+		if (uiInventory != nullptr) {
+			if (uiInventory->IsActive()) {
+				float iw = 64 / 1920.f * 2;
+				float ih = 64 / 1080.f * 2;
 
-			float aspectRatio = 1080 / 1920.f;
-			
-			if (aspectRatio != 0) {
-				float newRatio = engine::Height() / engine::Width();
-				if (newRatio > aspectRatio) {
-					// Height is bigger or width is smaller
-					ih *= aspectRatio / newRatio;
+				float aspectRatio = 1080 / 1920.f;
+
+				if (aspectRatio != 0) {
+					float newRatio = engine::Height() / engine::Width();
+					if (newRatio > aspectRatio) {
+						// Height is bigger or width is smaller
+						ih *= aspectRatio / newRatio;
+					}
+					else {
+						// Width bigger or height smaller
+						iw *= newRatio / aspectRatio;
+					}
 				}
-				else {
-					// Width bigger or height smaller
-					iw *= newRatio / aspectRatio;
-				}
+				DrawItem(heldItem, engine::GetFloatMouseX() - iw / 2, engine::GetFloatMouseY() + ih / 2, iw, ih, 1, 1, 1, 1);
 			}
-			DrawItem(heldItem, engine::GetFloatMouseX() - iw / 2, engine::GetFloatMouseY() + ih / 2, iw, ih);
 		}
 	}
 	// What to do with these?
@@ -92,7 +114,7 @@ namespace UI {
 			alone->AddTag(stateMenu);
 			alone->Color({ 63, 63, 107 });
 			alone->Text(GetFont(), "Play Alone", 30, { 0.9f });
-			alone->conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
+			alone->conX.Left(20)->conY.Top(0)->conW.Center(200)->conH.Center(100)->SetFixed();
 			alone->NewTransition(&hideStart)->Move(-300, 0, 1)->Fade({ 63, 63, 107, 0 }, 0.8);
 			alone->NewTransition(&alone->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
 			alone->OnClick = [](int mx, int my, int button, int action) {
@@ -104,7 +126,7 @@ namespace UI {
 		{
 			aloneScroll->AddTag(stateMenu);
 			aloneScroll->Color({ 100, 0 });
-			aloneScroll->conX.Left(20 - 300)->conY.Center(0.f)->conW.Center(260)->conH.Center(1.f);
+			aloneScroll->conX.Left(20 - 300)->conY.Center(0.f)->conW.Center(260)->conH.Center(1.f)->SetFixed();
 			aloneScroll->NewTransition(&showAlone)->Move(300, 0, 1)->Fade({ 100, 0 }, 0.8);
 		}
 		IElement* aloneBack = NewElement("aloneBack", 2);
@@ -112,7 +134,7 @@ namespace UI {
 			aloneBack->AddTag(stateMenu);
 			aloneBack->Color({ 63, 63, 107, 0 });
 			aloneBack->Text(GetFont(), "Back", 30, { 0.9f });
-			aloneBack->conX.Right(20 - 250)->conY.Bottom(20)->conW.Center(200)->conH.Center(100);
+			aloneBack->conX.Right(20 - 250)->conY.Bottom(20)->conW.Center(200)->conH.Center(100)->SetFixed();
 			aloneBack->NewTransition(&showAlone)->Move(-250, 0, 1)->Fade({ 63, 63, 107, 1 }, 0.8);
 			aloneBack->NewTransition(&aloneBack->isHolding)->Fade({ 63 / 3, 63 / 3, 107 / 3, 1 }, 0.15);
 			aloneBack->OnClick = [](int mx, int my, int button, int action) {
@@ -126,7 +148,7 @@ namespace UI {
 			editDesc->AddTag(stateMenu);
 			editDesc->Color({ 63, 63, 107, 0 });
 			editDesc->Text(GetFont(), "Description\n of this world\nPlay Time: 0s\n...", { 0.9f });
-			editDesc->conX.Left(aloneScroll, 20)->conY.Top(20)->conW.Center(260)->conH.Center(0.5f);
+			editDesc->conX.Left(aloneScroll, 20)->conY.Top(20)->conW.Center(260)->conH.Center(0.5f)->SetFixed();
 			editDesc->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
 		}
 
@@ -135,7 +157,7 @@ namespace UI {
 			editPlay->AddTag(stateMenu);
 			editPlay->Color({ 63, 63, 107, 0 });
 			editPlay->Text(GetFont(), "Play!", 30, { 0.9f });
-			editPlay->conX.Left(aloneScroll, 20)->conY.Top(editDesc, 10)->conW.Center(260)->conH.Center(80);
+			editPlay->conX.Left(aloneScroll, 20)->conY.Top(editDesc, 10)->conW.Center(260)->conH.Center(80)->SetFixed();
 			editPlay->NewTransition(&editWorld)->Fade({ 63, 63, 107, 1 }, 0.8);
 			editPlay->NewTransition(&editPlay->isHolding)->Fade({ 63 / 3, 63, 107 / 3, 1 }, 0.15);
 			editPlay->OnClick = [=](int mx, int my, int button, int action) {
@@ -146,6 +168,8 @@ namespace UI {
 					// Load world data
 					SetGameState(Play);
 					UIFadeOff();
+					uiInfobar->active = true;
+					uiHotbar->active = true;
 					}, 1.f);
 			};
 		}
@@ -156,11 +180,11 @@ namespace UI {
 			world->AddTag(stateMenu);
 			world->Color({ 83, 83, 127, 0 });
 			world->Text(GetFont(), "World Name " + std::to_string(i), 30, { 0.9f });
-			world->conX.Left(30 - 300)->conW.Center(240)->conH.Center(80);
+			world->conX.Left(30 - 300)->conW.Center(240)->conH.Center(80)->SetFixed();
 			if (last == nullptr)
 				world->conY.Top(30);
 			else
-				world->conY.Top(last, 10);
+				world->conY.Top(last, 30);
 
 			world->NewTransition(&showAlone)->Move(300, 0, 0.5 + i * 0.05)->Fade({ 83, 83, 127, 1 }, 0.8);
 			world->NewTransition(&world->isHolding)->Fade({ 30, 30, 90, 1 }, 0.15);
@@ -182,6 +206,10 @@ namespace UI {
 			}
 			last = world;
 		}
+		IElement* background = NewElement("background",-5);
+		background->AddTag(stateMenu);
+		background->Color({255,255,255,255});
+		background->conX.Center(0.f)->conY.Center(0.f)->conW.Center(2.f)->conH.Center(2.f);
 	}
 	bool pause = false;
 
@@ -195,7 +223,7 @@ namespace UI {
 			back->AddTag([=]() {return IsGameState(Play); });
 			back->Color({ 50 });
 			back->Text(GetFont(), "Back", 30, { 0.9f });
-			back->conX.Left(20)->conY.Center(200)->conW.Center(200)->conH.Center(100);
+			back->conX.Left(.01f)->conY.Center(0.f)->conW.Center(200)->conH.Center(100)->SetFixed();
 			back->NewTransition([=]() {return !GetPauseMode(); })->Move(-200, 0, 1)->Fade({ 50, 0 }, 0.8);
 			back->NewTransition(&back->isHolding)->Fade({ 50 / 3 }, 0.15);
 			back->OnClick = [](int mx, int my, int button, int action) {
@@ -204,6 +232,10 @@ namespace UI {
 					SetGameState(Menu);
 					UIFadeOff();
 					}, 1.f);
+				uiInventory->active = false;
+				uiInfobar->active = false;
+				uiHotbar->active = false;
+				uiCrafting->active = false;
 			};
 		}
 	}
@@ -215,7 +247,7 @@ namespace UI {
 			chatBox->AddTag([=]() {return IsKey(GLFW_KEY_T); });
 			chatBox->Color({ 50 });
 			chatBox->Text(GetFont(), "Chatbox", 30, { 0.9f });
-			chatBox->conX.Left(20)->conY.Bottom(20)->conW.Center(0.25f)->conH.Center(0.33f);
+			chatBox->conX.Left(20)->conY.Bottom(20)->conW.Center(0.25f)->conH.Center(0.33f)->SetFixed();
 			//back->NewTransition([=]() {return !GetPauseMode(); })->Move(-200, 0, 1)->Fade({ 50, 0 }, 0.8);
 			//back->NewTransition(&back->isHolding)->Fade({ 50 / 3 }, 0.15);
 			/*chatBox->OnClick = [](int mx, int my, int button, int action) {
@@ -233,7 +265,5 @@ namespace UI {
 			inventory->Col({80});
 			inventory->conX.Right(20)->conY.Center(0)->conW.Center(0.25f)->conH.Center(0.8f);
 		}*/
-
-
 	}
 }

@@ -18,8 +18,10 @@ namespace engine {
 		floatOptions[s] = f;
 	}
 	void ReadOptions() {
-		int err = 0;
-		std::vector<std::string> list = ReadFileList("data/gameoptions", &err);
+		FileReport err;
+		std::vector<std::string> list = ReadTextFile("data/gameoptions.txt", &err);
+		if (err == FileReport::NotFound)
+			return;
 		for (std::string s : list) {
 			std::vector<std::string> set = SplitString(s, " ");
 			if (set.size() > 1) {

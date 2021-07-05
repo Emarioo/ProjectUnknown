@@ -2,25 +2,20 @@
 
 #include <string>
 
-#include "ItemMeta.h"
-
-enum ItemType : char;
-enum ItemName : short;
+#include "ItemType.h"
 
 class Item {
 public:
 	Item();
-	Item(ItemName name);
-	Item(ItemName name, int count);
+	Item(const std::string& name);
+	Item(const std::string& name, int count);
 
-	ItemName GetName();
+	std::string GetName();
+
+	void SetItem(const std::string& name,int count);
 
 	int count = 0;
-	int maxCount = 50;
 
-	ItemType type; // Set in itemhandler
-	ItemName name;
-	ItemMeta meta;
-private:
+	ItemType type;
 
 };

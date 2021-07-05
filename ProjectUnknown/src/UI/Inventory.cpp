@@ -6,45 +6,48 @@
 
 Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container = new Container("Player Inv.",5,5);
-	container->AddItem(new Item(FlintItem,23));
-	container->AddItem(new Item(StickItem,320));
-	container->AddItem(new Item(FiberItem,50));
-	container->AddItem(new Item(StickItem,250));
-	container->AddItem(new Item(FiberItem, 111));
+	/*container->AddItem(new Item("Flint",3));
+	container->AddItem(new Item("Stick",5));
+	container->AddItem(new Item("Fiber",8));*/
 }
 bool Inventory::IsActive() {
 	return active;
 }
 bool Inventory::ClickEvent(int mx, int my, int button, int action) {
-	CalcConstraints();
+	if (IsActive()) {
+		CalcConstraints();
 
-	float mouseX = engine::ToFloatScreenX(mx);
-	float mouseY = engine::ToFloatScreenY(my);
+		float mouseX = engine::ToFloatScreenX(mx);
+		float mouseY = engine::ToFloatScreenY(my);
 
-	// Check if mouse is inside inventory
-	if (mouseX>x-w/2&&mouseX<x+w/2&&
-		mouseY>y-h/2&&mouseY<y+h/2) {
-		
-		// If there is a container
-		if (container!=nullptr) {
-			float sw = w * (64 / 440.f);
-			float sh = h * (64 / 850.f);
+		if (action != 1)
+			return false;
 
-			float startX = w * 63 / 440.f;
-			float startY = -h * 241 / 850.f;
+		// Check if mouse is inside inventory
+		if (mouseX > x && mouseX<x + w &&
+			mouseY>y && mouseY < y + h) {
 
-			float row = (mouseX-startX-x+w/2)/sw;
-			float col = (mouseY-startY-y-h/2)/-sh;
+			// If there is a container
+			if (container != nullptr) {
+				float sw = w * (64 / 440.f);
+				float sh = h * (64 / 850.f);
 
-			//bug::outs < row < col < bug::end;
+				float startX = w * 63 / 440.f;
+				float startY = -h * 241 / 850.f;
 
-			if (row > 0 && col > 0&&row<container->GetSlotWidth()&&col<container->GetSlotHeight()) {
-				
-				Item** heldItem = UI::GetHeldItemPointer();
-				Item** item = container->GetItemPointerAt((int)row, (int)col);
-				
-				if (item != nullptr) {
-					container->SwitchItem(heldItem, item,button,action);
+				float col = (mouseX - startX - x) / sw;
+				float row = (startY + y + h - mouseY) / sh;
+
+				//bug::outs <"stuff "< col < row < bug::end;
+
+				if (0 <= row && row <= container->GetSlotWidth() && 0 <= col && col <= container->GetSlotHeight()) {
+
+					Item** heldItem = UI::GetHeldItemPointer();
+					Item** item = container->GetItemPointerAt((int)col, (int)row);
+
+					if (item != nullptr) {
+						container->SwitchItem(heldItem, item, button, action);
+					}
 				}
 			}
 		}
@@ -92,8 +95,8 @@ void Inventory::Render() {
 					if (item != nullptr) {
 						// Draw item
 						DrawItem(item,
-							x-w/2 + startX + sx * sw, y+h/2 + startY + sy * -sh,
-							sw, sh);
+							x + startX + sx * sw, y+h + startY + sy * -sh,
+							sw, sh, 1,1,1,1);
 					}
 				}
 			}

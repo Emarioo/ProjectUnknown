@@ -5,8 +5,8 @@
 namespace engine {
 	IBase::IBase(const std::string& name)
 	: name(name), x(0), y(0), w(0), h(0),
-		conX(IConstraint(this, true)), conY(IConstraint(this, false)),
-		conW(IConstraint(this, true)), conH(IConstraint(this, false)) {}
+		conX(IConstraintX(this)), conY(IConstraintY(this)),
+		conW(IConstraintW(this)), conH(IConstraintH(this)) {}
 	IBase::~IBase() {}
 
 	void IBase::Color(const IColor& c) {
@@ -16,21 +16,23 @@ namespace engine {
 		aspectRatio = 9/16.f;
 	}
 	void IBase::CalcConstraints() {
-		w = conW.Value(0);
-		h = conH.Value(0);
+		w = conW.Value();
+		h = conH.Value();
 		if (aspectRatio!=0) {
 			float newRatio = Height() / Width();
 			if (newRatio > aspectRatio) {
 				// Height is bigger or width is smaller
 				h *= aspectRatio / newRatio;
+				if (conW.isPixel) w *= aspectRatio / newRatio;
 			}
 			else {
 				// Width bigger or height smaller
 				w *= newRatio / aspectRatio;
+				if (conW.isPixel) h *= newRatio / aspectRatio;
 			}
 		}
-		x = conX.Value(w);
-		y = conY.Value(h);
+		x = conX.Value();
+		y = conY.Value();
 	}
 	void IBase::Update(float delta) {}
 	void IBase::Render() {

@@ -140,10 +140,8 @@ namespace engine {
 	void IElement::Render() {
 		
 		// Move constrain calculations somewhere?
-		w = conW.Value(0);
-		h = conH.Value(0);
-		x = conX.Value(w);
-		y = conY.Value(h);
+
+		CalcConstraints();
 
 		isBlank = false;
 		// Transitions
@@ -217,7 +215,7 @@ namespace engine {
 
 			// Text
 			if (text.text.length() > 0 || isEditable && isSelected) {
-				text.SetPos(x, y);
+				text.SetPos(x+w/2, y+h/2);
 				GuiSize(1, 1);
 				text.DrawString(alpha, isEditable && isSelected);
 			}
@@ -228,6 +226,6 @@ namespace engine {
 		my = ToFloatScreenY(my);
 		//bug::outs < mx<my< x < y < w < h < bug::end;
 		//bug::outs < (mx > x - w / 2) < (mx<x + w / 2) < (my>w - h / 2) < (my < y + h / 2) < bug::end;
-		return mx > x - w / 2 && mx<x + w / 2 && my>y - h / 2 && my < y + h / 2;
+		return mx > x && mx<x + w && my>y && my < y + h;
 	}
 }

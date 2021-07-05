@@ -52,7 +52,6 @@
     <ClInclude Include="src\Engine\UI\Font.h" />
     <ClInclude Include="src\Engine\UI\IBase.h" />
     <ClInclude Include="src\Engine\UI\IColor.h" />
-    <ClInclude Include="src\Engine\UI\IComponent.h" />
     <ClInclude Include="src\Engine\UI\IConstraint.h" />
     <ClInclude Include="src\Engine\UI\IElement.h" />
     <ClInclude Include="src\Engine\UI\ITransition.h" />
@@ -382,7 +381,6 @@
     <ClCompile Include="src\Engine\UI\Font.cpp" />
     <ClCompile Include="src\Engine\UI\IBase.cpp" />
     <ClCompile Include="src\Engine\UI\IColor.cpp" />
-    <ClCompile Include="src\Engine\UI\IComponent.cpp" />
     <ClCompile Include="src\Engine\UI\IConstraint.cpp" />
     <ClCompile Include="src\Engine\UI\IElement.cpp" />
     <ClCompile Include="src\Engine\UI\ITransition.cpp" />

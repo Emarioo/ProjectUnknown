@@ -383,23 +383,34 @@ namespace engine {
 		textContainer.Setup(true,nullptr,4*4*TEXT_BATCH,indes,6*TEXT_BATCH);
 		textContainer.SetAttrib(0, 4, 4, 0);
 		float temp[]{
-			-0.5, -0.5, 0, 0,
-			-0.5, 0.5, 0, 1,
-			0.5, 0.5, 1, 1,
-			0.5, -0.5, 1, 0
+			0, 1, 0, 1,
+			0, 0, 0, 0,
+			1, 0, 1, 0,
+			1, 1, 1, 1
 		};
 		unsigned int temp2[]{
+			0,1,2,
+			2,3,0
+		};
+		float temp3[]{
+			-.5, -.5, 0, 0,
+			-.5, .5, 0, 1,
+			.5, .5, 1, 1,
+			.5, -.5, 1, 0
+		};
+		unsigned int temp4[]{
 			2,1,0,
 			0,3,2
 		};
 		rectContainer.Setup(false, temp,16, temp2, 6);
 		rectContainer.SetAttrib(0, 4, 4, 0);
 
-		uvRectContainer.Setup(true, temp, 16, temp2, 6);
+		uvRectContainer.Setup(true, temp3, 16, temp4, 6);
 		uvRectContainer.SetAttrib(0, 4, 4, 0);
 
 		BindShader(ShaderInterface);
 		GuiSize(1, 1);
+		GuiArea(-1, -1, 2, 2);
 
 		fov = 90.f;
 		zNear = 0.1f;
@@ -568,6 +579,12 @@ namespace engine {
 		if (shad != nullptr)
 			shad->SetVec4("uColor", f0, f1, f2, f3);
 	}
+	void GuiArea(float f0, float f1, float f2, float f3) {
+		// Bind Shader
+		Shader* shad = GetShader(ShaderInterface);
+		if (shad != nullptr)
+			shad->SetVec4("uRenderArea", f0, f1, f2, f3);
+	}
 	void PassTransform(glm::mat4 m) {
 		if (currentShader != nullptr)
 			currentShader->SetMatrix("uTransform", m);
@@ -700,6 +717,122 @@ namespace engine {
 		}
 		// Fill the rest with space
 		for (int i = ((atChar!=-1)+text.length())%TEXT_BATCH; i < TEXT_BATCH; i++) {
+			for (int j = 0; j < 16; j++) {// stop if 10 characters are zeros (aka. \n) - might be more work than filling the rest with zeros
+				verts[i * 16 + j] = 0;
+			}
+		}
+
+		///bug::out < "end" < bug::end;
+		textContainer.SubVB(0, 4 * 4 * TEXT_BATCH, verts);
+		textContainer.Draw();
+	}
+	void DrawString(Font* font, const std::string& text, bool center, float charWidth, float charHeight, int atChar) {
+		// Setup
+
+		//bug::out < atChar < bug::end;
+		if (text.length() == 0 && atChar == -1)
+			return;
+		if (font != nullptr) {
+			if (font->texture != nullptr)
+				font->texture->Bind();
+			else
+				return;
+		}
+		else
+			return;
+
+		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(renderer::Wid()/renderer::Hei());
+
+		float ratio = charHeight * ((float)Height() / Width());
+		float maxHeight = charHeight;
+		float maxWidth = 0;
+		float temp = 0;
+		for (int i = 0; i < text.size(); i++) {
+			unsigned char cha = text[i];
+			if (cha == '\n') {
+				if (temp > maxWidth)
+					maxWidth = temp;
+				temp = 0;
+				maxHeight += charHeight;
+				continue;
+			}
+			temp += ratio * (font->charWid[cha] / (float)font->charSize);
+		}
+		if (temp > maxWidth)
+			maxWidth = temp;
+
+		temp = 0;
+		float leftX = 0, topY = 0;
+		if (center) {
+			leftX = -maxWidth / 2;
+			topY = maxHeight / 2 - charHeight;
+		}
+		// Fill array with characters coords
+		float atX = leftX;
+		float atY = topY;
+		int i = 0;
+		int indChar = 0;
+		if (atChar != -1) {
+			float wid = 0;
+			float hei = 0;
+			for (int i = 0; i < atChar; i++) {
+				int cha = text.at(i);
+				if ((char)cha == '\n') {
+					wid = 0;
+					hei++;
+					continue;
+				}
+				if (cha < 0) {
+					cha += 256;
+				}
+				wid += font->charWid[cha];
+			}
+			float markerX = atX + wid * ((charHeight / (Wid() / Hei())) / font->charSize);
+			float markerY = atY + hei * charHeight;
+			float wuv = font->charWid[0] / (float)font->imgSize;
+			float wxy = ratio * (font->charWid[0] / (float)font->charSize);
+			float u = (0 % 16);
+			float v = 15 - (0 / 16);
+
+			Insert4(verts, 16 * i, markerX, markerY, (u) / 16, (v) / 16);
+			Insert4(verts, 4 + 16 * i, markerX, markerY + charHeight, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 8 + 16 * i, markerX + wxy, markerY + charHeight, (u) / 16 + wuv, (v + 1) / 16);
+			Insert4(verts, 12 + 16 * i, markerX + wxy, markerY, (u) / 16 + wuv, (v) / 16);
+
+			i++;
+		}
+		for (unsigned char cha : text) {
+			if (cha == '\n') {
+				Insert4(verts, 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 4 + 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 8 + 16 * i, 0, 0, 0, 0);
+				Insert4(verts, 12 + 16 * i, 0, 0, 0, 0);
+				atY -= charHeight;
+				atX = leftX;
+			}
+			else {
+
+				float wuv = font->charWid[cha] / (float)font->imgSize;
+				float wxy = ratio * (font->charWid[cha] / (float)font->charSize);
+				float u = (cha % 16);
+				float v = 15 - (cha / 16);
+
+				Insert4(verts, 16 * i, atX, atY, (u) / 16, (v) / 16);
+				Insert4(verts, 4 + 16 * i, atX, atY + charHeight, (u) / 16, (v + 1) / 16);
+				Insert4(verts, 8 + 16 * i, atX + wxy, atY + charHeight, (u) / 16 + wuv, (v + 1) / 16);
+				Insert4(verts, 12 + 16 * i, atX + wxy, atY, (u) / 16 + wuv, (v) / 16);
+
+				atX += wxy;
+			}
+			i++;
+			if (i == TEXT_BATCH) {
+				textContainer.SubVB(0, 4 * 4 * TEXT_BATCH, verts);
+				textContainer.Draw();
+				i = 0;
+			}
+		}
+		// Fill the rest with space
+		for (int i = ((atChar != -1) + text.length()) % TEXT_BATCH; i < TEXT_BATCH; i++) {
 			for (int j = 0; j < 16; j++) {// stop if 10 characters are zeros (aka. \n) - might be more work than filling the rest with zeros
 				verts[i * 16 + j] = 0;
 			}

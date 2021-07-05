@@ -3,202 +3,305 @@
 
 namespace engine {
 
-	IConstraint::IConstraint(IBase* b, bool use_xAxis) : _this(b), xAxis(use_xAxis) {}
-	IBase* IConstraint::Center(int pos) {
-		
+	IConstraintX::IConstraintX(IBase* b) : _this(b) {}
+	IBase* IConstraintX::Center(int pos) {
 		center = true;
 		isPixel = true;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Center(float pos) {
+	IBase* IConstraintX::Center(float pos) {
 		center = true;
-		if (xAxis) raw = PercentToFloatScreenW(pos);
-		else raw = PercentToFloatScreenH(pos);
+		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Center(IBase* b, int pos) {
+	IBase* IConstraintX::Center(IBase* b, int pos) {
 		center = true;
 		parent = b;
 		isPixel = true;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Center(IBase* b, float pos) {
+	IBase* IConstraintX::Center(IBase* b, float pos) {
 		center = true;
 		parent = b;
-		if (xAxis) raw = PercentToFloatScreenW(pos);
-		else raw = PercentToFloatScreenH(pos);
+		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Left(int pos) {
-		xAxis = true;
-		side = false;
+	IBase* IConstraintX::Left(int pos) {
+		sticky = false;
 		isPixel = true;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Left(float pos) {
-		xAxis = true;
-		side = false;
+	IBase* IConstraintX::Left(float pos) {
+		sticky = false;
 		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Left(IBase* b, int pos) {
-		xAxis = true;
-		side = false;
+	IBase* IConstraintX::Left(IBase* b, int pos) {
+		sticky = false;
 		isPixel = true;
 		parent = b;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Left(IBase* b, float pos) {
-		xAxis = true;
-		side = false;
+	IBase* IConstraintX::Left(IBase* b, float pos) {
+		sticky = false;
 		parent = b;
 		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Right(int pos) {
-		xAxis = true;
-		side = true;
+	IBase* IConstraintX::Right(int pos) {
+		sticky = true;
 		isPixel = true;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Right(float pos) {
-		xAxis = true;
-		side = true;
+	IBase* IConstraintX::Right(float pos) {
+		sticky = true;
 		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Right(IBase* b, int pos) {
-		xAxis = true;
-		side = true;
+	IBase* IConstraintX::Right(IBase* b, int pos) {
+		sticky = true;
 		isPixel = true;
 		parent = b;
 		raw = pos;
 		return _this;
 	}
-	IBase* IConstraint::Right(IBase* b, float pos) {
-		xAxis = true;
-		side = true;
+	IBase* IConstraintX::Right(IBase* b, float pos) {
+		sticky = true;
 		parent = b;
 		raw = PercentToFloatScreenW(pos);
 		return _this;
 	}
-	IBase* IConstraint::Bottom(int pos) {
-		xAxis = false;
-		side = false;
-		isPixel = true;
-		raw = pos;
-		return _this;
-	}
-	IBase* IConstraint::Bottom(float pos) {
-		xAxis = false;
-		side = false;
-		raw = PercentToFloatScreenH(pos);
-		return _this;
-	}
-	IBase* IConstraint::Bottom(IBase* b, int pos) {
-		xAxis = false;
-		side = false;
-		isPixel = true;
-		parent = b;
-		raw = pos;
-		return _this;
-	}
-	IBase* IConstraint::Bottom(IBase* b, float pos) {
-		xAxis = false;
-		side = false;
-		parent = b;
-		raw = PercentToFloatScreenH(pos);
-		return _this;
-	}
-	IBase* IConstraint::Top(int pos) {
-		xAxis = true;
-		side = true;
-		isPixel = true;
-		raw = pos;
-		return _this;
-	}
-	IBase* IConstraint::Top(float pos) {
-		xAxis = true;
-		side = true;
-		raw = PercentToFloatScreenH(pos);
-		return _this;
-	}
-	IBase* IConstraint::Top(IBase* b, int pos) {
-		xAxis = false;
-		side = true;
-		isPixel = true;
-		parent = b;
-		raw = pos;
-		return _this;
-	}
-	IBase* IConstraint::Top(IBase* b, float pos) {
-		xAxis = false;
-		side = true;
-		parent = b;
-		raw = PercentToFloatScreenH(pos);
-		return _this;
-	}
-	void IConstraint::Add(int pos) {
+	void IConstraintX::Add(int pos) {
 		raw += pos;
 	}
-	void IConstraint::Add(float pos) {
-		if (xAxis) raw += PercentToFloatScreenW(pos);
-		else raw += PercentToFloatScreenH(pos);
+	void IConstraintX::Add(float pos) {
+		raw += PercentToFloatScreenW(pos);
 	}
-	float IConstraint::Value(float f) {
-		if (xAxis) {
-			float temp = raw;
-			float ex = 0;
-			float ew = 0;
-			if (isPixel) {
-				temp = ToFloatScreenW(raw);
-			}
-			if (parent != nullptr) {
-				ex = parent->x;
-				ew = parent->w;
-			}
-			if (center) {
-				if (parent == nullptr) return temp;
-				else return parent->x + temp;
-			}
-			else if (side) {
-				if (parent == nullptr) return 1 - temp - f / 2;
-				else return ex - (ew + f) / 2 - temp;
-			}
-			else {
-				if (parent == nullptr) return temp - 1 + f / 2;
-				else return ex + (ew + f) / 2 + temp;
-			}
+	float IConstraintX::Value() {
+		float move = raw;
+		float px = 0;
+		float pw = 0;
+		if (isPixel) {
+			move = ToFloatScreenW(raw);
+		}
+		
+		if (parent != nullptr) {
+			px = parent->x;
+			pw = parent->w;
+		}
+		if (center) {
+			if (parent == nullptr) return move - _this->w/2;
+			else return px + move - _this->w/2;
+		}
+		else if (sticky) {
+			if (parent == nullptr) return 1 - move - _this->w;
+			else return px - move - _this->w;
 		}
 		else {
-			float temp = raw;
-			float ey = 0;
-			float eh = 0;
-			if (isPixel) {
-				temp = ToFloatScreenH(raw);
-			}
-			if (parent != nullptr) {
-				ey = parent->y;
-				eh = parent->h;
-			}
-			if (center) {
-				if (parent == nullptr) return temp;
-				else return parent->y + temp;
-			}
-			else if (side) {
-				if (parent == nullptr) return 1 - temp - f / 2;
-				else return ey - (eh + f) / 2 - temp;
-			}
-			else {
-				if (parent == nullptr) return temp - 1 + f / 2;
-				else return ey + (eh + f) / 2 + temp;
-			}
+			if (parent == nullptr) return move - 1;
+			else return px + pw + move;
 		}
+	
+		return 0;
+	}
+
+	IConstraintY::IConstraintY(IBase* b) : _this(b) {}
+	IBase* IConstraintY::Center(int pos) {
+		center = true;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Center(float pos) {
+		center = true;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintY::Center(IBase* b, int pos) {
+		center = true;
+		parent = b;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Center(IBase* b, float pos) {
+		center = true;
+		parent = b;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintY::Bottom(int pos) {
+		sticky = false;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Bottom(float pos) {
+		sticky = false;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintY::Bottom(IBase* b, int pos) {
+		sticky = false;
+		isPixel = true;
+		parent = b;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Bottom(IBase* b, float pos) {
+		sticky = false;
+		parent = b;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintY::Top(int pos) {
+		sticky = true;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Top(float pos) {
+		sticky = true;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintY::Top(IBase* b, int pos) {
+		sticky = true;
+		isPixel = true;
+		parent = b;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintY::Top(IBase* b, float pos) {
+		sticky = true;
+		parent = b;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	void IConstraintY::Add(int pos) {
+		raw += pos;
+	}
+	void IConstraintY::Add(float pos) {
+		raw += PercentToFloatScreenH(pos);
+	}
+	float IConstraintY::Value() {
+		float move = raw;
+		float py = 0;
+		float ph = 0;
+		if (isPixel) {
+			move = ToFloatScreenH(raw);
+		}
+		
+		if (parent != nullptr) {
+			py = parent->y;
+			ph = parent->h;
+		}
+		if (center) {
+			if (parent == nullptr) return move - _this->h/2;
+			else return py + move - _this->h/2;
+		}
+		else if (sticky) {
+			if (parent == nullptr) return 1 - move - _this->h;
+			else return py - move - _this->h;
+		}
+		else {
+			if (parent == nullptr) return move - 1;
+			else return py + move;
+		}
+		
+		return 0;
+	}
+	IConstraintW::IConstraintW(IBase* b) : _this(b) {}
+	IBase* IConstraintW::Center(int pos) {
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintW::Center(float pos) {
+		raw = PercentToFloatScreenW(pos);
+		return _this;
+	}
+	IBase* IConstraintW::Center(IBase* b, int pos) {
+		parent = b;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintW::Center(IBase* b, float pos) {
+		parent = b;
+		raw = PercentToFloatScreenW(pos);
+		return _this;
+	}
+	void IConstraintW::Add(int pos) {
+		raw += pos;
+	}
+	void IConstraintW::Add(float pos) {
+		raw += PercentToFloatScreenW(pos);
+	}
+	float IConstraintW::Value() {
+		float move = raw;
+		float px = 0;
+		float pw = 0;
+		if (isPixel) {
+			move = ToFloatScreenW(raw);
+		}
+		
+		if (parent != nullptr) {
+			px = parent->x;
+			pw = parent->w;
+		}
+		if (parent == nullptr) return move;
+		else return px + move;
+		
+		return 0;
+	}
+	IConstraintH::IConstraintH(IBase* b) : _this(b) {}
+	IBase* IConstraintH::Center(int pos) {
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintH::Center(float pos) {
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	IBase* IConstraintH::Center(IBase* b, int pos) {
+		parent = b;
+		isPixel = true;
+		raw = pos;
+		return _this;
+	}
+	IBase* IConstraintH::Center(IBase* b, float pos) {
+		parent = b;
+		raw = PercentToFloatScreenH(pos);
+		return _this;
+	}
+	void IConstraintH::Add(int pos) {
+		raw += pos;
+	}
+	void IConstraintH::Add(float pos) {
+		raw += PercentToFloatScreenH(pos);
+	}
+	float IConstraintH::Value() {
+		float move = raw;
+		float py = 0;
+		float ph = 0;
+		if (isPixel) {
+			move = ToFloatScreenH(raw);
+		}
+		
+		if (parent != nullptr) {
+			py = parent->y;
+			ph = parent->h;
+		}
+		if (parent == nullptr) return move;
+		else return py + move;
+		
 		return 0;
 	}
 }

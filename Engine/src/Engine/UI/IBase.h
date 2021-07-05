@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "IConstraint.h"
-#include "IComponent.h"
 #include "IColor.h"
 
 namespace engine {
@@ -23,10 +22,10 @@ namespace engine {
 		// They change quite frequently depending on transition and constraints
 		float x=0, y=0, w=0, h=0;
 
-		IConstraint conX;
-		IConstraint conY;
-		IConstraint conW;
-		IConstraint conH;
+		IConstraintX conX;
+		IConstraintY conY;
+		IConstraintW conW;
+		IConstraintH conH;
 		// Fix the aspect ratio of the IBase's width and height. 9/16 is normal aspect ratio.
 		void SetFixed();
 		// Update positioning and size by constraints

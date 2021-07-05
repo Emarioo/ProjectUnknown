@@ -135,6 +135,7 @@ namespace engine {
 	void GuiTransform(float x, float y);
 	void GuiSize(float w, float h);
 	void GuiColor(float r, float g, float b, float a);
+	void GuiArea(float f0, float f1, float f2, float f3);
 
 	// Texture
 	void BindTexture(int slot, const std::string& name);
@@ -148,12 +149,21 @@ namespace engine {
 	
 	// Global Character Limit
 	/*
-	x, y - is position of text
-	centerX/Y - center x,y or not
-	Call GuiColor and GuiTransform (and bind shader) before calling this function. Font is bound in the function
-	atChar - position of the marker (-1 for no marker)
+	GuiTransform for position
+	GuiColor for color
+	GuiSize for scaling
+	atChar is the position for the marker (-1 for no marker)
+	text size will be adapted depending on height
 	*/
-	void DrawString(Font *font, const std::string&,bool center,float height,int atChar);
+	void DrawString(Font *font, const std::string& text,bool center,float height,int atChar);
+	/*
+	GuiTransform for position
+	GuiColor for color
+	GuiSize for scaling
+	atChar is the position for the marker (-1 for no marker)
+	text size will be adapted depending on width and height
+	*/
+	void DrawString(Font *font, const std::string& text,bool center,float width,float height,int atChar);
 	/*
 	Call GuiColor, GuiSize and GuiTransform (and bind shader) before calling this function.
 	*/

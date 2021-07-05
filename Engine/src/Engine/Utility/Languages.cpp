@@ -10,8 +10,8 @@ namespace engine {
 	std::map<std::string, std::map<std::string, std::string>> langs;
 	std::string currentLang = "english";
 	void LLoadLang(std::string path) {
-		int err = 0;
-		std::vector<std::string> list = ReadFileList("assets/languages/" + path + ".txt", &err);
+		FileReport err;
+		std::vector<std::string> list = ReadTextFile("assets/languages/" + path + ".txt", &err);
 		if (err == FileReport::Success) {
 			langs[path] = std::map<std::string, std::string>();
 			for (std::string s : list) {
