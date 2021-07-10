@@ -1,6 +1,6 @@
 #include "Model.h"
 
-#include "Handlers/AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engine {
 	void Model::AddMesh(const std::string& name, glm::mat4 matrix) {

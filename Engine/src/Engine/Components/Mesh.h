@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "Rendering/Shader.h"
-#include "Rendering/BufferContainer.h"
+#include "../Rendering/Shader.h"
+#include "../Rendering/BufferContainer.h"
 #include "Material.h"
 
 namespace engine {

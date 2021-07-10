@@ -98,6 +98,7 @@
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;src;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,7 +167,6 @@
   <ItemGroup>
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Dungeons\Dungeon.cpp" />
-    <ClCompile Include="src\GameStates.cpp" />
     <ClCompile Include="src\Items\Container.cpp" />
     <ClCompile Include="src\Items\CraftingCategory.cpp" />
     <ClCompile Include="src\Items\CraftingRecipe.cpp" />
@@ -190,7 +190,6 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\Dungeons\Dungeon.h" />
-    <ClInclude Include="src\GameStates.h" />
     <ClInclude Include="src\Items\Container.h" />
     <ClInclude Include="src\Items\CraftingCategory.h" />
     <ClInclude Include="src\Items\CraftingRecipe.h" />

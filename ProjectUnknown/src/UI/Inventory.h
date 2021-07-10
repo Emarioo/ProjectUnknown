@@ -6,11 +6,8 @@
 class Inventory : public engine::IBase {
 public:
 	Inventory(const std::string& name);
-	
-	bool active;
-	bool IsActive();
 
-	bool ClickEvent(int mx, int my, int button, int action) override;
+	bool MouseEvent(int mx, int my, int action, int button) override;
 	bool KeyEvent(int key, int action) override;
 	
 	void Update(float delta) override;

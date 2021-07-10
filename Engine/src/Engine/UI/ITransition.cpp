@@ -1,6 +1,6 @@
 #include "ITransition.h"
 
-#include "Rendering/Renderer.h"
+#include "../Rendering/Renderer.h"
 
 namespace engine {
 	ITransition::ITransition(bool* act) {

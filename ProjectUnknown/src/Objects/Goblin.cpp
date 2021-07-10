@@ -11,7 +11,7 @@ Goblin::Goblin(float x, float y, float z) {
 	*/
 	//renderComponent.SetBone("goblin_skeleton");
 	
-	renderComponent.SetModel("Player");
+	renderComponent.SetModel("testing");
 	renderComponent.animator.Enable("goblin_idle", {0,true,0.5,1});
 	renderComponent.animator.Enable("goblin_run", {0,true,0.5,1});
 	//bug::out < renderComponent.model->animations[0]->name < bug::end;
@@ -22,6 +22,7 @@ Goblin::Goblin(float x, float y, float z) {
 float blending = 0;
 float speed = 1.7;
 void Goblin::Update(float delta) {
+	/*
 	if (engine::IsKey(GLFW_KEY_W)) {
 		if (blending < 1 && speed>0)
 			blending += speed * delta;
@@ -32,6 +33,9 @@ void Goblin::Update(float delta) {
 
 	renderComponent.animator.Blend("goblin_idle",blending);
 	renderComponent.animator.Blend("goblin_run",1-blending);
+	*/
+	renderComponent.animator.Blend("goblin_idle",1);
+	renderComponent.animator.Blend("goblin_run",0);
 
 	renderComponent.animator.Update(delta);
 }

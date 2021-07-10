@@ -26,7 +26,9 @@
     <ClInclude Include="src\Engine\Components\RenderComponent.h" />
     <ClInclude Include="src\Engine\Components\Animator.h" />
     <ClInclude Include="src\Engine\Components\Model.h" />
-    <ClInclude Include="src\Engine\Objects\ClientPlayer.h" />
+    <ClInclude Include="src\Engine\DebugTool\DebugPanel.h" />
+    <ClInclude Include="src\Engine\DebugTool\LogLine.h" />
+    <ClInclude Include="src\Engine\GameState.h" />
     <ClInclude Include="src\Engine\Rendering\FrameBuffer.h" />
     <ClInclude Include="src\Engine\Engine.h" />
     <ClInclude Include="src\Engine\Components\Animation.h" />
@@ -36,9 +38,7 @@
     <ClInclude Include="src\Engine\Handlers\FileHandler.h" />
     <ClInclude Include="src\Engine\Handlers\UIHandler.h" />
     <ClInclude Include="src\Engine\Handlers\ObjectHandler.h" />
-    <ClInclude Include="src\Engine\Objects\Cube.h" />
     <ClInclude Include="src\Engine\GameObject.h" />
-    <ClInclude Include="src\Engine\Objects\NetPlayer.h" />
     <ClInclude Include="src\Engine\Rendering\BufferContainer.h" />
     <ClInclude Include="src\Engine\Rendering\Camera.h" />
     <ClInclude Include="src\Engine\Rendering\Light.h" />
@@ -56,7 +56,7 @@
     <ClInclude Include="src\Engine\UI\IElement.h" />
     <ClInclude Include="src\Engine\UI\ITransition.h" />
     <ClInclude Include="src\Engine\UI\Text.h" />
-    <ClInclude Include="src\Engine\Utility\Debugger.h" />
+    <ClInclude Include="src\Engine\DebugTool\DebugHandler.h" />
     <ClInclude Include="src\Engine\Utility\Utilities.h" />
     <ClInclude Include="src\Engine\Utility\GameOptions.h" />
     <ClInclude Include="src\Engine\Keyboard.h" />
@@ -357,16 +357,16 @@
     <ClCompile Include="src\Engine\Components\MetaComponent.cpp" />
     <ClCompile Include="src\Engine\Components\Model.cpp" />
     <ClCompile Include="src\Engine\Components\RenderComponent.cpp" />
+    <ClCompile Include="src\Engine\DebugTool\DebugPanel.cpp" />
+    <ClCompile Include="src\Engine\DebugTool\LogLine.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\Components\Animation.cpp" />
+    <ClCompile Include="src\Engine\GameState.cpp" />
     <ClCompile Include="src\Engine\Handlers\AssetHandler.cpp" />
     <ClCompile Include="src\Engine\Handlers\FileHandlar.cpp" />
     <ClCompile Include="src\Engine\Handlers\UIHandler.cpp" />
     <ClCompile Include="src\Engine\Handlers\ObjectHandler.cpp" />
-    <ClCompile Include="src\Engine\Objects\ClientPlayer.cpp" />
-    <ClCompile Include="src\Engine\Objects\Cube.cpp" />
     <ClCompile Include="src\Engine\Objects\GameObject.cpp" />
-    <ClCompile Include="src\Engine\Objects\NetPlayer.cpp" />
     <ClCompile Include="src\Engine\Components\Animator.cpp" />
     <ClCompile Include="src\Engine\Rendering\BufferContainer.cpp" />
     <ClCompile Include="src\Engine\Rendering\Camera.cpp" />
@@ -385,7 +385,7 @@
     <ClCompile Include="src\Engine\UI\IElement.cpp" />
     <ClCompile Include="src\Engine\UI\ITransition.cpp" />
     <ClCompile Include="src\Engine\UI\Text.cpp" />
-    <ClCompile Include="src\Engine\Utility\Debugger.cpp" />
+    <ClCompile Include="src\Engine\DebugTool\DebugHandler.cpp" />
     <ClCompile Include="src\Engine\Utility\Utilities.cpp" />
     <ClCompile Include="src\Engine\Utility\GameOptions.cpp" />
     <ClCompile Include="src\Engine\Utility\Keyboard.cpp" />
@@ -614,6 +614,7 @@
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

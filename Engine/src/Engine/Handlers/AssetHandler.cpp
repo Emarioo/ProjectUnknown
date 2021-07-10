@@ -11,7 +11,7 @@ namespace engine {
 	}
 	void UpdateTimedFunc(float delta) {
 		int n = 0;
-		for (TimedFunc& f : functions) {
+		for (TimedFunc& f : functions) { // Will this cuse problems? Removing an element in a for loop
 			f.time -= delta;
 			if (f.time < 0) {
 				f.func();

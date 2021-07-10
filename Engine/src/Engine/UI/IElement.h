@@ -63,8 +63,8 @@ namespace engine {
 		*/
 		bool isHovering = false;
 
-		std::function<void(int mx, int my, int button, int action)> OnClick = nullptr;
-		bool ClickEvent(int mx, int my, int button, int action) override;
+		std::function<void(int mx, int my, int button, int action)> OnMouse = nullptr;
+		bool MouseEvent(int mx, int my, int button, int action) override;
 
 		std::function<void(double scroll)> OnScroll = nullptr;
 		bool ScrollEvent(double scroll) override;

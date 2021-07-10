@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 
-#include "Utility/Debugger.h"
+#include "../DebugTool/DebugHandler.h"
+
 namespace engine {
 	class Bone {
 	public:

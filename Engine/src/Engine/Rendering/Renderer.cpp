@@ -1,6 +1,6 @@
 #include "Renderer.h"
 
-#include "Handlers/AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engine {
 	
@@ -92,12 +92,6 @@ namespace engine {
 	float ToFloatScreenH(float h) {
 		return 2.f * (h) / Height();
 	}
-	float PercentToFloatScreenW(float w) {
-		return 2 * w;
-	}
-	float PercentToFloatScreenH(float h) {
-		return 2 * h;
-	}
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
 	float fov;
@@ -155,10 +149,10 @@ namespace engine {
 		}
 	}
 	std::function<void(double,double,int,int)> MouseEvent=nullptr;
-	void MouseCallback(GLFWwindow* window, int button, int action, int mods) {
+	void MouseCallback(GLFWwindow* window, int action, int button, int mods) {
 		if (windowType == Fullscreen || windowType == WindowBorderless) {
 			if (MouseEvent != nullptr)
-				MouseEvent(renMouseX, renMouseY, button, action);
+				MouseEvent(renMouseX, renMouseY, action, button);
 
 		} else if (windowType == WindowBorder) {
 			if (button == 0) {
@@ -183,7 +177,7 @@ namespace engine {
 			}
 			if (MouseEvent != nullptr) {
 				if (InsideBorder()) {
-					MouseEvent(renMouseX - 8, renMouseY - 31, button, action);
+					MouseEvent(renMouseX - 8, renMouseY - 31, action, button);
 				}
 			}
 		} else if (windowType == Maximized) {
@@ -194,7 +188,7 @@ namespace engine {
 			}
 			if (MouseEvent != nullptr) {
 				if (InsideBorder()) {
-					MouseEvent(renMouseX, renMouseY - 31, button, action);
+					MouseEvent(renMouseX, renMouseY - 31, action, button);
 				}
 			}
 		}

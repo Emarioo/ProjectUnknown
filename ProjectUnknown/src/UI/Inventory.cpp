@@ -15,53 +15,47 @@ Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container->AddItem(new Item("Steak", 5));
 	container->AddItem(new Item("Carrot", 8));
 }
-bool Inventory::IsActive() {
-	return active;
-}
-bool Inventory::ClickEvent(int mx, int my, int button, int action) {
-	if (IsActive()) {
-		CalcConstraints();
+bool Inventory::MouseEvent(int mx, int my, int action, int button) {
+	float mouseX = engine::ToFloatScreenX(mx);
+	float mouseY = engine::ToFloatScreenY(my);
 
-		float mouseX = engine::ToFloatScreenX(mx);
-		float mouseY = engine::ToFloatScreenY(my);
+	if (action != 1)
+		return false;
 
-		if (action != 1)
-			return false;
+	// Check if mouse is inside inventory
+	if (mouseX > x && mouseX<x + w &&
+		mouseY>y && mouseY < y + h) {
 
-		// Check if mouse is inside inventory
-		if (mouseX > x && mouseX<x + w &&
-			mouseY>y && mouseY < y + h) {
+		// If there is a container
+		if (container != nullptr) {
+			float sw = w * (64 / 440.f);
+			float sh = h * (64 / 850.f);
 
-			// If there is a container
-			if (container != nullptr) {
-				float sw = w * (64 / 440.f);
-				float sh = h * (64 / 850.f);
+			float startX = w * 63 / 440.f;
+			float startY = -h * 241 / 850.f;
 
-				float startX = w * 63 / 440.f;
-				float startY = -h * 241 / 850.f;
+			float col = (mouseX - startX - x) / sw;
+			float row = (startY + y + h - mouseY) / sh;
 
-				float col = (mouseX - startX - x) / sw;
-				float row = (startY + y + h - mouseY) / sh;
+			//bug::outs <"stuff "< col < row < bug::end;
 
-				//bug::outs <"stuff "< col < row < bug::end;
+			if (0 <= row && row <= container->GetSlotWidth() && 0 <= col && col <= container->GetSlotHeight()) {
 
-				if (0 <= row && row <= container->GetSlotWidth() && 0 <= col && col <= container->GetSlotHeight()) {
+				Item** heldItem = UI::GetHeldItemPointer();
+				Item** item = container->GetItemPointerAt((int)col, (int)row);
 
-					Item** heldItem = UI::GetHeldItemPointer();
-					Item** item = container->GetItemPointerAt((int)col, (int)row);
-
-					if (item != nullptr) {
-						container->SwitchItem(heldItem, item, button, action);
-					}
+				if (item != nullptr) {
+					container->SwitchItem(heldItem, item, button, action);
 				}
 			}
 		}
+
 	}
 
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (TestKeyAction(KeyInventory,key)) {
+	if (TestActionKey(KeyInventory,key)) {
 		if (action == 1) {
 			active = !active;
 			engine::SetCursorMode(active);
@@ -70,42 +64,34 @@ bool Inventory::KeyEvent(int key, int action) {
 	return false;
 }
 void Inventory::Update(float delta) {
-	if (IsActive()) {
-		
-	}
+	
 }
 void Inventory::Render() {
-	//bug::out < "Invetory Draw" < bug::end;
-	if (IsActive()) {
-		// Inventory background
-		engine::BindTexture(0, "containers/inventory");
-		
-		CalcConstraints();
+	// Inventory background
+	engine::BindTexture(0, "containers/inventory");
 
-		engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
-		
-		// Items
-		if (container != nullptr) {
-			float sw = w * (64/440.f);
-			float sh = h* (64 / 850.f);
-			
-			float startX = w * 63 / 440.f;
-			float startY = -h * 241 / 850.f;
+	engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
 
-			// slots start at pixel (63, 241) slot size 64
-			for (int sy = 0; sy < container->GetSlotHeight(); sy++) {
-				for (int sx = 0; sx < container->GetSlotWidth(); sx++) {
-					Item* item = container->GetItemAt(sx, sy);
-					 
-					if (item != nullptr) {
-						// Draw item
-						DrawItem(item,
-							x + startX + sx * sw, y+h + startY + sy * -sh,
-							sw, sh, 1,1,1,1);
-					}
+	// Items
+	if (container != nullptr) {
+		float sw = w * (64 / 440.f);
+		float sh = h * (64 / 850.f);
+
+		float startX = w * 63 / 440.f;
+		float startY = -h * 241 / 850.f;
+
+		// slots start at pixel (63, 241) slot size 64
+		for (int sy = 0; sy < container->GetSlotHeight(); sy++) {
+			for (int sx = 0; sx < container->GetSlotWidth(); sx++) {
+				Item* item = container->GetItemAt(sx, sy);
+
+				if (item != nullptr) {
+					// Draw item
+					DrawItem(item,
+						x + startX + sx * sw, y + h + startY + sy * -sh,
+						sw, sh, 1, 1, 1, 1);
 				}
 			}
 		}
-		
 	}
 }

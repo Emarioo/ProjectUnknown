@@ -7,10 +7,7 @@ class CraftingList : public engine::IBase {
 public:
 	CraftingList(const std::string& name);
 
-	bool active;
-	bool IsActive();
-
-	bool ClickEvent(int mx, int my, int button, int action) override;
+	bool MouseEvent(int mx, int my, int action, int button) override;
 	bool ScrollEvent(double scroll) override;
 	bool KeyEvent(int key, int action) override;
 

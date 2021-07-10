@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Handlers/AssetHandler.h"
-#include "UI/IElement.h"
+#include "AssetHandler.h"
+#include "../UI/IElement.h"
 
 #include <unordered_map>
 
@@ -16,9 +16,6 @@ namespace engine {
 	bool GetPauseMode();
 	bool* GetPauseModeRef();
 	void SetPauseMode(bool f);
-
-	void UIFadeOn();
-	void UIFadeOff();
 
 	/*
 	Setup event callbacks
@@ -42,10 +39,11 @@ namespace engine {
 	AddFont function?
 	*/
 
-	void NewBase(IBase* s);
+	void AddBase(IBase* s);
 	IBase* GetBase(const std::string& name);
 
-	IElement* NewElement(const std::string& name,int priority);
+	IElement* AddElement(IElement* element);
+	IElement* AddElement(const std::string& name,int priority);
 	/*
 	Find element with name
 	(Avoid calling to many times)

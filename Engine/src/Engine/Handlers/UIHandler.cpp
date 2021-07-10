@@ -27,20 +27,9 @@ namespace engine {
 	Font* GetFont() {
 		return &font1;
 	}
-	//WorldItem* selectedWorld;
-	//std::vector<WorldItem> worldItems;
-
-	bool uiFadeBool = false;
-	IElement* uiFade = nullptr;
-	void UIFadeOn() {
-		uiFadeBool = true;
-	}
-	void UIFadeOff() {
-		uiFadeBool = false;
-	}
 
 	std::vector<IBase*> iBases;
-	void NewBase(IBase* s) {
+	void AddBase(IBase* s) {
 		iBases.push_back(s);
 	}
 	IBase* GetBase(const std::string& s) {
@@ -53,15 +42,17 @@ namespace engine {
 	}
 
 	std::vector<IElement*> elements;
-	IElement* NewElement(const std::string& name,int priority) {
-		IElement* ie = new IElement(name, priority);
-		elements.push_back(ie);
+	IElement* AddElement(const std::string& name,int priority) {
+		return AddElement(new IElement(name,priority));
+	}
+	IElement* AddElement(IElement* element){
+		elements.push_back(element);
 		std::vector<IElement*> tempElem = elements;
 		elements.clear();
-		while(tempElem.size()>0){
+		while (tempElem.size() > 0) {
 			int prio = 99999999;
 			int ind = 0;
-			for (int i = 0; i < tempElem.size();i++) {
+			for (int i = 0; i < tempElem.size(); i++) {
 				if (tempElem[i]->priority < prio) {
 					prio = tempElem[i]->priority;
 					ind = i;
@@ -70,7 +61,7 @@ namespace engine {
 			elements.push_back(tempElem[ind]);
 			tempElem.erase(tempElem.begin() + ind);
 		}
-		return ie;
+		return element;
 	}
 	IElement* GetElement(const std::string& s) {
 		for (IElement* e : elements) {
@@ -88,21 +79,28 @@ namespace engine {
 	void UpdateInterface(float delta) {
 		//if (GetMenu() == Startup) {
 		for (auto p : elements) {
-			if (p->HasTags()) {
-				p->HoverEvent(GetMouseX(), GetMouseY());
+			if (p->IsActive()) {
+				if (p->HasTags()) {
+					p->HoverEvent(GetMouseX(), GetMouseY());
+				}
 			}
 		}
 		for (auto p : iBases) {
-			p->HoverEvent(GetMouseX(), GetMouseY());
+			if (p->IsActive())
+				p->HoverEvent(GetMouseX(), GetMouseY());
 		}
 		for (auto p : elements) {
-			if (p->HasTags()) {
-				p->InternalUpdate(delta);
-				p->Update(delta);
+			if (p->IsActive()) {
+				if (p->HasTags()) {
+					p->InternalUpdate(delta);
+					p->Update(delta);
+				}
 			}
 		}
 		for (auto p : iBases) {
-			p->Update(delta);
+			if (p->IsActive()) {
+				p->Update(delta);
+			}
 		}
 		//}
 	}
@@ -116,7 +114,7 @@ namespace engine {
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
 			if (elements[i]->HasTags()) {
 				if (elements[i]->KeyEvent(key, action)) {
-					bug::out < elements[i]->name < bug::end;
+					//bug::out < elements[i]->name < bug::end;
 				}
 			}
 		}
@@ -125,35 +123,41 @@ namespace engine {
 		}
 	}
 	std::function<void(double, double, int, int,const std::string&)> mouseEvent;
-	void MouseEvent(double mx, double my, int button, int action) {// B0 > left | B1 > right | b2 > mid
+	void MouseEvent(double mx, double my, int action, int button) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "MouseEvent" < mx < my < button < action < bug::end;
 		for (auto p : iBases) {
-			p->ClickEvent(mx,my,button, action);
+			if (p->IsActive())
+				p->MouseEvent(mx,my,action, button);
 		}
 		std::string name = "";
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->HasTags()) {
-				if (elements[i]->ClickEvent(mx, my, button, action)) {
-					name = elements[i]->name;
-					//bug::out < "gone" <bug::end;
-					break;
+			if (elements[i]->IsActive()) {
+				if (elements[i]->HasTags()) {
+					if (elements[i]->MouseEvent(mx, my, action, button)) {
+						name = elements[i]->name;
+						//bug::out < "gone" <bug::end;
+						break;
+					}
 				}
 			}
 		}
 		if (mouseEvent != nullptr) {
-			mouseEvent(mx, my, button, action,name);
+			mouseEvent(mx, my, action, button,name);
 		}
 	}
 	std::function<void(double)> scrollEvent = nullptr;
 	void ScrollEvent(double yoffset) {// B0 > left | B1 > right | b2 > mid
 		//bug::outs < "ScrollEvent" < xoffset < yoffset < bug::end;
 		for (auto p : iBases) {
-			p->ScrollEvent(yoffset);
+			if (p->IsActive())
+				p->ScrollEvent(yoffset);
 		}
 		for (int i = elements.size() - 1; i < elements.size(); i--) {
-			if (elements[i]->HasTags()) {
-				if (elements[i]->ScrollEvent(yoffset)) {
-					//break;
+			if(elements[i]->IsActive()){
+				if (elements[i]->HasTags()) {
+					if (elements[i]->ScrollEvent(yoffset)) {
+						//break;
+					}
 				}
 			}
 		}
@@ -183,13 +187,19 @@ namespace engine {
 		SwitchBlendDepth(true);
 		BindShader(ShaderInterface);
 		
-		for (auto& p : elements) {
-			if (p->HasTags()) {
-				p->Render();
+		for (auto p : elements) {
+			if (p->IsActive()) {
+				if (p->HasTags()) {
+					p->PreRender();
+					p->Render();
+				}
 			}
 		}
 		for (auto p : iBases) {
-			p->Render();
+			if (p->IsActive()) {
+				p->PreRender();
+				p->Render();
+			}
 		}
 		
 		GuiColor(0.9, 0.8, 0.7, 1);
@@ -349,11 +359,6 @@ namespace engine {
 
 		//font1.Data("verdana38");
 		font1.Data("consolas42");
-
-		uiFade = NewElement("uiFade",100);
-		uiFade->Color({ 0, 0 });
-		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(1.f)->conH.Center(1.f);
-		uiFade->NewTransition(&uiFadeBool)->Fade({ 0, 1 }, 1.f);
 
 		SetPauseMode(true);
 		/*

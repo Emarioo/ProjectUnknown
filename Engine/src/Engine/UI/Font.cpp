@@ -1,6 +1,6 @@
 #include "Font.h"
 
-#include "Handlers/FileHandler.h"
+#include "../Handlers/FileHandler.h"
 
 namespace engine {
 	Font::Font(const std::string& name) {

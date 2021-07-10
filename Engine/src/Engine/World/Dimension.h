@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Rendering/BufferContainer.h"
+#include "../Rendering/BufferContainer.h"
 #include <glm/glm.hpp>
 
-#include "Utility/GameOptions.h"
-#include "Objects/ClientPlayer.h"
+#include "../Utility/GameOptions.h"
+#include "../Objects/ClientPlayer.h"
 
 #include <vector>
 #include "Biome.h"

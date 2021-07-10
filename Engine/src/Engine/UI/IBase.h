@@ -14,6 +14,9 @@ namespace engine {
 		IBase(const std::string& name);
 		~IBase();
 
+		bool active;
+		bool IsActive();
+
 		std::string name;
 
 		IColor color;
@@ -31,12 +34,14 @@ namespace engine {
 		// Update positioning and size by constraints
 		void CalcConstraints();
 
-		//std::vector<IComponent*> components;
+		virtual void Update(float delta) = 0;
+		/*
+		run 'CalcConstraints' and run 'Render' if 'active'
+		*/
+		void PreRender();
+		virtual void Render() = 0;
 
-		virtual void Update(float delta);
-		virtual void Render();
-
-		virtual bool ClickEvent(int mx, int my, int button, int action);
+		virtual bool MouseEvent(int mx, int my, int action, int button);
 		virtual bool ScrollEvent(double scroll);
 		virtual bool HoverEvent(int mx, int my);
 		virtual bool KeyEvent(int key, int action);

@@ -43,6 +43,14 @@ axisConvert = Matrix((
 def WriteMesh(path,original):
     out=['INFO',original.data.name]
     
+    # Create File
+    try:
+        file = open(path+original.data.name+".mesh","wb")# CHANGED
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
+        
     bpy.ops.object.select_all(action="DESELECT")
     # Make a copy of the object and apply modifiers
     object=original.copy()
@@ -51,7 +59,7 @@ def WriteMesh(path,original):
     object.select_set(True)
     bpy.context.view_layer.objects.active=object
     
-    print(bpy.context.object)
+    #print(bpy.context.object)
     
     if object.modifiers.find("Triangulate")==-1:
         object.modifiers.new("Triangulate",'TRIANGULATE')
@@ -60,9 +68,6 @@ def WriteMesh(path,original):
     for mod in object.modifiers:
         if not mod.type=='ARMATURE':
             bpy.ops.object.modifier_apply(modifier=mod.name)
-                                     
-    # Create File
-    file = open(path+original.data.name+".mesh","wb")# CHANGED
     
     triC=0
     for poly in object.data.polygons:
@@ -227,8 +232,13 @@ def WriteAnimation(path, action, object):
     out = ['INFO', action.name]
     
     # Create file
-    file = open(path+action.name+".animation","wb")
-
+    try:
+        file = open(path+action.name+".animation","wb")
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
+    
     # Write Anim Information
     fstart = int(action.frame_range[0])
     fend = int(action.frame_range[1])
@@ -354,8 +364,14 @@ def WriteAnimation(path, action, object):
 
 def WriteMaterial(path,material):
     out = ['INFO',material.name]
+    
     # Creating file
-    file = open(path+material.name+".material","wb")
+    try:
+        file = open(path+material.name+".material","wb")
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
     
     textureName=""
     color = material.diffuse_color
@@ -387,8 +403,14 @@ def WriteMaterial(path,material):
 
 def WriteArmature(path, original):
     out = ['INFO',original.data.name]
+    
     # Creating file
-    file = open(path+original.data.name+".armature","wb")
+    try:
+        file = open(path+original.data.name+".armature","wb")
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
     
     bpy.ops.object.select_all(action="DESELECT")
     # Make a copy of the object and apply modifiers
@@ -428,8 +450,14 @@ def WriteArmature(path, original):
 
 def WriteCollider(path,original):
     out=['INFO',original.data.name]
+    
     # Create File
-    file = open(path+original.data.name+".collider","wb")
+    try:
+        file = open(path+original.data.name+".collider","wb")
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
     
     bpy.ops.object.select_all(action="DESELECT")
     # Make a copy of the object and apply modifiers
@@ -488,8 +516,14 @@ def WriteCollider(path,original):
 
 def WriteModel(path,name,objects,armature,animations,collider):
     out=['INFO',name]
+    
     # Create File
-    file = open(path+name+".model","wb")
+    try:
+        file = open(path+name+".model","wb")
+    except FileNotFoundError:
+        return ['ERROR','Directory not found '+path]
+    else:
+        pass
     
     file.write(struct.pack("=B",len(armature)))
     file.write(bytearray(armature,"UTF-8"))
@@ -721,6 +755,7 @@ class MExportOperator(bpy.types.Operator):
             me.myAnimation="animations"
         
         glob = me.myGlobal if me.myGlobal[-1]=='/' else me.myGlobal+'/'
+        
         message = LoadFiles(
                 glob+(me.myModel if me.myModel[-1]=='/' else me.myModel+'/'),
                 glob+(me.myAnimation if me.myAnimation[-1]=='/' else me.myAnimation+'/'),

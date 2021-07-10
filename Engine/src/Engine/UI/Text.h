@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Rendering/BufferContainer.h"
-#include "Rendering/Renderer.h"
-#include "Keyboard.h"
+#include "../Rendering/BufferContainer.h"
+#include "../Rendering/Renderer.h"
+#include "../Keyboard.h"
 #include "Font.h"
 
 namespace engine {

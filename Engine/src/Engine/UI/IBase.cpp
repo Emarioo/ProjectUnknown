@@ -1,7 +1,7 @@
 #include "IBase.h"
 
-#include "Utility/Debugger.h"
-#include "Rendering/Renderer.h"
+//#include "../Utility/DebugHandler.h"
+#include "../Rendering/Renderer.h"
 namespace engine {
 	IBase::IBase(const std::string& name)
 	: name(name), x(0), y(0), w(0), h(0),
@@ -9,6 +9,9 @@ namespace engine {
 		conW(IConstraintW(this)), conH(IConstraintH(this)) {}
 	IBase::~IBase() {}
 
+	bool IBase::IsActive() {
+		return active;
+	}
 	void IBase::Color(const IColor& c) {
 		color = c;
 	}
@@ -34,11 +37,12 @@ namespace engine {
 		x = conX.Value();
 		y = conY.Value();
 	}
-	void IBase::Update(float delta) {}
-	void IBase::Render() {
+	void IBase::PreRender(){
+		CalcConstraints();
 	}
-	bool IBase::ClickEvent(int mx, int my, int button, int action) { return false; }
+	bool IBase::MouseEvent(int mx, int my, int action, int button) { return false; }
 	bool IBase::ScrollEvent(double scroll) { return false; }
 	bool IBase::HoverEvent(int mx, int my) { return false; }
 	bool IBase::KeyEvent(int key, int action) { return false; }
+
 }

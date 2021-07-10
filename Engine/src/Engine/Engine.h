@@ -4,6 +4,8 @@
 #include "Handlers/ObjectHandler.h"
 #include "Handlers/UIHandler.h"
 #include "Handlers/SoundHandler.h"
+#include "DebugTool/DebugHandler.h"
+#include "GameState.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions

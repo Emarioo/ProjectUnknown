@@ -5,6 +5,7 @@ namespace engine {
 	IElement::IElement(const std::string& name, int priority) :
 		IBase(name), priority(priority)
 	{
+		active = true;
 		text.ElemWH(&w, &h);
 	}
 	IElement::~IElement() {
@@ -72,7 +73,7 @@ namespace engine {
 			return nullptr;
 	}
 
-	bool IElement::ClickEvent(int mx, int my, int button, int action) {
+	bool IElement::MouseEvent(int mx, int my, int button, int action) {
 		if (action == 1)
 			isSelected = false;
 		//bug::outs < name < isSelected < bug::end;
@@ -81,8 +82,8 @@ namespace engine {
 			if (action == 1) {
 				isHolding = true;
 				isSelected = true;
-				if (OnClick != nullptr) {
-					OnClick(mx, my, button, action);
+				if (OnMouse != nullptr) {
+					OnMouse(mx, my, button, action);
 					return true;
 				}
 			}
@@ -138,11 +139,6 @@ namespace engine {
 		
 	}
 	void IElement::Render() {
-		
-		// Move constrain calculations somewhere?
-
-		CalcConstraints();
-
 		isBlank = false;
 		// Transitions
 		if (isBlank) {

@@ -3,6 +3,8 @@
 
 #include "AssetHandler.h"
 
+#include <filesystem>
+
 #define error(x) if(x==true){data->hasError=true;return;}
 
 namespace engine {
@@ -11,7 +13,15 @@ namespace engine {
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
 	}
-	FileReport WriteTextFile(const std::string& path_, std::vector<std::string> text) {
+	void GetFiles(const std::string& path, std::vector<std::string>* list) {
+		for (const auto& entry : std::filesystem::directory_iterator(path)) {
+			list->push_back(entry.path().generic_string());
+		}
+		for (int i = 0; i < list->size();i++) {
+			std::cout << list->at(i) << std::endl;
+		}
+	}
+	FileReport WriteTextFile(const std::string& path_, std::vector<std::string>& text) {
 		std::string path = path_;
 		std::ofstream file(path);
 		std::vector<std::string> out;
@@ -80,7 +90,7 @@ namespace engine {
 				bug::out < bug::RED < "Corruption at '" < filePath < "' : missing " < (fileAtByte - fileSize) < " bytes\n";
 				return true;
 			}
-			fileToRead->read(reinterpret_cast<char*>(&buffer[0]), sizeof(T) * count);
+			fileToRead->read(reinterpret_cast<char*>(&buffer[0]), (std::streamsize)sizeof(T) * count);
 			return false;
 		}
 		return false;
@@ -156,7 +166,7 @@ namespace engine {
 		if (dGeneral) bug::outs < "Shininess:" < data->shininess < bug::end;
 
 		// Cleanup
-		delete tempMap;
+		delete[] tempMap;
 		file.close();
 
 		// Dependecies
@@ -490,13 +500,13 @@ namespace engine {
 		}
 
 		// Cleanup
-		delete uPoint;
-		delete uTexture;
-		delete uWeightI;
-		delete uWeightF;
-		delete tris;
-		delete vertexOut;
-		delete triangleOut;
+		delete[] uPoint;
+		delete[] uTexture;
+		delete[] uWeightI;
+		delete[] uWeightF;
+		delete[] tris;
+		delete[] vertexOut;
+		delete[] triangleOut;
 	}
 	void LoadAnimation(Animation* data, const std::string& path_) {
 		if (data == nullptr)
@@ -648,8 +658,8 @@ namespace engine {
 		}
 		*/
 		// Cleanup
-		delete uV;
-		delete uQ;
+		delete[] uV;
+		delete[] uQ;
 		//delete uT; REMEMBER TO ADD THIS WHEN TRIANGLES ARE SUPPORTED
 		file.close();
 	}

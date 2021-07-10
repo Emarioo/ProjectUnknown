@@ -7,14 +7,14 @@
 #include <sstream>
 #include <string>
 
-#include "Utility/Utilities.h"
+#include "../Utility/Utilities.h"
 
-#include "Components/Animation.h"
-#include "Components/Mesh.h"
-#include "Components/Collider.h"
-#include "Components/Armature.h"
-#include "Components/Model.h"
-#include "Utility/Debugger.h"
+#include "../Components/Animation.h"
+#include "../Components/Mesh.h"
+#include "../Components/Collider.h"
+#include "../Components/Armature.h"
+#include "../Components/Model.h"
+#include "../DebugTool/DebugHandler.h"
 
 namespace engine {
 	enum class FileReport {
@@ -24,6 +24,12 @@ namespace engine {
 		Corrupt
 	};
 	bool FileExist(const std::string& path);
+
+	/*
+	fill 'list' with files in 'path' directory
+	*/
+	void GetFiles(const std::string& path, std::vector<std::string>* list);
+	
 	/*
 	/*
 	Remember to handle the returned error status
@@ -39,7 +45,7 @@ namespace engine {
 	Remember to handle the returned error status
 	Full file path
 	*/
-	FileReport WriteTextFile(const std::string& path, std::vector<std::string> text);
+	FileReport WriteTextFile(const std::string& path, std::vector<std::string>& text);
 	/*
 	File path is converted to "assets/materials/"+path+".material"
 	Returned object's hasError is true if any errors occur

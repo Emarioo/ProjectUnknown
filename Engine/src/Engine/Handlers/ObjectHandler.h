@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Objects/ClientPlayer.h"
-#include "World/Dimension.h"
+#include "../World/Dimension.h"
 
 namespace engine {
 

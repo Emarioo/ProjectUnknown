@@ -7,7 +7,7 @@
 
 #include <unordered_map>
 
-#include "Utility/Debugger.h"
+#include "../DebugTool/DebugHandler.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

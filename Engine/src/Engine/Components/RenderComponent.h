@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "Animator.h"
 #include "Model.h"
-#include "Handlers/AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engine {
 

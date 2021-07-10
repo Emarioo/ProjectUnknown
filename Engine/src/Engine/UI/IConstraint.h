@@ -5,7 +5,6 @@ namespace engine {
 	class IBase;
 	class IConstraintX {
 	public:
-		// More constraint options for width and height. Fixed width and height for example
 		IConstraintX(IBase* e);
 		IBase* Center(int pos);
 		IBase* Center(float pos);
@@ -27,12 +26,9 @@ namespace engine {
 		bool isPixel = false;
 	private:
 		IBase* _this = nullptr;
-
-		bool center = false;
-		
-		bool sticky;
-
 		IBase* parent = nullptr;
+		bool center = false;
+		bool sticky;
 
 	};
 	class IConstraintY {
@@ -58,12 +54,9 @@ namespace engine {
 		bool isPixel = false;
 	private:
 		IBase* _this = nullptr;
-
-		bool center = false;
-
-		bool sticky;
-
 		IBase* parent = nullptr;
+		bool center = false;
+		bool sticky;
 
 	};
 	class IConstraintW {
@@ -81,7 +74,6 @@ namespace engine {
 		bool isPixel = false;
 	private:
 		IBase* _this = nullptr;
-
 		IBase* parent = nullptr;
 
 	};
@@ -100,7 +92,6 @@ namespace engine {
 		bool isPixel = false;
 	private:
 		IBase* _this = nullptr;
-
 		IBase* parent = nullptr;
 
 	};

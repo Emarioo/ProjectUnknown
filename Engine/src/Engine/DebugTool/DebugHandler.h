@@ -4,12 +4,22 @@
 #include <iostream>
 #include <vector>
 
-//#include "Rendering/Shader.h"
-
 #include "glm/glm.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+#include "LogLine.h"
+
 namespace bug {
+
+	void InitDebug();
+	/*
+	Update the logReport.txt
+	*/
+	void UpdateLogReport();
+
+	LogLine* AddLogLine(const std::string& id, LogType type);
+	void SetLogContent(const std::string& id, const std::string& content);
+
 	/* DEBUG CMDS
 		FileManager
 		LoadMaterial

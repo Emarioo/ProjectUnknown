@@ -10,7 +10,8 @@
 #include "Items/ItemHandler.h"
 
 #include "GameHandler.h"
-#include "GameStates.h"
+
+#include "Engine/Handlers/FileHandler.h"
 
 #include "KeyBinding.h"
 
@@ -42,7 +43,7 @@ void Update(float delta) {
 	light->position.x = 5 * glm::cos(glfwGetTime());// bez3 * 2;
 	light->position.z = 5 * glm::sin(glfwGetTime());// bez3 * 2;
 	
-	if (IsGameState(Play)) {
+	if (CheckState("PLAY")) {
 		if (HasFocus() && !GetPauseMode()) {
 			UpdateObjects(delta);
 		}
@@ -55,7 +56,7 @@ engine::BufferContainer itemContainer2;
 void Render() {
 	using namespace engine;
 	SwitchBlendDepth(false);
-	if (IsGameState(Play)) {
+	if (CheckState("PLAY")) {
 		if (HasFocus() && !GetPauseMode() || !pauseRender) {
 			//move += 0.01f;
 			
@@ -100,7 +101,7 @@ void Render() {
 	UI::Render();
 }
 void OnKey(int key, int action) {
-	if (IsGameState(Play)) {
+	if (engine::CheckState("PLAY")) {
 		if (action == 1) {
 			if (key == GLFW_KEY_O) {
 				engine::ReadOptions();
@@ -127,11 +128,11 @@ void OnKey(int key, int action) {
 				}*/
 			}
 			if (engine::GetPauseMode()) {
-				if (key == GLFW_KEY_ESCAPE) {
+				if (TestActionKey(KeyPause,key)) {
 					engine::SetPauseMode(false);
 				}
 			} else {
-				if (key == GLFW_KEY_ESCAPE) {
+				if (TestActionKey(KeyPause, key)) {
 					engine::SetPauseMode(true);
 
 				}
@@ -141,7 +142,7 @@ void OnKey(int key, int action) {
 }
 
 //  Do something about that const string. It's not supposed to be there.
-void OnMouse(double mx,double my,int button,int action,const std::string& elementName) {
+void OnMouse(double mx,double my,int action,int button,const std::string& elementName) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
 	/*if (IsGameState(Play)) {
 		if (action == 0) {
@@ -255,32 +256,7 @@ int main(int argc, char*argv[]) {
 
 	//bug::set("load_mat_info", 1);
 
-	// Key Action
-	// Read key bindings from file
-	engine::FileReport err;
-	std::vector<std::string> keyData = engine::ReadTextFile("data/keybindings.dat", &err);
-	if (err == engine::FileReport::Success) {
-		for (std::string str : keyData) {
-			std::vector<std::string> split = engine::SplitString(str, "=");
-			if (split.size() == 2) {
-				ActionKey keyName = (ActionKey)std::stoi(split[0]);
-				int code = std::stoi(split[1]);
-				AddKeyAction(keyName, code);
-			}
-		}
-	} else {
-		bug::out < "Error with key bindings. Creating standard bindings\n";
-		AddKeyAction(KeyForward, GLFW_KEY_W);
-		AddKeyAction(KeyRight, GLFW_KEY_D);
-		AddKeyAction(KeyBack, GLFW_KEY_S);
-		AddKeyAction(KeyLeft, GLFW_KEY_A);
-		AddKeyAction(KeyJump, GLFW_KEY_SPACE);
-		AddKeyAction(KeyCrouch, GLFW_KEY_LEFT_SHIFT);
-		AddKeyAction(KeySprint, GLFW_KEY_F);
-		AddKeyAction(KeyInventory, GLFW_KEY_E);
-		AddKeyAction(KeyCrafting, GLFW_KEY_C);
-		AddKeyAction(KeyPause, GLFW_KEY_ESCAPE);
-	}
+	InitKeyBindings();
 
 	//engine::AddAnimAsset("goblin_slash");
 	//engine::AddBoneAsset("goblin_skeleton");
@@ -326,8 +302,9 @@ int main(int argc, char*argv[]) {
 
 	//engine::AddObject(new Tutorial(0, 0, 0));
 	//engine::AddObject(new Goblin(0, -3, 0));
-	//engine::AddObject(new Goblin(0, 0, 0));
+	engine::AddObject(new Goblin(0, 15, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
+
 	Player* player = new Player(0, 15, 0);
 	player->flight = true;
 	//player->renderHitbox = true;
@@ -344,9 +321,9 @@ int main(int argc, char*argv[]) {
 	engine::AddLight(light=l);
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
-	CustomDimension();
+	//CustomDimension();
 	//bug::out < "Here" < bug::end;
-	SetGameState(Play);
+	engine::AddState("PLAY");
 
 	UI::InitializeUI();
 

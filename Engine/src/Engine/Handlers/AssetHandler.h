@@ -1,10 +1,10 @@
 #pragma once
 
 #include <unordered_map>
-#include "Handlers/FileHandler.h"
+#include "FileHandler.h"
 #include <vector>
-#include "Rendering/Texture.h"
-#include "Utility/Debugger.h"
+#include "../Rendering/Texture.h"
+#include "../DebugTool/DebugHandler.h"
 #include <functional>
 
 

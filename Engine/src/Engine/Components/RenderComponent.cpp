@@ -11,6 +11,7 @@ namespace engine {
 			model = mod;
 			animator.model = mod;
 		}
+		else hasError = true;
 	}
 	void RenderComponent::GetArmatureTransforms(std::vector<glm::mat4>& mats) {
 		if (model != nullptr) {

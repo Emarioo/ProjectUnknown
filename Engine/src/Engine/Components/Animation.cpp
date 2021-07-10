@@ -1,7 +1,7 @@
 #include "Animation.h"
 
-#include "Utility/Debugger.h"
-#include "Utility/Utilities.h"
+#include "../DebugTool/DebugHandler.h"
+#include "../Utility/Utilities.h"
 
 namespace engine {
 	void FCurves::GetValues(int frame,float blend,glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater) {

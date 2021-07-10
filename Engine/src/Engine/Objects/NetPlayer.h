@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GameObject.h"
+#include "../GameObject.h"
 
 namespace engine {
 	class NetPlayer : public engine::GameObject {

@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
-#include "Rendering/BufferContainer.h"
-#include "Rendering/Renderer.h"
-#include "Handlers/AssetHandler.h"
+#include "../Rendering/BufferContainer.h"
+#include "../Rendering/Renderer.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engine {
 	class Location {

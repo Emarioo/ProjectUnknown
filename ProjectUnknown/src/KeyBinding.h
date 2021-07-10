@@ -5,6 +5,8 @@ enum ActionKey : int{
 	KeyInventory, KeyCrafting, KeyPause
 };
 
-void AddKeyAction(ActionKey keyName, int keyCode);
-bool TestKeyAction(ActionKey keyName, int testCode);
+void AddActionKey(ActionKey keyName, int keyCode);
+bool TestActionKey(ActionKey keyName, int testCode);
 bool IsKeyActionDown(ActionKey keyName);
+void InitKeyBindings();
+void SaveKeyBindings();

@@ -1,4 +1,8 @@
-#include "Debugger.h"
+#include "DebugHandler.h"
+
+#include "../Handlers/UIHandler.h"
+
+#include "DebugPanel.h"
 
 #include <Windows.h>
 
@@ -8,9 +12,36 @@
 #define DEBUG_MODE() false
 #endif
 
+#include <vector>
 
 namespace bug {
-	
+
+	std::vector<LogLine> logReport;
+
+	void UpdateLogReport() {
+
+	}
+	LogLine* AddLogLine(const std::string& id, LogType type) {
+		logReport.push_back(LogLine(id, type));
+		return &logReport.back();
+	}
+	void SetLogContent(const std::string& id, const std::string& content) {
+		for (LogLine& l : logReport) {
+			if (l.id == id) {
+				l.SetContent(content);
+			}
+		}
+	}
+	void RenderDebug() {
+
+	}
+	DebugPanel* debugPanel;
+	void InitDebug() {
+		debugPanel = new DebugPanel("Debug Panel");
+		debugPanel->conX.Left(0.f)->conY.Center(0.f)->conW.Center(.4f)->conH.Center(2.f);
+		engine::AddBase(debugPanel);
+	}
+
 	char end = '\n';
 	debug out;
 	debugs outs;

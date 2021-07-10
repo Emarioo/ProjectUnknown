@@ -17,6 +17,7 @@ namespace engine {
 		std::cout << "Renderer done..." << std::endl;
 		InitSound();
 		InitInterface();
+		bug::InitDebug();
 		ReadOptions();
 
 		float vMap[]{0,0,0,1,0,0,1,0,1,0,0,1};
