@@ -6,7 +6,8 @@
 std::vector<CraftingCategory> craftingCategories;
 CraftingCategory* GetCategory(int index) {
 	if(-1<index&&index<craftingCategories.size())
-	return &craftingCategories[index];
+		return &craftingCategories[index];
+	return nullptr;
 }
 int GetCategoriesSize() {
 	return craftingCategories.size();

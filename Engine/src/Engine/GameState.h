@@ -2,8 +2,14 @@
 
 #include <string>
 
+#define MAX_ENGINE_GAMESTATES 5
+#define MAX_CUSTOM_GAMESTATES 25
+
 namespace engine {
-	void AddState(std::string state);
-	void RemoveState(std::string state);
-	bool CheckState(std::string state);
+	void SetState(unsigned char state,bool f);
+	bool CheckState(unsigned char state);
+
+	enum EngineGameState : unsigned char {
+		Debug = MAX_CUSTOM_GAMESTATES
+	};
 }

@@ -21,11 +21,7 @@ namespace bug {
 		if (action == 1) {
 			if (key == GLFW_KEY_L) {
 				active = !active;
-				if (active) {
-					engine::AddState("DEBUG");
-				} else {
-					engine::RemoveState("DEBUG");
-				}
+				engine::SetState(engine::EngineGameState::Debug,active);
 			}
 		}
 		return false;

@@ -97,13 +97,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;src;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
@@ -116,16 +116,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,12 +137,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;src;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
@@ -152,16 +156,19 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engine/src;$(SolutionDir)Engine/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib-vc2019;$(SolutionDir)libs/GLEW/lib/Release/Win32;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -185,11 +192,13 @@
     <ClCompile Include="src\UI\Hotbar.cpp" />
     <ClCompile Include="src\UI\Infobar.cpp" />
     <ClCompile Include="src\UI\InterfaceManager.cpp" />
+    <ClCompile Include="src\UI\IntroScene.cpp" />
     <ClCompile Include="src\UI\Inventory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\Dungeons\Dungeon.h" />
+    <ClInclude Include="src\GameStateEnum.h" />
     <ClInclude Include="src\Items\Container.h" />
     <ClInclude Include="src\Items\CraftingCategory.h" />
     <ClInclude Include="src\Items\CraftingRecipe.h" />
@@ -208,6 +217,7 @@
     <ClInclude Include="src\UI\Hotbar.h" />
     <ClInclude Include="src\UI\Infobar.h" />
     <ClInclude Include="src\UI\InterfaceManager.h" />
+    <ClInclude Include="src\UI\IntroScene.h" />
     <ClInclude Include="src\UI\Inventory.h" />
   </ItemGroup>
   <ItemGroup>

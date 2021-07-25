@@ -22,8 +22,8 @@ namespace engine {
 	 Init after renderer
 	*/
 	void InitInterface();
-	void UpdateInterface(float delta);
-	void RenderInterface();
+	void UpdateInterface(double delta);
+	void RenderInterface(double delta);
 
 	/*
 	Elements take priority over these callbacks

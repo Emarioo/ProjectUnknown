@@ -4,6 +4,7 @@
 #include "CraftingList.h"
 #include "Infobar.h"
 #include "Hotbar.h"
+#include "IntroScene.h"
 
 namespace UI {
 
@@ -21,7 +22,7 @@ namespace UI {
 
 	void Render();
 
-	void InitStartMenu();
-	void InitPauseMenu();
-	void InitGameMenu();
+	void SetupIntro();
+	void SetupMainMenu();
+	void SetupGameUI();
 }

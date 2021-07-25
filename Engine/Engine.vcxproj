@@ -621,7 +621,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -634,6 +634,7 @@
       <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -642,7 +643,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -653,13 +654,14 @@
       <PreprocessorDefinitions>PR_DEBUG</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -672,6 +674,7 @@
       <PreprocessorDefinitions>PR_RELEASE</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src/Engine;src/vendor;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -680,7 +683,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib-vc2019;$(SolutionDir)libs\GLEW\lib\Release\Win32;$(SolutionDir)libs\AL\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>

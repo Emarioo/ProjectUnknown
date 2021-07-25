@@ -312,6 +312,7 @@ namespace engine {
 		SetWindowType(WindowBorderless);
 
 		glfwMakeContextCurrent(window);
+		
 		if (glewInit() != GLEW_OK) {
 			std::cout << "Error!" << std::endl;
 			return;

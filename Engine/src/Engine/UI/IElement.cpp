@@ -205,15 +205,17 @@ namespace engine {
 				}
 			}
 
-			// Rendering
-			BindTexture(0,texture);
-			DrawRect(x, y, w, h, red, green, blue, alpha);
+			if (alpha != 0) {
+				// Rendering
+				BindTexture(0, texture);
+				DrawRect(x, y, w, h, red, green, blue, alpha);
 
-			// Text
-			if (text.text.length() > 0 || isEditable && isSelected) {
-				text.SetPos(x+w/2, y+h/2);
-				GuiSize(1, 1);
-				text.DrawString(alpha, isEditable && isSelected);
+				// Text
+				if (text.text.length() > 0 || isEditable && isSelected) {
+					text.SetPos(x + w / 2, y + h / 2);
+					GuiSize(1, 1);
+					text.DrawString(alpha, isEditable && isSelected);
+				}
 			}
 		}
 	}

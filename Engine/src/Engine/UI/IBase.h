@@ -12,13 +12,14 @@ namespace engine {
 		float aspectRatio = 0;// height/width
 	public:
 		IBase(const std::string& name);
+		IBase(const std::string& name,int priority);
 		~IBase();
 
 		bool active;
 		bool IsActive();
 
 		std::string name;
-
+		int priority=0;
 		IColor color;
 		void Color(const IColor& color);
 

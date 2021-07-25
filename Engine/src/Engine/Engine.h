@@ -25,20 +25,20 @@ namespace engine {
 	/*
 	Update IElements, Timed Functions
 	*/
-	void UpdateUI(float delta);
+	void UpdateUI(double delta);
 	/*
 	Update  objects, camera...
 	*/
-	void UpdateObjects(float delta);
+	void UpdateObjects(double delta);
 
-	void RenderUI();
+	void RenderUI(double delta);
 	/*
 	Render objects, hitboxes...
 	*/
-	void RenderObjects();
-	void RenderRawObjects();
+	void RenderObjects(double delta);
+	void RenderRawObjects(double delta);
 	/*
 	Start the game loop and give the engine update and render calls
 	*/
-	void Start(std::function<void(float)> update,std::function<void()> render);
+	void Start(std::function<void(double)> update,std::function<void(double)> render);
 }

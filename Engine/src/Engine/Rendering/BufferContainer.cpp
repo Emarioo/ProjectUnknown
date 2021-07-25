@@ -37,11 +37,13 @@ namespace engine {
 		glDeleteBuffers(1, &vb);
 	}
 	void BufferContainer::SetAttrib(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
-		glEnableVertexArrayAttrib(va, loc);
+		glEnableVertexAttribArray(loc);
+		//glEnableVertexArrayAttrib(va, loc);
 		glVertexAttribPointer(loc, count, GL_FLOAT, GL_FALSE, stride * sizeof(float), (const void*)(offset * sizeof(float)));
 	}
 	void BufferContainer::SetAttribI(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
-		glEnableVertexArrayAttrib(va, loc);
+		glEnableVertexAttribArray(loc);
+		//glEnableVertexArrayAttrib(va, loc);
 		glVertexAttribIPointer(loc, count, GL_UNSIGNED_SHORT, stride * sizeof(int), (const void*)(offset * sizeof(int)));
 	}
 	void BufferContainer::SubIB(unsigned int offset, unsigned int icount, void* data) {

@@ -4,7 +4,11 @@
 #include "../Rendering/Renderer.h"
 namespace engine {
 	IBase::IBase(const std::string& name)
-	: name(name), x(0), y(0), w(0), h(0),
+	: name(name),
+		conX(IConstraintX(this)), conY(IConstraintY(this)),
+		conW(IConstraintW(this)), conH(IConstraintH(this)) {}
+	IBase::IBase(const std::string& name,int priority)
+		: name(name),priority(priority),
 		conX(IConstraintX(this)), conY(IConstraintY(this)),
 		conW(IConstraintW(this)), conH(IConstraintH(this)) {}
 	IBase::~IBase() {}

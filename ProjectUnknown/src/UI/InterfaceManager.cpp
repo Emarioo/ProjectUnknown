@@ -1,11 +1,6 @@
 #include "InterfaceManager.h"
 
-#include "Inventory.h"
-#include "CraftingList.h"
-#include "Infobar.h"
-#include "Hotbar.h"
-
-#include "Engine/GameState.h"
+#include "GameStateEnum.h"
 
 #include "Items/ItemHandler.h"
 
@@ -34,27 +29,9 @@ namespace UI {
 			->conW.Center(0.5f)->conH.Center(0.5f);
 		n->Color({255,255,255});
 		*/
-		InitStartMenu();
-		InitPauseMenu();
-		InitGameMenu();
-		
-		engine::AddTextureAsset("containers/inventory");
-		engine::AddBase(uiInventory = new Inventory("PlayerInventory"));
-		uiInventory->conX.Right(0.f)->conY.Center(0.f)
-			->conW.Center(440 / 1920.f*2)->conH.Center(850 / 1080.f*2)->SetFixed();
-		
-		engine::AddTextureAsset("containers/craftinglist");
-		engine::AddBase(uiCrafting = new CraftingList("PlayerCrafting"));
-		uiCrafting->conX.Right(uiInventory,0.01f)->conY.Center(0.f)
-			->conW.Center(512 / 1920.f*2)->conH.Center(850 / 1080.f*2)->SetFixed();
-			
-		engine::AddTextureAsset("containers/infobar");
-		engine::AddBase(uiInfobar = new Infobar("PlayerInfobar"));
-		uiInfobar->conX.Left(0.f)->conY.Top(0.f)->conW.Center(550 / 1920.f)->conH.Center(226 / 1080.f)->SetFixed();
-		
-		engine::AddTextureAsset("containers/hotbar");
-		engine::AddBase(uiHotbar = new Hotbar("PlayerHotbar"));
-		uiHotbar->conX.Center(0.f)->conY.Bottom(0.02f)->conW.Center(608 / 1920.f*2)->conH.Center(64 / 1080.f*2)->SetFixed();
+		SetupIntro();
+		SetupMainMenu();
+		SetupGameUI();
 		
 	}
 	Item* heldItem;
@@ -98,23 +75,33 @@ namespace UI {
 			}
 		}
 	}
+	engine::IElement* uiFade = nullptr;
+	bool uiFadeBool = false;
+	bool introBool = false;
+	IntroScene* uiIntroScene=nullptr;
+	void SetupIntro() {
+		using namespace engine;
+
+		uiFade = AddElement("uiFade", 50);
+		uiFade->Color({ 0.f,1.f });
+		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(2.f)->conH.Center(2.f);
+		uiFade->NewTransition(&uiFadeBool)->Fade({ 1.f, 1.f }, .5f);
+
+		AddTextureAsset("intro");
+		engine::AddBase(uiIntroScene = new IntroScene("IntroScene"));
+		uiIntroScene->conX.Center(0.f)->conY.Center(0.f)
+			->conW.Center(331 / 1920.f * 2)->conH.Center(277 / 1080.f * 2)->SetFixed();
+	}
 	// What to do with these?
 	bool hideStart = false;
 	bool showAlone = false;
 	bool editWorld = false;
 	int editId = 0;
-	bool uiFadeBool = false;
-	engine::IElement* uiFade = nullptr;
 	bool stateMenu() {
-		return engine::CheckState("MENU");
+		return engine::CheckState(GameState::Menu);
 	}
-	void InitStartMenu() {
+	void SetupMainMenu() {
 		using namespace engine;
-
-		uiFade = AddElement("uiFade", 100);
-		uiFade->Color({ 0, 0 });
-		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(2.f)->conH.Center(2.f);
-		uiFade->NewTransition(&uiFadeBool)->Fade({ 0, 1 }, .5f);
 
 		IElement* alone = AddElement("playAlone", 5);
 		{
@@ -173,8 +160,8 @@ namespace UI {
 				uiFadeBool=true;
 				AddTimedFunction([=]() {
 					// Load world data
-					RemoveState("MENU");
-					AddState("PLAY");
+					SetState(GameState::Menu,false);
+					SetState(GameState::Game,true);
 					uiFadeBool = false;
 					uiInfobar->active = true;
 					uiHotbar->active = true;
@@ -219,6 +206,27 @@ namespace UI {
 		background->Color({255,255,255,255});
 		background->conX.Center(0.f)->conY.Center(0.f)->conW.Center(2.f)->conH.Center(2.f);
 	}
+	void SetupGameUI() {
+		engine::AddTextureAsset("containers/inventory");
+		engine::AddBase(uiInventory = new Inventory("PlayerInventory"));
+		uiInventory->conX.Right(0.f)->conY.Center(0.f)
+			->conW.Center(440 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
+
+		engine::AddTextureAsset("containers/craftinglist");
+		engine::AddBase(uiCrafting = new CraftingList("PlayerCrafting"));
+		uiCrafting->conX.Right(uiInventory, 0.01f)->conY.Center(0.f)
+			->conW.Center(512 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
+
+		engine::AddTextureAsset("containers/infobar");
+		engine::AddBase(uiInfobar = new Infobar("PlayerInfobar"));
+		uiInfobar->conX.Left(0.f)->conY.Top(0.f)->conW.Center(550 / 1920.f)->conH.Center(226 / 1080.f)->SetFixed();
+
+		engine::AddTextureAsset("containers/hotbar");
+		engine::AddBase(uiHotbar = new Hotbar("PlayerHotbar"));
+		uiHotbar->conX.Center(0.f)->conY.Bottom(0.02f)->conW.Center(608 / 1920.f * 2)->conH.Center(64 / 1080.f * 2)->SetFixed();
+
+	}
+	/*
 	bool pause = false;
 
 	void InitPauseMenu() {
@@ -228,7 +236,7 @@ namespace UI {
 
 		IElement* back = AddElement("pauseBack", 0);
 		{
-			back->AddTag([=]() {return CheckState("PLAY"); });
+			back->AddTag([=]() {return CheckState(GameState::Game); });
 			back->Color({ 50 });
 			back->Text(GetFont(), "Back", 30, { 0.9f });
 			back->conX.Left(.02f)->conY.Center(0.f)->conW.Center(200)->conH.Center(100)->SetFixed();
@@ -237,8 +245,8 @@ namespace UI {
 			back->OnMouse = [](int mx, int my, int button, int action) {
 				uiFadeBool=true;
 				AddTimedFunction([=]() {
-					AddState("MENU");
-					RemoveState("PLAY");
+					SetState(GameState::Game,false);
+					SetState(GameState::Menu,true);
 					uiFadeBool = false;
 					}, 1.f);
 				uiInventory->active = false;
@@ -247,32 +255,5 @@ namespace UI {
 				uiCrafting->active = false;
 			};
 		}
-	}
-	void InitGameMenu() {
-		using namespace engine;
-
-		IElement* chatBox = AddElement("chatBox", 0);
-		{
-			chatBox->AddTag([=]() {return IsKey(GLFW_KEY_T); });
-			chatBox->Color({ 50 });
-			chatBox->Text(GetFont(), "Chatbox", 30, { 0.9f });
-			chatBox->conX.Left(20)->conY.Bottom(20)->conW.Center(0.5f)->conH.Center(0.66f)->SetFixed();
-			//back->NewTransition([=]() {return !GetPauseMode(); })->Move(-200, 0, 1)->Fade({ 50, 0 }, 0.8);
-			//back->NewTransition(&back->isHolding)->Fade({ 50 / 3 }, 0.15);
-			/*chatBox->OnClick = [](int mx, int my, int button, int action) {
-				UIFadeOn();
-				AddTimedFunction([=]() {
-					SetGameState(Menu);
-					UIFadeOff();
-				}, 1.f);
-			};*/
-		}
-		/*
-		IElement* inventory = NewElement("inventory", 0);
-		{
-			inventory->AddTag([=]() {return true; });
-			inventory->Col({80});
-			inventory->conX.Right(20)->conY.Center(0)->conW.Center(0.25f)->conH.Center(0.8f);
-		}*/
-	}
+	}*/
 }

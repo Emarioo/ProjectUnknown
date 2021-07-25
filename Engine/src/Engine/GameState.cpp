@@ -2,29 +2,19 @@
 
 #include <vector>
 
+#include "DebugTool/DebugHandler.h"
+
 namespace engine {
 	
-	std::vector<std::string> gameStates;
-	void AddState(std::string state) {
-		for (int i = 0; i < gameStates.size(); i++) {
-			if (gameStates[i] == state) {
-				return;
-			}
-		}
-		gameStates.push_back(state);
-	}
-	void RemoveState(std::string state) {
-		for (int i = 0; i < gameStates.size(); i++) {
-			if (gameStates[i] == state) {
-				gameStates.erase(gameStates.begin() + i);
-				break;
-			}
+	bool gameStates[30];
+	void SetState(unsigned char state,bool F) {
+		if (state < MAX_CUSTOM_GAMESTATES + MAX_ENGINE_GAMESTATES) {
+			gameStates[state] = F;
 		}
 	}
-	bool CheckState(std::string state) {
-		for (std::string str : gameStates) {
-			if (str==state)
-				return true;
+	bool CheckState(unsigned char state) {
+		if (state < MAX_CUSTOM_GAMESTATES + MAX_ENGINE_GAMESTATES) {
+			return gameStates[state];
 		}
 		return false;
 	}

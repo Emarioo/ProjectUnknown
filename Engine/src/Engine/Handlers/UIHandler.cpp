@@ -31,6 +31,20 @@ namespace engine {
 	std::vector<IBase*> iBases;
 	void AddBase(IBase* s) {
 		iBases.push_back(s);
+		std::vector<IBase*> tempBase = iBases;
+		iBases.clear();
+		while (tempBase.size() > 0) {
+			int prio = 99999999;
+			int ind = 0;
+			for (int i = 0; i < tempBase.size(); i++) {
+				if (tempBase[i]->priority < prio) {
+					prio = tempBase[i]->priority;
+					ind = i;
+				}
+			}
+			iBases.push_back(tempBase[ind]);
+			tempBase.erase(tempBase.begin() + ind);
+		}
 	}
 	IBase* GetBase(const std::string& s) {
 		for (IBase* o : iBases) {
@@ -76,7 +90,7 @@ namespace engine {
 		return nullptr;
 		*/
 	}
-	void UpdateInterface(float delta) {
+	void UpdateInterface(double delta) {
 		//if (GetMenu() == Startup) {
 		for (auto p : elements) {
 			if (p->IsActive()) {
@@ -183,7 +197,7 @@ namespace engine {
 			elements[i]->Resize(width, height); // NOT USED
 		}*/
 	}
-	void RenderInterface() {
+	void RenderInterface(double delta) {
 		SwitchBlendDepth(true);
 		BindShader(ShaderInterface);
 		
@@ -212,9 +226,7 @@ namespace engine {
 			std::to_string(pos.x) + " " + std::to_string(pos.y) + " " + std::to_string(pos.z) + "\n" +
 			std::to_string(rot.x) + " " + std::to_string(rot.y) + " " + std::to_string(rot.z),
 			false,0.05,-1);
-		
 	}
-
 	void GetEventCallbacks(
 		std::function<void(int, int)> key,
 		std::function<void(double, double, int, int,const std::string&)> mouse,
@@ -225,38 +237,6 @@ namespace engine {
 		scrollEvent = scroll;
 		dragEvent = drag;
 	}
-	/*
-	void EditWorldFunc() {
-		if (selectedWorld == nullptr)
-			return;
-
-		IElem* e = GetElement("worldName");
-		e->SetText(selectedWorld->name);
-	}
-	void AddWorld(std::string name, std::string id) {
-		WorldItem item(name, id);
-		worldItems.push_back(item);
-
-		IElem it(id);
-		//it.AddTag(1);
-		it.Dimi(575, 350 - (worldItems.size() - 1) * 110, 300, 100);
-		it.Tex(0.3, 0.8, 8, 1);
-		it.Text(name, &font1, 1, 1, 1, 1);
-		IAction* a = &it.ClickEvent;
-		a->Fade(0.2, 0.6, 0.6, 1, 0.1);
-		a->Func(EditWorldFunc, 0.15);
-		// Action?
-		//AddElement(it);
-
-	}
-	void JoinWorldFunc() {
-		if (selectedWorld == nullptr)
-			return;
-
-		std::cout << "Joining World " << selectedWorld->name << "..." << std::endl;
-		/*
-		Read data from world file and dump into entities, dimensions...
-		*/
 		/*
 		Dimension dim;
 		float a = 5*GetOptionf("scale")/500;
@@ -317,43 +297,7 @@ namespace engine {
 		dim.Init(&GetPlayer()->position);
 		AddDimension("classic",dim);
 		SetDimension("classic");
-
-		//dManager::SetGameState(GameState::play);
-	}
-	void SaveWorldFunc() {
-		if (selectedWorld == nullptr)
-			return;
-
-
-		IElem* e = GetElement("worldName");
-
-		IElem* w = GetElement(selectedWorld->id);
-		w->SetText(e->GetText());
-		selectedWorld->name = e->GetText();
-
-
-	}
-	void AddWorldFunc() {
-
-		IElem* e = GetElement("worldName");
-		e->SetText("World Name");
-	}
-	void CreateWorldFunc() {
-		IElem* e = GetElement("worldName");
-		AddWorld(e->GetText(), SanitizeString(e->GetText()));
-
-	}
-	void DeleteWorldFunc() {
-		if (selectedWorld == nullptr)
-			return;
-
-		// Delete WorldItem
-		// Delete Save File
-	}
-	void MainMenuFunc() {
-
-	}
-	*/
+		*/
 	void InitInterface() {
 		SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
 
@@ -361,122 +305,5 @@ namespace engine {
 		font1.Data("consolas42");
 
 		SetPauseMode(true);
-		/*
-		IAction* a;
-
-		//AddTag(0);
-		IElem play("play");
-		play.AddTag(0);
-		play.Dimi(0, 0, 200, 100);
-		play.Tex(0.3, 0.5, 0.8, 1);
-		play.Text("Play", &font1, 0.7, 0.7, 0.7, 1);
-		a = &play.ClickEvent;
-		a->Fade(0.2, 0.3, 0.6, 1, 0.1);
-		a->Func(PlayFunc, 0.15);
-		AddElement(play);
-
-		IElem wb("worldBack");
-		wb.AddTag(1);
-		wb.Dimi(575, 50, 400, 750);
-		wb.Tex(1, 1, 1, 0.7);
-		AddElement(wb);
-
-		// LOAD WORLDS
-		int err = 0;
-		std::vector<std::string> worldList = fManager::ReadFileList("data/worlds", &err);
-		for (std::string s : worldList) {
-			std::vector<std::string> set = SplitString(s, " ");
-			if (set.size() > 1) {
-				AddWorld(set[0], SanitizeString(set[1]));
-			}
-		}
-
-		IElem wa("worldAdd");
-		wa.AddTag(1);
-		wa.Dimi(575, -400, 300, 100);
-		wa.Tex(0.8, 0.8, 0.8, 1);
-		wa.Text("Add World", &font1, 0.5, 0.5, 0.5, 1);
-		a = &wa.ClickEvent;
-		a->Fade(0.7, 0.7, 0.7, 1, 0.1);
-		a->Func(AddWorldFunc, 0.15);
-		AddElement(wa);
-
-		IElem mb("middleBack");
-		mb.AddTag(2);
-		mb.AddTag(3);
-		mb.Dimi(0, 50, 600, 750);
-		mb.Tex(1, 1, 1, 0.7);
-		AddElement(mb);
-
-		IElem bm("backToMenu");
-		bm.AddTag(1);
-		bm.Dimi(0, -380, 300, 100);
-		bm.Tex(1, 1, 1, 0.7);
-		bm.Text("Back", &font1, 0.2, 0.2, 0.2, 1);
-		a = &bm.ClickEvent;
-		a->Fade(0.8, 0.8, 0.8, 0.7, 0.1);
-		a->Func(MainMenuFunc, 0.15);
-		AddElement(bm);
-
-		IElem wn("worldName");
-		wn.AddTag(2);
-		wn.AddTag(3);
-		wn.Dimi(0, 350, 300, 100);
-		wn.Tex(1, 1, 1, 1);
-		wn.Text(20, &font1, 0.2, 0.3, 0.3, 1);
-		wn.Typing();
-		AddElement(wn);
-
-		IElem ws("worldSettings");
-		ws.AddTag(2);
-		ws.Dimi(0, 100, 500, 300);
-		ws.Tex(1, 1, 1, 1);
-		ws.Text(100, &font1, 0.8, 0.3, 0.3, 1);
-		ws.Typing();
-		AddElement(ws);
-
-		IElem wc("worldCreate");
-		wc.AddTag(2);
-		wc.Dimi(0, -250, 400, 100);
-		wc.Tex(1, 1, 1, 1);
-		wc.Text("Create World", &font1, 0.3, 0.3, 0.3, 1);
-		a = &wc.ClickEvent;
-		a->Fade(0.8, 0.8, 0.8, 1, 0.1);
-		a->Func(CreateWorldFunc, 0.15);
-		AddElement(wc);
-
-		IElem wj("worldJoin");
-		wj.AddTag(3);
-		wj.Dimi(0, -10, 400, 100);
-		wj.Tex(1, 1, 1, 1);
-		wj.Text("Join World", &font1, 0.3, 0.3, 0.3, 1);
-		a = &wj.ClickEvent;
-		a->Fade(0.8, 0.8, 0.8, 1, 0.1);
-		a->Func(JoinWorldFunc, 0.15);
-		AddElement(wj);
-
-		IElem wsa("worldSave");
-		wsa.AddTag(3);
-		wsa.Dimi(0, -130, 400, 100);
-		wsa.Tex(1, 1, 1, 1);
-		wsa.Text("Save World", &font1, 0.3, 0.3, 0.3, 1);
-		a = &wsa.ClickEvent;
-		a->Fade(0.8, 0.8, 0.8, 1, 0.1);
-		a->Func(SaveWorldFunc, 0.15);
-		AddElement(wsa);
-
-		IElem wd("worldDelete");
-		wd.AddTag(3);
-		wd.Dimi(0, -250, 400, 100);
-		wd.Tex(1, 1, 1, 1);
-		wd.Text("Delete World", &font1, 0.3, 0.3, 0.3, 1);
-		a = &wd.ClickEvent;
-		a->Fade(0.8, 0.8, 0.8, 1, 0.1);
-		a->Func(DeleteWorldFunc, 0.15);
-		AddElement(wd);
-
-		selectedWorld = &worldItems.at(0);
-		JoinWorldFunc();
-		*/
 	}
 }

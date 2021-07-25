@@ -43,7 +43,7 @@ namespace engine {
 	float* hitboxVec;
 	unsigned int* hitboxInd;
 
-	void UpdateObjects(float delta) {
+	void UpdateObjects(double delta) {
 		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
 
 		// Additional Player Movement
@@ -70,7 +70,7 @@ namespace engine {
 					}
 				}
 			}*/
-			o0->position += o0->velocity * delta;
+			o0->position += o0->velocity * (float)delta;
 		}
 
 		UpdateViewMatrix();
@@ -80,13 +80,13 @@ namespace engine {
 
 		// Update dimension
 	}
-	void UpdateUI(float delta) {
+	void UpdateUI(double delta) {
 		UpdateTimedFunc(delta);
 		UpdateInterface(delta);
 	}
 	// If hitbox buffer is too small
 	bool reachedLimit = false;
-	void RenderRawObjects() {
+	void RenderRawObjects(double delta) {
 		for (GameObject* o : GetObjects()) {
 			if (o->renderComponent.model != nullptr) {
 				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
@@ -99,7 +99,7 @@ namespace engine {
 			}
 		}
 	}
-	void RenderObjects() {
+	void RenderObjects(double delta) {
 		// Update mesh transformations should maybe be moved to render
 		for (GameObject* o : GetObjects()) {
 			if (o->renderMesh) {
@@ -381,17 +381,18 @@ namespace engine {
 			}
 		}
 	}
-	void RenderUI() {
-		RenderInterface();
+	void RenderUI(double delta) {
+		RenderInterface(delta);
 	}
 
-	void Start(std::function<void(float)> update, std::function<void()> render){
+	void Start(std::function<void(double)> update, std::function<void(double)> render){
 		hitbox.type = 1;
 		hitbox.Setup(true, nullptr, 3 * vecLimit, nullptr, 2 * lineLimit);
 		hitbox.SetAttrib(0, 3, 3, 0);
 		hitboxVec = new float[vecLimit * 3]{0,0,0,1,0,0,0,1,0,0,0,1};
 		hitboxInd = new unsigned int[lineLimit * 2]{0,1,0,2,0,3};
 
+		/*
 		// Loop
 		int lastTime = GetTime();
 		int lastDTime = lastTime;
@@ -399,14 +400,11 @@ namespace engine {
 		int tickSpeed = 0;
 		float delta;
 
-		/*
-		Option to lock fps
-		*/
 		while (RenderRunning()) {
 			int now = GetTime();
 			if (now - lastTime > 1000) {
 				lastTime = now;
-				SetWindowTitle(("Reigai Dimension  " + std::to_string(FPS) + " fps").c_str());
+				SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
 				FPS = 0;
 				//std::cout << "Running" << std::endl;
 			}
@@ -424,6 +422,36 @@ namespace engine {
 			}
 
 
+			glfwSwapBuffers(GetWindow());
+			glfwPollEvents();
+		}*/
+		// Other
+		double previous = GetTime();
+		double lag = 0.0;
+		double MS_PER_UPDATE = 1. / 60;
+		int FPS = 0;
+		double lastSecond=previous;
+		while (RenderRunning()) {
+			double current = GetTime();
+			double elapsed = current - previous;
+			//std::cout << elapsed << std::endl;
+			previous = current;
+			lag += elapsed;
+
+			while (lag >= MS_PER_UPDATE)
+			{
+				update(MS_PER_UPDATE);
+				lag -= MS_PER_UPDATE;
+				FPS++;
+				if (current-lastSecond>1) {
+					//std::cout << (current - lastSecond) << std::endl;
+					lastSecond = current;
+					SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
+					FPS = 0;
+				}
+			}
+
+			render(lag);
 			glfwSwapBuffers(GetWindow());
 			glfwPollEvents();
 		}

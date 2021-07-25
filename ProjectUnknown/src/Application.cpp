@@ -13,13 +13,15 @@
 
 #include "Engine/Handlers/FileHandler.h"
 
+#include "GameStateEnum.h"
+
 #include "KeyBinding.h"
 
 float ang = 0;
 float vel = 0.001;
 engine::Light* light;
 engine::SoundStream melody;
-void Update(float delta) {
+void Update(double delta) {
 	using namespace engine;
 
 	ang += vel;
@@ -40,10 +42,10 @@ void Update(float delta) {
 		glm::translate(glm::vec3(0, 0, 5.2))
 		)[3]);
 	*/
-	light->position.x = 5 * glm::cos(glfwGetTime());// bez3 * 2;
-	light->position.z = 5 * glm::sin(glfwGetTime());// bez3 * 2;
+	light->position.x = 5 * glm::cos(engine::GetTime());// bez3 * 2;
+	light->position.z = 5 * glm::sin(engine::GetTime());// bez3 * 2;
 	
-	if (CheckState("PLAY")) {
+	if (CheckState(GameState::Game)) {
 		if (HasFocus() && !GetPauseMode()) {
 			UpdateObjects(delta);
 		}
@@ -53,10 +55,10 @@ void Update(float delta) {
 bool pauseRender = false;
 engine::BufferContainer cont;
 engine::BufferContainer itemContainer2;
-void Render() {
+void Render(double delta) {
 	using namespace engine;
 	SwitchBlendDepth(false);
-	if (CheckState("PLAY")) {
+	if (CheckState(GameState::Game)) {
 		if (HasFocus() && !GetPauseMode() || !pauseRender) {
 			//move += 0.01f;
 			
@@ -71,7 +73,7 @@ void Render() {
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderRawObjects();
+				RenderRawObjects(delta);
 				GetDepthBuffer().Unbind();
 			}
 			
@@ -83,7 +85,7 @@ void Render() {
 			GetShader(ShaderColor)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-			RenderObjects();
+			RenderObjects(delta);
 			
 			if (engine::IsKey(GLFW_KEY_K)) {
 				SwitchBlendDepth(true);
@@ -96,12 +98,12 @@ void Render() {
 		}
 	}
 	// Render IBase, IElement...
-	RenderUI();
+	RenderUI(delta);
 	// Render custom things like items dragged by the mouse
 	UI::Render();
 }
 void OnKey(int key, int action) {
-	if (engine::CheckState("PLAY")) {
+	if (engine::CheckState(GameState::Game)) {
 		if (action == 1) {
 			if (key == GLFW_KEY_O) {
 				engine::ReadOptions();
@@ -219,13 +221,8 @@ void CustomDimension() {
 	engine::AddDimension("classic",dim);
 	//engine::SetDimension("classic");
 }
-int main(int argc, char*argv[]) {
+void runApp() {
 	// debug override
-	if (argc > 0) {
-		for (int i = 0; i < argc;i++) {
-			if (argv[i] == "debug") bug::ENABLE_DEBUG_OVERRIDE();
-		}
-	}
 	bug::Enable(true);
 	engine::Initialize();
 	InitItemHandler();
@@ -248,11 +245,11 @@ int main(int argc, char*argv[]) {
 		 
 	//bug::set("load_arma_info", 1);
 	//bug::set("load_arma_bone", 1);
-//	bug::set("load_arma_matrix", 1);
+	//bug::set("load_arma_matrix", 1);
 		 
 	//bug::set("load_model_info", 1);
 	//bug::set("load_model_mesh", 1);
-//	bug::set("load_model_matrix", 1);
+	//bug::set("load_model_matrix", 1);
 
 	//bug::set("load_mat_info", 1);
 
@@ -323,7 +320,7 @@ int main(int argc, char*argv[]) {
 
 	//CustomDimension();
 	//bug::out < "Here" < bug::end;
-	engine::AddState("PLAY");
+	engine::SetState(GameState::Game,true);
 
 	UI::InitializeUI();
 
@@ -343,4 +340,14 @@ int main(int argc, char*argv[]) {
 	cont.SetAttrib(1,2,4,2);
 	//bug::out < "Here" < bug::end;
 	engine::Start(Update, Render);
+}
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	PSTR lpCmdLine, INT nCmdShow)
+{
+	runApp();
+	return 0;
+}
+int main(int argc, char* argv[]) {
+	runApp();
+	return 0;
 }
