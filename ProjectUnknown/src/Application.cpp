@@ -1,3 +1,4 @@
+
 #include "Engine/Engine.h"
 
 #include "Objects/Goblin.h"
@@ -6,16 +7,12 @@
 #include "Objects/Player.h"
 
 #include "UI/InterfaceManager.h"
-
 #include "Items/ItemHandler.h"
-
 #include "GameHandler.h"
-
-#include "Engine/Handlers/FileHandler.h"
-
 #include "GameStateEnum.h"
-
 #include "KeyBinding.h"
+
+#include "ShaderType.h"
 
 float ang = 0;
 float vel = 0.001;
@@ -28,7 +25,7 @@ void Update(double delta) {
 	//if(ang>1||ang<0)
 	//	vel *= -1;
 
-	melody.UpdateStream();
+	//melody.UpdateStream();
 	
 	float bez = bezier(ang, 0, 1) - 3.14159/3;
 	float bez2 = bezier(ang*0.3,0, 0.3)*0.3-0.5;
@@ -46,30 +43,28 @@ void Update(double delta) {
 	light->position.z = 5 * glm::sin(engine::GetTime());// bez3 * 2;
 	
 	if (CheckState(GameState::Game)) {
-		if (HasFocus() && !GetPauseMode()) {
+		if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
 	}
 	UpdateUI(delta);
 }
-bool pauseRender = false;
 engine::BufferContainer cont;
 engine::BufferContainer itemContainer2;
 void Render(double delta) {
 	using namespace engine;
 	SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
-		if (HasFocus() && !GetPauseMode() || !pauseRender) {
+		if (HasFocus()) {
 			//move += 0.01f;
-			
 			glm::mat4 lightView = glm::lookAt({-2,4,-1}, glm::vec3(0), { 0,1,0 });
 			
 			glClearColor(0.05f, 0.08f, 0.08f, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			// Shadow stuff
-			if (BindShader(ShaderDepth)) {
+			if (BindShader(ShaderType::Depth)) {
 				glCullFace(GL_BACK);
-				GetShader(ShaderDepth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
+				GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
@@ -80,27 +75,28 @@ void Render(double delta) {
 			glViewport(0, 0, Width(), Height());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-			BindShader(ShaderColor);
-			GetShader(ShaderColor)->SetInt("shadow_map",0);
-			GetShader(ShaderColor)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+			BindShader(ShaderType::Color);
+			GetShader(ShaderType::Color)->SetInt("shadow_map",0);
+			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(delta);
 			
 			if (engine::IsKey(GLFW_KEY_K)) {
 				SwitchBlendDepth(true);
-				BindShader(ShaderExperiment);
-				GetShader(ShaderExperiment)->SetInt("uTexture", 0);
+				BindShader(ShaderType::Experiment);
+				GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 				cont.Draw();
 			}
 		}
 	}
+
 	// Render IBase, IElement...
-	RenderUI(delta);
+	engine::RenderUI(delta);
 	// Render custom things like items dragged by the mouse
-	UI::Render();
+	interfaceManager.Render();
 }
 void OnKey(int key, int action) {
 	if (engine::CheckState(GameState::Game)) {
@@ -129,14 +125,14 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			if (engine::GetPauseMode()) {
+			
+			if (engine::CheckState(GameState::Paused)) {
 				if (TestActionKey(KeyPause,key)) {
-					engine::SetPauseMode(false);
+					engine::SetState(GameState::Paused,false);
 				}
 			} else {
 				if (TestActionKey(KeyPause, key)) {
-					engine::SetPauseMode(true);
-
+					engine::SetState(GameState::Paused,true);
 				}
 			}
 		}
@@ -217,19 +213,29 @@ void CustomDimension() {
 	gray.Flat(0.5,1,1,0);
 	noise.AddBiome(gray);
 	Dimension& dim = noise;
-	dim.Init(GetPlayer());
+	dim.Init(gameHandler.player);
 	engine::AddDimension("classic",dim);
 	//engine::SetDimension("classic");
 }
-void runApp() {
-	// debug override
-	bug::Enable(true);
+void runApp(bool isDebugBuild) {
+	// Init the absolutely neccessary stuff
+	engine::SetState(GameState::DebugLog,isDebugBuild);
 	engine::Initialize();
-	InitItemHandler();
+	engine::GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
+	InitKeyBindings();
 
-	engine::GetEventCallbacks(OnKey,OnMouse,nullptr,nullptr);
+	// Setup intro if release build
+	if (!isDebugBuild) {
+		engine::SetState(GameState::Intro, true);
+		interfaceManager.SetupIntro();
+		engine::SetCursorVisibility(false);
+	} else {
+		engine::SetState(GameState::Menu, true);
+		engine::SetupDebugPanel();
+	}
+	interfaceManager.SetupMainMenu();
 
-	// Debug Options
+	// Debug Options - move this else where. like the debugpanel
 	//bug::set("load_mesh_info", 1);
 	//bug::set("load_mesh_vectors", 1);
 	//bug::set("load_mesh_colors", 1);
@@ -253,26 +259,35 @@ void runApp() {
 
 	//bug::set("load_mat_info", 1);
 
-	InitKeyBindings();
+	// Assets should be loaded else where. Maybe where you start the game. 
+	// Only if they havent't been loaded though.
+	{
+		using namespace engine;
 
-	//engine::AddAnimAsset("goblin_slash");
-	//engine::AddBoneAsset("goblin_skeleton");
-	//engine::AddMeshAsset("goblin_body");
-	//engine::AddTextureAsset("noise");
-	//engine::AddMeshAsset("Plane.001");
-	//engine::AddMeshAsset("Plane.013");
-	//engine::AddModelAsset("Tutorial");
+		AddShader(ShaderType::Light, "lightSource");
+		AddShader(ShaderType::Experiment, "experiment");
+		AddShader(ShaderType::Terrain, "terrain");
 
-	//engine::AddModelAsset("TestMesh");
-	//engine::AddMeshAsset("LightCube");
-	//engine::AddModelAsset("LightCube");
-	//engine::AddTextureAsset("Test");
-	//engine::AddModelAsset("Player");
-	engine::AddModelAsset("Player");
-	engine::AddModelAsset("Tutorial");
-	engine::AddModelAsset("Terrain");
-	engine::AddModelAsset("Gnorg");
+		AddFont("consolas42");
 
+		//engine::AddAnimAsset("goblin_slash");
+		//engine::AddBoneAsset("goblin_skeleton");
+		//engine::AddMeshAsset("goblin_body");
+		//engine::AddTextureAsset("noise");
+		//engine::AddMeshAsset("Plane.001");
+		//engine::AddMeshAsset("Plane.013");
+		//engine::AddModelAsset("Tutorial");
+
+		//engine::AddModelAsset("TestMesh");
+		//engine::AddMeshAsset("LightCube");
+		//engine::AddModelAsset("LightCube");
+		//engine::AddTextureAsset("Test");
+		//engine::AddModelAsset("Player");
+		AddModelAsset("Player");
+		AddModelAsset("Tutorial");
+		AddModelAsset("Terrain");
+		AddModelAsset("Gnorg");
+	}
 	//bug::out < a->Get(0)->Get(0)->frames[1].value < bug::end;
 	//engine::AddAnimationAsset("ArmatureAction");
 	//engine::GetModelAsset("Player")->AddAnimation("ArmatureAction");
@@ -283,6 +298,7 @@ void runApp() {
 	//engine::AddTextureAsset("items0");
 	//engine::AddTextureAsset("magicstaff_fireball");
 
+	/*
 	melody.Init("assets/sounds/melody.wav");
 
 	engine::SoundBuffer trumpet;
@@ -296,17 +312,18 @@ void runApp() {
 	//melody.source.Play();
 
 	melody.source.Gain(0.25);
+	*/
 
+	// Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));
 	//engine::AddObject(new Goblin(0, -3, 0));
 	engine::AddObject(new Goblin(0, 15, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
 
-	Player* player = new Player(0, 15, 0);
-	player->flight = true;
+	gameHandler.player = new Player(0, 15, 0);
+	gameHandler.player->flight = true;
 	//player->renderHitbox = true;
-	SetPlayer(player);
-	engine::AddObject(player);
+	engine::AddObject(gameHandler.player);
 	//Tutorial* tutorial = new Tutorial(0, 0, 0);
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
@@ -319,11 +336,8 @@ void runApp() {
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
 	//CustomDimension();
-	//bug::out < "Here" < bug::end;
-	engine::SetState(GameState::Game,true);
-
-	UI::InitializeUI();
-
+	
+	// Shadow framebuffer
 	float v[]{
 		-1,-1,0,0,
 		1,-1,1,0,
@@ -334,20 +348,19 @@ void runApp() {
 		0,1,2,
 		2,3,0
 	};
-
 	cont.Setup(false,v,16,i,6);
 	cont.SetAttrib(0,2,4,0);
 	cont.SetAttrib(1,2,4,2);
-	//bug::out < "Here" < bug::end;
+
 	engine::Start(Update, Render);
 }
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow)
 {
-	runApp();
+	runApp(false);
 	return 0;
 }
 int main(int argc, char* argv[]) {
-	runApp();
+	runApp(true);
 	return 0;
 }

@@ -47,7 +47,7 @@ bool Hotbar::MouseEvent(int mx, int my, int action, int button) {
 
 			if (rawCol < sw && 0 <= col && col <= container->GetSlotWidth()) {
 
-				Item** heldItem = UI::GetHeldItemPointer();
+				Item** heldItem = interfaceManager.GetHeldItemPointer();
 				Item** item = container->GetItemPointerAt((int)col, 0);
 
 				if (item != nullptr) {

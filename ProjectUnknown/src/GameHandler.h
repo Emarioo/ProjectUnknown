@@ -1,6 +1,14 @@
 #pragma once
 
+#include "Items/ItemHandler.h"
+#include "GameStateEnum.h"
 #include "Objects/Player.h"
 
-Player* GetPlayer();
-void SetPlayer(Player* plr);
+class GameHandler {
+private:
+public:
+	Player* player=nullptr;
+
+	void StartGame();
+};
+extern GameHandler gameHandler;

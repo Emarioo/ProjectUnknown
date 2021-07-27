@@ -4,16 +4,20 @@
 
 #include "DebugPanel.h"
 
-#include <Windows.h>
+#include "GameState.h"
 
-#if PR_DEBUG == 1
-#define DEBUG_MODE() true
-#else
-#define DEBUG_MODE() false
-#endif
+#include <Windows.h>
 
 #include <vector>
 
+namespace engine {
+	DebugPanel* debugPanel;
+	void SetupDebugPanel() {
+		debugPanel = new DebugPanel("Debug Panel");
+		debugPanel->conX.Left(0.f)->conY.Center(0.f)->conW.Center(.4f)->conH.Center(2.f);
+		engine::AddBase(debugPanel);
+	}
+}
 namespace bug {
 
 	std::vector<LogLine> logReport;
@@ -35,12 +39,6 @@ namespace bug {
 	void RenderDebug() {
 
 	}
-	DebugPanel* debugPanel;
-	void InitDebug() {
-		debugPanel = new DebugPanel("Debug Panel");
-		debugPanel->conX.Left(0.f)->conY.Center(0.f)->conW.Center(.4f)->conH.Center(2.f);
-		engine::AddBase(debugPanel);
-	}
 
 	char end = '\n';
 	debug out;
@@ -49,7 +47,7 @@ namespace bug {
 	
 	std::vector<std::string> debugVarOn;
 	bool is(const std::string& name) {
-		if (DEBUG_MODE()) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			for (auto s : debugVarOn) {
 				if (name == s) {
 					return true;
@@ -59,7 +57,7 @@ namespace bug {
 		return false;
 	}
 	void set(const std::string& name, bool on) {
-		if (DEBUG_MODE()) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			if (on) {
 				for (auto s : debugVarOn) {
 					if (name == s) {
@@ -77,21 +75,12 @@ namespace bug {
 			}
 		}
 	}
-	bool debug_override = false;
-	void ENABLE_DEBUG_OVERRIDE(){
-		debug_override = true;
-	}
 	bool resetColor = true;
 	/*
 	Enabled in Engine.cpp if debug mode
 	*/
-	bool doPrint = false;
-	void Enable(bool state) {
-		if(DEBUG_MODE()||debug_override)
-			doPrint = state;
-	}
 	debug debug::operator<(const std::string& s) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			if (s.size() > 0){
 				if (s.back() == end) {
 					std::cout << s;
@@ -108,7 +97,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::ivec2 v) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << v.x << " " << v.y << "]";
 			if (spaces)
 				std::cout << " ";
@@ -116,7 +105,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::vec2 v) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << v.x << " " << v.y << "]";
 			if (spaces)
 				std::cout << " ";
@@ -124,7 +113,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::vec3 v) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << v.x << " " << v.y << " " << v.z << "]";
 			if (spaces)
 				std::cout << " ";
@@ -132,7 +121,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::ivec3 v) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << v.x << " " << v.y << " " << v.z << "]";
 			if (spaces)
 				std::cout << " ";
@@ -140,7 +129,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::vec4 v) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << v.x << " " << v.y << " " << v.z <<" "<< v.w << "]";
 			if (spaces)
 				std::cout << " ";
@@ -148,7 +137,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::quat q) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << "[" << q.w << " " << q.x << " " << q.y << " " << q.z << "]";
 			if (spaces)
 				std::cout << " ";
@@ -156,7 +145,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(glm::mat4 m) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			for (int i = 0; i < 4;i++) {
 				std::cout << "[" << m[i].x << " " << m[i].y << " " << m[i].z << " " << m[i].w << "]"<<bug::end;
 			}
@@ -167,7 +156,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(float f) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << f;
 			if (spaces)
 				std::cout << " ";
@@ -175,7 +164,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(double d) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << d;
 			if (spaces)
 				std::cout << " ";
@@ -183,7 +172,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(char c) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << c;
 			if (c == end) {
 				if(resetColor)
@@ -197,7 +186,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(int i) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << i;
 			//print+=""+i;
 			if (spaces)
@@ -206,7 +195,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(unsigned int i) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << i;
 			//print+=""+i;
 			if (spaces)
@@ -215,7 +204,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(TerminalCode t) {
-		if (doPrint)
+		if (engine::CheckState(GameState::DebugLog))
 			SetConsoleTextAttribute(hConsole, t);
 		return *this;
 	}
@@ -228,7 +217,7 @@ namespace bug {
 		return *this;
 	}*/
 	debug debug::operator<(char* s) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << s;
 			if (spaces)
 				std::cout << " ";
@@ -236,7 +225,7 @@ namespace bug {
 		return *this;
 	}
 	debug debug::operator<(void* t) {
-		if (doPrint) {
+		if (engine::CheckState(GameState::DebugLog)) {
 			std::cout << t;
 			if (spaces)
 				std::cout << " ";

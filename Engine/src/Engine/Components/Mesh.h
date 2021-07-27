@@ -14,7 +14,7 @@ namespace engine {
 		Mesh() {}
 
 		std::vector<Material*> materials;
-		ShaderType shaderType = ShaderCurrent;
+		unsigned char shaderType = 0;
 		BufferContainer container;
 		void Draw() {
 			container.Draw();

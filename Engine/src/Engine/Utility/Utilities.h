@@ -16,6 +16,7 @@ namespace engine {
 	void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3);
 
 	double GetTime();
+	std::string GetClock();
 
 	template<typename Base, typename T>
 	inline bool instanceof(const T*) {

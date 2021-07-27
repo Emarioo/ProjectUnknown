@@ -28,9 +28,9 @@ namespace engine {
 		/*
 		Fit text in this element - More explanations
 		*/
-		void Text(Font* f, const std::string& s, const IColor& color);
-		void Text(Font* f, const std::string& s, int charHeight, const IColor& color);
-		void Text(Font* f, const std::string& s, float charHeight, const IColor& color);
+		void Text(const std::string& font, const std::string& s, const IColor& color);
+		void Text(const std::string& font, const std::string& s, int charHeight, const IColor& color);
+		void Text(const std::string& font, const std::string& s, float charHeight, const IColor& color);
 
 		bool isEditable = false;
 		void SetEditable();

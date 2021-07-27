@@ -9,9 +9,10 @@
 
 #include "LogLine.h"
 
+namespace engine {
+	void SetupDebugPanel();
+}
 namespace bug {
-
-	void InitDebug();
 	/*
 	Update the logReport.txt
 	*/
@@ -52,8 +53,6 @@ namespace bug {
 	bool is(const std::string& name);
 	
 	void set(const std::string& name, bool on);
-	void Enable(bool state);
-	void ENABLE_DEBUG_OVERRIDE();
 
 	struct debug {
 		bool spaces = false;

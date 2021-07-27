@@ -2,7 +2,7 @@
 
 #include "../UI/IBase.h"
 
-namespace bug {
+namespace engine {
 	class DebugPanel : public engine::IBase {
 	public:
 		DebugPanel(const std::string& name);

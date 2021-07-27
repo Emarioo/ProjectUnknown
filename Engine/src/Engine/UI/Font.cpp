@@ -3,8 +3,17 @@
 #include "../Handlers/FileHandler.h"
 
 namespace engine {
+	Font::Font() {
+
+	}
 	Font::Font(const std::string& name) {
 		Data(name);
+	}
+	Font::~Font() {
+		if (texture != nullptr) {
+			texture->Unbind();
+			texture->~Texture();
+		}
 	}
 	void Font::Data(const std::string& name) {
 		std::string path = "assets/fonts/" + name;
@@ -31,13 +40,10 @@ namespace engine {
 			if (FileExist(path)) {
 				texture = new Texture(path);
 			} else {
-				bug::out < "Cannot find Font  '" < path < "'\n";
+				bug::out < bug::RED < "Cannot find Font  '" < path < "'\n";
 			}
 		} else {
-			for (int i = 0; i < 256; i++) {
-				charWid[i] = 40;
-			}
-			bug::out < "Cannot find font info '" < path < ".txt'\n";
+			bug::out < bug::RED < "Cannot find font info '" < path < ".txt'\n";
 		}
 	}
 }

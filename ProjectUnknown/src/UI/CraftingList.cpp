@@ -2,7 +2,6 @@
 
 
 #include "Items/ItemHandler.h"
-#include "GLFW/glfw3.h"
 #include "InterfaceManager.h"
 
 #include "KeyBinding.h"
@@ -71,7 +70,7 @@ bool CraftingList::MouseEvent(int mx, int my, int action, int button) {
 					if (cat != nullptr) {
 						CraftingRecipe* rec = cat->GetRecipe(selectedRecipe);
 						if (rec != nullptr) {
-							Inventory* inv = UI::GetInventory();
+							Inventory* inv = interfaceManager.inventory;
 							if (inv != nullptr) {
 								Container* con = inv->container;
 								if (con != nullptr && craftCount > 0) {
@@ -89,7 +88,9 @@ bool CraftingList::KeyEvent(int key, int action) {
 	if (TestActionKey(KeyCrafting,key)) {
 		if (action == 1) {
 			active = !active;
-			engine::SetCursorMode(active);
+			if (!interfaceManager.inventory->active) {
+				engine::LockCursor(!active);
+			}
 		}
 	}
 	return false;
@@ -123,7 +124,7 @@ bool CraftingList::ScrollEvent(double scroll) {
 			if (cat != nullptr) {
 				CraftingRecipe* rec = cat->GetRecipe(selectedRecipe);
 				if (rec != nullptr) {
-					Inventory* inv = UI::GetInventory();
+					Inventory* inv = interfaceManager.inventory;
 					if (inv != nullptr) {
 						Container* con = inv->container;
 						if (con != nullptr) {
@@ -146,7 +147,7 @@ void CraftingList::Update(float delta) {
 	if (cat != nullptr) {
 		CraftingRecipe* rec = cat->GetRecipe(selectedRecipe);
 		if (rec != nullptr) {
-			Inventory* inv = UI::GetInventory();
+			Inventory* inv = interfaceManager.inventory;
 			if (inv != nullptr) {
 				Container* con = inv->container;
 				if (con != nullptr) {
@@ -199,7 +200,7 @@ void CraftingList::Render() {
 		engine::DrawRect(x + catX, y + h - catY - catGap * selectedCategory + scrolling - ih, iw, ih, 0.5, 0.5, 1, 0.5);
 
 		// Crafting list
-		engine::GuiArea(x, y + bottomH, w, h - bottomH);
+		engine::SetRenderArea(x, y + bottomH, w, h - bottomH);
 
 		for (int i = 0; i < category->recipes.size(); i++) {
 			CraftingRecipe* recipe = &category->recipes[i];
@@ -208,19 +209,19 @@ void CraftingList::Render() {
 				engine::BindTexture(0, "blank");
 				engine::DrawRect(x + listX, y + h + listY - listGap * i + scrolling - ih, recipeW, ih, 0.5, 0.5, 1, 0.5);
 			}
-			engine::GuiTransform(0, 0);
+			engine::SetTransform(0, 0);
 			DrawItem(type, x + listX, y + h + listY - listGap * i + scrolling, iw, ih, 1, 1, 1, 1, "");
-			engine::GuiTransform(x + listX + iw, y + h + listY - listGap * i + scrolling - ih * 0.85);
+			engine::SetTransform(x + listX + iw, y + h + listY - listGap * i + scrolling - ih * 0.85);
 
-			engine::DrawString(engine::GetFont(), type.name, false, ih * 0.7f, -1);
+			engine::DrawString("consolas42", type.name, false, ih * 0.7f, -1);
 		}
-		engine::GuiArea(-1, -1, 2, 2);
+		engine::SetRenderArea(-1, -1, 2, 2);
 		// Ingredients
 		if (-1 < selectedRecipe && selectedRecipe < category->recipes.size()) {
 			CraftingRecipe* recipe = &category->recipes[selectedRecipe];
-			Container* inventory = UI::GetInventory()->container;
+			Container* inventory = interfaceManager.inventory->container;
 			for (int i = 0; i < recipe->inputs.size(); i++) {
-				engine::GuiTransform(0, 0);
+				engine::SetTransform(0, 0);
 				ItemType type = GetItemType(recipe->inputs[i].name);
 
 				int count = inventory->GetItemCount(type.name);
@@ -237,10 +238,10 @@ void CraftingList::Render() {
 			float countW = w * 132 / 512.f;
 			float countH = h * 55 / 850.f;
 
-			engine::GuiColor(1, 1, 1, 1);
-			engine::GuiTransform(x + countX + countW / 2, y + h - countY - countH / 2);
-			engine::GuiSize(1, 1);
-			engine::DrawString(engine::GetFont(), std::to_string(craftCount), true, countH * 0.8, -1);
+			engine::SetColor(1, 1, 1, 1);
+			engine::SetTransform(x + countX + countW / 2, y + h - countY - countH / 2);
+			engine::SetSize(1, 1);
+			engine::DrawString("consolas42", std::to_string(craftCount), true, countH * 0.8, -1);
 		}
 	}
 }

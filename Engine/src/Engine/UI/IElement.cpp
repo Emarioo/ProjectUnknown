@@ -17,19 +17,19 @@ namespace engine {
 	void IElement::Blank() {
 		isBlank = true;
 	}
-	void IElement::Text(Font* f, const std::string& s, const IColor& color) {
-		text.Setup(f, true);
+	void IElement::Text(const std::string& font, const std::string& s, const IColor& color) {
+		text.Setup(font, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetText(s);
 	}
-	void IElement::Text(Font* f, const std::string& s, int charHeight, const IColor& color) {
-		text.Setup(f, true);
+	void IElement::Text(const std::string& font, const std::string& s, int charHeight, const IColor& color) {
+		text.Setup(font, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
 		text.SetText(s);
 	}
-	void IElement::Text(Font* f, const std::string& s, float charHeight, const IColor& color) {
-		text.Setup(f, true);
+	void IElement::Text(const std::string& font, const std::string& s, float charHeight, const IColor& color) {
+		text.Setup(font, true);
 		text.SetCol(color.r, color.g, color.b, color.a);
 		text.SetHeight(charHeight);
 		text.SetText(s);
@@ -213,7 +213,7 @@ namespace engine {
 				// Text
 				if (text.text.length() > 0 || isEditable && isSelected) {
 					text.SetPos(x + w / 2, y + h / 2);
-					GuiSize(1, 1);
+					SetSize(1, 1);
 					text.DrawString(alpha, isEditable && isSelected);
 				}
 			}

@@ -12,20 +12,27 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace engine {
+#define MAX_ENGINE_SHADERS 8
+#define MAX_CUSTOM_SHADERS 10
 
-	enum ShaderType {
-		ShaderColor, ShaderColorBone,
-		ShaderUV, ShaderUVBone,
-		ShaderInterface,
-		ShaderOutline,
-		ShaderLight,
-		ShaderDepth,
-		ShaderExperiment,
-		ShaderTerrain,
-
-		ShaderCurrent // This shader should always be last to "mark the end" of the enum
+/*
+This is the standard value for custom shaders.
+#define MAX_CUSTOM_SHADERS 10
+*/
+namespace ShaderType {
+	enum EngineShaderType : unsigned char {
+		NONE = MAX_CUSTOM_SHADERS,
+		Color,
+		ColorBone,
+		UV,
+		UVBone,
+		Interface,
+		Outline,
+		Depth
 	};
+}
+
+namespace engine {
 
 	struct ShaderProgramSource {
 		std::string vert;
@@ -56,6 +63,7 @@ namespace engine {
 		std::string shaderPath;
 		unsigned int programID;
 		bool hasError = false;
+		bool isInitialized = false;
 	private:
 		char err;
 		std::unordered_map<std::string, unsigned int> uniLocations;

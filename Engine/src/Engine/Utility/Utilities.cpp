@@ -1,6 +1,7 @@
 #include "Utilities.h"
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <ctime>
 
 namespace engine {
 
@@ -77,5 +78,12 @@ namespace engine {
 	}
 	double GetTime() {
 		return glfwGetTime();//std::chrono::system_clock::now().time_since_epoch().count() / 10000000.0;
+	}
+	std::string GetClock() {
+		time_t t;
+		time(&t);
+		auto tm = *localtime(&t);
+		std::string str= std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
+		return str;
 	}
 }

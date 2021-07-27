@@ -9,11 +9,13 @@ bool al_check_error();
 
 namespace engine {
 	class SoundBuffer {
+	private:
+		bool isInitialized = false;
 	public:
 		SoundBuffer();
+		~SoundBuffer();
 		void Init(const char* path);
-		void Delete();
 
-		unsigned int id;
+		unsigned int id=0;
 	};
 }

@@ -4,8 +4,11 @@
 
 namespace engine {
 	class SoundSource {
+	private:
+		bool isInitialized = false;
 	public:
 		SoundSource();
+		~SoundSource();
 		void Init();
 		
 		void Loop(bool);
@@ -14,13 +17,12 @@ namespace engine {
 		void Position(float x,float y,float z);
 		void Velocity(float x,float y,float z);
 
-		void Delete();
+		void Bind(SoundBuffer& buffer);
 		void Play();
 		void Pause();
 		void Stop();
 		ALint GetState();
-		void Bind(SoundBuffer& buffer);
 
-		unsigned int id;
+		unsigned int id=0;
 	};
 }

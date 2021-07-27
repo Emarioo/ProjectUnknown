@@ -10,11 +10,13 @@ namespace engine {
 		: shaderPath(path + ".shader") {
 		ShaderProgramSource source = ParseShader(shaderPath);
 		programID = CreateShader(source.vert, source.frag);
+		isInitialized = true;
 	}
 	void Shader::Init(const std::string& path) {
 		shaderPath = path + ".shader";
 		ShaderProgramSource source = ParseShader(shaderPath);
 		programID = CreateShader(source.vert, source.frag);
+		isInitialized = true;
 	}
 	ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
 		std::ifstream file(filepath);

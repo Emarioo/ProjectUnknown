@@ -2,30 +2,12 @@
 
 namespace engine {
 
-	bool pauseMode=false;
-	bool GetPauseMode() {
-		return pauseMode;
-	}
-	bool* GetPauseModeRef() {
-		return &pauseMode;
-	}
-	/*
-	Escape pause menu off or on
-	*/
-	void SetPauseMode(bool f) {
-		pauseMode = f;
-		SetCursorMode(f);
-	}
 	// Events
 	double mouseX, mouseY;
 	void FocusEvent(int focus) {
 		if (!focus) {
-			SetPauseMode(true);
+			//SetPauseMode(true);
 		}
-	}
-	Font font1;
-	Font* GetFont() {
-		return &font1;
 	}
 
 	std::vector<IBase*> iBases;
@@ -144,13 +126,12 @@ namespace engine {
 				p->MouseEvent(mx,my,action, button);
 		}
 		std::string name = "";
-		for (int i = elements.size() - 1; i < elements.size(); i--) {
+		for (int i = elements.size() - 1; i > -1; i--) {
 			if (elements[i]->IsActive()) {
 				if (elements[i]->HasTags()) {
 					if (elements[i]->MouseEvent(mx, my, action, button)) {
 						name = elements[i]->name;
-						//bug::out < "gone" <bug::end;
-						break;
+						//break;
 					}
 				}
 			}
@@ -199,9 +180,10 @@ namespace engine {
 	}
 	void RenderInterface(double delta) {
 		SwitchBlendDepth(true);
-		BindShader(ShaderInterface);
+		BindShader(ShaderType::Interface);
 		
 		for (auto p : elements) {
+			//bug::out < p->name < '\n';
 			if (p->IsActive()) {
 				if (p->HasTags()) {
 					p->PreRender();
@@ -216,13 +198,13 @@ namespace engine {
 			}
 		}
 		
-		GuiColor(0.9, 0.8, 0.7, 1);
-		GuiTransform(-1+0.01, -1+0.06);
-		GuiSize(1, 1);
+		SetColor(0.9, 0.8, 0.7, 1);
+		SetTransform(-1+0.01, -1+0.06);
+		SetSize(1, 1);
 		glm::vec3 pos = GetCamera()->position;
 		glm::vec3 rot = GetCamera()->rotation;
 		
-		DrawString(&font1,
+		DrawString("consolas42",
 			std::to_string(pos.x) + " " + std::to_string(pos.y) + " " + std::to_string(pos.z) + "\n" +
 			std::to_string(rot.x) + " " + std::to_string(rot.y) + " " + std::to_string(rot.z),
 			false,0.05,-1);
@@ -302,8 +284,6 @@ namespace engine {
 		SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
 
 		//font1.Data("verdana38");
-		font1.Data("consolas42");
-
-		SetPauseMode(true);
+		//font1.Data("consolas42");
 	}
 }

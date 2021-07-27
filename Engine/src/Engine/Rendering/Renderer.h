@@ -20,28 +20,28 @@
 #include "FrameBuffer.h"
 
 
-// This class is the renderer class
+// This class is the renderer class. Not really a class but you get the idea...
 // It handles textures, lights and shaders
 // It does not control which objects to render but is instead used as a tool to render them
 
 namespace engine {
 
 	enum WindowTypes {
-		Minimized,
-		WindowBorderless,
-		WindowBorder,
-		Maximized,
-		Fullscreen
+		NONE,
+		Windowed,
+		Fullscreen,
+		FullscreenBorderless,
+		//WindowedBorderless,
 	};
-
-	float Wid();
-	float Hei();
-	float Width();
-	float Height();
-	void SetWinSize(int x, int y, int w, int h);
 	void SetWindowType(WindowTypes t);
 	WindowTypes GetWindowType();
-	WindowTypes GetLastWindowType();
+	GLFWwindow* GetWindow();
+	void SetWindowTitle(const char*);
+	void SetWindowPos(int x, int y);
+	void SetWindowSize(int w, int h);
+
+	float Width();
+	float Height();
 	/*
 	From pixel to screen range (-1 to 1)
 	*/
@@ -67,29 +67,31 @@ namespace engine {
 	*/
 	void UpdateViewMatrix();
 
-	bool GetCursorMode();
+	bool IsCursorVisible();
+	void SetCursorVisibility(bool f);
 	/*
-	Activate or deactivate cursor
+	Also known as is cursor in gameplay mode.
 	*/
-	void SetCursorMode(bool f);
+	bool IsCursorLocked();
+	/*
+	Disable cursor and use raw cursor motion. Gameplay mode in other words.
+	*/
+	void LockCursor(bool f);
+
 	float GetMouseX();
 	float GetMouseY();
 	float GetFloatMouseX();
 	float GetFloatMouseY();
-	GLFWwindow* GetWindow();
 	/*
-	Starts glfw, projection matrix, rect and text container
+	Starts glfw, projection matrix, shaders, rect and text container
 	*/
 	void InitRenderer();
 	void RenderClearScreen(float r, float g, float b, float a);
 	bool RenderRunning();
 	void RenderTermin();
-	bool IsFullscreen();
-	bool IsMaximized();
-	bool IsMinimized();
+
 	void SetProjection(float ratio);
 	void SwitchBlendDepth(bool b);
-	void SetWindowTitle(const char*);
 
 	void SetInterfaceCallbacks(
 		std::function<void(int, int)> key,
@@ -103,37 +105,52 @@ namespace engine {
 
 	//void RenderScene();
 
-	// Shader
-	bool BindShader(ShaderType type);
+	bool BindShader(unsigned char shader);
 	/*
-	Can return nullptr if materia errorerd
+	Can return nullptr if materia caused an error
 	*/
-	Shader* GetShader(ShaderType type);
+	Shader* GetShader(unsigned char shader);
 	/*
-	Returns nullptr if error?
+	Returns none shader if error?
 	*/
-	Shader* GetShader();
+	Shader* GetBoundShader();
 
-	void AddShader(ShaderType, const std::string& name);
+	void AddShader(unsigned char shader, const std::string& path);
+
 	/*
-	Bind Shader before
+	Set uniform for current shader
 	*/
-	void PassTransform(glm::mat4 m);
+	void SetTransform(glm::mat4 m);
 	/*
-	Bind Shader before
+	Set uniform for current shader
 	*/
-	void PassProjection();
-	void PassColor(float r, float g, float b, float a);
-	void GuiTransform(float x, float y);
-	void GuiSize(float w, float h);
-	void GuiColor(float r, float g, float b, float a);
-	void GuiArea(float f0, float f1, float f2, float f3);
+	void SetProjection();
+	/*
+	Set uniform for current shader
+	*/
+	void SetColor(float r, float g, float b, float a);
+
+	/*
+	Set uniform for interface shader
+	*/
+	void SetTransform(float x, float y);
+	/*
+	Set uniform for current shader
+	*/
+	void SetSize(float w, float h);
+	/*
+	Set uniform for interface shader
+	*/
+	void SetRenderArea(float f0, float f1, float f2, float f3);
 
 	// Texture
 	void BindTexture(int slot, const std::string& name);
 	// Texture
 	void BindTexture(int slot, Texture* texture);
 	
+	void AddFont(const std::string& name);
+	Font* GetFont(const std::string& name);
+
 	// Render
 	/*
 	Closest Lights need to be bound before drawing mesh
@@ -147,7 +164,7 @@ namespace engine {
 	atChar is the position for the marker (-1 for no marker)
 	text size will be adapted depending on height
 	*/
-	void DrawString(Font *font, const std::string& text,bool center,float height,int atChar);
+	void DrawString(const std::string& font, const std::string& text,bool center,float height,int atChar);
 	/*
 	GuiTransform for position
 	GuiColor for color
@@ -155,7 +172,7 @@ namespace engine {
 	atChar is the position for the marker (-1 for no marker)
 	text size will be adapted depending on width and height
 	*/
-	void DrawString(Font *font, const std::string& text,bool center,float width,float height,int atChar);
+	void DrawString(const std::string& font, const std::string& text,bool center,float width,float height,int atChar);
 	/*
 	Call GuiColor, GuiSize and GuiTransform (and bind shader) before calling this function.
 	*/
@@ -170,7 +187,7 @@ namespace engine {
 
 	// Light
 	void AddLight(Light* l);
-	void DelLight(Light* l);
+	void RemoveLight(Light* l);
 	void BindLights(glm::vec3 objectPos);
 	std::vector<Light*>& GetLights();
 

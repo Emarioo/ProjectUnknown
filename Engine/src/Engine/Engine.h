@@ -4,13 +4,14 @@
 #include "Handlers/ObjectHandler.h"
 #include "Handlers/UIHandler.h"
 #include "Handlers/SoundHandler.h"
+#include "Handlers/FileHandler.h"
 #include "DebugTool/DebugHandler.h"
+#include "Utility/Utilities.h"
 #include "GameState.h"
 
 /*
-Include this file in your Application.cpp to get access to all the engine's functions
+Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
 */
-
 namespace engine {
 	
 	FrameBuffer& GetDepthBuffer();

@@ -2,8 +2,11 @@
 
 #include "Engine/GameState.h"
 
-enum GameState : unsigned char {
-	Intro,
-	Menu,
-	Game,
-};
+namespace GameState {
+	enum GameState : unsigned char {
+		Intro,
+		Menu,
+		Game,
+		Paused,
+	};
+}

@@ -14,10 +14,10 @@ namespace engine {
 	void Initialize() {
 		std::cout << "Waiting for Renderer..." << std::endl;
 		InitRenderer();
+
 		std::cout << "Renderer done..." << std::endl;
 		InitSound();
 		InitInterface();
-		bug::InitDebug();
 		ReadOptions();
 
 		float vMap[]{0,0,0,1,0,0,1,0,1,0,0,1};
@@ -92,7 +92,7 @@ namespace engine {
 				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
 					Mesh* mesh = o->renderComponent.model->meshes[i];
 					if (mesh != nullptr) {
-						PassTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+						SetTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
 						mesh->Draw();
 					}
 				}
@@ -111,21 +111,21 @@ namespace engine {
 
 			}
 		}
-		if (BindShader(ShaderColor)) {
-			PassProjection();
-			GetShader()->SetVec3("uCamera", GetCamera()->position);
+		if (BindShader(ShaderType::Color)) {
+			SetProjection();
+			GetBoundShader()->SetVec3("uCamera", GetCamera()->position);
 			for (GameObject* o : GetObjects()) {
 				if (o->renderComponent.model != nullptr) {
 					BindLights(o->position);
 					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
 						Mesh* mesh = o->renderComponent.model->meshes[i];
 						if (mesh != nullptr) {
-							if (mesh->shaderType == ShaderColor) {// The shader might not be called here. so binding lights may be unecessary
+							if (mesh->shaderType == ShaderType::Color) {// The shader might not be called here. so binding lights may be unecessary
 								for (int i = 0; i < mesh->materials.size()&&i<4;i++) {// Maximum of 4 materials
 									PassMaterial(i,mesh->materials[i]);
 									//bug::out < i < bug::end;
 								}
-								PassTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+								SetTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} else {
@@ -139,9 +139,9 @@ namespace engine {
 			}
 		}
 		
-		if (BindShader(ShaderColorBone)) {
-			PassProjection();
-			GetShader()->SetVec3("uCamera", GetCamera()->position);
+		if (BindShader(ShaderType::ColorBone)) {
+			SetProjection();
+			GetBoundShader()->SetVec3("uCamera", GetCamera()->position);
 			for (GameObject* o : GetObjects()) {
 				if (o->renderComponent.model != nullptr) {
 					BindLights(o->position);
@@ -151,18 +151,18 @@ namespace engine {
 							std::vector<glm::mat4> mats(count);
 							o->renderComponent.GetArmatureTransforms(mats);
 							for (int i = 0; i < count; i++) {
-								GetShader(ShaderColorBone)->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
+								GetShader(ShaderType::ColorBone)->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
 							}
 						}
 					}
 					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
 						Mesh* mesh = o->renderComponent.model->meshes[i];
 						if (mesh != nullptr) {
-							if (mesh->shaderType == ShaderColorBone) {// The shader might not be called here. so binding lights may be unecessary
+							if (mesh->shaderType == ShaderType::ColorBone) {// The shader might not be called here. so binding lights may be unecessary
 								for (int i = 0; i < mesh->materials.size() && i < 4; i++) {// Maximum of 4 materials
 									PassMaterial(i, mesh->materials[i]);
 								}
-								PassTransform(o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
+								SetTransform(o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} else {
@@ -237,10 +237,10 @@ namespace engine {
 			}
 		}*/
 		
-		if (BindShader(ShaderOutline)) {
-			PassProjection();
-			PassTransform(glm::mat4(1));
-			PassColor(1, 1, 1, 1);
+		if (BindShader(ShaderType::Outline)) {
+			SetProjection();
+			SetTransform(glm::mat4(1));
+			SetColor(1, 1, 1, 1);
 			glLineWidth(2.f);
 			/*
 			GameObject* n = GetObjectByName("Player");
@@ -366,9 +366,9 @@ namespace engine {
 			}
 		}
 		*/
-		
-		if (BindShader(ShaderTerrain)) {
-			PassProjection();
+		/*
+		if (BindShader(ShaderType::Terrain)) {
+			SetProjection();
 			Dimension* dim = GetDimension();
 			if (dim != nullptr) {
 				BindTexture(0,"blank");
@@ -379,7 +379,7 @@ namespace engine {
 					c.con.Draw();
 				}
 			}
-		}
+		}*/
 	}
 	void RenderUI(double delta) {
 		RenderInterface(delta);

@@ -24,6 +24,13 @@ namespace engine {
 	SoundStream::SoundStream() {
 
 	}
+	SoundStream::~SoundStream() {
+		if (isInitialized) {
+			delete bufferData;
+			source.~SoundSource();
+			alCall(alDeleteBuffers(NUM_BUFFERS, &buffer_id[0]));
+		}
+	}
 	void SoundStream::Init(const std::string& path) {
 		if (engine::FileExist(path)) {
 			int channels, bps;
@@ -40,49 +47,47 @@ namespace engine {
 			alCall(alSourceQueueBuffers(source.id, NUM_BUFFERS, &buffer_id[0]));
 
 			cursor = NUM_BUFFERS * BUFFER_SIZE;
+			isInitialized = true;
 		} else {
 			//TODO: Error code
 		}
 	}
 	void SoundStream::UpdateStream() {
-		ALint buffersProcessed = 0;
-		alCall(alGetSourcei(source.id, AL_BUFFERS_PROCESSED, &buffersProcessed));
+		if (isInitialized) {
+			ALint buffersProcessed = 0;
+			alCall(alGetSourcei(source.id, AL_BUFFERS_PROCESSED, &buffersProcessed));
 
-		if (buffersProcessed <= 0)
-			return;
+			if (buffersProcessed <= 0)
+				return;
 
-		while (buffersProcessed--) {
-			ALuint buffer;
-			
-			alCall(alSourceUnqueueBuffers(source.id, 1, &buffer));
+			while (buffersProcessed--) {
+				ALuint buffer;
 
-			ALsizei dataSize = BUFFER_SIZE;
+				alCall(alSourceUnqueueBuffers(source.id, 1, &buffer));
 
-			char* data = new char[dataSize];
-			std::memset(data, 0, dataSize);
+				ALsizei dataSize = BUFFER_SIZE;
 
-			std::size_t dataSizeToCopy = BUFFER_SIZE;
-			if (cursor + BUFFER_SIZE > bufferSize)
-				dataSizeToCopy = bufferSize - cursor;
+				char* data = new char[dataSize];
+				std::memset(data, 0, dataSize);
 
-			std::memcpy(&data[0], &bufferData[cursor], dataSizeToCopy);
-			cursor += dataSizeToCopy;
+				std::size_t dataSizeToCopy = BUFFER_SIZE;
+				if (cursor + BUFFER_SIZE > bufferSize)
+					dataSizeToCopy = bufferSize - cursor;
 
-			if (dataSizeToCopy < BUFFER_SIZE) {
-				cursor = 0;
-				std::memcpy(&data[dataSizeToCopy], &bufferData[cursor], BUFFER_SIZE - dataSizeToCopy);
-				cursor = BUFFER_SIZE - dataSizeToCopy;
+				std::memcpy(&data[0], &bufferData[cursor], dataSizeToCopy);
+				cursor += dataSizeToCopy;
+
+				if (dataSizeToCopy < BUFFER_SIZE) {
+					cursor = 0;
+					std::memcpy(&data[dataSizeToCopy], &bufferData[cursor], BUFFER_SIZE - dataSizeToCopy);
+					cursor = BUFFER_SIZE - dataSizeToCopy;
+				}
+
+				alCall(alBufferData(buffer, bufferFormat, data, BUFFER_SIZE, bufferFreq));
+				alCall(alSourceQueueBuffers(source.id, 1, &buffer));
+
+				delete[] data;
 			}
-
-			alCall(alBufferData(buffer, bufferFormat, data, BUFFER_SIZE, bufferFreq));
-			alCall(alSourceQueueBuffers(source.id, 1, &buffer));
-
-			delete[] data;
 		}
-	}
-	void SoundStream::Delete() {
-		delete bufferData;
-		source.Delete();
-		alCall(alDeleteBuffers(NUM_BUFFERS, &buffer_id[0]));
 	}
 }

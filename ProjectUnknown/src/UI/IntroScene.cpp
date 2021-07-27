@@ -11,7 +11,6 @@ float introScene_fade1 = 0;
 float introScene_alpha2 = 0;
 float introScene_fade2 = 1;
 void IntroScene::Update(float delta) {
-	bug::out < delta < bug::end;
 	introScene_time += delta;
 	if (introScene_time>1&&introScene_time<2) {
 		introScene_fade1 = (introScene_time - 1);
@@ -26,6 +25,9 @@ void IntroScene::Update(float delta) {
 	}
 	else if (introScene_time > 5) {
 		active = false;
+		engine::SetState(GameState::Intro, false);
+		engine::SetCursorVisibility(true);
+		engine::SetState(GameState::Menu, true);
 	}
 }
 void IntroScene::Render() {

@@ -41,7 +41,7 @@ bool Inventory::MouseEvent(int mx, int my, int action, int button) {
 
 			if (0 <= row && row <= container->GetSlotWidth() && 0 <= col && col <= container->GetSlotHeight()) {
 
-				Item** heldItem = UI::GetHeldItemPointer();
+				Item** heldItem = interfaceManager.GetHeldItemPointer();
 				Item** item = container->GetItemPointerAt((int)col, (int)row);
 
 				if (item != nullptr) {
@@ -58,7 +58,9 @@ bool Inventory::KeyEvent(int key, int action) {
 	if (TestActionKey(KeyInventory,key)) {
 		if (action == 1) {
 			active = !active;
-			engine::SetCursorMode(active);
+			if (!interfaceManager.craftingList->active) {
+				engine::LockCursor(!active);
+			}
 		}
 	}
 	return false;

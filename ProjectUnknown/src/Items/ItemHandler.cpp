@@ -1,6 +1,5 @@
 #include "ItemHandler.h"
 
-#include "Engine/Handlers/FileHandler.h"
 #include "Engine/Utility/Utilities.h"
 
 std::vector<CraftingCategory> craftingCategories;
@@ -112,15 +111,15 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 		y -= h; // offsetting
 
-		engine::GuiColor(1, 1, 1, 1);
-		engine::GuiSize(1, 1);
+		engine::SetColor(1, 1, 1, 1);
+		engine::SetSize(1, 1);
 		engine::DrawUVRect(x, y, w, h, u, v, size, size);
 
 		if (!text.empty()) {
-			engine::GuiTransform(x + w / 6, y + h / 4);
-			engine::GuiColor(r, g, b, a);
-			engine::GuiSize(0.75, 0.75);
-			engine::DrawString(engine::GetFont(), text, true, h * 0.6, -1);
+			engine::SetTransform(x + w / 6, y + h / 4);
+			engine::SetColor(r, g, b, a);
+			engine::SetSize(0.75, 0.75);
+			engine::DrawString("consolas42", text, true, h * 0.6, -1);
 		}
 	}
 }

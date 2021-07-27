@@ -36,6 +36,10 @@ namespace engine {
 	SoundBuffer::SoundBuffer() {
 
 	}
+	SoundBuffer::~SoundBuffer() {
+		if (isInitialized)
+			alCall(alDeleteBuffers(1, &id));
+	}
 	void SoundBuffer::Init(const char* path) {
 		if (engine::FileExist(path)) {
 			//TEST_ERROR("buffer generation");
@@ -49,11 +53,9 @@ namespace engine {
 			alCall(alBufferData(id, format, bufferData, size, freq));
 
 			delete bufferData;
+			isInitialized = true;
 		} else {
 			// TODO: Error code
 		}
-	}
-	void SoundBuffer::Delete() {
-		alCall(alDeleteBuffers(1, &id));
 	}
 }

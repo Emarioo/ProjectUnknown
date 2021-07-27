@@ -7,9 +7,9 @@ namespace engine {
 	 max : max length of text
 	 size : standard is 64 / Window Height
 	*/
-	void Text::Setup(Font* f, bool cent) {
+	void Text::Setup(const std::string& _font, bool cent) {
 		//elemSize = s;
-		font = f;
+		font = _font;
 		center = cent;
 		/*
 		container.Setup(true, nullptr, 4 * 4 * maxChar, nullptr, 6 * maxChar);
@@ -30,8 +30,8 @@ namespace engine {
 	void Text::Center(bool f) {
 		center = f;
 	}
-	void Text::SetFont(Font* f) {
-		font = f;
+	void Text::SetFont(const std::string& _font) {
+		font = _font;
 	}
 	void Text::SetHeight(int s) {
 		charHeight = s;
@@ -50,7 +50,8 @@ namespace engine {
 
 	}
 	float Text::PixelWidth(bool f) {
-		if (font == nullptr)
+		Font* fo = GetFont(font);
+		if (fo == nullptr)
 			return 0;
 		float wid = 0;
 		float max = 0;
@@ -62,32 +63,34 @@ namespace engine {
 			int charInd = cha;
 			if (charInd < 0)
 				charInd += 256;
-			wid += font->charWid[charInd];
+			wid += fo->charWid[charInd];
 			if (wid > max) {
 				max = wid;
 			}
 		}
 		if (!f) {
-			max *= (charHeight / (Wid() / Hei())) / font->charSize;
+			max *= (charHeight / (16 / 9.f)) / fo->charSize;
 		}
 		return max;
 	}
 	float Text::PixelHeight(bool f) {
-		if (font == nullptr)
+		Font* fo = GetFont(font);
+		if (fo == nullptr)
 			return 0;
-		float hei = font->charSize;
+		float hei = fo->charSize;
 		for (char cha : text) {
 			if (cha == '\n') {
-				hei += font->charSize;
+				hei += fo->charSize;
 			}
 		}
 		if (!f) {
-			hei *= charHeight / font->charSize;
+			hei *= charHeight / fo->charSize;
 		}
 		return hei;
 	}
 	float Text::ScreenPosX(int c) {
-		if (font == nullptr)
+		Font* fo = GetFont(font);
+		if (fo == nullptr)
 			return 0;
 		float wid = 0;
 		for (int i = 0; i < c; i++) {
@@ -99,13 +102,14 @@ namespace engine {
 			if (cha < 0) {
 				cha += 256;
 			}
-			wid += font->charWid[cha];
+			wid += fo->charWid[cha];
 		}
-		return wid * ((charHeight / (Wid() / Hei())) / font->charSize);
+		return wid * ((charHeight / (16 / 9.f)) / fo->charSize);
 	}
 
 	int Text::PixelPosX(int c) {
-		if (font == nullptr)
+		Font* fo = GetFont(font);
+		if (fo == nullptr)
 			return 0;
 		float wid = 0;
 		for (int i = 0; i < c; i++) {
@@ -117,7 +121,7 @@ namespace engine {
 			//std::cout << cha <<" "<< (int)cha << " "<<(int)(cha+256)<<std::endl;
 			if (cha < 0)
 				cha += 256;
-			wid += font->charWid[cha];
+			wid += fo->charWid[cha];
 		}
 		return wid;
 	}
@@ -448,8 +452,8 @@ namespace engine {
 			y = ypos - charHeight + PixelHeight(false) / 2;
 		}*/
 
-		GuiTransform(xpos, ypos);
-		GuiColor(r, g, b, a * alpha);
+		SetTransform(xpos, ypos);
+		SetColor(r, g, b, a * alpha);
 		if (f) {
 			engine::DrawString(font, text, center, actualHeight, atChar);
 		} else {

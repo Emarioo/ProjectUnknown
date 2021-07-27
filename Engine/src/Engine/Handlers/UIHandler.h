@@ -13,12 +13,8 @@ Global Manager for 2D elements (buttons, text)
 */
 namespace engine {
 
-	bool GetPauseMode();
-	bool* GetPauseModeRef();
-	void SetPauseMode(bool f);
-
 	/*
-	Setup event callbacks
+	Setup event callbacks and fonts?
 	 Init after renderer
 	*/
 	void InitInterface();
@@ -49,6 +45,4 @@ namespace engine {
 	(Avoid calling to many times)
 	*/
 	IElement* GetElement(const std::string& s);
-
-	Font* GetFont();
 }

@@ -4,7 +4,7 @@
 
 #include "GameState.h"
 
-namespace bug {
+namespace engine {
 	DebugPanel::DebugPanel(const std::string& name) 
 	: IBase(name) {
 
@@ -21,7 +21,7 @@ namespace bug {
 		if (action == 1) {
 			if (key == GLFW_KEY_L) {
 				active = !active;
-				engine::SetState(engine::EngineGameState::Debug,active);
+				engine::SetState(GameState::DebugMode,active);
 			}
 		}
 		return false;

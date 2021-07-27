@@ -481,9 +481,9 @@ namespace engine {
 		file.close();
 		
 		if (useArmature == 0) {
-			data->shaderType = ShaderColor;
+			data->shaderType = ShaderType::Color;
 		} else if (useArmature == 1) {
-			data->shaderType = ShaderColorBone;
+			data->shaderType = ShaderType::ColorBone;
 		}
 		for (std::string& mat : materials) {
 			AddMaterialAsset(mat);

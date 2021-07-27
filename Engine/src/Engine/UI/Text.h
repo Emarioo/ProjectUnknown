@@ -16,10 +16,10 @@ namespace engine {
 		bool center = false;
 		bool staticHeight = false;
 		void Center(bool f);
-		void Setup(Font* f, bool cent);
+		void Setup(const std::string& font, bool cent);
 
-		Font* font = nullptr;
-		void SetFont(Font* f);
+		std::string font;
+		void SetFont(const std::string& font);
 
 		std::string text;
 		/*
