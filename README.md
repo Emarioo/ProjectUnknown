@@ -1,4 +1,4 @@
-# ProjectUnkown
+# ProjectUnknown
 A game with C++, OpenGl and OpenAL
 
 How to setup
