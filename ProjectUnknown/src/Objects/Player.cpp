@@ -4,36 +4,39 @@
 
 #include "KeyBinding.h"
 
+#include "GameStateEnum.h"
+
 Player::Player(float x,float y,float z) {
 	name = "Player";
 	weight = 1;
 
 	SetPosition(x,y,z);
 
+	/*
 	renderComponent.SetModel("Player");
 	collisionComponent.SetCollider(renderComponent.model->colliderName);
 	renderComponent.animator.Enable("goblin_idle", { 0,true,1,1 });
 	renderComponent.animator.Enable("goblin_run", { 0,true,0,1 });
+	*/
 }
-float playerAnimBlending = 0;
-float playerAnimSpeed = 1.7;
 void Player::Update(float delta) {
 	if (IsKeyActionDown(KeyForward)) {
-		if (playerAnimBlending < 1 && playerAnimSpeed>0)
-			playerAnimBlending += playerAnimSpeed * delta;
+		if (animBlending < 1 && animSpeed>0)
+			animBlending += animSpeed * delta;
 	} else {
-		if (playerAnimBlending > 0)
-			playerAnimBlending -= playerAnimSpeed * delta;
+		if (animBlending > 0)
+			animBlending -= animSpeed * delta;
 	}
 	if (IsKeyActionDown(KeyCrouch)) {
-		renderComponent.animator.enabledAnimations["goblin_run"].speed = 
-			flight||freeCam? camFastSpeed/camSpeed : sprintSpeed/walkSpeed;
+		renderComponent.animator.Speed("goblin_run", 
+			flight||freeCam? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
+		);
 	} else {
-		renderComponent.animator.enabledAnimations["goblin_run"].speed = 1;
+		renderComponent.animator.Speed("goblin_run", 1);
 	}
 
-	renderComponent.animator.Blend("goblin_idle", playerAnimBlending);
-	renderComponent.animator.Blend("goblin_run", 1 - playerAnimBlending);
+	renderComponent.animator.Blend("goblin_idle", animBlending);
+	renderComponent.animator.Blend("goblin_run", 1 - animBlending);
 
 	renderComponent.animator.Update(delta);
 
@@ -41,9 +44,7 @@ void Player::Update(float delta) {
 }
 glm::vec3 Player::Movement(float delta) {
 	Camera* camera = engine::GetCamera();
-	if (camera == nullptr)
-		return glm::vec3(0, 0, 0);
-
+	
 	glm::vec3 move = glm::vec3(0, 0, 0);
 	
 	if (true) { // Disable movement
@@ -141,21 +142,24 @@ glm::vec3 Player::Movement(float delta) {
 	
 	velocity = glm::vec3(0);
 	if (freeCam) {
-		camera->position += nmove * delta;
+		if (engine::CheckState(GameState::CameraToPlayer))
+			camera->position += nmove * delta;
 	} else {
 		position += nmove * delta;
-		if (camera != nullptr)
-			SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
-		engine::Location camPos;
-		camPos.Translate(position + glm::vec3(0, 0.5f, 0));
-		if (thirdPerson) {
-			camPos.Rotate(camera->rotation);
-			camPos.Translate(0.5, 0, 3);
+		if (engine::CheckState(GameState::CameraToPlayer)) {
+			if (camera != nullptr)
+				SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
+				engine::Location camPos;
+				camPos.Translate(position + glm::vec3(0, 0.5f, 0));
+				if (thirdPerson) {
+					camPos.Rotate(camera->rotation);
+						camPos.Translate(0.5, 0, 3);
+				}
+			camera->position = camPos.vec();
 		}
-		camera->position = camPos.vec();
 	}
 	
-	//return nmove;
+	return nmove;
 	/*
 	if (GetDimension() != nullptr) {
 		float terHeight = GetDimension()->TerHeightAtPlayer();

@@ -19,8 +19,6 @@ Goblin::Goblin(float x, float y, float z) {
 	//renderComponent.animator.running = true;
 	//renderComponent.animator.loop = true;
 }
-float blending = 0;
-float speed = 1.7;
 void Goblin::Update(float delta) {
 	/*
 	if (engine::IsKey(GLFW_KEY_W)) {

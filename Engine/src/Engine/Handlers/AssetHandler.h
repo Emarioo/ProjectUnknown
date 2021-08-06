@@ -28,6 +28,7 @@ namespace engine {
 	returns nullptr if name doesn't exist
 	*/
 	Animation* GetAnimationAsset(const std::string& name);
+	void DeleteAnimationAsset(const std::string& name);
 
 	void AddArmatureAsset(const std::string& file);
 	/*
@@ -35,11 +36,15 @@ namespace engine {
 	*/
 	Armature* GetArmatureAsset(const std::string& name);
 
+	void DeleteArmatureAsset(const std::string& name);
+
 	void AddMaterialAsset(const std::string& file);
 	Material* GetMaterialAsset(const std::string& name);
+	void DeleteMaterialAsset(const std::string& name);
 
 	void AddMeshAsset(const std::string& file);
 	Mesh* GetMeshAsset(const std::string& name);
+	void DeleteMeshAsset(const std::string& name);
 
 	void AddColliderAsset(const std::string& file);
 	/*
@@ -50,10 +55,16 @@ namespace engine {
 	Will return nullptr if collider doesn't exist
 	*/
 	Collider* GetColliderAsset(const std::string& name);
+	void DeleteColliderAsset(const std::string& name);
 
 	void AddModelAsset(const std::string& file);
+	/*
+	Modified to try adding model asset to the game unless it already is loaded.
+	*/
 	Model* GetModelAsset(const std::string& name);
+	void DeleteModelAsset(const std::string& name);
 
 	void AddTextureAsset(const std::string& name);
 	Texture* GetTextureAsset(const std::string& name);
+	void DeleteTextureAsset(const std::string& name);
 }

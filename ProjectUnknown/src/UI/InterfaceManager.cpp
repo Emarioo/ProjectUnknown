@@ -146,8 +146,6 @@ void InterfaceManager::SetupMainMenu() {
 			uiFadeBool=true;
 			AddTimedFunction([=]() {
 				// Load world data
-				SetState(GameState::Menu,false);
-				SetState(GameState::Game,true);
 
 				gameHandler.StartGame();
 

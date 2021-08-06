@@ -11,7 +11,8 @@ namespace engine {
 
 	class Mesh {
 	public:
-		Mesh() {}
+		Mesh();
+		~Mesh();
 
 		std::vector<Material*> materials;
 		unsigned char shaderType = 0;

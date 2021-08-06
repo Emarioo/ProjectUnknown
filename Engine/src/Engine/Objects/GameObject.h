@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Components/MetaComponent.h"
-#include "Components/CollisionComponent.h"
-#include "Components/RenderComponent.h"
+#include "../Components/MetaComponent.h"
+#include "../Components/CollisionComponent.h"
+#include "../Components/RenderComponent.h"
 
-#include "Handlers/AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engine {
 	class GameObject {
 	public:
 		GameObject();
+		GameObject(float x,float y,float z);
 		glm::vec3 position;// Pointer to meta strip?
 		glm::vec3 velocity;
 		glm::vec3 rotation;

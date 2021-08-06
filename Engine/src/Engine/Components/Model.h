@@ -13,7 +13,8 @@ namespace engine {
 	class Model {
 	public:
 
-		Model(){}
+		Model();
+		~Model();
 
 		std::vector<Mesh*> meshes;
 		std::vector<glm::mat4> matrices;

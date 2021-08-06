@@ -3,6 +3,12 @@
 #include "../Handlers/AssetHandler.h"
 
 namespace engine {
+	Model::Model() {
+
+	}
+	Model::~Model() {
+
+	}
 	void Model::AddMesh(const std::string& name, glm::mat4 matrix) {
 		Mesh* mesh = GetMeshAsset(name);
 		if (mesh != nullptr) {

@@ -1,10 +1,10 @@
-
 #include "Engine/Engine.h"
 
 #include "Objects/Goblin.h"
 #include "Objects/Gnorg.h"
 #include "Objects/Tutorial.h"
 #include "Objects/Player.h"
+#include "Objects/ModelObject.h"
 
 #include "UI/InterfaceManager.h"
 #include "Items/ItemHandler.h"
@@ -51,6 +51,8 @@ void Update(double delta) {
 }
 engine::BufferContainer cont;
 engine::BufferContainer itemContainer2;
+
+float coloring = 0;
 void Render(double delta) {
 	using namespace engine;
 	SwitchBlendDepth(false);
@@ -61,6 +63,13 @@ void Render(double delta) {
 			
 			glClearColor(0.05f, 0.08f, 0.08f, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			coloring += delta;
+			if (coloring>1) {
+				coloring = 0;
+			}
+
+			// All this should be automated and customizable in the engine.
+
 			// Shadow stuff
 			if (BindShader(ShaderType::Depth)) {
 				glCullFace(GL_BACK);
@@ -125,14 +134,14 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			
-			if (engine::CheckState(GameState::Paused)) {
-				if (TestActionKey(KeyPause,key)) {
-					engine::SetState(GameState::Paused,false);
-				}
-			} else {
-				if (TestActionKey(KeyPause, key)) {
-					engine::SetState(GameState::Paused,true);
+			if (TestActionKey(KeyPause, key)) {
+				if (engine::CheckState(GameState::Paused)) {
+					engine::SetState(GameState::Paused, false);
+					engine::LockCursor(true);
+					
+				} else {
+					engine::SetState(GameState::Paused, true);
+					engine::LockCursor(false);
 				}
 			}
 		}
@@ -224,16 +233,20 @@ void runApp(bool isDebugBuild) {
 	engine::GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
 	InitKeyBindings();
 
-	// Setup intro if release build
-	if (!isDebugBuild) {
+	bool startGame = true;
+
+	if (startGame) {
+		gameHandler.StartGame();
+	}
+	else if (!isDebugBuild) {
 		engine::SetState(GameState::Intro, true);
 		interfaceManager.SetupIntro();
 		engine::SetCursorVisibility(false);
 	} else {
-		engine::SetState(GameState::Menu, true);
-		engine::SetupDebugPanel();
+		 engine::SetState(GameState::Menu, true);
+		 engine::SetupDebugPanel();
 	}
-	interfaceManager.SetupMainMenu();
+	//interfaceManager.SetupMainMenu();
 
 	// Debug Options - move this else where. like the debugpanel
 	//bug::set("load_mesh_info", 1);
@@ -270,23 +283,24 @@ void runApp(bool isDebugBuild) {
 
 		AddFont("consolas42");
 
-		//engine::AddAnimAsset("goblin_slash");
-		//engine::AddBoneAsset("goblin_skeleton");
-		//engine::AddMeshAsset("goblin_body");
-		//engine::AddTextureAsset("noise");
-		//engine::AddMeshAsset("Plane.001");
-		//engine::AddMeshAsset("Plane.013");
-		//engine::AddModelAsset("Tutorial");
+		//AddAnimAsset("goblin_slash");
+		//AddBoneAsset("goblin_skeleton");
+		//AddMeshAsset("goblin_body");
+		//AddTextureAsset("noise");
+		//AddMeshAsset("Plane.001");
+		//AddMeshAsset("Plane.013");
+		//AddModelAsset("Tutorial");
 
-		//engine::AddModelAsset("TestMesh");
-		//engine::AddMeshAsset("LightCube");
-		//engine::AddModelAsset("LightCube");
-		//engine::AddTextureAsset("Test");
-		//engine::AddModelAsset("Player");
-		AddModelAsset("Player");
-		AddModelAsset("Tutorial");
-		AddModelAsset("Terrain");
-		AddModelAsset("Gnorg");
+		//AddModelAsset("TestMesh");
+		//AddMeshAsset("LightCube");
+		//AddModelAsset("LightCube");
+		//AddTextureAsset("Test");
+		//AddModelAsset("Player");
+		// 
+		//AddModelAsset("Player");
+		//AddModelAsset("Tutorial");
+		//AddModelAsset("Terrain");
+		//AddModelAsset("Gnorg");
 	}
 	//bug::out < a->Get(0)->Get(0)->frames[1].value < bug::end;
 	//engine::AddAnimationAsset("ArmatureAction");
@@ -317,16 +331,23 @@ void runApp(bool isDebugBuild) {
 	// Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));
 	//engine::AddObject(new Goblin(0, -3, 0));
-	engine::AddObject(new Goblin(0, 15, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
 
-	gameHandler.player = new Player(0, 15, 0);
-	gameHandler.player->flight = true;
+	//gameHandler.player = new Player(0, 15, 0);
+	//gameHandler.player->flight = true;
 	//player->renderHitbox = true;
-	engine::AddObject(gameHandler.player);
+	//engine::AddObject(gameHandler.player);
 	//Tutorial* tutorial = new Tutorial(0, 0, 0);
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
+
+	engine::AddObject(new ModelObject(0, 0, 0));
+
+	gameHandler.player = new Player(0, 15, 0);
+	gameHandler.player->flight = true;
+	engine::AddObject(gameHandler.player);
+	engine::SetState(GameState::CameraToPlayer,true);
+	//engine::GetCamera()->SetPosition(0,0,-5);
 
 	engine::DirLight* l = new engine::DirLight({ 2,-4,1 });
 	
@@ -353,13 +374,13 @@ void runApp(bool isDebugBuild) {
 	cont.SetAttrib(1,2,4,2);
 
 	engine::Start(Update, Render);
-}
+}/*
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow)
 {
 	runApp(false);
 	return 0;
-}
+}*/
 int main(int argc, char* argv[]) {
 	runApp(true);
 	return 0;

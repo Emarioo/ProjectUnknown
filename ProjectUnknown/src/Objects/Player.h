@@ -2,9 +2,13 @@
 
 #include <glm/glm.hpp>
 
-#include "Engine/GameObject.h"
+#include "Engine/Objects/GameObject.h"
 
 class Player : public engine::GameObject {
+private:
+	float animBlending = 0;
+	float animSpeed = 1.7;
+
 public:
 	Player(float x,float y,float z);
 
@@ -43,6 +47,4 @@ public:
 	float maxHunger = 100;
 	float mana = 9;
 	float maxMana = 20;
-
-private:
 };

@@ -14,6 +14,11 @@ namespace engine {
 		loadedDim = &dimensions[s];
 	}
 	
+	Camera* engine_camera=new Camera();
+	Camera* GetCamera() {
+		return engine_camera;
+	}
+
 	std::vector<GameObject*> gameObjects;
 	GameObject* AddObject(GameObject* object) {
 		gameObjects.push_back(object);

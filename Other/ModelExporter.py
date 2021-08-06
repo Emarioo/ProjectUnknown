@@ -1,11 +1,11 @@
-# Script by Emarioo / Datolsson, Updated 2021-01-20
-# Watch Datolsson on youtube for more information
-# If any error occurs please contact Datolsson on youtube so I can update this script
+# Script by Emarioo / Dataolsson, Updated 2021-01-20
+# Watch Dataolsson on youtube for more information
+# If any error occurs please contact Dataolsson on youtube so I can update this script
 
 bl_info = {
 "name": "Model Exporter",
 "category": "Object",
-"author": "Datolsson",
+"author": "Dataolsson",
 "description": "Menu and panel for turning blender models, animations and armatures into data files"
 }
 
@@ -522,7 +522,7 @@ def WriteModel(path,name,objects,armature,animations,collider):
         file = open(path+name+".model","wb")
     except FileNotFoundError:
         return ['ERROR','Directory not found '+path]
-    else:
+    else:bye
         pass
     
     file.write(struct.pack("=B",len(armature)))
@@ -549,6 +549,7 @@ def WriteModel(path,name,objects,armature,animations,collider):
     file.close()
     return out
 
+# make a better logging system
 def LogPriority(IN,msg):
     if IN[0]=='INFO':
         if msg[0]=='INFO':
@@ -740,7 +741,7 @@ class MExportOperator(bpy.types.Operator):
         me = scene.mexport
         
         if me.myGlobal=="":
-            me.myGlobal="D:/Development/VisualStudioProjects/Reigai-Dimension/Reigai-Dimension/assets/"
+            me.myGlobal="D:/Development/VisualStudio/ProjectUnknown/ProjectUnknown/assets/"
         if me.myMaterial=="":
             me.myMaterial="materials"
         if me.myMesh=="":

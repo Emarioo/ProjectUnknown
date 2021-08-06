@@ -6,7 +6,7 @@ namespace engine {
 	double mouseX, mouseY;
 	void FocusEvent(int focus) {
 		if (!focus) {
-			//SetPauseMode(true);
+
 		}
 	}
 
@@ -197,10 +197,14 @@ namespace engine {
 				p->Render();
 			}
 		}
-		
 		SetColor(0.9, 0.8, 0.7, 1);
-		SetTransform(-1+0.01, -1+0.06);
+		SetTransform(-1, 1-0.05);
 		SetSize(1, 1);
+		
+		DrawString("consolas42",
+			std::to_string(GetTime()),
+			false, 0.05, -1);
+		/*
 		glm::vec3 pos = GetCamera()->position;
 		glm::vec3 rot = GetCamera()->rotation;
 		
@@ -208,6 +212,7 @@ namespace engine {
 			std::to_string(pos.x) + " " + std::to_string(pos.y) + " " + std::to_string(pos.z) + "\n" +
 			std::to_string(rot.x) + " " + std::to_string(rot.y) + " " + std::to_string(rot.z),
 			false,0.05,-1);
+			*/
 	}
 	void GetEventCallbacks(
 		std::function<void(int, int)> key,

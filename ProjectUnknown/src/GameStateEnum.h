@@ -8,5 +8,6 @@ namespace GameState {
 		Menu,
 		Game,
 		Paused,
+		CameraToPlayer,
 	};
 }

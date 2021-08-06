@@ -73,10 +73,8 @@ namespace engine {
 			o0->position += o0->velocity * (float)delta;
 		}
 
-		UpdateViewMatrix();
-
-		if (GetDimension() != nullptr)
-			GetDimension()->CleanChunks();
+		//if (GetDimension() != nullptr)
+		//	GetDimension()->CleanChunks();
 
 		// Update dimension
 	}
@@ -111,8 +109,11 @@ namespace engine {
 
 			}
 		}
+
+		UpdateViewMatrix();
+
 		if (BindShader(ShaderType::Color)) {
-			SetProjection();
+			UpdateProjection();
 			GetBoundShader()->SetVec3("uCamera", GetCamera()->position);
 			for (GameObject* o : GetObjects()) {
 				if (o->renderComponent.model != nullptr) {
@@ -140,7 +141,7 @@ namespace engine {
 		}
 		
 		if (BindShader(ShaderType::ColorBone)) {
-			SetProjection();
+			UpdateProjection();
 			GetBoundShader()->SetVec3("uCamera", GetCamera()->position);
 			for (GameObject* o : GetObjects()) {
 				if (o->renderComponent.model != nullptr) {
@@ -238,7 +239,7 @@ namespace engine {
 		}*/
 		
 		if (BindShader(ShaderType::Outline)) {
-			SetProjection();
+			UpdateProjection();
 			SetTransform(glm::mat4(1));
 			SetColor(1, 1, 1, 1);
 			glLineWidth(2.f);

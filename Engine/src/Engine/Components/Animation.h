@@ -63,7 +63,7 @@ namespace engine {
 
 		unsigned short frameStart = 0;
 		unsigned short frameEnd = 0;
-		float defaultSpeed = 24;// frame per second
+		float defaultSpeed = 24;// frames per second. 24 is default from blender.
 
 		bool hasError = false;
 

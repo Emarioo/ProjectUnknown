@@ -4,10 +4,10 @@
 #include <glm/glm.hpp>
 
 #include "../Utility/GameOptions.h"
-#include "../Objects/ClientPlayer.h"
 
 #include <vector>
 #include "Biome.h"
+#include "../Objects/GameObject.h"
 
 namespace engine {
 

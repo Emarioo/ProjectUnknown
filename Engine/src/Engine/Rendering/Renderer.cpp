@@ -1,6 +1,7 @@
 #include "Renderer.h"
 
 #include "../Handlers/AssetHandler.h"
+#include "../Handlers/ObjectHandler.h"
 
 namespace engine {
 	
@@ -13,25 +14,17 @@ namespace engine {
 	int winW = 0;
 	int winH = 0;
 
-	int lastX = 0;
-	int lastY = 0;
-	int lastW = 0;
-	int lastH = 0;
-	GLFWwindow* window;
+	GLFWwindow* window=nullptr;
 	GLFWwindow* GetWindow() {
 		return window;
 	}
 	void GetWindowPos(int* x, int* y) {
 		if(window!=nullptr)
 			glfwGetWindowPos(window, x, y);
-		//winX=*x;
-		//winY=*y;
 	}
 	void GetWindowSize(int* w, int* h) {
 		if (window != nullptr)
 			glfwGetWindowSize(window, w, h);
-		//winW = *w;
-		//winH = *h;
 	}
 	void SetWindowPos(int x, int y) {
 		winX = x;
@@ -45,9 +38,224 @@ namespace engine {
 		if (window != nullptr)
 			glfwSetWindowSize(window, w, h);
 	}
+	/*
+	Width of game screen not window!
+	*/
+	float Width() {
+		int temp;
+		glfwGetWindowSize(window, &temp, nullptr);
+		return temp;
+	}
+	/*
+	Height of game screen not window!
+	*/
+	float Height() {
+		int temp;
+		glfwGetWindowSize(window, nullptr, &temp);
+		return temp;
+	}
+	float ToFloatScreenX(int x) {
+		return 2 * x / Width() - 1;
+	}
+	float ToFloatScreenY(int y) {
+		return 1 - 2 * y / Height();
+	}
+	float ToFloatScreenW(float w) {
+		return 2.f * (w) / Width();
+	}
+	float ToFloatScreenH(float h) {
+		return 2.f * (h) / Height();
+	}
+	float renMouseX;
+	float renMouseY;
+	float GetMouseX() {
+		return renMouseX;
+	}
+	float GetMouseY() {
+		return renMouseY;
+	}
+	float GetFloatMouseX() {
+		return ToFloatScreenX(renMouseX);
+	}
+	float GetFloatMouseY() {
+		return ToFloatScreenY(renMouseY);
+	}
+	bool windowHasFocus = true;
+	bool HasFocus() {
+		return windowHasFocus;
+	}
+	std::function<void(int, int)> KeyEvent = nullptr;
+	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+		std::cout << key << std::endl;
+		// This is for debug purposes
+		if (key == GLFW_KEY_1) {
+			SetWindowType(Windowed);
+		}
+		else if (key == GLFW_KEY_2) {
+			SetWindowType(Fullscreen);
+		}
+		else if (key == GLFW_KEY_3) {
+			SetWindowType(BorderlessFullscreen);
+		}
+
+		if (KeyEvent != nullptr) {
+			KeyEvent(key, action);
+		}
+	}
+	std::function<void(double, double, int, int)> MouseEvent = nullptr;
+	void MouseCallback(GLFWwindow* window, int action, int button, int mods) {
+		if (MouseEvent != nullptr)
+			MouseEvent(renMouseX, renMouseY, action, button);
+	}
+	std::function<void(double)> ScrollEvent = nullptr;
+	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+		if (ScrollEvent != nullptr) {
+			ScrollEvent(yoffset);
+		}
+	}
+	float cameraSensitivity = 0.1f;// TODO: MOVE THIS SOMEWHERE
+	std::function<void(double, double)> DragEvent = nullptr;
+	void DragCallback(GLFWwindow* window, double mx, double my) {
+		if (IsCursorLocked()) {
+			GetCamera()->rotation.y -= (mx - renMouseX) * (3.14159f / 360) * cameraSensitivity;
+			GetCamera()->rotation.x -= (my - renMouseY) * (3.14159f / 360) * cameraSensitivity;
+		}
+		if (DragEvent != nullptr)
+			DragEvent(mx, my);
+		renMouseX = mx;
+		renMouseY = my;
+	}
+	std::function<void(int, int)> ResizeEvent = nullptr;
+	void ResizeCallback(GLFWwindow* window, int width, int height) {
+		glViewport(0, 0, width, height);
+		if (windowType == Windowed) {
+			winW = width;
+			winH = height;
+		}
+		if (ResizeEvent != nullptr)
+			ResizeEvent(width, height);
+	}
+	std::function<void(int)> FocusEvent = nullptr;
+	void WindowFocusCallback(GLFWwindow* window, int focus) {
+		windowHasFocus = focus;
+		if (FocusEvent != nullptr) {
+			FocusEvent(focus);
+		}
+	}
+	void SetInterfaceCallbacks(
+		std::function<void(int, int)> key,
+		std::function<void(double, double, int, int)> mouse,
+		std::function<void(double)> scroll,
+		std::function<void(double, double)> drag,
+		std::function<void(int, int)> resize,
+		std::function<void(int)> focus) {
+		KeyEvent = key;
+		MouseEvent = mouse;
+		ScrollEvent = scroll;
+		DragEvent = drag;
+		ResizeEvent = resize;
+		FocusEvent = focus;
+	}
+	void MakeWindow(const char* title) {
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+		if (window != nullptr) {
+			glfwDestroyWindow(window);
+		}
+		else {
+			winX = mode->width / 6;
+			winY = mode->height / 6;
+			winW = mode->width / 1.5;
+			winH = mode->height / 1.5;
+		}
+
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		if (windowType == Windowed) {
+			glfwWindowHint(GLFW_DECORATED, true);
+			window = glfwCreateWindow(winW, winH, title, NULL, NULL);
+			if (!window) {
+				glfwTerminate();
+				std::cout << "Terminate Window!" << std::endl;
+				return;
+			}
+
+		}
+		else if (windowType == Fullscreen) {
+			glfwWindowHint(GLFW_DECORATED, true);
+			window = glfwCreateWindow(mode->width, mode->height, title, monitor, NULL);
+			if (!window) {
+				glfwTerminate();
+				std::cout << "Terminate Window!" << std::endl;
+				return;
+			}
+
+		}
+		else if (windowType == BorderlessFullscreen) {
+			glfwWindowHint(GLFW_DECORATED, false);
+			window = glfwCreateWindow(mode->width, mode->height, title, NULL, NULL);
+			if (!window) {
+				glfwTerminate();
+				std::cout << "Terminate Window!" << std::endl;
+				return;
+			}
+		}
+		else {
+			std::cout << "WindowType is None" << std::endl;
+			return;
+		}
+		glfwMakeContextCurrent(window);
+
+		glfwSetKeyCallback(window, KeyCallback);
+		glfwSetMouseButtonCallback(window, MouseCallback);
+		glfwSetScrollCallback(window, ScrollCallback);
+		glfwSetCursorPosCallback(window, DragCallback);
+		glfwSetWindowFocusCallback(window, WindowFocusCallback);
+		glfwSetWindowSizeCallback(window, ResizeCallback);
+	}
 	void SetWindowType(WindowTypes t) {
 		if (t == windowType)
 			return;
+		if (window == nullptr) {
+			windowType = t;
+			return;
+		}
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		
+		if (windowType == Windowed && t == Fullscreen) {
+			windowType = t;// do it before so the resize event has the current windowType and not the last one
+			glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		}
+		else if (windowType == Windowed && t == BorderlessFullscreen) {
+			windowType = t;
+			MakeWindow("Project Unknown");
+		}
+		else if (windowType == Fullscreen && t == Windowed) {
+			windowType = t;
+			glfwSetWindowMonitor(window, NULL, winX, winY, winW, winH, mode->refreshRate);
+		}
+		else if (windowType == Fullscreen && t == BorderlessFullscreen) {
+			windowType = t;
+			MakeWindow("Project Unknown");
+		}
+		else if (windowType == BorderlessFullscreen && t == Windowed) {
+			windowType = t;
+			MakeWindow("Project Unknown");
+		}
+		else if (windowType == BorderlessFullscreen && t == Fullscreen) {
+			windowType = t;
+			MakeWindow("Project Unknown");
+		}
+		int wid;
+		int hei;
+		GetWindowSize(&wid, &hei);
+		glViewport(0, 0, wid, hei);
+
+		/*
 		int wid = 0;
 		int hei = 0;
 		if (t == Windowed) {
@@ -66,7 +274,7 @@ namespace engine {
 			GetWindowSize(&wid, &hei);
 			glViewport(0, 0, wid, hei);
 		}
-		else if (t == FullscreenBorderless) {
+		else if (t == BorderlessFullscreen) {
 			windowType = t;
 			//glfwWindowHint(GLFW_DECORATED, false);
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -75,207 +283,31 @@ namespace engine {
 			GetWindowSize(&wid, &hei);
 			glViewport(0, 0, wid, hei);
 		}
-		return;
+		return;*/
 	}
-	/*
-	Width of game screen not window!
-	*/
-	float Width() {
-		return winW;
-	}
-	/*
-	Height of game screen not window!
-	*/
-	float Height() {
-		return winH;
-	}
-	bool hasFocus = true;
-	bool HasFocus() {
-		return hasFocus;
-	}
-	float ToFloatScreenX(int x) {
-		return 2 * x / Width() - 1;
-	}
-	float ToFloatScreenY(int y) {
-		return 1 - 2 * y / Height();
-	}
-	float ToFloatScreenW(float w) {
-		return 2.f * (w) / Width();
-	}
-	float ToFloatScreenH(float h) {
-		return 2.f * (h) / Height();
-	}
+	
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
 	float fov;
 	float zNear;
 	float zFar;
-	Camera camera;
-	Camera* GetCamera() {
-		return &camera;
-	}
 	void SetProjection(float ratio) {
 		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
 	void UpdateViewMatrix() {
 		viewMatrix = glm::inverse(
-			glm::translate(glm::mat4(1.0f), camera.position) *
-			glm::rotate(camera.rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(camera.rotation.x, glm::vec3(1, 0, 0))
+			glm::translate(glm::mat4(1.0f), GetCamera()->position) *
+			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
+			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
 		);
 	}
-
-	// Dragging
-
-	// Resize
-	int resizingWin = 0;
-
-	float renMouseX;
-	float renMouseY;
-	float GetMouseX() {
-		return renMouseX;
-	}
-	float GetMouseY() {
-		return renMouseY;
-	}
-	float GetFloatMouseX() {
-		return ToFloatScreenX(renMouseX);
-	}
-	float GetFloatMouseY() {
-		return ToFloatScreenY(renMouseY);
-	}
-	/*
-	bool InsideBorder() {
-		if (windowType == WindowBorder)
-			return (renMouseX >= 8 && renMouseX < WWidth() - 8 && renMouseY >= 31 && renMouseY < WHeight() - 8);
-		else if (windowType == Maximized)
-			return (renMouseY >= 31);
-		return true;
-	}*/
-	std::function<void(int, int)> KeyEvent=nullptr;
-	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		if (key==GLFW_KEY_1) {
-			SetWindowType(Windowed);
-		}else if (key == GLFW_KEY_2) {
-			SetWindowType(Fullscreen);
-		}else if (key == GLFW_KEY_3) {
-			SetWindowType(FullscreenBorderless);
-		}
-		if (KeyEvent != nullptr) {
-			KeyEvent(key, action);
-		}
-	}
-	std::function<void(double,double,int,int)> MouseEvent=nullptr;
-	void MouseCallback(GLFWwindow* window, int action, int button, int mods) {
-		if (MouseEvent != nullptr)
-			MouseEvent(renMouseX, renMouseY, action, button);
-		return;
-		/*
-		if (windowType == Fullscreen || windowType == WindowBorderless) {
-			if (MouseEvent != nullptr)
-				MouseEvent(renMouseX, renMouseY, action, button);
-
-		} else if (windowType == WindowBorder) {
-			if (button == 0) {
-				if (action == 1) {
-					// Check Buttons
-					if (renMouseY < 8) {
-						resizingWin = 1;
-						return;
-					} else if (renMouseX < 8) {
-						resizingWin = 2;
-						return;
-					} else if (renMouseY > WHeight() - 8) {
-						resizingWin = 3;
-						return;
-					} else if (renMouseX > WWidth() - 8) {
-						resizingWin = 4;
-						return;
-					}
-				} else if (action == 0) {
-					resizingWin = 0;
-				}
-			}
-			if (MouseEvent != nullptr) {
-				//if (InsideBorder()) {
-					MouseEvent(renMouseX - 8, renMouseY - 31, action, button);
-				//}
-			}
-		} else if (windowType == Maximized) {
-			if (button == 0) {
-				if (action == 1) {
-					// Check buttons
-				}
-			}
-			if (MouseEvent != nullptr) {
-				if (InsideBorder()) {
-					MouseEvent(renMouseX, renMouseY - 31, action, button);
-				}
-			}
-		}*/
-	}
-	std::function<void(double)> ScrollEvent=nullptr;
-	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-		if (ScrollEvent != nullptr) {
-			ScrollEvent(yoffset);
-		}
-	}
-	float cameraSensitivity = 0.1f;// TODO: MOVE THIS SOMEWHERE
-	std::function<void(double,double)> DragEvent=nullptr;
-	void DragCallback(GLFWwindow* window, double mx, double my) {
-		if (IsCursorLocked()) {
-			camera.rotation.y -= (mx - renMouseX) * (3.14159f / 360) * cameraSensitivity;
-			camera.rotation.x -= (my - renMouseY) * (3.14159f / 360) * cameraSensitivity;
-		}
-		if (DragEvent != nullptr)
-			DragEvent(mx, my);
-		renMouseX = mx;
-		renMouseY = my;
-	}
-	std::function<void(int,int)> ResizeEvent=nullptr;
-	void ResizeCallback(GLFWwindow* window, int width, int height) {
-		glViewport(0, 0, width, height);
-		//bug::out < "resize" < bug::end;
-		if (windowType==Windowed) {
-			winW = width;
-			winH = height;
-		}
-		if (ResizeEvent != nullptr)
-			ResizeEvent(width, height);
-	}
-	std::function<void(int)> FocusEvent=nullptr;
-	void WindowFocusCallback(GLFWwindow* window, int focus) {
-		hasFocus = focus;
-		if (FocusEvent != nullptr) {
-			FocusEvent(focus);
-		}
-	}
-	//void(*PosEvent)(int);
-	void WindowPosCallback(GLFWwindow* window, int x, int y) {
-		//if(windowType==1)
-		//SetWinSize(x, y, -1, -1);
-	}
-	void SetInterfaceCallbacks(
-		std::function<void(int, int)> key,
-		std::function<void(double, double, int, int)> mouse,
-		std::function<void(double)> scroll,
-		std::function<void(double, double)> drag,
-		std::function<void(int, int)> resize,
-		std::function<void(int)> focus) {
-		KeyEvent = key;
-		MouseEvent = mouse;
-		ScrollEvent = scroll;
-		DragEvent = drag;
-		ResizeEvent = resize;
-		FocusEvent = focus;
-	}
+	
 	const int TEXT_BATCH = 40;
 	float verts[4 * 4 * TEXT_BATCH];
 	BufferContainer textContainer;
 	BufferContainer rectContainer;
 	BufferContainer uvRectContainer;
 
-	//std::unordered_map<ShaderType, Shader*> shaders;
 	Shader shaders[MAX_CUSTOM_SHADERS+MAX_ENGINE_SHADERS];
 	unsigned char boundShader = 0;
 	bool BindShader(unsigned char shader) {
@@ -304,48 +336,19 @@ namespace engine {
 			return &shaders[boundShader];
 		return &shaders[ShaderType::NONE];
 	}
-
 	void InitRenderer() {
 		if (!glfwInit()) {
 			std::cout << "Not Init Window!" << std::endl;
 			return;
 		}
-		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-		SetWindowSize(mode->width / 1.5, mode->height / 1.5);
-		SetWindowPos(mode->width / 6, mode->height / 6);
-
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-		//glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-		//glfwWindowHint(GLFW_DECORATED, false);
-		//SetWindowSize(mode->width, mode->height);
-
-		window = glfwCreateWindow(winW, winH, "Reigai Dimension", NULL, NULL);
-		if (!window) {
-			glfwTerminate();
-			std::cout << "Terminate Window!" << std::endl;
-			return;
-		}
-
-		//SetWindowType(Windowed);
-
-		glfwMakeContextCurrent(window);
+		windowType = Windowed;
+		MakeWindow("Project Unknown");
 		
 		if (glewInit() != GLEW_OK) {
 			std::cout << "Error!" << std::endl;
 			return;
 		}
-		glfwSetKeyCallback(window, KeyCallback);
-		glfwSetMouseButtonCallback(window, MouseCallback);
-		glfwSetScrollCallback(window, ScrollCallback);
-		glfwSetCursorPosCallback(window, DragCallback);
-		glfwSetWindowFocusCallback(window, WindowFocusCallback);
-		glfwSetWindowSizeCallback(window, ResizeCallback);
-		glfwSetWindowPosCallback(window, WindowPosCallback);
-		// Remember to SetCallbacks in other class file
 
 		SwitchBlendDepth(true);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -430,6 +433,7 @@ namespace engine {
 
 		SetProjection((float)Width() / Height());
 	}
+
 	bool isCursorVisible = true;
 	bool IsCursorVisible() {
 		return isCursorVisible;
@@ -477,34 +481,7 @@ namespace engine {
 			glEnable(GL_DEPTH_TEST);
 		}
 	}
-	/*
-	void RenderBorder() {
-		BindShader("gui");
-		SwitchBlendDepth(true);
-		if (windowType == WindowBorder) {
-			glViewport(0, 0, WWidth(), WHeight());
 
-			GuiTransform(-1, 0);
-			GuiColor(1, 1, 1, 1);
-			BindTexture("blank");
-			border.Draw();
-
-			glViewport(8, 8, Width(), Height());
-
-		} else if (windowType == Maximized) {
-			glViewport(0, 0, WWidth(), WHeight());
-
-			GuiTransform(-1, 0);
-			GuiColor(1, 1, 1, 1);
-			BindTexture("blank");
-			border.Draw();
-
-			glViewport(0, 31, Width(), Height());
-		} else if (windowType == Fullscreen||windowType==WindowBorderless) {
-			glViewport(0, 0, Width(), Height());
-		}
-	}*/
-	
 	void SetTransform(glm::mat4 m) {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetMatrix("uTransform", m);
@@ -513,7 +490,7 @@ namespace engine {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetVec4("uColor", r, g, b, a);
 	}
-	void SetProjection() {
+	void UpdateProjection() {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetMatrix("uProj", projMatrix * viewMatrix);
 	}

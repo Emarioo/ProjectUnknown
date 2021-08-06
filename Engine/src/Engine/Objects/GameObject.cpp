@@ -3,7 +3,12 @@
 #include "glm/gtx/intersect.hpp"
 
 namespace engine {
+	GameObject::GameObject() {
 
+	}
+	GameObject::GameObject(float x, float y, float z) : position({x,y,z}) {
+		
+	}
 	glm::vec3 GameObject::GetPos() {
 		return position;
 	}
@@ -157,9 +162,6 @@ namespace engine {
 			}
 		}
 		return out * -1.f;
-	}
-	GameObject::GameObject() {
-
 	}
 	void GameObject::SetName(std::string name) {
 		this->name = name;

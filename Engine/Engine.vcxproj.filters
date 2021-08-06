@@ -21,7 +21,7 @@
     <ClInclude Include="src\Engine\Rendering\BufferContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Rendering\Camera.h">
+    <ClInclude Include="src\Engine\Objects\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Rendering\Light.h">
@@ -915,7 +915,7 @@
     <ClInclude Include="src\Engine\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\GameObject.h">
+    <ClInclude Include="src\Engine\Objects\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Utility\Utilities.h">
@@ -1019,7 +1019,7 @@
     <ClCompile Include="src\Engine\Rendering\BufferContainer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Rendering\Camera.cpp">
+    <ClCompile Include="src\Engine\Objects\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Rendering\Renderer.cpp">
@@ -1134,6 +1134,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\GameState.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Components\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

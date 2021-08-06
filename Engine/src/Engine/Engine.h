@@ -11,6 +11,9 @@
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
+
+Your own update function should include the UpdateObjects, UpdateCamera and UpdateUI functions.
+Your render function should include RenderObjects, RenderUI and RenderRawObjects incase of specialties.
 */
 namespace engine {
 	
@@ -28,15 +31,19 @@ namespace engine {
 	*/
 	void UpdateUI(double delta);
 	/*
-	Update  objects, camera...
+	Update objects and camera (viewMatrix)
+	 also dimensions but they should be moved somewhere else.
 	*/
 	void UpdateObjects(double delta);
 
 	void RenderUI(double delta);
 	/*
-	Render objects, hitboxes...
+	Render objects, hitboxes with the appropriate shaders.
 	*/
 	void RenderObjects(double delta);
+	/*
+	Render objects without doing anything but calling the object's draw function.
+	*/
 	void RenderRawObjects(double delta);
 	/*
 	Start the game loop and give the engine update and render calls

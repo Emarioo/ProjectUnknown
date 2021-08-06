@@ -15,7 +15,7 @@
 #include "Shader.h"
 #include "../Components/Material.h"
 #include "Light.h"
-#include "Camera.h"
+#include "../Objects/Camera.h"
 #include "../UI/Font.h"
 #include "FrameBuffer.h"
 
@@ -30,12 +30,12 @@ namespace engine {
 		NONE,
 		Windowed,
 		Fullscreen,
-		FullscreenBorderless,
-		//WindowedBorderless,
+		BorderlessFullscreen
 	};
-	void SetWindowType(WindowTypes t);
+
 	WindowTypes GetWindowType();
 	GLFWwindow* GetWindow();
+
 	void SetWindowTitle(const char*);
 	void SetWindowPos(int x, int y);
 	void SetWindowSize(int w, int h);
@@ -58,30 +58,39 @@ namespace engine {
 	From pixel to screen range (-1 to 1)
 	*/
 	float ToFloatScreenH(float h);
-	
+	float GetMouseX();
+	float GetMouseY();
+	float GetFloatMouseX();
+	float GetFloatMouseY();
 	bool HasFocus();
 
-	Camera* GetCamera();
+	void SetInterfaceCallbacks(
+		std::function<void(int, int)> key,
+		std::function<void(double, double, int, int)> mouse,
+		std::function<void(double)> scroll,
+		std::function<void(double, double)> drag,
+		std::function<void(int, int)> resize,
+		std::function<void(int)> focus);
+
 	/*
-	Bind Shader before
+	Make sure the windowType isn't none
 	*/
+	void MakeWindow(const char* title);
+	void SetWindowType(WindowTypes t);
+
 	void UpdateViewMatrix();
 
 	bool IsCursorVisible();
 	void SetCursorVisibility(bool f);
 	/*
-	Also known as is cursor in gameplay mode.
+	Also known as gameplay/first person mode.
 	*/
 	bool IsCursorLocked();
 	/*
-	Disable cursor and use raw cursor motion. Gameplay mode in other words.
+	Disable cursor and use raw cursor motion. Gameplay/first person mode in other words.
 	*/
 	void LockCursor(bool f);
 
-	float GetMouseX();
-	float GetMouseY();
-	float GetFloatMouseX();
-	float GetFloatMouseY();
 	/*
 	Starts glfw, projection matrix, shaders, rect and text container
 	*/
@@ -93,59 +102,40 @@ namespace engine {
 	void SetProjection(float ratio);
 	void SwitchBlendDepth(bool b);
 
-	void SetInterfaceCallbacks(
-		std::function<void(int, int)> key,
-		std::function<void(double, double, int, int)> mouse,
-		std::function<void(double)> scroll,
-		std::function<void(double, double)> drag,
-		std::function<void(int, int)> resize,
-		std::function<void(int)> focus);
-
-	//void RenderBorder();
-
-	//void RenderScene();
-
 	bool BindShader(unsigned char shader);
-	/*
-	Can return nullptr if materia caused an error
-	*/
+
 	Shader* GetShader(unsigned char shader);
-	/*
-	Returns none shader if error?
-	*/
 	Shader* GetBoundShader();
 
 	void AddShader(unsigned char shader, const std::string& path);
 
 	/*
-	Set uniform for current shader
+	Set transform uniform for current shader
 	*/
 	void SetTransform(glm::mat4 m);
 	/*
-	Set uniform for current shader
+	Set projection matrix uniform for current shader
 	*/
-	void SetProjection();
+	void UpdateProjection();
 	/*
-	Set uniform for current shader
+	Set color uniform for current shader
 	*/
 	void SetColor(float r, float g, float b, float a);
 
 	/*
-	Set uniform for interface shader
+	Set transform uniform for interface shader
 	*/
 	void SetTransform(float x, float y);
 	/*
-	Set uniform for current shader
+	Set size uniform for current shader
 	*/
 	void SetSize(float w, float h);
 	/*
-	Set uniform for interface shader
+	Set render area uniform for interface shader
 	*/
 	void SetRenderArea(float f0, float f1, float f2, float f3);
 
-	// Texture
 	void BindTexture(int slot, const std::string& name);
-	// Texture
 	void BindTexture(int slot, Texture* texture);
 	
 	void AddFont(const std::string& name);

@@ -4,11 +4,21 @@
 
 namespace engine {
 	
+	AnimProp::AnimProp() {
+
+	}
+	AnimProp::AnimProp(bool loop, float blend, float speed)
+		: frame(0), loop(loop), blend(blend), speed(speed) {
+	}
+	AnimProp::AnimProp(float frame, bool loop, float blend, float speed) :
+		frame(frame), loop(loop), blend(blend), speed(speed) {
+
+	}
 	void Animator::Update(float delta) {
 		if (model != nullptr) {
 			std::vector<std::string> disable;
 			for (auto& p : enabledAnimations) {
-				for (int j = 0; j < model->animations.size(); j++) {
+				for (int j = 0; j < model->animations.size(); j++) {// This is kind of bad. A lot of animations will cause performance issues
 					if (p.first == model->animations[j]->name) {
 						AnimProp& prop = p.second;
 						prop.frame += model->animations[j]->defaultSpeed * prop.speed * delta;
@@ -45,6 +55,11 @@ namespace engine {
 	void Animator::Blend(const std::string& name, float blend) {
 		if (enabledAnimations.count(name) > 0) {
 			enabledAnimations[name].blend = blend;
+		}
+	}
+	void Animator::Speed(const std::string& name, float speed) {
+		if (enabledAnimations.count(name) > 0) {
+			enabledAnimations[name].speed = speed;
 		}
 	}
 	void Animator::Enable(const std::string& name, AnimProp prop) {

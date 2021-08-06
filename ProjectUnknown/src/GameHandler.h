@@ -9,6 +9,9 @@ private:
 public:
 	Player* player=nullptr;
 
+	/*
+	Start game by setting the correct game state, lock the cursor, init items
+	*/
 	void StartGame();
 };
 extern GameHandler gameHandler;

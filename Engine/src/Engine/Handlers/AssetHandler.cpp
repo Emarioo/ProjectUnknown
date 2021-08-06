@@ -35,6 +35,9 @@ namespace engine {
 			return &materials[name];
 		return nullptr;
 	}
+	void DeleteMaterialAsset(const std::string& name) {
+		materials.erase(name);
+	}
 	std::unordered_map<std::string, Mesh> meshes;
 	void AddMeshAsset(const std::string& file) {
 		if (meshes.count(file) == 0) {
@@ -48,6 +51,9 @@ namespace engine {
 		} else if (!meshes[name].hasError)
 			return &meshes[name];
 		return nullptr;
+	}
+	void DeleteMeshAsset(const std::string& name) {
+		meshes.erase(name);
 	}
 	std::unordered_map<std::string, Animation> animations;
 	void AddAnimationAsset(const std::string& file) {
@@ -63,6 +69,9 @@ namespace engine {
 			return &animations[name];
 		return nullptr;
 	}
+	void DeleteAnimationAsset(const std::string& name) {
+		animations.erase(name);
+	}
 	std::unordered_map<std::string, Armature> armatures;
 	void AddArmatureAsset(const std::string& file) {
 		if (armatures.count(file) == 0) {
@@ -76,6 +85,9 @@ namespace engine {
 		} else if (!armatures[name].hasError)
 			return &armatures[name];
 		return nullptr;
+	}
+	void DeleteArmatureAsset(const std::string& name) {
+		armatures.erase(name);
 	}
 	std::unordered_map<std::string, Collider> colliders;
 	void AddColliderAsset(const std::string& file) {
@@ -91,6 +103,9 @@ namespace engine {
 			return &colliders[name];
 		return nullptr;
 	}
+	void DeleteColliderAsset(const std::string& name) {
+		colliders.erase(name);
+	}
 	std::unordered_map<std::string, Model> models;
 	void AddModelAsset(const std::string& file) {
 		if (models.count(file) == 0) {
@@ -100,10 +115,15 @@ namespace engine {
 	}
 	Model* GetModelAsset(const std::string& name) {
 		if (models.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Model '" < name < "'\n";
-		} else if (!models[name].hasError)
+			AddModelAsset(name);
+			// bug::out < bug::RED < "Cannot find Model '" < name < "'\n";
+		}
+		if (!models[name].hasError)
 			return &models[name];
 		return nullptr;
+	}
+	void DeleteModelAsset(const std::string& name) {
+		models.erase(name);
 	}
 	std::unordered_map<std::string, Texture> textures;
 	void AddTextureAsset(const std::string& name) {// Change this system so it is simular to every other system. FileExist?
@@ -120,5 +140,8 @@ namespace engine {
 		} else
 			return &textures[name];
 		return nullptr;
+	}
+	void DeleteTextureAsset(const std::string& name) {
+		textures.erase(name);
 	}
 }
