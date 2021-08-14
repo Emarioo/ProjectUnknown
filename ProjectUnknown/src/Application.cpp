@@ -1,4 +1,6 @@
-#include "Engine/Engine.h"
+#include "propch.h"
+
+#include "Engone/Engine.h"
 
 #include "Objects/Goblin.h"
 #include "Objects/Gnorg.h"
@@ -10,50 +12,83 @@
 #include "Items/ItemHandler.h"
 #include "GameHandler.h"
 #include "GameStateEnum.h"
-#include "KeyBinding.h"
+#include "Keybindings.h"
 
 #include "ShaderType.h"
 
+#include "Other/GameStatistics.h"
+#include "Other/InformativeTips.h"
+
 float ang = 0;
-float vel = 0.001;
+float vel = 1;
 engine::Light* light;
 engine::SoundStream melody;
+
+engine::Animation* quater = nullptr;
+engine::Model* tommy = nullptr;
+engine::Channels channel;
+float n = -1;
+unsigned short lastN = -1;
 void Update(double delta) {
 	using namespace engine;
 
-	ang += vel;
-	//if(ang>1||ang<0)
-	//	vel *= -1;
-
 	//melody.UpdateStream();
 	
-	float bez = bezier(ang, 0, 1) - 3.14159/3;
-	float bez2 = bezier(ang*0.3,0, 0.3)*0.3-0.5;
-	float bez3 = bezier(ang,0, 1);
-	/*engine::GetCamera()->rotation.y = bez;// +3.14159 / 2.f;
-	engine::GetCamera()->rotation.x = bez2;
-	engine::GetPlayer()->SetPosition((
-		glm::translate(glm::vec3(0, 4,0))*
-		glm::rotate(bez, glm::vec3(0, 1, 0)) *
-		glm::rotate(bez2, glm::vec3(1, 0, 0)) *
-		glm::translate(glm::vec3(0, 0, 5.2))
-		)[3]);
-	*/
-	light->position.x = 5 * glm::cos(engine::GetTime());// bez3 * 2;
-	light->position.z = 5 * glm::sin(engine::GetTime());// bez3 * 2;
+	light->position.x = 5 * glm::cos(engine::GetPlayTime());// bez3 * 2;
+	light->position.z = 5 * glm::sin(engine::GetPlayTime());// bez3 * 2;
 	
 	if (CheckState(GameState::Game)) {
 		if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
 	}
+	
+	if (quater != nullptr) {
+		if (tommy != nullptr) {
+			if ((unsigned short)lastN != (unsigned short)n) {
+				if ((unsigned short) n < tommy->armature->bones.size()) {
+					//std::cout << "change "<< (unsigned short)n<<" > "<<((unsigned short)n + 1) << std::endl;
+					//std::cout << quater->objects.size() << std::endl;
+					quater->objects[(unsigned short)n+1]=channel;
+					quater->objects.erase((unsigned short)n);
+					//std::cout << quater->objects[(unsigned short)n + 1].fcurves.size() << std::endl;
+
+				}
+				if (n > 12)
+					n = -1;
+				lastN = n;
+			}
+		}
+		else {
+			tommy = engine::GetModelAsset("Tom");
+			std::cout << tommy << std::endl;
+		}
+
+		n += 24*delta/60;
+	}
+
+	/*ang += vel * delta;
+	if (ang > 1 || ang < 0)
+		vel *= -1;
+	float bez = bezier(ang, 0, 1) - 3.14159 / 3;
+	float bez2 = bezier(ang * 0.3, 0, 0.3) * 0.3 - 0.5;
+	float bez3 = bezier(ang, 0, 1);
+	engine::GetCamera()->rotation.y = bez;// +3.14159 / 2.f;
+	engine::GetCamera()->rotation.x = bez2;
+	engine::GetCamera()->SetPosition((
+		glm::translate(glm::vec3(0, 4, 0)) *
+		glm::rotate(bez, glm::vec3(0, 1, 0)) *
+		glm::rotate(bez2, glm::vec3(1, 0, 0)) *
+		glm::translate(glm::vec3(0, 0, 5.2))
+		)[3]);
+	*/
 	UpdateUI(delta);
 }
 engine::BufferContainer cont;
 engine::BufferContainer itemContainer2;
 
 float coloring = 0;
-void Render(double delta) {
+void Render(double lag) {
 	using namespace engine;
 	SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
@@ -63,7 +98,7 @@ void Render(double delta) {
 			
 			glClearColor(0.05f, 0.08f, 0.08f, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			coloring += delta;
+			coloring += lag;
 			if (coloring>1) {
 				coloring = 0;
 			}
@@ -77,7 +112,7 @@ void Render(double delta) {
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderRawObjects(delta);
+				RenderRawObjects(lag);
 				GetDepthBuffer().Unbind();
 			}
 			
@@ -89,7 +124,7 @@ void Render(double delta) {
 			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-			RenderObjects(delta);
+			RenderObjects(lag);
 			
 			if (engine::IsKey(GLFW_KEY_K)) {
 				SwitchBlendDepth(true);
@@ -103,9 +138,9 @@ void Render(double delta) {
 	}
 
 	// Render IBase, IElement...
-	engine::RenderUI(delta);
+	engine::RenderUI(lag);
 	// Render custom things like items dragged by the mouse
-	interfaceManager.Render();
+	interfaceManager.Render(lag);
 }
 void OnKey(int key, int action) {
 	if (engine::CheckState(GameState::Game)) {
@@ -134,7 +169,7 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			if (TestActionKey(KeyPause, key)) {
+			if (engine::TestActionKey(KeyPause, key)) {
 				if (engine::CheckState(GameState::Paused)) {
 					engine::SetState(GameState::Paused, false);
 					engine::LockCursor(true);
@@ -159,6 +194,7 @@ void OnMouse(double mx,double my,int action,int button,const std::string& elemen
 		}
 	}*/
 }
+
 // Is this really supposed to be here?
 void CustomDimension() {
 	using namespace engine;
@@ -231,7 +267,9 @@ void runApp(bool isDebugBuild) {
 	engine::SetState(GameState::DebugLog,isDebugBuild);
 	engine::Initialize();
 	engine::GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
-	InitKeyBindings();
+	if (engine::LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
+		CreateDefualtKeybindings();
+	}
 
 	bool startGame = true;
 
@@ -249,28 +287,31 @@ void runApp(bool isDebugBuild) {
 	//interfaceManager.SetupMainMenu();
 
 	// Debug Options - move this else where. like the debugpanel
-	//bug::set("load_mesh_info", 1);
-	//bug::set("load_mesh_vectors", 1);
-	//bug::set("load_mesh_colors", 1);
-	//bug::set("load_mesh_normals", 1);
-	//bug::set("load_mesh_buffer", 1);
+	/*
+	bug::set("LoadMesh", 1);
+	bug::set("LoadMesh.Weights", 1);
+	bug::set("LoadMesh.Triangles", 1);
+	bug::set("LoadMesh.Vectors", 1);
+	bug::set("LoadMesh.Colors", 1);
+	bug::set("LoadMesh.Normals", 1);
+	//bug::set("LoadMesh.Buffer", 1);
+	*/
+	bug::set("LoadAnimation", 1);
+	bug::set("LoadAnimation.Frames", 1);
 		
-	//bug::set("load_anim_info", 1);
-	//bug::set("load_anim_frames", 1);
-		
-	//bug::set("load_coll_info", 1);
-	//bug::set("load_coll_vectors", 1);
-	//bug::set("load_coll_quads", 1);
+	//bug::set("LoadCollider", 1);
+	//bug::set("LoadCollider.Vectors", 1);
+	//bug::set("LoadCollider.Quads", 1);
 		 
-	//bug::set("load_arma_info", 1);
-	//bug::set("load_arma_bone", 1);
-	//bug::set("load_arma_matrix", 1);
+	//bug::set("LoadArmature", 1);
+	//bug::set("LoadArmature.Bones", 1);
+	//bug::set("LoadArmature.Matrix", 1);
 		 
-	//bug::set("load_model_info", 1);
-	//bug::set("load_model_mesh", 1);
-	//bug::set("load_model_matrix", 1);
+	bug::set("LoadModel", 1);
+	//bug::set("LoadModel.Mesh", 1);
+	//bug::set("LoadModel.Matrix", 1);
 
-	//bug::set("load_mat_info", 1);
+	//bug::set("LoadMaterial", 1);
 
 	// Assets should be loaded else where. Maybe where you start the game. 
 	// Only if they havent't been loaded though.
@@ -311,6 +352,29 @@ void runApp(bool isDebugBuild) {
 
 	//engine::AddTextureAsset("items0");
 	//engine::AddTextureAsset("magicstaff_fireball");
+	{
+		// Remove some of the quaternion values and see if it works
+		using namespace engine;
+		AddAnimationAsset("Quater");
+		quater = GetAnimationAsset("Quater");
+		
+		quater->Modify(0, 60);
+
+		FCurve x,y,z,w;
+
+		z.Add({ Bezier, 0, 0 });
+		z.Add({ Bezier, 60, 0.5 });
+
+		//cha.Add(PosX, x);
+		channel.Add(QuaX, z);
+		//cha.Add(QuaZ, z);
+		//cha.Add(QuaW, w);
+
+		quater->AddObjectChannels(0, channel);
+
+		//std::cout << "obs "<< quater->objects.size() << std::endl;
+		//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
+	}
 
 	/*
 	melody.Init("assets/sounds/melody.wav");
@@ -341,12 +405,19 @@ void runApp(bool isDebugBuild) {
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
 
-	engine::AddObject(new ModelObject(0, 0, 0));
 
-	gameHandler.player = new Player(0, 15, 0);
+	ModelObject* ob;
+	engine::AddObject(ob=new ModelObject(3, 0, 0,"Charles"));
+	engine::AddObject(ob=new ModelObject(-3, 0, 0,"Tom"));
+	//ob->quaternion = {1,0.5,0,0};
+
+
+	gameHandler.player = new Player(0, 0, 0);
+	engine::GetCamera()->position.x = 0;
+	engine::GetCamera()->position.z = 5;
 	gameHandler.player->flight = true;
 	engine::AddObject(gameHandler.player);
-	engine::SetState(GameState::CameraToPlayer,true);
+	engine::SetState(GameState::CameraToPlayer,false);
 	//engine::GetCamera()->SetPosition(0,0,-5);
 
 	engine::DirLight* l = new engine::DirLight({ 2,-4,1 });
@@ -369,19 +440,22 @@ void runApp(bool isDebugBuild) {
 		0,1,2,
 		2,3,0
 	};
-	cont.Setup(false,v,16,i,6);
+	cont.Init(false,v,16,i,6);
 	cont.SetAttrib(0,2,4,0);
 	cont.SetAttrib(1,2,4,2);
 
-	engine::Start(Update, Render);
-}/*
+	engine::Start(Update, Render, 60);
+}
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow)
 {
 	runApp(false);
 	return 0;
-}*/
+}
 int main(int argc, char* argv[]) {
+
+	//std::cout << informativeTips.GetDeathTip() << std::endl;
+	//std::cin.get();
 	runApp(true);
 	return 0;
 }

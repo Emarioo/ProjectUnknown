@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Objects/GameObject.h"
+#include "Engone/Objects/GameObject.h"
 
 class Gnorg : public engine::GameObject {
 public:

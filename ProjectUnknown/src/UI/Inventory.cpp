@@ -1,10 +1,10 @@
-#include "Inventory.h"
+#include "propch.h"
 
-#include "Items/ItemHandler.h"
-#include "GLFW/glfw3.h"
 #include "InterfaceManager.h"
 
-#include "KeyBinding.h"
+#include "Items/ItemHandler.h"
+
+#include "Keybindings.h"
 
 Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container = new Container("Player Inv.",5,5);
@@ -55,7 +55,7 @@ bool Inventory::MouseEvent(int mx, int my, int action, int button) {
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (TestActionKey(KeyInventory,key)) {
+	if (engine::TestActionKey(KeyInventory,key)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.craftingList->active) {

@@ -1,6 +1,12 @@
+#include "propch.h"
+
 #include "ItemHandler.h"
 
-#include "Engine/Utility/Utilities.h"
+#include "Engone/Utility/Utilities.h"
+
+#include "Engone/Handlers/FileHandler.h"
+#include "Engone/Rendering/Renderer.h"
+#include "Engone/Handlers/AssetHandler.h"
 
 std::vector<CraftingCategory> craftingCategories;
 CraftingCategory* GetCategory(int index) {
@@ -82,7 +88,7 @@ void InitItemHandler() {
 
 	unsigned int ind[]{ 0,1,2,2,3,0 };
 
-	itemContainer.Setup(true, nullptr, 16, ind, 6);
+	itemContainer.Init(true, nullptr, 16, ind, 6);
 	itemContainer.SetAttrib(0, 4, 4, 0);
 }
 int imageSize=512;

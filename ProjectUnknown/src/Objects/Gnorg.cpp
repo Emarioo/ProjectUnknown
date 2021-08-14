@@ -1,10 +1,10 @@
+#include "propch.h"
+
 #include "Gnorg.h"
 
-#include "Engine/Keyboard.h"
+#include "Engone/Keyboard.h"
 
-Gnorg::Gnorg(float x, float y, float z) {
-	name = "Gnorg";
-	SetPosition(x, y, z);
+Gnorg::Gnorg(float x, float y, float z) : GameObject("Gnorg",x,y,z) {
 	/*
 	renderComponent.SetAnim("goblin_slash");
 	renderComponent.anim.running = true;

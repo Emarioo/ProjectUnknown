@@ -1,3 +1,5 @@
+#include "propch.h"
+
 #include "ItemType.h"
 
 ItemType::ItemType()

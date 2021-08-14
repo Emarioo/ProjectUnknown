@@ -1,17 +1,17 @@
+#include "propch.h"
+
 #include "Player.h"
 
-#include "Engine/Engine.h"
+#include "Engone/Handlers/ObjectHandler.h"
 
-#include "KeyBinding.h"
+#include "Keybindings.h"
 
 #include "GameStateEnum.h"
 
-Player::Player(float x,float y,float z) {
-	name = "Player";
+#include "GLFW/glfw3.h"
+
+Player::Player(float x,float y,float z) : GameObject("Player",x,y,z) {
 	weight = 1;
-
-	SetPosition(x,y,z);
-
 	/*
 	renderComponent.SetModel("Player");
 	collisionComponent.SetCollider(renderComponent.model->colliderName);
@@ -20,16 +20,16 @@ Player::Player(float x,float y,float z) {
 	*/
 }
 void Player::Update(float delta) {
-	if (IsKeyActionDown(KeyForward)) {
+	if (engine::IsKeyActionDown(KeyForward)) {
 		if (animBlending < 1 && animSpeed>0)
 			animBlending += animSpeed * delta;
 	} else {
 		if (animBlending > 0)
 			animBlending -= animSpeed * delta;
 	}
-	if (IsKeyActionDown(KeyCrouch)) {
+	if (engine::IsKeyActionDown(KeyCrouch)) {
 		renderComponent.animator.Speed("goblin_run", 
-			flight||freeCam? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
+			flight|| !engine::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
 		);
 	} else {
 		renderComponent.animator.Speed("goblin_run", 1);
@@ -44,13 +44,15 @@ void Player::Update(float delta) {
 }
 glm::vec3 Player::Movement(float delta) {
 	Camera* camera = engine::GetCamera();
+	if (camera == nullptr)
+		return glm::vec3(0);
 	
 	glm::vec3 move = glm::vec3(0, 0, 0);
 	
-	if (true) { // Disable movement
+	if (true) { // Disable movement - useless?
 		if (engine::IsKey(GLFW_KEY_N)) {
 			if (!freeCamT) {
-				freeCam = !freeCam;
+				engine::SetState(GameState::CameraToPlayer, !engine::CheckState(GameState::CameraToPlayer));
 			}
 			freeCamT = true;
 		} else {
@@ -72,26 +74,27 @@ glm::vec3 Player::Movement(float delta) {
 		} else {
 			thirdPersonT = false;
 		}
-		sprintMode = IsKeyActionDown(KeySprint);
 
 		float speed = walkSpeed;
-		if (freeCam||flight) {
+		if (!engine::CheckState(GameState::CameraToPlayer) ||flight) {
 			speed = camSpeed;
-			if (sprintMode) speed = camFastSpeed;
+			if (engine::IsKeyActionDown(KeySprint))
+				speed = camFastSpeed;
 
-			if (IsKeyActionDown(KeyJump)) {
+			if (engine::IsKeyActionDown(KeyJump)) {
 				move.y += speed;
 			}
-			if (IsKeyActionDown(KeyCrouch)) {
+			if (engine::IsKeyActionDown(KeyCrouch)) {
 				move.y -= speed;
 			}
 			if(flight)
 				velocity.y = 0;
 		} else {
 			velocity.y += gravity;
-			if (sprintMode) speed = sprintSpeed;
+			if (engine::IsKeyActionDown(KeySprint))
+				speed = sprintSpeed;
 
-			if (IsKeyActionDown(KeyJump)) {
+			if (engine::IsKeyActionDown(KeyJump)) {
 				if (onGround) {
 					velocity.y = 5;
 					onGround = false;
@@ -99,16 +102,16 @@ glm::vec3 Player::Movement(float delta) {
 			}
 		}
 
-		if (IsKeyActionDown(KeyForward)) {
+		if (engine::IsKeyActionDown(KeyForward)) {
 			move.z -= speed;
 		}
-		if (IsKeyActionDown(KeyBack)) {
+		if (engine::IsKeyActionDown(KeyBack)) {
 			move.z += speed;
 		}
-		if (IsKeyActionDown(KeyRight)) {
+		if (engine::IsKeyActionDown(KeyRight)) {
 			move.x += speed;
 		}
-		if (IsKeyActionDown(KeyLeft)) {
+		if (engine::IsKeyActionDown(KeyLeft)) {
 			move.x -= speed;
 		}
 		/*
@@ -140,25 +143,31 @@ glm::vec3 Player::Movement(float delta) {
 
 	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
 	
-	velocity = glm::vec3(0);
-	if (freeCam) {
-		if (engine::CheckState(GameState::CameraToPlayer))
+	velocity = nmove;
+	camera->velocity = nmove;
+
+	//camera->position.z += 8*0.016f;
+	camera->position += nmove* delta;
+	
+	if (!engine::CheckState(GameState::CameraToPlayer)) {
+			camera->velocity = nmove;
 			camera->position += nmove * delta;
 	} else {
+		velocity = nmove;
 		position += nmove * delta;
-		if (engine::CheckState(GameState::CameraToPlayer)) {
-			if (camera != nullptr)
-				SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
-				engine::Location camPos;
-				camPos.Translate(position + glm::vec3(0, 0.5f, 0));
-				if (thirdPerson) {
-					camPos.Rotate(camera->rotation);
-						camPos.Translate(0.5, 0, 3);
-				}
-			camera->position = camPos.vec();
+		
+		SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
+
+		engine::Location camPos; // Camera offset
+		camPos.Translate(position + glm::vec3(0, 0.5f, 0));
+		if (thirdPerson) {
+			camPos.Rotate(camera->rotation);
+			camPos.Translate(0.5, 0, 3);
 		}
+		camera->velocity = velocity;
+		camera->position = camPos.vec();
+		
 	}
-	
 	return nmove;
 	/*
 	if (GetDimension() != nullptr) {

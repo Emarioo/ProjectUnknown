@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Item.h"
-#include <vector>
 
 /*
 The container will destroy it's contents when destroyed. It is therefore importent to

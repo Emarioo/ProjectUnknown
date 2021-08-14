@@ -1,12 +1,13 @@
 #pragma once
 
-#include "WorldHandler.h"
-
 #include "Inventory.h"
+#include "WorldHandler.h"
 #include "CraftingList.h"
 #include "Infobar.h"
 #include "Hotbar.h"
 #include "IntroScene.h"
+
+#include "Engone/Handlers/UIHandler.h"
 
 #include "GameStateEnum.h"
 
@@ -17,7 +18,7 @@ public:
 	~InterfaceManager();// Does nothing
 
 	// Menu ui
-	WorldHandler* worldHandler=nullptr;
+	//WorldHandler* worldHandler=nullptr;
 
 	// Check if nullptr
 	engine::IElement* uiFade = nullptr;
@@ -32,7 +33,7 @@ public:
 	Item* TakeHeldItem();
 	Item** GetHeldItemPointer();
 
-	void Render();
+	void Render(double lag);
 
 	void SetupIntro();
 	void SetupMainMenu();

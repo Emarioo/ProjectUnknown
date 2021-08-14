@@ -1,9 +1,10 @@
+#include "propch.h"
+
 #include "Goblin.h"
 
-#include "Engine/Keyboard.h"
+#include "Engone/Keyboard.h"
 
-Goblin::Goblin(float x, float y, float z) {
-	SetPosition(x, y, z);
+Goblin::Goblin(float x, float y, float z) : GameObject("Goblin",x,y,z) {
 	/*
 	renderComponent.SetAnim("goblin_slash");
 	renderComponent.anim.running = true;

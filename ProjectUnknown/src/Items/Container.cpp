@@ -1,12 +1,10 @@
+#include "propch.h"
+
 #include "Container.h"
 
-#include "Engine/Keyboard.h"
+#include "Keybindings.h"
 
 #include "ItemHandler.h"
-
-#include <iostream>
-
-#include <GLFW/glfw3.h>
 
 Container::Container() {
 
@@ -170,7 +168,7 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 		//bug::out < "SwitchItemLocation pointer is nullptr" < bug::end;
 		return;
 	}
-	if (engine::IsKey(GLFW_KEY_LEFT_CONTROL)) {
+	if (engine::IsKeyActionDown(KeySwitchItem)) {
 		Item** temp = a;
 		a = b;
 		b = temp;

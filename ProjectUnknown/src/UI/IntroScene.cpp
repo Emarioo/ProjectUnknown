@@ -1,6 +1,8 @@
-#include "IntroScene.h"
+#include "propch.h"
 
 #include "InterfaceManager.h"
+
+#include "Engone/Rendering/Renderer.h"
 
 IntroScene::IntroScene(const std::string& name) : engine::IBase(name,999) {
 	active = true;

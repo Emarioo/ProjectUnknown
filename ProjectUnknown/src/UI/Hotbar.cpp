@@ -1,10 +1,9 @@
-#include "Hotbar.h"
+#include "propch.h"
 
-#include "GLFW/glfw3.h"
+#include "InterfaceManager.h"
 
 #include "Items/ItemHandler.h"
 
-#include "InterfaceManager.h"
 
 Hotbar::Hotbar(const std::string& name) : engine::IBase(name) {
 	active = true;

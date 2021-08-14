@@ -1,3 +1,5 @@
+#include "propch.h"
+
 #include "CraftingCategory.h"
 
 CraftingCategory::CraftingCategory(const std::string& name)

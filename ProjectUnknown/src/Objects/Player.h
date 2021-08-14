@@ -1,8 +1,6 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
-#include "Engine/Objects/GameObject.h"
+#include "Engone/Objects/GameObject.h"
 
 class Player : public engine::GameObject {
 private:
@@ -16,7 +14,7 @@ public:
 	glm::vec3 Movement(float delta);
 
 	// Movement and camera
-	bool freeCam = false;
+	//bool freeCam = false; // use GameState CameraToPlayer
 	bool thirdPerson = false;
 	bool flight = false;
 

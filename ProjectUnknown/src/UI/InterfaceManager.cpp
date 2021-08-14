@@ -1,3 +1,5 @@
+#include "propch.h"
+
 #include "InterfaceManager.h"
 
 #include "GameHandler.h"
@@ -29,7 +31,7 @@ Item* InterfaceManager::TakeHeldItem() {
 Item** InterfaceManager::GetHeldItemPointer() {
 	return &heldItem;
 }
-void InterfaceManager::Render() {
+void InterfaceManager::Render(double lag) {
 	if (inventory != nullptr) {
 		if (inventory->IsActive()) {
 			float iw = 64 / 1920.f * 2;
@@ -99,10 +101,10 @@ void InterfaceManager::SetupMainMenu() {
 	// Quit
 
 	// Stage Play
-	AddBase(worldHandler = new WorldHandler("WorldHandler"));
+	/*AddBase(worldHandler = new WorldHandler("WorldHandler"));
 	worldHandler->Color({ 0.4f,0.4f });
 	worldHandler->conX.Left(30)->conY.Top(0.f)->conW.Center(260)->conH.Center(2.f)->SetFixed();
-
+	*/
 	IElement* aloneScroll = AddElement("aloneScroll", 0);
 	{
 		aloneScroll->AddTag(stateMenu);

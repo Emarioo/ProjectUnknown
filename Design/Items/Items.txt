@@ -41,6 +41,12 @@ Magic
 		Tiers: Weak(6? items), Strong(12? items)
 	Soul Binder(crystal, )
 		Used to bind your soul to a location when you die. (Respawn point)
+		One time use.
+	
+	Item Soulifier(crystal, mob drop)
+		Your items will travel with you when you die. Uses some mana when you die?
+		Does it take up inventory space? is it a skill?
+
 	Mana Crystal
 		Stores mana. Can also be transfered. Overflowing mana from the player is stored in the crystal
 		Tiers: Rough(crystal, ), Fine(), 

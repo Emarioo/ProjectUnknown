@@ -1,3 +1,5 @@
+#include "propch.h"
+
 #include "CraftingRecipe.h"
 
 #include "ItemHandler.h"

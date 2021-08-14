@@ -1,12 +1,13 @@
+#include "propch.h"
+
 #include "ModelObject.h"
 
-
-ModelObject::ModelObject(float x, float y, float z) 
-	: GameObject(x,y,z) {
+ModelObject::ModelObject(float x, float y, float z,const std::string& model) 
+	: GameObject("ModelObject",x, y, z) {
 	
-	renderComponent.SetModel("George");
+	renderComponent.SetModel(model);
 
-	renderComponent.animator.Enable("georgeBoneAction", { true, 1, 1 });
+	renderComponent.animator.Enable("Quater", { true, 1, 1 });
 }
 void ModelObject::Update(float delta) {
 	/*
@@ -21,8 +22,8 @@ void ModelObject::Update(float delta) {
 	renderComponent.animator.Blend("goblin_idle",blending);
 	renderComponent.animator.Blend("goblin_run",1-blending);
 	*/
-	//renderComponent.animator.Blend("goblin_idle", 1);
-	//renderComponent.animator.Blend("goblin_run", 0);
+	//renderComponent.animator.Blend("charlesBone", 1);
+	//renderComponent.animator.Speed("charlesBone", 1);
 
 	renderComponent.animator.Update(delta);
 }

@@ -1,3 +1,5 @@
+#include "propch.h"
+
 #include "GameHandler.h"
 
 #include "UI/InterfaceManager.h"
@@ -9,7 +11,7 @@ void GameHandler::StartGame() {
 	engine::SetState(GameState::Game, true);
 	if (!initGameAssets) {
 		InitItemHandler();
-		interfaceManager.SetupGameUI();
+		//interfaceManager.SetupGameUI();
 		initGameAssets = true;
 	}
 }

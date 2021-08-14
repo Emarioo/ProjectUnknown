@@ -1,0 +1,287 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Engone\Components\Collider.h" />
+    <ClInclude Include="src\Engone\Components\CollisionComponent.h" />
+    <ClInclude Include="src\Engone\Components\Material.h" />
+    <ClInclude Include="src\Engone\Components\MetaComponent.h" />
+    <ClInclude Include="src\Engone\Components\RenderComponent.h" />
+    <ClInclude Include="src\Engone\Components\Animator.h" />
+    <ClInclude Include="src\Engone\Components\Model.h" />
+    <ClInclude Include="src\Engone\DebugTool\DebugPanel.h" />
+    <ClInclude Include="src\Engone\DebugTool\LogLine.h" />
+    <ClInclude Include="src\Engone\GameState.h" />
+    <ClInclude Include="src\gonpch.h" />
+    <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
+    <ClInclude Include="src\Engone\Engine.h" />
+    <ClInclude Include="src\Engone\Components\Animation.h" />
+    <ClInclude Include="src\Engone\Components\Armature.h" />
+    <ClInclude Include="src\Engone\Components\Mesh.h" />
+    <ClInclude Include="src\Engone\Handlers\AssetHandler.h" />
+    <ClInclude Include="src\Engone\Handlers\FileHandler.h" />
+    <ClInclude Include="src\Engone\Handlers\UIHandler.h" />
+    <ClInclude Include="src\Engone\Handlers\ObjectHandler.h" />
+    <ClInclude Include="src\Engone\Objects\GameObject.h" />
+    <ClInclude Include="src\Engone\Rendering\BufferContainer.h" />
+    <ClInclude Include="src\Engone\Objects\Camera.h" />
+    <ClInclude Include="src\Engone\Rendering\Light.h" />
+    <ClInclude Include="src\Engone\Rendering\Renderer.h" />
+    <ClInclude Include="src\Engone\Rendering\Shader.h" />
+    <ClInclude Include="src\Engone\Rendering\Texture.h" />
+    <ClInclude Include="src\Engone\Sound\SoundBuffer.h" />
+    <ClInclude Include="src\Engone\Handlers\SoundHandler.h" />
+    <ClInclude Include="src\Engone\Sound\SoundSource.h" />
+    <ClInclude Include="src\Engone\Sound\SoundStream.h" />
+    <ClInclude Include="src\Engone\UI\Font.h" />
+    <ClInclude Include="src\Engone\UI\IBase.h" />
+    <ClInclude Include="src\Engone\UI\IColor.h" />
+    <ClInclude Include="src\Engone\UI\IConstraint.h" />
+    <ClInclude Include="src\Engone\UI\IElement.h" />
+    <ClInclude Include="src\Engone\UI\ITransition.h" />
+    <ClInclude Include="src\Engone\UI\Text.h" />
+    <ClInclude Include="src\Engone\DebugTool\DebugHandler.h" />
+    <ClInclude Include="src\Engone\Utility\Utilities.h" />
+    <ClInclude Include="src\Engone\Utility\GameOptions.h" />
+    <ClInclude Include="src\Engone\Keyboard.h" />
+    <ClInclude Include="src\Engone\Languages.h" />
+    <ClInclude Include="src\vendor\Libaudio.h" />
+    <ClInclude Include="src\Engone\World\Biome.h" />
+    <ClInclude Include="src\Engone\World\Dimension.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Engone\Components\CollisionComponent.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
+    <ClCompile Include="src\Engone\Components\Model.cpp" />
+    <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
+    <ClCompile Include="src\Engone\DebugTool\DebugPanel.cpp" />
+    <ClCompile Include="src\Engone\DebugTool\LogLine.cpp" />
+    <ClCompile Include="src\Engone\Engine.cpp" />
+    <ClCompile Include="src\Engone\Components\Animation.cpp" />
+    <ClCompile Include="src\Engone\GameState.cpp" />
+    <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
+    <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
+    <ClCompile Include="src\Engone\Handlers\UIHandler.cpp" />
+    <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
+    <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
+    <ClCompile Include="src\Engone\Components\Animator.cpp" />
+    <ClCompile Include="src\gonpch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\BufferContainer.cpp" />
+    <ClCompile Include="src\Engone\Objects\Camera.cpp" />
+    <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Renderer.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Shader.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Texture.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
+    <ClCompile Include="src\Engone\Handlers\SoundHandler.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
+    <ClCompile Include="src\Engone\UI\Font.cpp" />
+    <ClCompile Include="src\Engone\UI\IBase.cpp" />
+    <ClCompile Include="src\Engone\UI\IColor.cpp" />
+    <ClCompile Include="src\Engone\UI\IConstraint.cpp" />
+    <ClCompile Include="src\Engone\UI\IElement.cpp" />
+    <ClCompile Include="src\Engone\UI\ITransition.cpp" />
+    <ClCompile Include="src\Engone\UI\Text.cpp" />
+    <ClCompile Include="src\Engone\DebugTool\DebugHandler.cpp" />
+    <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
+    <ClCompile Include="src\Engone\Utility\GameOptions.cpp" />
+    <ClCompile Include="src\Engone\Utility\Keyboard.cpp" />
+    <ClCompile Include="src\Engone\Utility\Languages.cpp" />
+    <ClCompile Include="src\vendor\Libaudio.cpp" />
+    <ClCompile Include="src\Engone\World\Dimension.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</ProjectGuid>
+    <RootNamespace>Engone</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Engone</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>
+      </PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

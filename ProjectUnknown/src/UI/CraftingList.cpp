@@ -1,10 +1,11 @@
-#include "CraftingList.h"
+#include "propch.h"
 
+#include "CraftingList.h"
 
 #include "Items/ItemHandler.h"
 #include "InterfaceManager.h"
 
-#include "KeyBinding.h"
+#include "Keybindings.h"
 
 CraftingList::CraftingList(const std::string& name) : engine::IBase(name) {
 
@@ -85,7 +86,7 @@ bool CraftingList::MouseEvent(int mx, int my, int action, int button) {
 	return false;
 }
 bool CraftingList::KeyEvent(int key, int action) {
-	if (TestActionKey(KeyCrafting,key)) {
+	if (engine::TestActionKey(KeyCrafting,key)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.inventory->active) {

@@ -1,8 +1,8 @@
-#include "WorldHandler.h"
+#include "propch.h"
 
 #include "InterfaceManager.h"
 
-#include "KeyBinding.h"
+//#include "Keybindings.h"
 
 WorldItem::WorldItem(const std::string& name)
 : name(name){
@@ -54,7 +54,7 @@ void WorldHandler::Render() {
 	for (int i = 0; i < worldItems.size();i++) {
 		WorldItem& item = worldItems[i];
 		engine::BindTexture(0, "blank");
-		bug::out < y < bug::end;
+		//bug::out < y < bug::end;
 		engine::DrawRect(x+itemGap, y+h-itemStride*(i+1)+scrollOffset, w-2*itemGap, itemStride-itemGap, 0.4f, 0.2f, 0.6f, 1);
 
 		engine::SetColor(1,1,1,1);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Objects/GameObject.h"
+#include "Engone/Objects/GameObject.h"
 
 class MagicStaff : public engine::GameObject {
 public:

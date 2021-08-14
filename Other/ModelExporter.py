@@ -33,6 +33,18 @@ from mathutils import Vector
 
 # Change the code below at your own risk!
 
+# Todo
+#  If you select a mesh object. A .mesh file should be created.
+#  If you select an armature object, an armature should be created.
+#  If you select collection you will make a model which conatins mesh, armature, animation...
+#  Possibility to export animations even if they aren't stashed.
+
+#  Export curve graphs for keyframes. Customized interpolation.
+#  Animations with inverse kinematics. When exporting animation the control and point bones can be ignored.
+#  The bones that matter are the ones with weight. Master or root bone is useful though.
+#  When exporting, if there is a keyframe two keyframes forward that is different from the original.
+#  Then ignore the keyframe after. Especially if a curve has two keyframes with the same value.
+
 # Used to switch the axis (Y-up instead of Z-up)
 axisConvert = Matrix((
 (1.0, 0.0, 0.0, 0.0),
@@ -136,7 +148,7 @@ def WriteMesh(path,original):
             # Grab the most important weights
             for gr in ve.groups:
                 lowW=gr.weight
-                lowB=gr.group
+                lowB=original.modifiers["Armature"].object.data.bones.find(object.vertex_groups[gr.group].name)
                 for i in range(0,3):
                     if lowW>weight[3+i]:
                         temp=[weight[i],weight[3+i]]
@@ -259,19 +271,20 @@ def WriteAnimation(path, action, object):
            
     
     file.write(struct.pack("=B",objects))
-
+    #print("Animation "+action.name)
     # Write Data
     xyz="XYZ"
     for group in action.groups:
         if group.name=="Object Transforms":
-            file.write(struct.pack("=I",-1))
+            file.write(struct.pack("=I",0))
         else:
             id = object.data.bones.find(group.name)
+            #print(str(id)+ " "+group.name)
             if id==-1:
                 # group name not found
                 continue
             else:
-                file.write(struct.pack("=I",id))
+                file.write(struct.pack("=H",id))
            
         curveInt=0
         curves=[0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -289,18 +302,14 @@ def WriteAnimation(path, action, object):
             elif curve.data_path[-10:]=="quaternion":
                 con=9
             
-            con=con+curve.array_index
-            # Code used to switch z and y
-#            if con>5:
-#                if curve.array_index==2:
-#                    con=con+1
-#                elif curve.array_index==3:
-#                    con=con-1
-#            else:
-#                if curve.array_index==1:
-#                    con=con+1
-#                elif curve.array_index==2:
-#                    con=con-1
+            # Code used to switch x and w for quaternion
+            if con>8:
+                if curve.array_index==0:
+                    con=con+3
+                else:
+                    con=con+curve.array_index-1
+            else:
+                con=con+curve.array_index
             
             curves[con]=1
                     
@@ -326,22 +335,17 @@ def WriteAnimation(path, action, object):
                 elif curve.data_path[-10:]=="quaternion":
                     con=9
                 
-                # Switch y and z
-                ind=curve.array_index
-                # Code used to switch z and y
-#                if con>5:
-#                    if curve.array_index==2:
-#                        ind=ind+1
-#                    elif curve.array_index==3:
-#                        ind=ind-1
-#                else:
-#                    if curve.array_index==1:
-#                        ind=ind+1
-#                    elif curve.array_index==2:
-#                        ind=ind-1
+                # Code used to switch x and w for quaternion
+                if con>8:
+                    if curve.array_index==0:
+                        con=con+3
+                    else:
+                        con=con+curve.array_index-1
+                else:
+                    con=con+curve.array_index
                         
-                con=con+ind
-                 
+                #print(str(con)+" "+curve.data_path+" "+str(curve.array_index))
+                # switch x and z
                 if not con==i:
                         continue
                 
@@ -349,14 +353,16 @@ def WriteAnimation(path, action, object):
                 
                 for key in curve.keyframe_points:
                     pol=key.interpolation
-                    if pol=="LINEAR":
-                        pol="L"
+                    if pol=="CONSTANT":
+                        pol=0
+                    elif pol=="LINEAR":
+                        pol=1
                     elif pol=="BEZIER":
-                        pol="B"
+                        pol=2
                     else:
-                        pol="C"
+                        pol=0
                     
-                    file.write(struct.pack("=sHf",bytearray(pol,"UTF-8"),int(key.co[0]),key.co[1])) 
+                    file.write(struct.pack("=BHf",pol,int(key.co[0]),key.co[1])) 
             
     # Cleanup
     file.close()
@@ -428,9 +434,11 @@ def WriteArmature(path, original):
     file.write(struct.pack("=B",boneCount))
     
     for bone in object.data.bones:
-        index = object.data.bones.find(bone.parent.name) if bone.parent else 0
-        
-        # axisConvert to switch Y-axis and Z-axis
+        index = object.data.bones.find(bone.parent.name) if bone.parent else 0 # the first bone will not use the parent index
+        #print(index)
+        #if bone.parent:
+        #    print(str(object.data.bones.find(bone.parent.name)) + " " +bone.parent.name)
+        # axisConvert to switch Y-axis and Z-axis which is done in the model.
         #  applying axisConvert to root bone will apply it to all other bones as well
         local_matrix = bone.matrix_local
         if bone.parent:
@@ -439,7 +447,7 @@ def WriteArmature(path, original):
         local_matrix = local_matrix.transposed()
         inv_model_matrix = bone.matrix_local.inverted().transposed()
         
-        file.write(struct.pack("=I",index))
+        file.write(struct.pack("=H",index))
         file.write(struct.pack("=16f",*local_matrix[0],*local_matrix[1],*local_matrix[2],*local_matrix[3]))
         file.write(struct.pack("=16f",*inv_model_matrix[0],*inv_model_matrix[1],*inv_model_matrix[2],*inv_model_matrix[3]))
       
@@ -522,7 +530,7 @@ def WriteModel(path,name,objects,armature,animations,collider):
         file = open(path+name+".model","wb")
     except FileNotFoundError:
         return ['ERROR','Directory not found '+path]
-    else:bye
+    else:
         pass
     
     file.write(struct.pack("=B",len(armature)))

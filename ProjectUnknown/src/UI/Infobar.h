@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Engine/UI/IBase.h"
+#include "Engone/UI/IBase.h"
 #include "Items/Container.h"
-#include "Engine/Engine.h"
 
 class Infobar : public engine::IBase {
 public:

@@ -1,8 +1,10 @@
+#include "propch.h"
+
 #include "Infobar.h"
 
-#include "GLFW/glfw3.h"
-
 #include "GameHandler.h"
+
+#include "Engone/Rendering/Renderer.h"
 
 Infobar::Infobar(const std::string& name) : engine::IBase(name) {
 	active = true;
