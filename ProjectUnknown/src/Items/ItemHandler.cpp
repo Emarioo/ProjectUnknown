@@ -80,7 +80,7 @@ ItemType GetItemType(const std::string& name) {
 	}
 	return ItemType(0,0,"Unknown",999);
 }
-engine::BufferContainer itemContainer;
+engine::TriangleBuffer itemContainer;
 void InitItemHandler() {
 
 	InitItemList();

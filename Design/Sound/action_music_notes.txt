@@ -1,0 +1,5 @@
+E D F
+F E G
+G F A
+
+and so on

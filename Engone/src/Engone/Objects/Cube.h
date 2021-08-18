@@ -13,6 +13,6 @@ namespace engine {
 		void GenMesh(float r, float g, float b, float a);
 		//void MakeCube(float x,float y,float z,float w,float h,float d);
 		float w, h, d;
-		BufferContainer container;
+		TriangleBuffer container;
 	};
 }

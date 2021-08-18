@@ -305,9 +305,9 @@ namespace engine {
 	
 	const int TEXT_BATCH = 40;
 	float verts[4 * 4 * TEXT_BATCH];
-	BufferContainer textContainer;
-	BufferContainer rectContainer;
-	BufferContainer uvRectContainer;
+	TriangleBuffer textContainer;
+	TriangleBuffer rectContainer;
+	TriangleBuffer uvRectContainer;
 
 	Shader shaders[MAX_CUSTOM_SHADERS+MAX_ENGINE_SHADERS];
 	unsigned char boundShader = 0;

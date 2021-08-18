@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Rendering/Shader.h"
-#include "../Rendering/BufferContainer.h"
+#include "../Rendering/Buffer.h"
 #include "Material.h"
 
 namespace engine {
@@ -13,7 +13,7 @@ namespace engine {
 
 		std::vector<Material*> materials;
 		unsigned char shaderType = 0;
-		BufferContainer container;
+		TriangleBuffer container;
 		void Draw() {
 			container.Draw();
 		}

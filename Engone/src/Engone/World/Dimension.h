@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Rendering/BufferContainer.h"
+#include "../Rendering/Buffer.h"
 
 #include "../Utility/GameOptions.h"
 
@@ -16,7 +16,7 @@ namespace engine {
 			this->z = z;
 		}
 		int x, z;
-		BufferContainer con;
+		TriangleBuffer con;
 	};
 
 	class Dimension {

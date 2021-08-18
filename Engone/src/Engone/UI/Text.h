@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Rendering/BufferContainer.h"
+#include "../Rendering/Buffer.h"
 #include "../Rendering/Renderer.h"
 #include "../Keyboard.h"
 #include "Font.h"
@@ -68,11 +68,11 @@ namespace engine {
 		Update SetPos(x,y)
 		*/
 		void DrawString(float alpha, bool marker);
-		//BufferContainer container;
+		//TriangleBuffer container;
 		/*
 		Can be altered without complications
 		*/
 		int atChar = 0;
-		//BufferContainer marker;
+		//TriangleBuffer marker;
 	};
 }

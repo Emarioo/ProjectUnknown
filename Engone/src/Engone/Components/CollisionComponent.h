@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Rendering/BufferContainer.h"
 #include "../Handlers/AssetHandler.h"
 
 namespace engine {

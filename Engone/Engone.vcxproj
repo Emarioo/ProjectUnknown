@@ -29,6 +29,7 @@
     <ClInclude Include="src\Engone\DebugTool\DebugPanel.h" />
     <ClInclude Include="src\Engone\DebugTool\LogLine.h" />
     <ClInclude Include="src\Engone\GameState.h" />
+    <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
     <ClInclude Include="src\Engone\Engine.h" />
@@ -40,7 +41,6 @@
     <ClInclude Include="src\Engone\Handlers\UIHandler.h" />
     <ClInclude Include="src\Engone\Handlers\ObjectHandler.h" />
     <ClInclude Include="src\Engone\Objects\GameObject.h" />
-    <ClInclude Include="src\Engone\Rendering\BufferContainer.h" />
     <ClInclude Include="src\Engone\Objects\Camera.h" />
     <ClInclude Include="src\Engone\Rendering\Light.h" />
     <ClInclude Include="src\Engone\Rendering\Renderer.h" />
@@ -85,6 +85,7 @@
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Components\Animator.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gonpch.h</PrecompiledHeaderFile>
@@ -93,7 +94,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\BufferContainer.cpp" />
     <ClCompile Include="src\Engone\Objects\Camera.cpp" />
     <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Renderer.cpp" />

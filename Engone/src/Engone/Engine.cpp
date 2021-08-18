@@ -16,7 +16,7 @@ namespace engine {
 	glm::mat4& GetLightProj() {
 		return lightProjection;
 	}
-	BufferContainer temp_;
+	TriangleBuffer temp_;
 
 	void Initialize() {
 		InitRenderer();
@@ -45,7 +45,7 @@ namespace engine {
 
 	int vecLimit = 500;
 	int lineLimit = 3000;
-	BufferContainer hitbox;
+	LineBuffer hitbox;
 	float* hitboxVec;
 	unsigned int* hitboxInd;
 
@@ -251,7 +251,6 @@ namespace engine {
 		if (BindShader(ShaderType::Outline)) {
 			UpdateProjection();
 			SetTransform(glm::mat4(1));
-			SetColor(1, 1, 1, 1);
 			glLineWidth(2.f);
 			/*
 			GameObject* n = GetObjectByName("Player");
@@ -261,7 +260,7 @@ namespace engine {
 				int atVec = 0;
 				int atInd = 0;
 				int startV = 0;
-				
+
 				bug::out < c.points.size() <" "< c.coll->quad.size() < bug::end;
 				for (int i = 0; i < c.points.size(); i++) {
 					glm::vec3 v = c.points[i];
@@ -301,7 +300,7 @@ namespace engine {
 				hitbox.Draw();
 			}*/
 
-			
+			glm::vec3 hitboxColor = { 0,1,0 };
 			for (GameObject* o : GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
 				if (o->renderHitbox && o->collisionComponent.isActive) {
 					int atVec = 0;
@@ -311,14 +310,14 @@ namespace engine {
 					// Adding hitboxes together?
 					int startV = atVec;
 					
-					if (atVec + c.points.size() * 3 > 3 * vecLimit) {
+					if (atVec + c.points.size()*6 > 6*vecLimit) {
 						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atVec+c.points.size() * 3)<"/"<(3*vecLimit) < " points" < bug::end;
+							bug::out < bug::RED < "Line limit does not allow " < (atVec+c.points.size() * 6)<"/"<(6*vecLimit) < " points" < bug::end;
 						reachedLimit = true;
 						continue;
-					} else if (atInd + c.coll->quad.size() * 8 + c.coll->tri.size() * 6 > 2 * lineLimit) {
+					} else if (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3 > lineLimit) {
 						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 8 + c.coll->tri.size() * 6)<"/"<(2*lineLimit) < " lines:" < bug::end;
+							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3)<"/"<(lineLimit) < " lines:" < bug::end;
 						reachedLimit = true;
 						continue;
 					}
@@ -327,6 +326,9 @@ namespace engine {
 						hitboxVec[atVec++] = v.x;
 						hitboxVec[atVec++] = v.y;
 						hitboxVec[atVec++] = v.z;
+						hitboxVec[atVec++] = hitboxColor.x;
+						hitboxVec[atVec++] = hitboxColor.y;
+						hitboxVec[atVec++] = hitboxColor.z;
 					}
 					for (int i = 0; i < c.coll->quad.size() / 4; i++) {
 						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
@@ -347,16 +349,87 @@ namespace engine {
 						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
 						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
 					}*/
-					// Clear the rest
-					for (int i = atVec; i < vecLimit*3; i++) {
+					// Clear the rest - how necessary is this?
+					for (int i = atVec; i < vecLimit*6; i++) {
 						hitboxVec[i] = 0;
 					}
 					for (int i = atInd; i < lineLimit * 2; i++) {
 						hitboxVec[i] = 0;
 					}
-					hitbox.ModifyVertices(0, vecLimit * 3, hitboxVec);
+					hitbox.ModifyVertices(0, vecLimit * 6, hitboxVec);
 					hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);
 					hitbox.Draw();
+				}
+				if (o->renderComponent.model!=nullptr) {
+					if (o->renderComponent.model->armature != nullptr) {
+						if (!o->renderComponent.model->armature->hasError) {
+							//bug::outs < o->renderComponent.animator.enabledAnimations["georgeBoneAction"].frame < "\n";
+							Armature* arm = o->renderComponent.model->armature;
+							int count = arm->bones.size();
+							std::vector<glm::mat4> mats(count);
+							o->renderComponent.GetArmatureTransforms(mats);
+							for (int i = 0; i < count; i++) {
+								//bug::outs < mats[i] < "\n";
+								GetBoundShader()->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
+							}
+
+							int atVec = 0;
+							int atInd = 0;
+							int startV = atVec;
+
+							// algorithm for removing line duplicates?
+							if (atVec + count*12 > 6*vecLimit) {
+								if (!reachedLimit)
+									bug::out < bug::RED < "Line limit does not allow " < (atVec + count * 12) < "/" < (6 * vecLimit) < " points" < bug::end;
+								reachedLimit = true;
+								continue;
+							}
+							else if (atInd + count > lineLimit) {
+								if (!reachedLimit)
+									bug::out < bug::RED < "Line limit does not allow " < (atInd + count) < "/" < (lineLimit) < " lines:" < bug::end;
+								reachedLimit = true;
+								continue;
+							}
+							for (int i = 0; i < arm->bones.size(); i++) {
+								glm::vec3 v = mats[i][3];
+								hitboxVec[atVec++] = v.x;
+								hitboxVec[atVec++] = v.y;
+								hitboxVec[atVec++] = v.z;
+								hitboxVec[atVec++] = hitboxColor.x;
+								hitboxVec[atVec++] = hitboxColor.y;
+								hitboxVec[atVec++] = hitboxColor.z;
+							}
+							for (int i = 0; i < c.coll->quad.size() / 4; i++) {
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
+								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+							}
+							/*
+							for (int i = 0; i < c.coll->tri.size() / 3; i++) {
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
+								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
+							}*/
+							// Clear the rest - how necessary is this?
+							for (int i = atVec; i < vecLimit * 6; i++) {
+								hitboxVec[i] = 0;
+							}
+							for (int i = atInd; i < lineLimit * 2; i++) {
+								hitboxVec[i] = 0;
+							}
+							hitbox.ModifyVertices(0, vecLimit * 6, hitboxVec);
+							hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);
+							hitbox.Draw();
+						}
+					}
 				}
 			}
 		}
@@ -397,11 +470,11 @@ namespace engine {
 	}
 
 	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){
-		hitbox.bufferType = BufferType::Lines;
-		hitbox.Init(true, nullptr, 3 * vecLimit, nullptr, 2 * lineLimit);
-		hitbox.SetAttrib(0, 3, 3, 0);
-		hitboxVec = new float[vecLimit * 3]{0,0,0,1,0,0,0,1,0,0,0,1};
-		hitboxInd = new unsigned int[lineLimit * 2]{0,1,0,2,0,3};
+		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
+		hitbox.SetAttrib(0, 3, 6, 0);
+		hitbox.SetAttrib(1, 3, 6, 3);
+		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
 
 		/*
 		// Loop

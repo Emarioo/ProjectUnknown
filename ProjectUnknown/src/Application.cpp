@@ -84,8 +84,8 @@ void Update(double delta) {
 	*/
 	UpdateUI(delta);
 }
-engine::BufferContainer cont;
-engine::BufferContainer itemContainer2;
+engine::TriangleBuffer cont;
+engine::TriangleBuffer itemContainer2;
 
 float coloring = 0;
 void Render(double lag) {
@@ -366,7 +366,7 @@ void runApp(bool isDebugBuild) {
 		z.Add({ Bezier, 60, 0.5 });
 
 		//cha.Add(PosX, x);
-		channel.Add(QuaX, z);
+		channel.Add(PosX, z);
 		//cha.Add(QuaZ, z);
 		//cha.Add(QuaW, w);
 
