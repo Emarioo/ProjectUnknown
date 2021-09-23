@@ -21,7 +21,7 @@ public:
 	//WorldHandler* worldHandler=nullptr;
 
 	// Check if nullptr
-	engine::IElement* uiFade = nullptr;
+	engone::IElement* uiFade = nullptr;
 
 	// Game ui
 	// Check if nullptr

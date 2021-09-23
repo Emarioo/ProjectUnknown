@@ -2,7 +2,7 @@
 
 #include "SoundSource.h";
 
-namespace engine {
+namespace engone {
 	SoundSource::SoundSource() {
 
 	}

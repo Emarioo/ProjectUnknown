@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 
 	class Buffer {
 	public:

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 
 	void LLoadLang(std::string path);
 	void LSetLang(std::string lan);

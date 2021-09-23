@@ -8,7 +8,7 @@
 
 #include "GLFW/glfw3.h"
 
-namespace engine {
+namespace engone {
 
 	/*
 	https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f
@@ -145,7 +145,7 @@ namespace engine {
 		return 0;
 	}
 	bool IsKey(int key) {
-		return glfwGetKey(GetWindow(),key)==GLFW_PRESS;
+		return glfwGetKey(renderer->GetWindow(),key)==GLFW_PRESS;
 	}
 	std::unordered_map<unsigned short, int> keyboard_keyActionMap;
 	void AddActionKey(unsigned short keyName, int keyCode) {
@@ -159,7 +159,7 @@ namespace engine {
 	}
 	bool IsKeyActionDown(unsigned short keyName) {
 		if (keyboard_keyActionMap.count(keyName))
-			return glfwGetKey(GetWindow(), keyboard_keyActionMap[keyName])==GLFW_PRESS;
+			return glfwGetKey(renderer->GetWindow(), keyboard_keyActionMap[keyName])==GLFW_PRESS;
 		return false;
 	}
 	/*

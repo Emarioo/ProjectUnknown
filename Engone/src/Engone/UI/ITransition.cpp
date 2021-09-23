@@ -4,7 +4,7 @@
 
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 	ITransition::ITransition(bool* act) {
 		activator = act;
 	}
@@ -49,7 +49,7 @@ namespace engine {
 	}
 	float ITransition::ValueX() {
 		if (movePixel) {
-			return ToFloatScreenW(x * moveT);
+			return renderer->ToFloatScreenW(x * moveT);
 		}
 		else {
 			return x * moveT;
@@ -57,7 +57,7 @@ namespace engine {
 	}
 	float ITransition::ValueY() {
 		if (movePixel) {
-			return ToFloatScreenH(y * moveT);
+			return renderer->ToFloatScreenH(y * moveT);
 		}
 		else {
 			return y * moveT;
@@ -65,7 +65,7 @@ namespace engine {
 	}
 	float ITransition::ValueW() {
 		if (sizePixel) {
-			return ToFloatScreenW(w * sizeT);
+			return renderer->ToFloatScreenW(w * sizeT);
 		}
 		else {
 			return w * sizeT;
@@ -73,7 +73,7 @@ namespace engine {
 	}
 	float ITransition::ValueH() {
 		if (sizePixel) {
-			return ToFloatScreenH(h * sizeT);
+			return renderer->ToFloatScreenH(h * sizeT);
 		}
 		else {
 			return h * sizeT;

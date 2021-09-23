@@ -2,8 +2,8 @@
 
 #include "../UI/IBase.h"
 
-namespace engine {
-	class DebugPanel : public engine::IBase {
+namespace engone {
+	class DebugPanel : public IBase {
 	public:
 		DebugPanel(const std::string& name);
 

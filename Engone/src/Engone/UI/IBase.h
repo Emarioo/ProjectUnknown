@@ -3,7 +3,7 @@
 #include "IConstraint.h"
 #include "IColor.h"
 
-namespace engine {
+namespace engone {
 	class IBase {
 	private:
 		float aspectRatio = 0;// height/width

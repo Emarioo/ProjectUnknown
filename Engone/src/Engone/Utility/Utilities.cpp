@@ -4,7 +4,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace engine {
+namespace engone {
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
@@ -93,20 +93,21 @@ namespace engine {
 	std::string GetClock() {
 		time_t t;
 		time(&t);
-		auto tm = *localtime(&t);
+		tm tm;
+		localtime_s(&tm, &t);
 		std::string str= std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
 		return str;
 	}
 	void CountingTest(int times, int numElements, std::function<int()> func) {
 		std::vector<int> occurrences(numElements);
 
-		double bef = engine::GetSystemTime();
+		double bef = engone::GetSystemTime();
 		for (int i = 0; i < times; i++) {
 			int index = func();
 			if(index>-1&&index<numElements)
 				occurrences[func()]++;
 		}
-		double aft = engine::GetSystemTime();
+		double aft = engone::GetSystemTime();
 		for (int i = 0; i < numElements; i++) {
 			std::cout << i << " " << occurrences[i] << std::endl;
 		}

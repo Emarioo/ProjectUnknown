@@ -2,7 +2,7 @@
 
 #include "IElement.h"
 
-namespace engine {
+namespace engone {
 
 	IElement::IElement(const std::string& name, int priority) :
 		IBase(name), priority(priority)
@@ -209,21 +209,21 @@ namespace engine {
 
 			if (alpha != 0) {
 				// Rendering
-				BindTexture(0, texture);
-				DrawRect(x, y, w, h, red, green, blue, alpha);
+				renderer->BindTexture(0, texture);
+				renderer->DrawRect(x, y, w, h, red, green, blue, alpha);
 
 				// Text
 				if (text.text.length() > 0 || isEditable && isSelected) {
 					text.SetPos(x + w / 2, y + h / 2);
-					SetSize(1, 1);
+					renderer->SetSize(1, 1);
 					text.DrawString(alpha, isEditable && isSelected);
 				}
 			}
 		}
 	}
 	bool IElement::Inside(float mx, float my) {
-		mx = ToFloatScreenX(mx);
-		my = ToFloatScreenY(my);
+		mx = renderer->ToFloatScreenX(mx);
+		my = renderer->ToFloatScreenY(my);
 		//bug::outs < mx<my< x < y < w < h < bug::end;
 		//bug::outs < (mx > x - w / 2) < (mx<x + w / 2) < (my>w - h / 2) < (my < y + h / 2) < bug::end;
 		return mx > x && mx<x + w && my>y && my < y + h;

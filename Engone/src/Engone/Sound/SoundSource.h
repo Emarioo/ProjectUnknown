@@ -2,7 +2,7 @@
 
 #include "SoundBuffer.h"
 
-namespace engine {
+namespace engone {
 	class SoundSource {
 	private:
 		bool isInitialized = false;

@@ -3,7 +3,7 @@
 #include "Engone/UI/IBase.h"
 #include "Items/Container.h"
 
-class CraftingList : public engine::IBase {
+class CraftingList : public engone::IBase {
 public:
 	CraftingList(const std::string& name);
 

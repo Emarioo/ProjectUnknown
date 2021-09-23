@@ -4,7 +4,7 @@
 
 #include "../Handlers/AssetHandler.h"
 
-namespace engine {
+namespace engone {
 	
 	void Model::AddMesh(const std::string& name, glm::mat4 matrix) {
 		Mesh* mesh = GetMeshAsset(name);

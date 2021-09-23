@@ -3,7 +3,7 @@
 #include "IBase.h"
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 
 	IConstraintX::IConstraintX(IBase* b) : _this(b) {}
 	IBase* IConstraintX::Center(int pos) {
@@ -89,7 +89,7 @@ namespace engine {
 		float px = 0;
 		float pw = 0;
 		if (isPixel) {
-			move = ToFloatScreenW(raw);
+			move = renderer->ToFloatScreenW(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -194,7 +194,7 @@ namespace engine {
 		float py = 0;
 		float ph = 0;
 		if (isPixel) {
-			move = ToFloatScreenH(raw);
+			move = renderer->ToFloatScreenH(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -245,7 +245,7 @@ namespace engine {
 		float move = raw;
 		float pw = 0;
 		if (isPixel) {
-			move = ToFloatScreenW(raw);
+			move = renderer->ToFloatScreenW(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -285,7 +285,7 @@ namespace engine {
 		float move = raw;
 		float ph = 0;
 		if (isPixel) {
-			move = ToFloatScreenH(raw);
+			move = renderer->ToFloatScreenH(raw);
 		}
 		
 		if (parent != nullptr) {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 	enum class LightType {
 		None,
 		Direction,

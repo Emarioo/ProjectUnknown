@@ -2,7 +2,7 @@
 
 #include "IColor.h"
 
-namespace engine {
+namespace engone {
 	class ITransition {
 	private:
 		// std::function<void(int)> func = nullptr;

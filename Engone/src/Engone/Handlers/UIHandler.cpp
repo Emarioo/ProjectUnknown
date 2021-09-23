@@ -2,7 +2,7 @@
 
 #include "UIHandler.h"
 
-namespace engine {
+namespace engone {
 
 	// Events
 	double mouseX, mouseY;
@@ -79,13 +79,13 @@ namespace engine {
 		for (auto p : elements) {
 			if (p->IsActive()) {
 				if (p->HasTags()) {
-					p->HoverEvent(GetMouseX(), GetMouseY());
+					p->HoverEvent(renderer->GetMouseX(), renderer->GetMouseY());
 				}
 			}
 		}
 		for (auto p : iBases) {
 			if (p->IsActive())
-				p->HoverEvent(GetMouseX(), GetMouseY());
+				p->HoverEvent(renderer->GetMouseX(), renderer->GetMouseY());
 		}
 		for (auto p : elements) {
 			if (p->IsActive()) {
@@ -181,8 +181,8 @@ namespace engine {
 		}*/
 	}
 	void RenderInterface(double lag) {
-		SwitchBlendDepth(true);
-		BindShader(ShaderType::Interface);
+		renderer->SwitchBlendDepth(true);
+		renderer->BindShader(ShaderType::Interface);
 		
 		for (auto p : elements) {
 			//bug::out < p->name < '\n';
@@ -199,11 +199,11 @@ namespace engine {
 				p->Render();
 			}
 		}
-		SetColor(0.9, 0.8, 0.7, 1);
-		SetTransform(-1, 1-0.05);
-		SetSize(1, 1);
+		renderer->SetColor(0.9, 0.8, 0.7, 1);
+		renderer->SetTransform(-1, 1-0.05);
+		renderer->SetSize(1, 1);
 		
-		DrawString("consolas42",
+		renderer->DrawString("consolas42",
 			std::to_string(GetPlayTime()),
 			false, 0.05, -1);
 		/*
@@ -288,7 +288,7 @@ namespace engine {
 		SetDimension("classic");
 		*/
 	void InitInterface() {
-		SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
+		//SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
 
 		//font1.Data("verdana38");
 		//font1.Data("consolas42");

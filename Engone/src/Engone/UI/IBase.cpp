@@ -4,7 +4,7 @@
 
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 	IBase::IBase(const std::string& name)
 	: name(name),
 		conX(IConstraintX(this)), conY(IConstraintY(this)),
@@ -28,7 +28,7 @@ namespace engine {
 		w = conW.Value();
 		h = conH.Value();
 		if (aspectRatio!=0) {
-			float newRatio = Height() / Width();
+			float newRatio = renderer->Height() / renderer->Width();
 			if (newRatio > aspectRatio) {
 				// Height is bigger or width is smaller
 				h *= aspectRatio / newRatio;

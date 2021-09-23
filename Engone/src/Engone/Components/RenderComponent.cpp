@@ -2,7 +2,7 @@
 
 #include "RenderComponent.h"
 
-namespace engine {
+namespace engone {
 
 	void RenderComponent::SetModel(const std::string& name) {
 		Model* mod = GetModelAsset(name);

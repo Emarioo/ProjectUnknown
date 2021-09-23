@@ -4,7 +4,7 @@
 
 #include "../Handlers/FileHandler.h"
 
-namespace engine {
+namespace engone {
 
 	std::map<std::string, std::map<std::string, std::string>> langs;
 	std::string currentLang = "english";

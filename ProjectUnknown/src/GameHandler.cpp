@@ -6,9 +6,9 @@
 
 bool initGameAssets = false;
 void GameHandler::StartGame() {
-	engine::SetState(GameState::Menu, false);
-	engine::LockCursor(true);
-	engine::SetState(GameState::Game, true);
+	engone::SetState(GameState::Menu, false);
+	engone::renderer->LockCursor(true);
+	engone::SetState(GameState::Game, true);
 	if (!initGameAssets) {
 		InitItemHandler();
 		//interfaceManager.SetupGameUI();

@@ -7,7 +7,7 @@
 #include "Biome.h"
 #include "../Objects/GameObject.h"
 
-namespace engine {
+namespace engone {
 
 	class Chunk {
 	public:

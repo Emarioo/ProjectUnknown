@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 	class IColor {
 	public:
 		float r, g, b, a;

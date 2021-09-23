@@ -28,11 +28,12 @@
     <ClInclude Include="src\Engone\Components\Model.h" />
     <ClInclude Include="src\Engone\DebugTool\DebugPanel.h" />
     <ClInclude Include="src\Engone\DebugTool\LogLine.h" />
+    <ClInclude Include="src\Engone\EventHandler.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
-    <ClInclude Include="src\Engone\Engine.h" />
+    <ClInclude Include="src\Engone\Engone.h" />
     <ClInclude Include="src\Engone\Components\Animation.h" />
     <ClInclude Include="src\Engone\Components\Armature.h" />
     <ClInclude Include="src\Engone\Components\Mesh.h" />
@@ -76,8 +77,9 @@
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
     <ClCompile Include="src\Engone\DebugTool\DebugPanel.cpp" />
     <ClCompile Include="src\Engone\DebugTool\LogLine.cpp" />
-    <ClCompile Include="src\Engone\Engine.cpp" />
+    <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Components\Animation.cpp" />
+    <ClCompile Include="src\Engone\EventHandler.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
     <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />

@@ -5,7 +5,7 @@
 #include "../DebugTool/DebugHandler.h"
 
 
-namespace engine {
+namespace engone {
 	
 	struct TimedFunc {
 		TimedFunc(std::function<void()> f, float t) : func(f), time(t) {}

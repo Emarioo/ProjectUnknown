@@ -2,7 +2,7 @@
 
 #include "Engone/Objects/GameObject.h"
 
-class Goblin : public engine::GameObject {
+class Goblin : public engone::GameObject {
 private:
 	float blending = 0;
 	float speed = 1.7;

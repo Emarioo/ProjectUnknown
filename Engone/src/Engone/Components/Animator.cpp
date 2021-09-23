@@ -6,7 +6,7 @@
 
 #include "../DebugTool/DebugHandler.h"
 
-namespace engine {
+namespace engone {
 	
 	AnimProp::AnimProp(bool loop, float blend, float speed)
 		: frame(0), loop(loop), blend(blend), speed(speed) {

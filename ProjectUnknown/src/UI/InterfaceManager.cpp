@@ -40,7 +40,7 @@ void InterfaceManager::Render(double lag) {
 			float aspectRatio = 1080 / 1920.f;
 
 			if (aspectRatio != 0) {
-				float newRatio = engine::Height() / engine::Width();
+				float newRatio = engone::renderer->Height() / engone::renderer->Width();
 				if (newRatio > aspectRatio) {
 					// Height is bigger or width is smaller
 					ih *= aspectRatio / newRatio;
@@ -50,7 +50,7 @@ void InterfaceManager::Render(double lag) {
 					iw *= newRatio / aspectRatio;
 				}
 			}
-			DrawItem(heldItem, engine::GetFloatMouseX() - iw / 2, engine::GetFloatMouseY() + ih / 2, iw, ih, 1, 1, 1, 1);
+			DrawItem(heldItem, engone::renderer->GetFloatMouseX() - iw / 2, engone::renderer->GetFloatMouseY() + ih / 2, iw, ih, 1, 1, 1, 1);
 		}
 	}
 }
@@ -59,10 +59,10 @@ void InterfaceManager::SetupIntro() {
 	if (hasIntro)
 		return;
 	hasIntro = true;
-	using namespace engine;
+	using namespace engone;
 	
 	AddTextureAsset("intro");
-	engine::AddBase(introScene = new IntroScene("IntroScene"));
+	engone::AddBase(introScene = new IntroScene("IntroScene"));
 	introScene->conX.Center(0.f)->conY.Center(0.f)
 		->conW.Center(331 / 1920.f * 2)->conH.Center(277 / 1080.f * 2)->SetFixed();
 }
@@ -73,7 +73,7 @@ bool showAlone = false;
 bool editWorld = false;
 int editId = 0;
 bool stateMenu() {
-	return engine::CheckState(GameState::Menu);
+	return engone::CheckState(GameState::Menu);
 }
 bool hasMainMenu = false;
 void InterfaceManager::SetupMainMenu() {
@@ -81,7 +81,7 @@ void InterfaceManager::SetupMainMenu() {
 		return;
 	hasMainMenu = true;
 
-	using namespace engine;
+	using namespace engone;
 
 	// Stage One
 	IElement* alone = AddElement("playAlone", 5);
@@ -208,23 +208,23 @@ void InterfaceManager::SetupGameUI() {
 	if (hasGameUI)
 		return;
 	hasGameUI = true;
-	engine::AddTextureAsset("containers/inventory");
-	engine::AddBase(inventory = new Inventory("PlayerInventory"));
+	engone::AddTextureAsset("containers/inventory");
+	engone::AddBase(inventory = new Inventory("PlayerInventory"));
 	inventory->conX.Right(0.f)->conY.Center(0.f)
 		->conW.Center(440 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
 
-	engine::AddTextureAsset("containers/craftinglist");
-	engine::AddBase(craftingList = new CraftingList("PlayerCrafting"));
+	engone::AddTextureAsset("containers/craftinglist");
+	engone::AddBase(craftingList = new CraftingList("PlayerCrafting"));
 	craftingList->conX.Right(inventory, 0.01f)->conY.Center(0.f)
 		->conW.Center(512 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
 
-	engine::AddTextureAsset("containers/infobar");
-	engine::AddBase(infobar = new Infobar("PlayerInfobar"));
+	engone::AddTextureAsset("containers/infobar");
+	engone::AddBase(infobar = new Infobar("PlayerInfobar"));
 	infobar->conX.Left(0.f)->conY.Top(0.f)
 		->conW.Center(550 / 1920.f)->conH.Center(226 / 1080.f)->SetFixed();
 
-	engine::AddTextureAsset("containers/hotbar");
-	engine::AddBase(hotbar = new Hotbar("PlayerHotbar"));
+	engone::AddTextureAsset("containers/hotbar");
+	engone::AddBase(hotbar = new Hotbar("PlayerHotbar"));
 	hotbar->conX.Center(0.f)->conY.Bottom(0.02f)
 		->conW.Center(608 / 1920.f * 2)->conH.Center(64 / 1080.f * 2)->SetFixed();
 }

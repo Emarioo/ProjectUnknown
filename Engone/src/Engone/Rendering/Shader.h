@@ -22,7 +22,7 @@ namespace ShaderType {
 	};
 }
 
-namespace engine {
+namespace engone {
 
 	struct ShaderProgramSource {
 		std::string vert;

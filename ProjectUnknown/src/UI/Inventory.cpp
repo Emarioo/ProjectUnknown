@@ -6,7 +6,7 @@
 
 #include "Keybindings.h"
 
-Inventory::Inventory(const std::string& name) : engine::IBase(name) {
+Inventory::Inventory(const std::string& name) : engone::IBase(name) {
 	container = new Container("Player Inv.",5,5);
 	container->AddItem(new Item("Potato", 3));
 	container->AddItem(new Item("Baked Potato", 1));
@@ -16,8 +16,8 @@ Inventory::Inventory(const std::string& name) : engine::IBase(name) {
 	container->AddItem(new Item("Carrot", 8));
 }
 bool Inventory::MouseEvent(int mx, int my, int action, int button) {
-	float mouseX = engine::ToFloatScreenX(mx);
-	float mouseY = engine::ToFloatScreenY(my);
+	float mouseX = engone::renderer->ToFloatScreenX(mx);
+	float mouseY = engone::renderer->ToFloatScreenY(my);
 
 	if (action != 1)
 		return false;
@@ -49,17 +49,15 @@ bool Inventory::MouseEvent(int mx, int my, int action, int button) {
 				}
 			}
 		}
-
 	}
-
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (engine::TestActionKey(KeyInventory,key)) {
+	if (engone::TestActionKey(KeyInventory,key)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.craftingList->active) {
-				engine::LockCursor(!active);
+				engone::renderer->LockCursor(!active);
 			}
 		}
 	}
@@ -70,9 +68,9 @@ void Inventory::Update(float delta) {
 }
 void Inventory::Render() {
 	// Inventory background
-	engine::BindTexture(0, "containers/inventory");
+	engone::renderer->BindTexture(0, "containers/inventory");
 
-	engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::renderer->DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
 
 	// Items
 	if (container != nullptr) {

@@ -4,7 +4,7 @@
 
 #include <GL/glew.h>
 
-namespace engine {
+namespace engone {
 	FrameBuffer::FrameBuffer() {}
 	void FrameBuffer::Init() {
 		glGenFramebuffers(1, &fbo);

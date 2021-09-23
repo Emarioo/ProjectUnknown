@@ -4,7 +4,7 @@
 #include "Model.h"
 #include "../Handlers/AssetHandler.h"
 
-namespace engine {
+namespace engone {
 
 	class RenderComponent {
 	public:

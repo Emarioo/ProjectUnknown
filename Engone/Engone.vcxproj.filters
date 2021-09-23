@@ -51,7 +51,7 @@
     <ClInclude Include="src\Engone\World\Dimension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Engine.h">
+    <ClInclude Include="src\Engone\Engone.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Objects\GameObject.h">
@@ -153,6 +153,9 @@
     <ClInclude Include="src\Engone\Rendering\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\EventHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp">
@@ -194,7 +197,7 @@
     <ClCompile Include="src\Engone\World\Dimension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Engine.cpp">
+    <ClCompile Include="src\Engone\Engone.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utility\Utilities.cpp">
@@ -273,6 +276,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\EventHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

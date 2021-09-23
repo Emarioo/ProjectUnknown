@@ -3,7 +3,7 @@
 #include "SoundStream.h"
 #include "../Handlers/Filehandler.h"
 
-namespace engine {
+namespace engone {
 
 	static ALenum to_al_format(short channels, short samples) {
 		bool stereo = (channels > 1);
@@ -34,7 +34,7 @@ namespace engine {
 		}
 	}
 	void SoundStream::Init(const std::string& path) {
-		if (engine::FileExist(path)) {
+		if (engone::FileExist(path)) {
 			int channels, bps;
 			bufferData = LoadWAV(path, channels, bufferFreq, bps, bufferSize);
 			bufferFormat = to_al_format(channels, bps);

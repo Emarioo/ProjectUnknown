@@ -5,7 +5,7 @@
 #include "Items/ItemHandler.h"
 
 
-Hotbar::Hotbar(const std::string& name) : engine::IBase(name) {
+Hotbar::Hotbar(const std::string& name) : engone::IBase(name) {
 	active = true;
 	
 	container = new Container("Player Hotbar", 9, 1);
@@ -19,8 +19,8 @@ bool Hotbar::MouseEvent(int mx, int my, int action, int button) {
 
 	//CalcConstraints();
 
-	float mouseX = engine::ToFloatScreenX(mx);
-	float mouseY = engine::ToFloatScreenY(my);
+	float mouseX = engone::renderer->ToFloatScreenX(mx);
+	float mouseY = engone::renderer->ToFloatScreenY(my);
 
 	//bug::outs < "mx " < mouseX < x < (x+w) < "\nmy" < mouseY < y < (y+h) < bug::end;
 
@@ -92,16 +92,16 @@ void Hotbar::Update(float delta) {
 void Hotbar::Render() {
 
 	// Inventory background
-	engine::BindTexture(0, "containers/hotbar");
+	engone::renderer->BindTexture(0, "containers/hotbar");
 
 	//CalcConstraints();
 
-	engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::renderer->DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
 
 	// Items
 	if (container != nullptr) {
-		float wid = engine::Width();
-		float hei = engine::Height();
+		float wid = engone::renderer->Width();
+		float hei = engone::renderer->Height();
 
 		float gap = w * (4 / 608.f);
 

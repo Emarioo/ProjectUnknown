@@ -2,48 +2,44 @@
 
 #include "Renderer.h"
 
-#include "../Handlers/AssetHandler.h"
 #include "../Handlers/ObjectHandler.h"
 
-namespace engine {
+namespace engone {
 	
-	WindowTypes windowType = NONE;
-	WindowTypes GetWindowType() {
+	Renderer* renderer;
+	WindowTypes Renderer:: GetWindowType() {
 		return windowType;
 	}
-	int winX = 0;
-	int winY = 0;
-	int winW = 0;
-	int winH = 0;
-
-	GLFWwindow* window=nullptr;
-	GLFWwindow* GetWindow() {
+	GLFWwindow* Renderer::GetWindow() {
 		return window;
 	}
-	void GetWindowPos(int* x, int* y) {
+	void Renderer::GetWindowPos(int* x, int* y) {
 		if(window!=nullptr)
 			glfwGetWindowPos(window, x, y);
 	}
-	void GetWindowSize(int* w, int* h) {
+	void Renderer::GetWindowSize(int* w, int* h) {
 		if (window != nullptr)
 			glfwGetWindowSize(window, w, h);
 	}
-	void SetWindowPos(int x, int y) {
+	void Renderer::SetWindowPos(int x, int y) {
 		winX = x;
 		winY = y;
 		if(window!=nullptr)
 			glfwSetWindowPos(window,x, y);
 	}
-	void SetWindowSize(int w, int h) {
+	void Renderer::SetWindowSize(int w, int h) {
 		winW = w;
 		winH = h;
 		if (window != nullptr)
 			glfwSetWindowSize(window, w, h);
 	}
+	void Renderer::SetWindowTitle(const char* title) {
+		glfwSetWindowTitle(window, title);
+	}
 	/*
 	Width of game screen not window!
 	*/
-	float Width() {
+	float Renderer::Width() {
 		int temp;
 		glfwGetWindowSize(window, &temp, nullptr);
 		return temp;
@@ -51,43 +47,40 @@ namespace engine {
 	/*
 	Height of game screen not window!
 	*/
-	float Height() {
+	float Renderer::Height() {
 		int temp;
 		glfwGetWindowSize(window, nullptr, &temp);
 		return temp;
 	}
-	float ToFloatScreenX(int x) {
+	float Renderer::ToFloatScreenX(int x) {
 		return 2 * x / Width() - 1;
 	}
-	float ToFloatScreenY(int y) {
+	float Renderer::ToFloatScreenY(int y) {
 		return 1 - 2 * y / Height();
 	}
-	float ToFloatScreenW(float w) {
+	float Renderer::ToFloatScreenW(float w) {
 		return 2.f * (w) / Width();
 	}
-	float ToFloatScreenH(float h) {
+	float Renderer::ToFloatScreenH(float h) {
 		return 2.f * (h) / Height();
 	}
-	float renMouseX;
-	float renMouseY;
-	float GetMouseX() {
+	float Renderer::GetMouseX() {
 		return renMouseX;
 	}
-	float GetMouseY() {
+	float Renderer::GetMouseY() {
 		return renMouseY;
 	}
-	float GetFloatMouseX() {
+	float Renderer::GetFloatMouseX() {
 		return ToFloatScreenX(renMouseX);
 	}
-	float GetFloatMouseY() {
+	float Renderer::GetFloatMouseY() {
 		return ToFloatScreenY(renMouseY);
 	}
-	bool windowHasFocus = true;
-	bool HasFocus() {
+	bool Renderer::HasFocus() {
 		return windowHasFocus;
 	}
-	std::function<void(int, int)> KeyEvent = nullptr;
-	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	/*
+	void Renderer::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		// This is for debug purposes
 		if (key == GLFW_KEY_1) {
 			SetWindowType(Windowed);
@@ -103,20 +96,16 @@ namespace engine {
 			KeyEvent(key, action);
 		}
 	}
-	std::function<void(double, double, int, int)> MouseEvent = nullptr;
-	void MouseCallback(GLFWwindow* window, int action, int button, int mods) {
+	void Renderer::MouseCallback(GLFWwindow* window, int action, int button, int mods) {
 		if (MouseEvent != nullptr)
 			MouseEvent(renMouseX, renMouseY, action, button);
 	}
-	std::function<void(double)> ScrollEvent = nullptr;
-	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+	void Renderer::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		if (ScrollEvent != nullptr) {
 			ScrollEvent(yoffset);
 		}
 	}
-	float cameraSensitivity = 0.1f;// TODO: MOVE THIS SOMEWHERE
-	std::function<void(double, double)> DragEvent = nullptr;
-	void DragCallback(GLFWwindow* window, double mx, double my) {
+	void Renderer::DragCallback(GLFWwindow* window, double mx, double my) {
 		if (IsCursorLocked()) {
 			GetCamera()->rotation.y -= (mx - renMouseX) * (3.14159f / 360) * cameraSensitivity;
 			GetCamera()->rotation.x -= (my - renMouseY) * (3.14159f / 360) * cameraSensitivity;
@@ -126,8 +115,7 @@ namespace engine {
 		renMouseX = mx;
 		renMouseY = my;
 	}
-	std::function<void(int, int)> ResizeEvent = nullptr;
-	void ResizeCallback(GLFWwindow* window, int width, int height) {
+	void Renderer::ResizeCallback(GLFWwindow* window, int width, int height) {
 		glViewport(0, 0, width, height);
 		if (windowType == Windowed) {
 			winW = width;
@@ -136,14 +124,13 @@ namespace engine {
 		if (ResizeEvent != nullptr)
 			ResizeEvent(width, height);
 	}
-	std::function<void(int)> FocusEvent = nullptr;
-	void WindowFocusCallback(GLFWwindow* window, int focus) {
+	void Renderer::WindowFocusCallback(GLFWwindow* window, int focus) {
 		windowHasFocus = focus;
 		if (FocusEvent != nullptr) {
 			FocusEvent(focus);
 		}
 	}
-	void SetInterfaceCallbacks(
+	void Renderer::SetInterfaceCallbacks(
 		std::function<void(int, int)> key,
 		std::function<void(double, double, int, int)> mouse,
 		std::function<void(double)> scroll,
@@ -156,8 +143,8 @@ namespace engine {
 		DragEvent = drag;
 		ResizeEvent = resize;
 		FocusEvent = focus;
-	}
-	void MakeWindow(const char* title) {
+	}*/
+	void Renderer::MakeWindow(const char* title) {
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
@@ -209,15 +196,16 @@ namespace engine {
 			return;
 		}
 		glfwMakeContextCurrent(window);
-
+		/*
 		glfwSetKeyCallback(window, KeyCallback);
 		glfwSetMouseButtonCallback(window, MouseCallback);
 		glfwSetScrollCallback(window, ScrollCallback);
 		glfwSetCursorPosCallback(window, DragCallback);
 		glfwSetWindowFocusCallback(window, WindowFocusCallback);
 		glfwSetWindowSizeCallback(window, ResizeCallback);
+		*/
 	}
-	void SetWindowType(WindowTypes t) {
+	void Renderer::SetWindowType(WindowTypes t) {
 		if (t == windowType)
 			return;
 		if (window == nullptr) {
@@ -287,15 +275,11 @@ namespace engine {
 		return;*/
 	}
 	
-	glm::mat4 projMatrix;
-	glm::mat4 viewMatrix;
-	float fov;
-	float zNear;
-	float zFar;
-	void SetProjection(float ratio) {
+	
+	void Renderer::SetProjection(float ratio) {
 		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
-	void UpdateViewMatrix(double lag) {
+	void Renderer::UpdateViewMatrix(double lag) {
 		viewMatrix = glm::inverse(
 			glm::translate(glm::mat4(1.0f), GetCamera()->position+ GetCamera()->velocity*(float)lag) *
 			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
@@ -303,15 +287,8 @@ namespace engine {
 		);
 	}
 	
-	const int TEXT_BATCH = 40;
-	float verts[4 * 4 * TEXT_BATCH];
-	TriangleBuffer textContainer;
-	TriangleBuffer rectContainer;
-	TriangleBuffer uvRectContainer;
-
-	Shader shaders[MAX_CUSTOM_SHADERS+MAX_ENGINE_SHADERS];
-	unsigned char boundShader = 0;
-	bool BindShader(unsigned char shader) {
+	
+	bool Renderer::BindShader(unsigned char shader) {
 		if (shaders[shader].isInitialized) {
 			boundShader = shader;
 			shaders[shader].Bind();
@@ -319,7 +296,7 @@ namespace engine {
 		}
 		return false;
 	}
-	void AddShader(unsigned char shader, const std::string& _path) {
+	void Renderer::AddShader(unsigned char shader, const std::string& _path) {
 		std::string path = "assets/shaders/" + _path;
 		if (FileExist(path + ".shader")) {
 			shaders[shader].Init(path);
@@ -327,17 +304,17 @@ namespace engine {
 			bug::out <bug::RED< "Cannot find '" < path < ".shader'" < bug::end;
 		}
 	}
-	Shader* GetShader(unsigned char shader) {
+	Shader* Renderer::GetShader(unsigned char shader) {
 		if(shaders[shader].isInitialized)
 			return &shaders[shader];
 		return &shaders[ShaderType::NONE];
 	}
-	Shader* GetBoundShader() {
+	Shader* Renderer::GetBoundShader() {
 		if(shaders[boundShader].isInitialized)
 			return &shaders[boundShader];
 		return &shaders[ShaderType::NONE];
 	}
-	void InitRenderer() {
+	void Renderer::Init() {
 		if (!glfwInit()) {
 			std::cout << "Not Init Window!" << std::endl;
 			return;
@@ -435,20 +412,18 @@ namespace engine {
 		SetProjection((float)Width() / Height());
 	}
 
-	bool isCursorVisible = true;
-	bool IsCursorVisible() {
+	bool Renderer::IsCursorVisible() {
 		return isCursorVisible;
 	}
-	bool isCursorLocked = false;
-	bool IsCursorLocked() {
+	bool Renderer::IsCursorLocked() {
 		return isCursorLocked;
 	}
-	void SetCursorVisibility(bool f) {
+	void Renderer::SetCursorVisibility(bool f) {
 		if (f) glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		else glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		isCursorVisible = f;
 	}
-	void LockCursor(bool f) {
+	void Renderer::LockCursor(bool f) {
 		if (!f) {
 			SetCursorVisibility(isCursorVisible);
 			if (glfwRawMouseMotionSupported())
@@ -460,20 +435,17 @@ namespace engine {
 		}
 		isCursorLocked = f;
 	}
-	void RenderClearScreen(float r, float g, float b, float a) {
+	void Renderer::RenderClearScreen(float r, float g, float b, float a) {
 		glClearColor(r, g, b, a);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-	bool RenderRunning() {
+	bool Renderer::RenderRunning() {
 		return !glfwWindowShouldClose(window);
 	}
-	void RenderTermin() {
+	void Renderer::RenderTermin() {
 		glfwTerminate();
 	}
-	void SetWindowTitle(const char* title) {
-		glfwSetWindowTitle(window, title);
-	}
-	void SwitchBlendDepth(bool b) {
+	void Renderer::SwitchBlendDepth(bool b) {
 		if (b) {
 			glEnable(GL_BLEND);
 			glDisable(GL_DEPTH_TEST);
@@ -483,39 +455,39 @@ namespace engine {
 		}
 	}
 
-	void SetTransform(glm::mat4 m) {
+	void Renderer::SetTransform(glm::mat4 m) {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetMatrix("uTransform", m);
 	}
-	void SetColor(float r, float g, float b, float a) {
+	void Renderer::SetColor(float r, float g, float b, float a) {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetVec4("uColor", r, g, b, a);
 	}
-	void UpdateProjection() {
+	void Renderer::UpdateProjection() {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetMatrix("uProj", projMatrix * viewMatrix);
 	}
 
-	void SetTransform(float x, float y) {
+	void Renderer::SetTransform(float x, float y) {
 		// Bind Shader
 		Shader* shad = GetShader(ShaderType::Interface);
 		if (shad!=nullptr)
 			shad->SetVec2("uTransform", { x, y });
 	}
-	void SetSize(float w, float h) {
+	void Renderer::SetSize(float w, float h) {
 		// Bind Shader
 		Shader* shad = GetShader(ShaderType::Interface);
 		if (shad != nullptr)
 			shad->SetVec2("uSize", { w, h });
 	}
-	void SetRenderArea(float f0, float f1, float f2, float f3) {
+	void Renderer::SetRenderArea(float f0, float f1, float f2, float f3) {
 		// Bind Shader
 		Shader* shad = GetShader(ShaderType::Interface);
 		if (shad != nullptr)
 			shad->SetVec4("uRenderArea", f0, f1, f2, f3);
 	}
 
-	void BindTexture(int slot, const std::string& name) {
+	void Renderer::BindTexture(int slot, const std::string& name) {
 		Texture* texture = GetTextureAsset(name);
 		if (texture != nullptr) {
 			texture->Bind(slot);
@@ -523,29 +495,28 @@ namespace engine {
 			bug::out < bug::RED <  "Cannot find texture '" < name < "'\n";
 		}
 	}
-	void BindTexture(int slot, Texture* texture) {
+	void Renderer::BindTexture(int slot, Texture* texture) {
 		if (texture != nullptr) {
 			texture->Bind(slot);
 		} else {
 			bug::out < bug::RED < "Texture is null '" < texture->filepath <"'\n";
 		}
 	}
-	std::unordered_map<std::string, Font*> fonts;
-	void AddFont(const std::string& name) {
+	void Renderer::AddFont(const std::string& name) {
 		if (fonts.count(name) == 0) {
 			fonts[name] = new Font(name);
 		} else {
 			bug::out < bug::RED < "The font '" < name < "' already exists\n";
 		}
 	}
-	Font* GetFont(const std::string& name) {
+	Font* Renderer::GetFont(const std::string& name) {
 		if (fonts.count(name)>0) {
 			return fonts[name];
 		}
 		return nullptr;
 	}
 	
-	void DrawString(const std::string& _font, const std::string& text, bool center,float charHeight,int atChar) {
+	void Renderer::DrawString(const std::string& _font, const std::string& text, bool center,float charHeight,int atChar) {
 		// Setup
 		
 		//bug::out < atChar < bug::end;
@@ -660,7 +631,7 @@ namespace engine {
 		textContainer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
 		textContainer.Draw();
 	}
-	void DrawString(const std::string& _font, const std::string& text, bool center, float charWidth, float charHeight, int atChar) {
+	void Renderer::DrawString(const std::string& _font, const std::string& text, bool center, float charWidth, float charHeight, int atChar) {
 		// Setup
 
 		//bug::out < atChar < bug::end;
@@ -777,25 +748,25 @@ namespace engine {
 		textContainer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
 		textContainer.Draw();
 	}
-	void DrawRect() {
+	void Renderer::DrawRect() {
 		rectContainer.Draw();
 	}
-	void DrawRect(float x, float y) {
+	void Renderer::DrawRect(float x, float y) {
 		SetTransform(x, y);
 		rectContainer.Draw();
 	}
-	void DrawRect(float x, float y, float w, float h) {
+	void Renderer::DrawRect(float x, float y, float w, float h) {
 		SetTransform(x, y);
 		SetSize(w, h);
 		rectContainer.Draw();
 	}
-	void DrawRect(float x, float y, float w, float h, float r, float g, float b, float a) {
+	void Renderer::DrawRect(float x, float y, float w, float h, float r, float g, float b, float a) {
 		SetTransform(x, y);
 		SetSize(w, h);
 		SetColor(r, g, b, a);
 		rectContainer.Draw();
 	}
-	void DrawUVRect(float x, float y, float xw, float yh, float u, float v, float uw, float vh) {
+	void Renderer::DrawUVRect(float x, float y, float xw, float yh, float u, float v, float uw, float vh) {
 		SetTransform(0, 0);
 		SetSize(1, 1);
 		SetColor(1, 1, 1, 1);
@@ -808,12 +779,10 @@ namespace engine {
 		uvRectContainer.ModifyVertices(0, 16, vertices);
 		uvRectContainer.Draw();
 	}
-
-	std::vector<Light*> lights;
-	void AddLight(Light* l) {
+	void Renderer::AddLight(Light* l) {
 		lights.push_back(l);
 	}
-	void RemoveLight(Light* l) {
+	void Renderer::RemoveLight(Light* l) {
 		for (int i = 0; i < lights.size(); i++) {
 			if (lights[i] == l) {
 				lights.erase(lights.begin() + i);
@@ -825,7 +794,7 @@ namespace engine {
 	Binds light to current shader
 	 If one of the four closest light are already bound then don't rebind them [Not added]
 	*/
-	void BindLights(glm::vec3 objectPos) {
+	void Renderer::BindLights(glm::vec3 objectPos) {
 		if (GetBoundShader() != nullptr) {
 			// List setup
 			const int N_POINTLIGHTS = 4;
@@ -912,10 +881,10 @@ namespace engine {
 			GetBoundShader()->SetIVec3("uLightCount", lightCount);
 		}
 	}
-	std::vector<Light*>& GetLights() {
+	std::vector<Light*>& Renderer::GetLights() {
 		return lights;
 	}
-	void PassLight(DirLight* light) {
+	void Renderer::PassLight(DirLight* light) {
 		if (light != nullptr) {
 			GetBoundShader()->SetVec3("uDirLight.ambient", light->ambient);
 			GetBoundShader()->SetVec3("uDirLight.diffuse", light->diffuse);
@@ -923,7 +892,7 @@ namespace engine {
 			GetBoundShader()->SetVec3("uDirLight.direction", light->direction);
 		}
 	}
-	void PassLight(int index, PointLight* light) {
+	void Renderer::PassLight(int index, PointLight* light) {
 		std::string u = "uPointLights[" + index + (std::string)"].";
 		if (light != nullptr) {
 			GetBoundShader()->SetVec3(u + "ambient", light->ambient);
@@ -935,7 +904,7 @@ namespace engine {
 			GetBoundShader()->SetFloat(u + "quadratic", light->quadratic);
 		}
 	}
-	void PassLight(int index, SpotLight* light) {
+	void Renderer::PassLight(int index, SpotLight* light) {
 		std::string u = "uSpotLights[" + index + (std::string)"].";
 		if (light!=nullptr) {
 			GetBoundShader()->SetVec3(u + "ambient", light->ambient);
@@ -947,7 +916,7 @@ namespace engine {
 			GetBoundShader()->SetFloat(u + "outerCutOff", light->outerCutOff);
 		}
 	}
-	void PassMaterial(int index, Material* material) {
+	void Renderer::PassMaterial(int index, Material* material) {
 		if (GetBoundShader() != nullptr) {
 			if (!material->diffuse_map.empty()) {
 				BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0

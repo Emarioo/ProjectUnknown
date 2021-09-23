@@ -7,7 +7,7 @@
 
 bool al_check_error();
 
-namespace engine {
+namespace engone {
 	class SoundBuffer {
 	private:
 		bool isInitialized = false;

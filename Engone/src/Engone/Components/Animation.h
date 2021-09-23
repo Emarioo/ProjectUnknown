@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 	enum PolationType : unsigned char {
 		Constant, Linear, Bezier
 	};

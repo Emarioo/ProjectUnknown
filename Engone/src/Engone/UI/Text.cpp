@@ -2,7 +2,7 @@
 
 #include "Text.h"
 
-namespace engine {
+namespace engone {
 	/*
 	 max : max length of text
 	 size : standard is 64 / Window Height
@@ -50,7 +50,7 @@ namespace engine {
 
 	}
 	float Text::PixelWidth(bool f) {
-		Font* fo = GetFont(font);
+		Font* fo = renderer->GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -74,7 +74,7 @@ namespace engine {
 		return max;
 	}
 	float Text::PixelHeight(bool f) {
-		Font* fo = GetFont(font);
+		Font* fo = renderer->GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float hei = fo->charSize;
@@ -89,7 +89,7 @@ namespace engine {
 		return hei;
 	}
 	float Text::ScreenPosX(int c) {
-		Font* fo = GetFont(font);
+		Font* fo = renderer->GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -108,7 +108,7 @@ namespace engine {
 	}
 
 	int Text::PixelPosX(int c) {
-		Font* fo = GetFont(font);
+		Font* fo = renderer->GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -438,9 +438,9 @@ namespace engine {
 	}
 	void Text::DrawString(float alpha, bool f) {
 		// Dynamic
-		float actualHeight = ToFloatScreenH(charHeight);
+		float actualHeight = renderer->ToFloatScreenH(charHeight);
 		if (!staticHeight) {
-			actualHeight = ((*elemW / 2 * Width()) / PixelWidth(true)) * ToFloatScreenH(64);
+			actualHeight = ((*elemW / 2 * renderer->Width()) / PixelWidth(true)) * renderer->ToFloatScreenH(64);
 			float a = *elemH / PixelHeight(false);
 			if (a < 1)
 				actualHeight *= a;
@@ -452,12 +452,12 @@ namespace engine {
 			y = ypos - charHeight + PixelHeight(false) / 2;
 		}*/
 
-		SetTransform(xpos, ypos);
-		SetColor(r, g, b, a * alpha);
+		renderer->SetTransform(xpos, ypos);
+		renderer->SetColor(r, g, b, a * alpha);
 		if (f) {
-			engine::DrawString(font, text, center, actualHeight, atChar);
+			engone::renderer->DrawString(font, text, center, actualHeight, atChar);
 		} else {
-			engine::DrawString(font, text, center, actualHeight, -1);
+			engone::renderer->DrawString(font, text, center, actualHeight, -1);
 		}
 		/*
 		if (f) {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 	std::vector<std::string> SplitString(std::string text, std::string delim);
 	std::string SanitizeString(std::string s);
 	float lerp(float a, float b, float c);

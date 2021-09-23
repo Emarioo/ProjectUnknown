@@ -5,7 +5,7 @@
 
 #define error(x) if(x==true){data->hasError=true;return;}
 
-namespace engine {
+namespace engone {
 
 	bool FileExist(const std::string& path) {
 		struct stat buffer;

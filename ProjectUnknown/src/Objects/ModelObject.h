@@ -5,7 +5,7 @@
 /*
 This is a Template Object or a customizable object.
 */
-class ModelObject : public engine::GameObject {
+class ModelObject : public engone::GameObject {
 private:
 	float blending = 0;
 	float speed = 1;

@@ -4,7 +4,7 @@
 
 #include <GL/glew.h>
 
-namespace engine {
+namespace engone {
 
 	/*
 	Only use this if OpenGL has been initialized.

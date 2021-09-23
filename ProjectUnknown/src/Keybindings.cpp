@@ -5,7 +5,7 @@
 #include "GLFW/glfw3.h"
 
 void CreateDefualtKeybindings() {
-	using namespace engine;
+	using namespace engone;
 	ClearKeybindings();
 	AddActionKey(KeyForward, GLFW_KEY_W);
 	AddActionKey(KeyLeft, GLFW_KEY_A);

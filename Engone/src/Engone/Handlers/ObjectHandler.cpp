@@ -2,7 +2,7 @@
 
 #include "ObjectHandler.h"
 
-namespace engine {
+namespace engone {
 
 	std::unordered_map<std::string, Dimension> dimensions;
 	Dimension* loadedDim = nullptr;

@@ -2,7 +2,7 @@
 
 #include "AssetHandler.h"
 
-namespace engine {
+namespace engone {
 
 	std::vector<TimedFunc> functions;
 	void AddTimedFunction(std::function<void()> func, float time) {

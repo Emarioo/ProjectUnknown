@@ -20,16 +20,16 @@ Player::Player(float x,float y,float z) : GameObject("Player",x,y,z) {
 	*/
 }
 void Player::Update(float delta) {
-	if (engine::IsKeyActionDown(KeyForward)) {
+	if (engone::IsKeyActionDown(KeyForward)) {
 		if (animBlending < 1 && animSpeed>0)
 			animBlending += animSpeed * delta;
 	} else {
 		if (animBlending > 0)
 			animBlending -= animSpeed * delta;
 	}
-	if (engine::IsKeyActionDown(KeyCrouch)) {
+	if (engone::IsKeyActionDown(KeyCrouch)) {
 		renderComponent.animator.Speed("goblin_run", 
-			flight|| !engine::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
+			flight|| !engone::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
 		);
 	} else {
 		renderComponent.animator.Speed("goblin_run", 1);
@@ -43,22 +43,23 @@ void Player::Update(float delta) {
 	Movement(delta);
 }
 glm::vec3 Player::Movement(float delta) {
-	Camera* camera = engine::GetCamera();
+	using namespace engone;
+	Camera* camera = GetCamera();
 	if (camera == nullptr)
 		return glm::vec3(0);
 	
 	glm::vec3 move = glm::vec3(0, 0, 0);
 	
 	if (true) { // Disable movement - useless?
-		if (engine::IsKey(GLFW_KEY_N)) {
+		if (engone::IsKey(GLFW_KEY_N)) {
 			if (!freeCamT) {
-				engine::SetState(GameState::CameraToPlayer, !engine::CheckState(GameState::CameraToPlayer));
+				SetState(GameState::CameraToPlayer, !CheckState(GameState::CameraToPlayer));
 			}
 			freeCamT = true;
 		} else {
 			freeCamT = false;
 		}
-		if (engine::IsKey(GLFW_KEY_F)) {
+		if (IsKey(GLFW_KEY_F)) {
 			if (!flightT) {
 				flight =! flight;
 			}
@@ -66,7 +67,7 @@ glm::vec3 Player::Movement(float delta) {
 		} else {
 			flightT = false;
 		}
-		if (engine::IsKey(GLFW_KEY_H)) {
+		if (IsKey(GLFW_KEY_H)) {
 			if (!thirdPersonT) {
 				thirdPerson = !thirdPerson;
 			}
@@ -76,25 +77,25 @@ glm::vec3 Player::Movement(float delta) {
 		}
 
 		float speed = walkSpeed;
-		if (!engine::CheckState(GameState::CameraToPlayer) ||flight) {
+		if (!CheckState(GameState::CameraToPlayer) ||flight) {
 			speed = camSpeed;
-			if (engine::IsKeyActionDown(KeySprint))
+			if (IsKeyActionDown(KeySprint))
 				speed = camFastSpeed;
 
-			if (engine::IsKeyActionDown(KeyJump)) {
+			if (IsKeyActionDown(KeyJump)) {
 				move.y += speed;
 			}
-			if (engine::IsKeyActionDown(KeyCrouch)) {
+			if (IsKeyActionDown(KeyCrouch)) {
 				move.y -= speed;
 			}
 			if(flight)
 				velocity.y = 0;
 		} else {
 			velocity.y += gravity;
-			if (engine::IsKeyActionDown(KeySprint))
+			if (IsKeyActionDown(KeySprint))
 				speed = sprintSpeed;
 
-			if (engine::IsKeyActionDown(KeyJump)) {
+			if (IsKeyActionDown(KeyJump)) {
 				if (onGround) {
 					velocity.y = 5;
 					onGround = false;
@@ -102,16 +103,16 @@ glm::vec3 Player::Movement(float delta) {
 			}
 		}
 
-		if (engine::IsKeyActionDown(KeyForward)) {
+		if (IsKeyActionDown(KeyForward)) {
 			move.z -= speed;
 		}
-		if (engine::IsKeyActionDown(KeyBack)) {
+		if (IsKeyActionDown(KeyBack)) {
 			move.z += speed;
 		}
-		if (engine::IsKeyActionDown(KeyRight)) {
+		if (IsKeyActionDown(KeyRight)) {
 			move.x += speed;
 		}
-		if (engine::IsKeyActionDown(KeyLeft)) {
+		if (IsKeyActionDown(KeyLeft)) {
 			move.x -= speed;
 		}
 		/*
@@ -149,7 +150,7 @@ glm::vec3 Player::Movement(float delta) {
 	//camera->position.z += 8*0.016f;
 	camera->position += nmove* delta;
 	
-	if (!engine::CheckState(GameState::CameraToPlayer)) {
+	if (!CheckState(GameState::CameraToPlayer)) {
 			camera->velocity = nmove;
 			camera->position += nmove * delta;
 	} else {
@@ -158,7 +159,7 @@ glm::vec3 Player::Movement(float delta) {
 		
 		SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
 
-		engine::Location camPos; // Camera offset
+		Location camPos; // Camera offset
 		camPos.Translate(position + glm::vec3(0, 0.5f, 0));
 		if (thirdPerson) {
 			camPos.Rotate(camera->rotation);

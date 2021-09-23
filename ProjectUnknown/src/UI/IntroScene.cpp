@@ -4,7 +4,7 @@
 
 #include "Engone/Rendering/Renderer.h"
 
-IntroScene::IntroScene(const std::string& name) : engine::IBase(name,999) {
+IntroScene::IntroScene(const std::string& name) : engone::IBase(name,999) {
 	active = true;
 }
 float introScene_time=0;
@@ -27,17 +27,17 @@ void IntroScene::Update(float delta) {
 	}
 	else if (introScene_time > 5) {
 		active = false;
-		engine::SetState(GameState::Intro, false);
-		engine::SetCursorVisibility(true);
-		engine::SetState(GameState::Menu, true);
+		engone::SetState(GameState::Intro, false);
+		engone::renderer->SetCursorVisibility(true);
+		engone::SetState(GameState::Menu, true);
 	}
 }
 void IntroScene::Render() {
 	// Inventory background
-	engine::BindTexture(0, "blank");
-	engine::DrawRect(-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
+	engone::renderer->BindTexture(0, "blank");
+	engone::renderer->DrawRect(-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
 
 	// Logo/Text
-	engine::BindTexture(0, "intro");
-	engine::DrawRect(x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
+	engone::renderer->BindTexture(0, "intro");
+	engone::renderer->DrawRect(x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
 }

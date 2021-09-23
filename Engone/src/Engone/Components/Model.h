@@ -4,7 +4,7 @@
 #include "Animation.h"
 #include "Armature.h"
 
-namespace engine {
+namespace engone {
 
 	class Model {
 	public:

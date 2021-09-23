@@ -6,7 +6,7 @@
 
 #include "GameState.h"
 
-namespace engine {
+namespace engone {
 	DebugPanel::DebugPanel(const std::string& name) 
 	: IBase(name) {
 
@@ -23,7 +23,7 @@ namespace engine {
 		if (action == 1) {
 			if (key == GLFW_KEY_L) {
 				active = !active;
-				engine::SetState(GameState::DebugMode,active);
+				SetState(GameState::DebugMode,active);
 			}
 		}
 		return false;
@@ -33,7 +33,7 @@ namespace engine {
 	}
 	void DebugPanel::Render() {
 		
-		engine::BindTexture(0, "blank");
-		engine::DrawRect(x,y,w,h,0.5,0.2,0.8,1);
+		renderer->BindTexture(0, "blank");
+		renderer->DrawRect(x,y,w,h,0.5,0.2,0.8,1);
 	}
 }

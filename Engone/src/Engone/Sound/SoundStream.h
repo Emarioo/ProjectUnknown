@@ -4,7 +4,7 @@
 
 #include "SoundSource.h"
 
-namespace engine {
+namespace engone {
 	class SoundStream {
 	private:
 		const std::size_t NUM_BUFFERS = 4;

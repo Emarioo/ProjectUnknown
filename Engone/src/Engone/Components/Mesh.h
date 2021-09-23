@@ -4,7 +4,7 @@
 #include "../Rendering/Buffer.h"
 #include "Material.h"
 
-namespace engine {
+namespace engone {
 
 	class Mesh {
 	public:

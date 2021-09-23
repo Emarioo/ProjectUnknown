@@ -2,7 +2,7 @@
 
 #include "GameOptions.h"
 
-namespace engine {
+namespace engone {
 
 	std::map<std::string, int> intOptions;
 	std::map<std::string, float> floatOptions;

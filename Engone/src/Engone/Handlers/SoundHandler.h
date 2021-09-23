@@ -2,7 +2,7 @@
 
 #include "../Sound/SoundStream.h"
 
-namespace engine {
+namespace engone {
 	// returns false if error
 	bool InitSound();
 	void UninitSound();

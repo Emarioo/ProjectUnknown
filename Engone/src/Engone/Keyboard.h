@@ -1,6 +1,6 @@
 #pragma once
 
-namespace engine {
+namespace engone {
 
 	// The point of this class is to convert numbers to char, string and the other way around
 	//  Basically an intepreter for key codes, Also for testing for key presses

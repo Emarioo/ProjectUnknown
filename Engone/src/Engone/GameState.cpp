@@ -4,7 +4,7 @@
 
 #include "DebugTool/DebugHandler.h"
 
-namespace engine {
+namespace engone {
 	
 	bool gameStates[30];
 	void SetState(unsigned char state,bool F) {

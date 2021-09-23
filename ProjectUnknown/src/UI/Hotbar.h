@@ -4,7 +4,7 @@
 #include "Items/Container.h"
 //#include "Engone/Engine.h"
 
-class Hotbar : public engine::IBase {
+class Hotbar : public engone::IBase {
 public:
 	Hotbar(const std::string& name);
 

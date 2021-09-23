@@ -4,7 +4,7 @@
 
 #include <GL/glew.h>
 
-namespace engine {
+namespace engone {
 	Shader::Shader() {
 
 	}

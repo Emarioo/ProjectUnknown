@@ -2,7 +2,7 @@
 
 #include "../Handlers/AssetHandler.h"
 
-namespace engine {
+namespace engone {
 	class Location {
 	public:
 		Location();

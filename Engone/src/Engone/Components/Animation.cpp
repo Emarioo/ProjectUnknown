@@ -6,7 +6,7 @@
 #include "../Utility/Utilities.h"
 
 
-namespace engine {
+namespace engone {
 	Keyframe::Keyframe(PolationType polation, unsigned short frame, float value)
 		: polation(polation), frame(frame), value(value) {}
 	FCurve::FCurve() {}

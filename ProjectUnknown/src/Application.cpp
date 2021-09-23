@@ -1,6 +1,6 @@
 #include "propch.h"
 
-#include "Engone/Engine.h"
+#include "Engone/Engone.h"
 
 #include "Objects/Goblin.h"
 #include "Objects/Gnorg.h"
@@ -21,24 +21,24 @@
 
 float ang = 0;
 float vel = 1;
-engine::Light* light;
-engine::SoundStream melody;
+engone::Light* light;
+engone::SoundStream melody;
 
-engine::Animation* quater = nullptr;
-engine::Model* tommy = nullptr;
-engine::Channels channel;
+engone::Animation* quater = nullptr;
+engone::Model* tommy = nullptr;
+engone::Channels channel;
 float n = -1;
 unsigned short lastN = -1;
 void Update(double delta) {
-	using namespace engine;
+	using namespace engone;
 
 	//melody.UpdateStream();
 	
-	light->position.x = 5 * glm::cos(engine::GetPlayTime());// bez3 * 2;
-	light->position.z = 5 * glm::sin(engine::GetPlayTime());// bez3 * 2;
+	light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
+	light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 	
 	if (CheckState(GameState::Game)) {
-		if (HasFocus() && !CheckState(GameState::Paused)) {
+		if (renderer->HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
 	}
@@ -60,7 +60,7 @@ void Update(double delta) {
 			}
 		}
 		else {
-			tommy = engine::GetModelAsset("Tom");
+			tommy = engone::GetModelAsset("Tom");
 			std::cout << tommy << std::endl;
 		}
 
@@ -84,15 +84,15 @@ void Update(double delta) {
 	*/
 	UpdateUI(delta);
 }
-engine::TriangleBuffer cont;
-engine::TriangleBuffer itemContainer2;
+engone::TriangleBuffer cont;
+engone::TriangleBuffer itemContainer2;
 
 float coloring = 0;
 void Render(double lag) {
-	using namespace engine;
-	SwitchBlendDepth(false);
+	using namespace engone;
+	renderer->SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
-		if (HasFocus()) {
+		if (renderer->HasFocus()) {
 			//move += 0.01f;
 			glm::mat4 lightView = glm::lookAt({-2,4,-1}, glm::vec3(0), { 0,1,0 });
 			
@@ -106,9 +106,9 @@ void Render(double lag) {
 			// All this should be automated and customizable in the engine.
 
 			// Shadow stuff
-			if (BindShader(ShaderType::Depth)) {
+			if (renderer->BindShader(ShaderType::Depth)) {
 				glCullFace(GL_BACK);
-				GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
+				renderer->GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
@@ -116,20 +116,20 @@ void Render(double lag) {
 				GetDepthBuffer().Unbind();
 			}
 			
-			glViewport(0, 0, Width(), Height());
+			glViewport(0, 0, renderer->Width(), renderer->Height());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-			BindShader(ShaderType::Color);
-			GetShader(ShaderType::Color)->SetInt("shadow_map",0);
-			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+			renderer->BindShader(ShaderType::Color);
+			renderer->GetShader(ShaderType::Color)->SetInt("shadow_map",0);
+			renderer->GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(lag);
 			
-			if (engine::IsKey(GLFW_KEY_K)) {
-				SwitchBlendDepth(true);
-				BindShader(ShaderType::Experiment);
-				GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
+			if (IsKey(GLFW_KEY_K)) {
+				renderer->SwitchBlendDepth(true);
+				renderer->BindShader(ShaderType::Experiment);
+				renderer->GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 				cont.Draw();
@@ -138,17 +138,17 @@ void Render(double lag) {
 	}
 
 	// Render IBase, IElement...
-	engine::RenderUI(lag);
+	RenderUI(lag);
 	// Render custom things like items dragged by the mouse
 	interfaceManager.Render(lag);
 }
 void OnKey(int key, int action) {
-	if (engine::CheckState(GameState::Game)) {
+	if (engone::CheckState(GameState::Game)) {
 		if (action == 1) {
 			if (key == GLFW_KEY_O) {
-				engine::ReadOptions();
-				if (engine::GetDimension() != nullptr)
-					engine::GetDimension()->UpdateAllChunks();
+				engone::ReadOptions();
+				if (engone::GetDimension() != nullptr)
+					engone::GetDimension()->UpdateAllChunks();
 			}
 			if (key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
 				/*IElement* el = GetElement("editor_script");
@@ -169,14 +169,14 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			if (engine::TestActionKey(KeyPause, key)) {
-				if (engine::CheckState(GameState::Paused)) {
-					engine::SetState(GameState::Paused, false);
-					engine::LockCursor(true);
+			if (engone::TestActionKey(KeyPause, key)) {
+				if (engone::CheckState(GameState::Paused)) {
+					engone::SetState(GameState::Paused, false);
+					engone::renderer->LockCursor(true);
 					
 				} else {
-					engine::SetState(GameState::Paused, true);
-					engine::LockCursor(false);
+					engone::SetState(GameState::Paused, true);
+					engone::renderer->LockCursor(false);
 				}
 			}
 		}
@@ -197,8 +197,8 @@ void OnMouse(double mx,double my,int action,int button,const std::string& elemen
 
 // Is this really supposed to be here?
 void CustomDimension() {
-	using namespace engine;
-	float a = 5 * engine::GetOptionf("scale") / 500;
+	using namespace engone;
+	float a = 5 * GetOptionf("scale") / 500;
 	Dimension classic;
 	Biome waterD(0.3, -6 * a, 2 * a);
 	Biome waterS(0.4, 2 * a, 6 * a);
@@ -259,30 +259,30 @@ void CustomDimension() {
 	noise.AddBiome(gray);
 	Dimension& dim = noise;
 	dim.Init(gameHandler.player);
-	engine::AddDimension("classic",dim);
+	engone::AddDimension("classic",dim);
 	//engine::SetDimension("classic");
 }
 void runApp(bool isDebugBuild) {
+	using namespace engone;
 	// Init the absolutely neccessary stuff
-	engine::SetState(GameState::DebugLog,isDebugBuild);
-	engine::Initialize();
-	engine::GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
-	if (engine::LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
+	SetState(GameState::DebugLog,isDebugBuild);
+	InitEngone();
+	GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
+	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
-
 	bool startGame = true;
 
 	if (startGame) {
 		gameHandler.StartGame();
 	}
 	else if (!isDebugBuild) {
-		engine::SetState(GameState::Intro, true);
+		SetState(GameState::Intro, true);
 		interfaceManager.SetupIntro();
-		engine::SetCursorVisibility(false);
+		renderer->SetCursorVisibility(false);
 	} else {
-		 engine::SetState(GameState::Menu, true);
-		 engine::SetupDebugPanel();
+		 SetState(GameState::Menu, true);
+		 SetupDebugPanel();
 	}
 	//interfaceManager.SetupMainMenu();
 
@@ -316,13 +316,11 @@ void runApp(bool isDebugBuild) {
 	// Assets should be loaded else where. Maybe where you start the game. 
 	// Only if they havent't been loaded though.
 	{
-		using namespace engine;
+		renderer->AddShader(ShaderType::Light, "lightSource");
+		renderer->AddShader(ShaderType::Experiment, "experiment");
+		renderer->AddShader(ShaderType::Terrain, "terrain");
 
-		AddShader(ShaderType::Light, "lightSource");
-		AddShader(ShaderType::Experiment, "experiment");
-		AddShader(ShaderType::Terrain, "terrain");
-
-		AddFont("consolas42");
+		renderer->AddFont("consolas42");
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");
@@ -354,7 +352,7 @@ void runApp(bool isDebugBuild) {
 	//engine::AddTextureAsset("magicstaff_fireball");
 	{
 		// Remove some of the quaternion values and see if it works
-		using namespace engine;
+		
 		AddAnimationAsset("Quater");
 		quater = GetAnimationAsset("Quater");
 		
@@ -366,7 +364,7 @@ void runApp(bool isDebugBuild) {
 		z.Add({ Bezier, 60, 0.5 });
 
 		//cha.Add(PosX, x);
-		channel.Add(PosX, z);
+		channel.Add(QuaX, z);
 		//cha.Add(QuaZ, z);
 		//cha.Add(QuaW, w);
 
@@ -405,26 +403,25 @@ void runApp(bool isDebugBuild) {
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
 
-
-	ModelObject* ob;
-	engine::AddObject(ob=new ModelObject(3, 0, 0,"Charles"));
-	engine::AddObject(ob=new ModelObject(-3, 0, 0,"Tom"));
+	ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
+	ModelObject* tom=new ModelObject(3, 0, 0, "Tom");
+	AddObject(charles);
+	AddObject(tom);
 	//ob->quaternion = {1,0.5,0,0};
-
-
+	
 	gameHandler.player = new Player(0, 0, 0);
-	engine::GetCamera()->position.x = 0;
-	engine::GetCamera()->position.z = 5;
+	GetCamera()->position.x = 0;
+	GetCamera()->position.z = 5;
 	gameHandler.player->flight = true;
-	engine::AddObject(gameHandler.player);
-	engine::SetState(GameState::CameraToPlayer,false);
+	AddObject(gameHandler.player);
+	SetState(GameState::CameraToPlayer,false);
 	//engine::GetCamera()->SetPosition(0,0,-5);
 
-	engine::DirLight* l = new engine::DirLight({ 2,-4,1 });
+	DirLight* l = new DirLight({ 2,-4,1 });
 	
 	//l->linear = 0.25;
 	//l->quadratic = 0.059;
-	engine::AddLight(light=l);
+	renderer->AddLight(light=l);
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
 	//CustomDimension();
@@ -444,7 +441,7 @@ void runApp(bool isDebugBuild) {
 	cont.SetAttrib(0,2,4,0);
 	cont.SetAttrib(1,2,4,2);
 
-	engine::Start(Update, Render, 60);
+	Start(Update, Render, 60);
 }
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow)
