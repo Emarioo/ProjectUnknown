@@ -24,5 +24,5 @@ in vec3 fColor;
 
 void main()
 {
-	oColor = fColor;
+	oColor = vec4(fColor,1);
 };

@@ -33,7 +33,7 @@ namespace engone {
 	}
 	void DebugPanel::Render() {
 		
-		renderer->BindTexture(0, "blank");
-		renderer->DrawRect(x,y,w,h,0.5,0.2,0.8,1);
+		BindTexture(0, "blank");
+		DrawRect(x,y,w,h,0.5,0.2,0.8,1);
 	}
 }

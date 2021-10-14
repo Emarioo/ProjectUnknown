@@ -28,7 +28,7 @@ namespace engone {
 		w = conW.Value();
 		h = conH.Value();
 		if (aspectRatio!=0) {
-			float newRatio = renderer->Height() / renderer->Width();
+			float newRatio = Height() / Width();
 			if (newRatio > aspectRatio) {
 				// Height is bigger or width is smaller
 				h *= aspectRatio / newRatio;

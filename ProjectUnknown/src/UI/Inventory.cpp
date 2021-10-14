@@ -16,8 +16,8 @@ Inventory::Inventory(const std::string& name) : engone::IBase(name) {
 	container->AddItem(new Item("Carrot", 8));
 }
 bool Inventory::MouseEvent(int mx, int my, int action, int button) {
-	float mouseX = engone::renderer->ToFloatScreenX(mx);
-	float mouseY = engone::renderer->ToFloatScreenY(my);
+	float mouseX = engone::ToFloatScreenX(mx);
+	float mouseY = engone::ToFloatScreenY(my);
 
 	if (action != 1)
 		return false;
@@ -53,11 +53,11 @@ bool Inventory::MouseEvent(int mx, int my, int action, int button) {
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (engone::TestActionKey(KeyInventory,key)) {
+	if (engone::IsActionDown(KeyInventory)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.craftingList->active) {
-				engone::renderer->LockCursor(!active);
+				engone::LockCursor(!active);
 			}
 		}
 	}
@@ -68,9 +68,9 @@ void Inventory::Update(float delta) {
 }
 void Inventory::Render() {
 	// Inventory background
-	engone::renderer->BindTexture(0, "containers/inventory");
+	engone::BindTexture(0, "containers/inventory");
 
-	engone::renderer->DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
 
 	// Items
 	if (container != nullptr) {

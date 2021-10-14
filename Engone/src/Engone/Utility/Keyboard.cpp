@@ -145,8 +145,9 @@ namespace engone {
 		return 0;
 	}
 	bool IsKey(int key) {
-		return glfwGetKey(renderer->GetWindow(),key)==GLFW_PRESS;
+		return glfwGetKey(GetWindow(),key)==GLFW_PRESS;
 	}
+	/*
 	std::unordered_map<unsigned short, int> keyboard_keyActionMap;
 	void AddActionKey(unsigned short keyName, int keyCode) {
 		keyboard_keyActionMap[keyName] = keyCode;
@@ -159,13 +160,13 @@ namespace engone {
 	}
 	bool IsKeyActionDown(unsigned short keyName) {
 		if (keyboard_keyActionMap.count(keyName))
-			return glfwGetKey(renderer->GetWindow(), keyboard_keyActionMap[keyName])==GLFW_PRESS;
+			return glfwGetKey(GetWindow(), keyboard_keyActionMap[keyName])==GLFW_PRESS;
 		return false;
 	}
 	/*
 	path directory starts where the .exe is. Example "data/keybindings.dat"
 	return true if successful
-	*/
+	
 	int LoadKeybindings(const std::string& path) {
 		std::ifstream file(path,std::ios::binary);
 		
@@ -228,4 +229,5 @@ namespace engone {
 	void ClearKeybindings() {
 		keyboard_keyActionMap.clear();
 	}
+	*/
 }

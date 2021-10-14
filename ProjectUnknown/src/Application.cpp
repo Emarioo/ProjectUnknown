@@ -38,7 +38,7 @@ void Update(double delta) {
 	light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 	
 	if (CheckState(GameState::Game)) {
-		if (renderer->HasFocus() && !CheckState(GameState::Paused)) {
+		if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
 	}
@@ -90,9 +90,9 @@ engone::TriangleBuffer itemContainer2;
 float coloring = 0;
 void Render(double lag) {
 	using namespace engone;
-	renderer->SwitchBlendDepth(false);
+	SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
-		if (renderer->HasFocus()) {
+		if (HasFocus()) {
 			//move += 0.01f;
 			glm::mat4 lightView = glm::lookAt({-2,4,-1}, glm::vec3(0), { 0,1,0 });
 			
@@ -106,9 +106,9 @@ void Render(double lag) {
 			// All this should be automated and customizable in the engine.
 
 			// Shadow stuff
-			if (renderer->BindShader(ShaderType::Depth)) {
+			if (BindShader(ShaderType::Depth)) {
 				glCullFace(GL_BACK);
-				renderer->GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
+				GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
@@ -116,20 +116,20 @@ void Render(double lag) {
 				GetDepthBuffer().Unbind();
 			}
 			
-			glViewport(0, 0, renderer->Width(), renderer->Height());
+			glViewport(0, 0, Width(), Height());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-			renderer->BindShader(ShaderType::Color);
-			renderer->GetShader(ShaderType::Color)->SetInt("shadow_map",0);
-			renderer->GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+			BindShader(ShaderType::Color);
+			GetShader(ShaderType::Color)->SetInt("shadow_map",0);
+			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(lag);
 			
 			if (IsKey(GLFW_KEY_K)) {
-				renderer->SwitchBlendDepth(true);
-				renderer->BindShader(ShaderType::Experiment);
-				renderer->GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
+				SwitchBlendDepth(true);
+				BindShader(ShaderType::Experiment);
+				GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 				cont.Draw();
@@ -142,15 +142,15 @@ void Render(double lag) {
 	// Render custom things like items dragged by the mouse
 	interfaceManager.Render(lag);
 }
-void OnKey(int key, int action) {
+bool OnKey(engone::Event& e) {
 	if (engone::CheckState(GameState::Game)) {
-		if (action == 1) {
-			if (key == GLFW_KEY_O) {
+		if (e.action == 1) {
+			if (e.key == GLFW_KEY_O) {
 				engone::ReadOptions();
 				if (engone::GetDimension() != nullptr)
 					engone::GetDimension()->UpdateAllChunks();
 			}
-			if (key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
+			if (e.key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
 				/*IElement* el = GetElement("editor_script");
 				if (el != nullptr) {
 					if (!el->selected) {
@@ -169,22 +169,22 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			if (engone::TestActionKey(KeyPause, key)) {
+			if (engone::IsActionDown(KeyPause)) {
 				if (engone::CheckState(GameState::Paused)) {
 					engone::SetState(GameState::Paused, false);
-					engone::renderer->LockCursor(true);
-					
+					engone::LockCursor(true);
 				} else {
 					engone::SetState(GameState::Paused, true);
-					engone::renderer->LockCursor(false);
+					engone::LockCursor(false);
 				}
 			}
 		}
 	}
+	return false;
 }
 
 //  Do something about that const string. It's not supposed to be there.
-void OnMouse(double mx,double my,int action,int button,const std::string& elementName) {
+bool OnMouse(engone::Event& e) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
 	/*if (IsGameState(Play)) {
 		if (action == 0) {
@@ -193,6 +193,7 @@ void OnMouse(double mx,double my,int action,int button,const std::string& elemen
 			}
 		}
 	}*/
+	return false;
 }
 
 // Is this really supposed to be here?
@@ -258,35 +259,37 @@ void CustomDimension() {
 	gray.Flat(0.5,1,1,0);
 	noise.AddBiome(gray);
 	Dimension& dim = noise;
-	dim.Init(gameHandler.player);
+	dim.Init(game::GetPlayer());
 	engone::AddDimension("classic",dim);
 	//engine::SetDimension("classic");
 }
 void runApp(bool isDebugBuild) {
 	using namespace engone;
-	// Init the absolutely neccessary stuff
-	SetState(GameState::DebugLog,isDebugBuild);
+
+	//-- Init the absolutely neccessary stuff
+	SetState(GameState::DebugLog,isDebugBuild); // temporary
 	InitEngone();
-	GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
+	//GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
 	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
+	
+	//-- Init game stuff
 	bool startGame = true;
-
 	if (startGame) {
-		gameHandler.StartGame();
+		game::StartGame();
 	}
 	else if (!isDebugBuild) {
 		SetState(GameState::Intro, true);
 		interfaceManager.SetupIntro();
-		renderer->SetCursorVisibility(false);
+		SetCursorVisibility(false);
 	} else {
 		 SetState(GameState::Menu, true);
 		 SetupDebugPanel();
 	}
 	//interfaceManager.SetupMainMenu();
 
-	// Debug Options - move this else where. like the debugpanel
+	//-- Debug Options - move this else where. like the debugpanel
 	/*
 	bug::set("LoadMesh", 1);
 	bug::set("LoadMesh.Weights", 1);
@@ -296,8 +299,8 @@ void runApp(bool isDebugBuild) {
 	bug::set("LoadMesh.Normals", 1);
 	//bug::set("LoadMesh.Buffer", 1);
 	*/
-	bug::set("LoadAnimation", 1);
-	bug::set("LoadAnimation.Frames", 1);
+	//bug::set("LoadAnimation", 1);
+	//bug::set("LoadAnimation.Frames", 1);
 		
 	//bug::set("LoadCollider", 1);
 	//bug::set("LoadCollider.Vectors", 1);
@@ -307,20 +310,19 @@ void runApp(bool isDebugBuild) {
 	//bug::set("LoadArmature.Bones", 1);
 	//bug::set("LoadArmature.Matrix", 1);
 		 
-	bug::set("LoadModel", 1);
+	//bug::set("LoadModel", 1);
 	//bug::set("LoadModel.Mesh", 1);
 	//bug::set("LoadModel.Matrix", 1);
 
 	//bug::set("LoadMaterial", 1);
 
-	// Assets should be loaded else where. Maybe where you start the game. 
-	// Only if they havent't been loaded though.
+	//-- Assets should be loaded else where. Maybe where you start the game.  Only if they havent't been loaded though.
 	{
-		renderer->AddShader(ShaderType::Light, "lightSource");
-		renderer->AddShader(ShaderType::Experiment, "experiment");
-		renderer->AddShader(ShaderType::Terrain, "terrain");
+		AddShader(ShaderType::Light, "lightSource");
+		AddShader(ShaderType::Experiment, "experiment");
+		AddShader(ShaderType::Terrain, "terrain");
 
-		renderer->AddFont("consolas42");
+		AddFont("consolas42");
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");
@@ -353,7 +355,7 @@ void runApp(bool isDebugBuild) {
 	{
 		// Remove some of the quaternion values and see if it works
 		
-		AddAnimationAsset("Quater");
+		/*AddAnimationAsset("Quater");
 		quater = GetAnimationAsset("Quater");
 		
 		quater->Modify(0, 60);
@@ -369,28 +371,28 @@ void runApp(bool isDebugBuild) {
 		//cha.Add(QuaW, w);
 
 		quater->AddObjectChannels(0, channel);
-
+		*/
 		//std::cout << "obs "<< quater->objects.size() << std::endl;
 		//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 	}
 
 	/*
 	melody.Init("assets/sounds/melody.wav");
-
 	engine::SoundBuffer trumpet;
 	trumpet.Init("assets/sounds/trumpet.wav");
-
 	engine::SoundSource trumpetS;
 	trumpetS.Init();
 	trumpetS.Bind(trumpet);
-
 	//trumpetS.Play();
 	//melody.source.Play();
-
 	melody.source.Gain(0.25);
 	*/
 
-	// Game World setup - debug purpose at the moment
+	//-- Event
+	AddListener(new EventListener(EventType::Key,OnKey));
+	AddListener(new EventListener(EventType::Click,OnMouse));
+
+	//-- Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));
 	//engine::AddObject(new Goblin(0, -3, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
@@ -409,11 +411,11 @@ void runApp(bool isDebugBuild) {
 	AddObject(tom);
 	//ob->quaternion = {1,0.5,0,0};
 	
-	gameHandler.player = new Player(0, 0, 0);
+	game::SetPlayer(new Player(0, 0, 0));
 	GetCamera()->position.x = 0;
 	GetCamera()->position.z = 5;
-	gameHandler.player->flight = true;
-	AddObject(gameHandler.player);
+	game::GetPlayer()->flight = true;
+	AddObject(game::GetPlayer());
 	SetState(GameState::CameraToPlayer,false);
 	//engine::GetCamera()->SetPosition(0,0,-5);
 
@@ -421,12 +423,12 @@ void runApp(bool isDebugBuild) {
 	
 	//l->linear = 0.25;
 	//l->quadratic = 0.059;
-	renderer->AddLight(light=l);
+	AddLight(light=l);
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
 	//CustomDimension();
 	
-	// Shadow framebuffer
+	// Shadow framebuffer - move some where else
 	float v[]{
 		-1,-1,0,0,
 		1,-1,1,0,

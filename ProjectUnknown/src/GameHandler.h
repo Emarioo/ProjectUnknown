@@ -4,14 +4,12 @@
 #include "GameStateEnum.h"
 #include "Objects/Player.h"
 
-class GameHandler {
-private:
-public:
-	Player* player=nullptr;
-
+namespace game
+{
 	/*
 	Start game by setting the correct game state, lock the cursor, init items
 	*/
 	void StartGame();
-};
-extern GameHandler gameHandler;
+	Player* GetPlayer();
+	void SetPlayer(Player* player);
+}

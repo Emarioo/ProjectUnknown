@@ -111,22 +111,22 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 	if (textureGroups.size() > type.textureGroup) {
 		short index = type.textureIndex;
-		engone::renderer->BindTexture(0, "items/" + textureGroups[type.textureGroup]);
+		engone::BindTexture(0, "items/" + textureGroups[type.textureGroup]);
 
 		float u = (index % itemWidth) * size;
 		float v = ((int)((itemWidth - 1) - index / itemWidth)) * size;
 
 		y -= h; // offsetting
 
-		engone::renderer->SetColor(1, 1, 1, 1);
-		engone::renderer->SetSize(1, 1);
-		engone::renderer->DrawUVRect(x, y, w, h, u, v, size, size);
+		engone::SetColor(1, 1, 1, 1);
+		engone::SetSize(1, 1);
+		engone::DrawUVRect(x, y, w, h, u, v, size, size);
 
 		if (!text.empty()) {
-			engone::renderer->SetTransform(x + w / 6, y + h / 4);
-			engone::renderer->SetColor(r, g, b, a);
-			engone::renderer->SetSize(0.75, 0.75);
-			engone::renderer->DrawString("consolas42", text, true, h * 0.6, -1);
+			engone::SetTransform(x + w / 6, y + h / 4);
+			engone::SetColor(r, g, b, a);
+			engone::SetSize(0.75, 0.75);
+			engone::DrawString("consolas42", text, true, h * 0.6, -1);
 		}
 	}
 }

@@ -40,7 +40,7 @@ void InterfaceManager::Render(double lag) {
 			float aspectRatio = 1080 / 1920.f;
 
 			if (aspectRatio != 0) {
-				float newRatio = engone::renderer->Height() / engone::renderer->Width();
+				float newRatio = engone::Height() / engone::Width();
 				if (newRatio > aspectRatio) {
 					// Height is bigger or width is smaller
 					ih *= aspectRatio / newRatio;
@@ -50,7 +50,7 @@ void InterfaceManager::Render(double lag) {
 					iw *= newRatio / aspectRatio;
 				}
 			}
-			DrawItem(heldItem, engone::renderer->GetFloatMouseX() - iw / 2, engone::renderer->GetFloatMouseY() + ih / 2, iw, ih, 1, 1, 1, 1);
+			DrawItem(heldItem, engone::GetFloatMouseX() - iw / 2, engone::GetFloatMouseY() + ih / 2, iw, ih, 1, 1, 1, 1);
 		}
 	}
 }
@@ -149,7 +149,7 @@ void InterfaceManager::SetupMainMenu() {
 			AddTimedFunction([=]() {
 				// Load world data
 
-				gameHandler.StartGame();
+				game::StartGame();
 
 				uiFadeBool = false;
 				if(infobar!=nullptr)

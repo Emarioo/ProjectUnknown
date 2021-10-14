@@ -79,13 +79,13 @@ namespace engone {
 		for (auto p : elements) {
 			if (p->IsActive()) {
 				if (p->HasTags()) {
-					p->HoverEvent(renderer->GetMouseX(), renderer->GetMouseY());
+					p->HoverEvent(GetMouseX(), GetMouseY());
 				}
 			}
 		}
 		for (auto p : iBases) {
 			if (p->IsActive())
-				p->HoverEvent(renderer->GetMouseX(), renderer->GetMouseY());
+				p->HoverEvent(GetMouseX(), GetMouseY());
 		}
 		for (auto p : elements) {
 			if (p->IsActive()) {
@@ -181,8 +181,8 @@ namespace engone {
 		}*/
 	}
 	void RenderInterface(double lag) {
-		renderer->SwitchBlendDepth(true);
-		renderer->BindShader(ShaderType::Interface);
+		SwitchBlendDepth(true);
+		BindShader(ShaderType::Interface);
 		
 		for (auto p : elements) {
 			//bug::out < p->name < '\n';
@@ -199,11 +199,11 @@ namespace engone {
 				p->Render();
 			}
 		}
-		renderer->SetColor(0.9, 0.8, 0.7, 1);
-		renderer->SetTransform(-1, 1-0.05);
-		renderer->SetSize(1, 1);
+		SetColor(0.9, 0.8, 0.7, 1);
+		SetTransform(-1, 1-0.05);
+		SetSize(1, 1);
 		
-		renderer->DrawString("consolas42",
+		DrawString("consolas42",
 			std::to_string(GetPlayTime()),
 			false, 0.05, -1);
 		/*

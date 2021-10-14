@@ -49,7 +49,7 @@ namespace engone {
 	}
 	float ITransition::ValueX() {
 		if (movePixel) {
-			return renderer->ToFloatScreenW(x * moveT);
+			return ToFloatScreenW(x * moveT);
 		}
 		else {
 			return x * moveT;
@@ -57,7 +57,7 @@ namespace engone {
 	}
 	float ITransition::ValueY() {
 		if (movePixel) {
-			return renderer->ToFloatScreenH(y * moveT);
+			return ToFloatScreenH(y * moveT);
 		}
 		else {
 			return y * moveT;
@@ -65,7 +65,7 @@ namespace engone {
 	}
 	float ITransition::ValueW() {
 		if (sizePixel) {
-			return renderer->ToFloatScreenW(w * sizeT);
+			return ToFloatScreenW(w * sizeT);
 		}
 		else {
 			return w * sizeT;
@@ -73,7 +73,7 @@ namespace engone {
 	}
 	float ITransition::ValueH() {
 		if (sizePixel) {
-			return renderer->ToFloatScreenH(h * sizeT);
+			return ToFloatScreenH(h * sizeT);
 		}
 		else {
 			return h * sizeT;

@@ -89,7 +89,7 @@ namespace engone {
 		float px = 0;
 		float pw = 0;
 		if (isPixel) {
-			move = renderer->ToFloatScreenW(raw);
+			move = ToFloatScreenW(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -194,7 +194,7 @@ namespace engone {
 		float py = 0;
 		float ph = 0;
 		if (isPixel) {
-			move = renderer->ToFloatScreenH(raw);
+			move = ToFloatScreenH(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -245,7 +245,7 @@ namespace engone {
 		float move = raw;
 		float pw = 0;
 		if (isPixel) {
-			move = renderer->ToFloatScreenW(raw);
+			move = ToFloatScreenW(raw);
 		}
 		
 		if (parent != nullptr) {
@@ -285,7 +285,7 @@ namespace engone {
 		float move = raw;
 		float ph = 0;
 		if (isPixel) {
-			move = renderer->ToFloatScreenH(raw);
+			move = ToFloatScreenH(raw);
 		}
 		
 		if (parent != nullptr) {

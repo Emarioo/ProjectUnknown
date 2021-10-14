@@ -28,16 +28,16 @@ void IntroScene::Update(float delta) {
 	else if (introScene_time > 5) {
 		active = false;
 		engone::SetState(GameState::Intro, false);
-		engone::renderer->SetCursorVisibility(true);
+		engone::SetCursorVisibility(true);
 		engone::SetState(GameState::Menu, true);
 	}
 }
 void IntroScene::Render() {
 	// Inventory background
-	engone::renderer->BindTexture(0, "blank");
-	engone::renderer->DrawRect(-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
+	engone::BindTexture(0, "blank");
+	engone::DrawRect(-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
 
 	// Logo/Text
-	engone::renderer->BindTexture(0, "intro");
-	engone::renderer->DrawRect(x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
+	engone::BindTexture(0, "intro");
+	engone::DrawRect(x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
 }

@@ -50,7 +50,7 @@ namespace engone {
 
 	}
 	float Text::PixelWidth(bool f) {
-		Font* fo = renderer->GetFont(font);
+		Font* fo = GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -74,7 +74,7 @@ namespace engone {
 		return max;
 	}
 	float Text::PixelHeight(bool f) {
-		Font* fo = renderer->GetFont(font);
+		Font* fo = GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float hei = fo->charSize;
@@ -89,7 +89,7 @@ namespace engone {
 		return hei;
 	}
 	float Text::ScreenPosX(int c) {
-		Font* fo = renderer->GetFont(font);
+		Font* fo = GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -108,7 +108,7 @@ namespace engone {
 	}
 
 	int Text::PixelPosX(int c) {
-		Font* fo = renderer->GetFont(font);
+		Font* fo = GetFont(font);
 		if (fo == nullptr)
 			return 0;
 		float wid = 0;
@@ -373,7 +373,7 @@ namespace engone {
 
 		float atX = 0;
 		float atY = 0;
-		float ratio = charHeight /(renderer::Wid()/ renderer::Hei());
+		float ratio = charHeight /(Wid()/ Hei());
 
 		int i=0;
 		for (char cha : text) {
@@ -438,9 +438,9 @@ namespace engone {
 	}
 	void Text::DrawString(float alpha, bool f) {
 		// Dynamic
-		float actualHeight = renderer->ToFloatScreenH(charHeight);
+		float actualHeight = ToFloatScreenH(charHeight);
 		if (!staticHeight) {
-			actualHeight = ((*elemW / 2 * renderer->Width()) / PixelWidth(true)) * renderer->ToFloatScreenH(64);
+			actualHeight = ((*elemW / 2 * Width()) / PixelWidth(true)) * ToFloatScreenH(64);
 			float a = *elemH / PixelHeight(false);
 			if (a < 1)
 				actualHeight *= a;
@@ -452,19 +452,19 @@ namespace engone {
 			y = ypos - charHeight + PixelHeight(false) / 2;
 		}*/
 
-		renderer->SetTransform(xpos, ypos);
-		renderer->SetColor(r, g, b, a * alpha);
+		SetTransform(xpos, ypos);
+		SetColor(r, g, b, a * alpha);
 		if (f) {
-			engone::renderer->DrawString(font, text, center, actualHeight, atChar);
+			engone::DrawString(font, text, center, actualHeight, atChar);
 		} else {
-			engone::renderer->DrawString(font, text, center, actualHeight, -1);
+			engone::DrawString(font, text, center, actualHeight, -1);
 		}
 		/*
 		if (f) {
 			//std::cout << (x + PixelPosX(atChar)) << " " << (y + PixelPosY(atChar)) << std::endl;
-			renderer::GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
-			renderer::GuiColor(r, g, b, a);
-			renderer::BindTexture("blank");
+			GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
+			GuiColor(r, g, b, a);
+			BindTexture("blank");
 			marker.Draw();
 		}*/
 	}

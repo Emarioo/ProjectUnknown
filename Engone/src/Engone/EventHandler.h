@@ -1,80 +1,77 @@
 #pragma once
 
+#include <functional>
+
 namespace engone {
 
-	enum class EventType
+	enum class EventType : char
 	{
 		NONE=0,
-		Mouse,
-		Drag,
-		Key,
-		Scroll,
-		Resize,
-		Focus,
+		Click=1,
+		Move=2,
+		Scroll=4,
+		Key=8,
+		Resize=16,
+		Focus=32,
 	};
 	class Event
 	{
 	public:
-		Event(EventType t, int d0)
-			: eventType(t), values{ d0 } {}
-		Event(EventType t, int d0, int d1)
-			: eventType(t), values{d0, d1} {}
-		Event(EventType t, int d0, int d1, int d2, int d3)
-			: eventType(t), values{ d0, d1, d2, d3 } {}
-		int GetX() {
-			return values[0];
-		}
-		int GetY() {
-			return values[1];
-		}
-		int GetAction() {
-			return values[2];
-		}
-		int GetButton() {
-			return values[3];
-		}
-		int GetScroll() {
-			return values[0];
-		}
-		int GetFocus() {
-			return values[0];
-		}
-	private:
+		Event(EventType t)
+			: eventType(t) {}
+	
 		EventType eventType;
-		int values[4];
+
+		union
+		{
+			struct
+			{
+				int action, key, scancode;
+			};
+			struct
+			{
+				int action, mx, my, button, scroll;
+			};
+			struct
+			{
+				// New size of window
+				int rw, rh;
+				bool focused;
+			};
+		};
 	};
+	/*
+	Can not use multiple events that uses the same member variables in the union.
+	Mouse click, move and scroll is fine for example but not mouse and key events.
+	*/
 	class EventListener
 	{
 	public:
-		EventListener();
-
-		virtual void run(Event* e) = 0;
-	private:
+		EventListener(EventType type, std::function<bool(Event&)> f);
+		std::function<bool(Event&)> run;
 		EventType eventType;
 	};
-	class EventHandler
-	{
-	public:
-		EventHandler() = default;
-		/*
-		Set event callbacks from glfw
-		*/
-		void Init();
 
-		void AddListener(EventListener* dispatcher);
-		void AddEvent(Event* e);
-		void DispatchEvents();
+	/*
+	Set event callbacks from glfw. Currently done at the end of MakeWindow() in renderer
+	*/
+	void InitEvents();
 
-		int GetMouseX();
-		int GetMouseY();
-		void SetMouseX(int x);
-		void SetMouseY(int y);
+	void AddListener(EventListener* listener);
+	void AddEvent(Event e);
+	void DispatchEvents();
 
-	private:
-		std::vector<EventListener*> listeners;
-		std::vector<Event*> events;
+	int GetMouseX();
+	int GetMouseY();
 
-		int mouseX,mouseY;
-	};
-	extern EventHandler* eventHandler;
+	bool IsKeyDown(int key);
+	bool IsActionDown(unsigned short action);
+	void AddActionKey(unsigned short keyName, int keyCode);
+	/*
+	Returns number of keys loaded. Zero means that an empty keybindings file was loaded or that there is no file. Either way, default keybindings should be created.
+	Less keys than there should be will most likely cause issues in the gameplay.
+	*/
+	int LoadKeybindings(const std::string& path);
+	void SaveKeybindings(const std::string& path);
+	void ClearKeybindings();
 }

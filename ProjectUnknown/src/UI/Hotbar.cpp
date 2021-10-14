@@ -19,8 +19,8 @@ bool Hotbar::MouseEvent(int mx, int my, int action, int button) {
 
 	//CalcConstraints();
 
-	float mouseX = engone::renderer->ToFloatScreenX(mx);
-	float mouseY = engone::renderer->ToFloatScreenY(my);
+	float mouseX = engone::ToFloatScreenX(mx);
+	float mouseY = engone::ToFloatScreenY(my);
 
 	//bug::outs < "mx " < mouseX < x < (x+w) < "\nmy" < mouseY < y < (y+h) < bug::end;
 
@@ -92,16 +92,16 @@ void Hotbar::Update(float delta) {
 void Hotbar::Render() {
 
 	// Inventory background
-	engone::renderer->BindTexture(0, "containers/hotbar");
+	engone::BindTexture(0, "containers/hotbar");
 
 	//CalcConstraints();
 
-	engone::renderer->DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
 
 	// Items
 	if (container != nullptr) {
-		float wid = engone::renderer->Width();
-		float hei = engone::renderer->Height();
+		float wid = engone::Width();
+		float hei = engone::Height();
 
 		float gap = w * (4 / 608.f);
 
