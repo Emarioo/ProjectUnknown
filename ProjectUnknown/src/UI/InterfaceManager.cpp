@@ -60,11 +60,12 @@ void InterfaceManager::SetupIntro() {
 		return;
 	hasIntro = true;
 	using namespace engone;
-	
-	AddTextureAsset("intro");
+	/*
+	AddTexture("intro",new Texture("assets/textures/intro.png"));
 	engone::AddBase(introScene = new IntroScene("IntroScene"));
 	introScene->conX.Center(0.f)->conY.Center(0.f)
 		->conW.Center(331 / 1920.f * 2)->conH.Center(277 / 1080.f * 2)->SetFixed();
+	*/
 }
 // What to do with these?
 bool uiFadeBool = false;
@@ -82,7 +83,7 @@ void InterfaceManager::SetupMainMenu() {
 	hasMainMenu = true;
 
 	using namespace engone;
-
+#if begone
 	// Stage One
 	IElement* alone = AddElement("playAlone", 5);
 	{
@@ -202,31 +203,37 @@ void InterfaceManager::SetupMainMenu() {
 		uiFade->conX.Center(0)->conY.Center(0)->conW.Center(2.f)->conH.Center(2.f);
 		uiFade->NewTransition(&uiFadeBool)->Fade({ 0.f, 1.f }, .5f);
 	}
+#endif
 }
 bool hasGameUI = false;
 void InterfaceManager::SetupGameUI() {
 	if (hasGameUI)
 		return;
 	hasGameUI = true;
-	engone::AddTextureAsset("containers/inventory");
+	using namespace engone;
+	engone::AddTexture("inventory",new engone::Texture("assets/textures/containers/inventory.png"));
+	
+	/*
+
 	engone::AddBase(inventory = new Inventory("PlayerInventory"));
 	inventory->conX.Right(0.f)->conY.Center(0.f)
 		->conW.Center(440 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
 
-	engone::AddTextureAsset("containers/craftinglist");
+	engone::AddTexture("craftinglist",new engone::Texture("assets/textures/containers/craftinglist.png"));
 	engone::AddBase(craftingList = new CraftingList("PlayerCrafting"));
 	craftingList->conX.Right(inventory, 0.01f)->conY.Center(0.f)
 		->conW.Center(512 / 1920.f * 2)->conH.Center(850 / 1080.f * 2)->SetFixed();
 
-	engone::AddTextureAsset("containers/infobar");
+	engone::AddTexture("infobar",new engone::Texture("assets/textures/containers/infobar"));
 	engone::AddBase(infobar = new Infobar("PlayerInfobar"));
 	infobar->conX.Left(0.f)->conY.Top(0.f)
 		->conW.Center(550 / 1920.f)->conH.Center(226 / 1080.f)->SetFixed();
 
-	engone::AddTextureAsset("containers/hotbar");
+	engone::AddTexture("hotbar",new engone::Texture("assets/textures/containers/hotbar"));
 	engone::AddBase(hotbar = new Hotbar("PlayerHotbar"));
 	hotbar->conX.Center(0.f)->conY.Bottom(0.02f)
 		->conW.Center(608 / 1920.f * 2)->conH.Center(64 / 1080.f * 2)->SetFixed();
+	*/
 }
 /*
 bool pause = false;

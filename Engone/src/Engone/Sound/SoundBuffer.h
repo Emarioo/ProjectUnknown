@@ -1,7 +1,7 @@
 #pragma once
 
-#include <AL/al.h>
-#include <AL/alc.h>
+#include "AL/al.h"
+#include "AL/alc.h"
 
 #define alCall(x) x; if(al_check_error()) __debugbreak();
 

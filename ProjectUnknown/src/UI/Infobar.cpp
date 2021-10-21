@@ -14,9 +14,15 @@ void Infobar::Update(float delta) {
 }
 void Infobar::Render() {
 	// Inventory background
-	engone::BindTexture(0, "containers/infobar");
+	engone::GetTexture("infobar")->Bind();
 
-	engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::Shader* gui = engone::GetShader("gui");
+	gui->SetVec2("uPos", { x,y });
+	gui->SetVec2("uSize", { w,h });
+	gui->SetVec4("uColor", color.r, color.g, color.b, color.a);
+	gui->SetInt("uTextured", 1);
+
+	engone::DrawRect();
 
 	Player* plr = game::GetPlayer();
 
@@ -31,40 +37,50 @@ void Infobar::Render() {
 	float barBorderW = w * 2 / 550.f;
 	float barBorderH = h * 2 / 226.f;
 
-	engone::BindTexture(0, "blank");
+	gui->SetInt("uTextured", 0);
 
 	float baseX = x + barBorderW;
 	float baseY = y + h - barBorderH - barHeight;
 	float strideY = (barHeight + barGap);
 
-	engone::SetColor(0, 1, 0, 1);
-	engone::DrawRect(baseX, baseY, health * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY });
+	gui->SetVec2("uSize", { health * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0, 1, 0, 1);
+	engone::DrawRect();
 
-	engone::SetColor(1, 1, 0, 1);
-	engone::DrawRect(baseX, baseY - strideY, stamina * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - strideY });
+	gui->SetVec2("uSize", { stamina * fullWidth, barHeight });
+	gui->SetVec4("uColor", 1, 1, 0, 1);
+	engone::DrawRect();
 
-	engone::SetColor(0.8, 0.5, 0.2, 1);
-	engone::DrawRect(baseX, baseY - 2 * strideY, hunger * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - 2 * strideY });
+	gui->SetVec2("uSize", { hunger * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0.8, 0.5, 0.2, 1);
+	engone::DrawRect();
 
-	engone::SetColor(0.1, 0.2, 1, 1);
-	engone::DrawRect(baseX, baseY - 3 * strideY, mana * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - 3 * strideY });
+	gui->SetVec2("uSize", { mana * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0.1, 0.2, 1, 1);
+	engone::DrawRect();
 
-	engone::SetColor(1, 1, 1, 1);
-	engone::SetSize(1, 1);
+	gui->SetVec2("uSize", { 1,1 });
+	gui->SetVec4("uColor", 1, 1, 1, 1);
 
 	float textX = x + fullWidth / 2 + barBorderW;
 	float textY = y + h - barBorderH - barHeight / 2;
 
-	engone::SetTransform(textX, textY);
-	engone::DrawString("consolas42", std::to_string((int)plr->health) + "/" + std::to_string((int)plr->maxHealth), true, barHeight, -1);
+	engone::Font* consolas = engone::GetFont("consolas");
 
-	engone::SetTransform(textX, textY - strideY);
-	engone::DrawString("consolas42", std::to_string((int)plr->stamina) + "/" + std::to_string((int)plr->maxStamina), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY });
+	engone::DrawString(consolas, std::to_string((int)plr->health) + "/" + std::to_string((int)plr->maxHealth), true, barHeight,fullWidth,barHeight);
 
-	engone::SetTransform(textX, textY - 2 * strideY);
-	engone::DrawString("consolas42", std::to_string((int)plr->hunger) + "/" + std::to_string((int)plr->maxHunger), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY-strideY });
+	engone::DrawString(consolas, std::to_string((int)plr->stamina) + "/" + std::to_string((int)plr->maxStamina), true, barHeight, fullWidth, barHeight);
 
-	engone::SetTransform(textX, textY - 3 * strideY);
-	engone::DrawString("consolas42", std::to_string((int)plr->mana) + "/" + std::to_string((int)plr->maxMana), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY - strideY*2 });
+	engone::DrawString(consolas, std::to_string((int)plr->hunger) + "/" + std::to_string((int)plr->maxHunger), true, barHeight, fullWidth, barHeight);
+
+	gui->SetVec2("uPos", { textX,textY - strideY*3 });
+	engone::DrawString(consolas, std::to_string((int)plr->mana) + "/" + std::to_string((int)plr->maxMana), true, barHeight, fullWidth, barHeight);
 
 }

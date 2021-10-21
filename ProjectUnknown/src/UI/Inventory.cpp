@@ -53,7 +53,7 @@ bool Inventory::MouseEvent(int mx, int my, int action, int button) {
 	return false;
 }
 bool Inventory::KeyEvent(int key, int action) {
-	if (engone::IsActionDown(KeyInventory)) {
+	if (engone::IsKeybindingDown(KeyInventory)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.craftingList->active) {
@@ -68,9 +68,12 @@ void Inventory::Update(float delta) {
 }
 void Inventory::Render() {
 	// Inventory background
-	engone::BindTexture(0, "containers/inventory");
-
-	engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	using namespace engone;
+	Shader* gui = GetShader("gui");
+	GetTexture("inventory")->Bind();
+	gui->SetInt("uTextured", 1);
+	
+	DrawRect(gui,x, y, w, h, color.r, color.g, color.b, color.a);
 
 	// Items
 	if (container != nullptr) {

@@ -2,18 +2,18 @@
 
 #include "DebugHandler.h"
 
-#include "../Handlers/UIHandler.h"
+//#include "../Handlers/UIHandler.h"
 
 #include "DebugPanel.h"
 
 #include "GameState.h"
 
 namespace engone {
-	DebugPanel* debugPanel;
+	//DebugPanel* debugPanel;
 	void SetupDebugPanel() {
-		debugPanel = new DebugPanel("Debug Panel");
-		debugPanel->conX.Left(0.f)->conY.Center(0.f)->conW.Center(.4f)->conH.Center(2.f);
-		engone::AddBase(debugPanel);
+		//debugPanel = new DebugPanel("Debug Panel");
+		//debugPanel->conX.Left(0.f)->conY.Center(0.f)->conW.Center(.4f)->conH.Center(2.f);
+		//engone::AddBase(debugPanel);
 	}
 }
 namespace bug {

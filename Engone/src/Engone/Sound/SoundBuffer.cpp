@@ -1,9 +1,8 @@
 #include "gonpch.h"
 
-#include "SoundBuffer.h"
-
 #include "Handlers/FileHandler.h"
 
+#include "SoundBuffer.h"
 #include "Libaudio.h"
 
 bool al_check_error() {
@@ -43,7 +42,7 @@ namespace engone {
 			alCall(alDeleteBuffers(1, &id));
 	}
 	void SoundBuffer::Init(const char* path) {
-		if (engone::FileExist(path)) {
+		if (engone::FindFile(path)) {
 			//TEST_ERROR("buffer generation");
 			ALsizei size, freq;
 			int channels, bps;

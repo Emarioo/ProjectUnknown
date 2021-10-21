@@ -34,10 +34,12 @@ void IntroScene::Update(float delta) {
 }
 void IntroScene::Render() {
 	// Inventory background
-	engone::BindTexture(0, "blank");
-	engone::DrawRect(-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
+	engone::Shader* gui = engone::GetShader("gui");
+	gui->SetInt("uTextured",0);
+	engone::DrawRect(gui,-1.f, -1.f, 2.f, 2.f, introScene_fade1, introScene_fade1, introScene_fade1, introScene_alpha1);
 
 	// Logo/Text
-	engone::BindTexture(0, "intro");
-	engone::DrawRect(x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
+	engone::GetTexture("intro")->Bind();
+	gui->SetInt("uTextured", 1);
+	engone::DrawRect(gui,x, y, w, h, introScene_fade2, introScene_fade2, introScene_fade2, introScene_alpha2);
 }

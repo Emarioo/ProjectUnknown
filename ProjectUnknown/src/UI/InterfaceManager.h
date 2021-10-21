@@ -7,7 +7,7 @@
 #include "Hotbar.h"
 #include "IntroScene.h"
 
-#include "Engone/Handlers/UIHandler.h"
+#include "Engone/UI/GUIManager.h"
 
 #include "GameStateEnum.h"
 

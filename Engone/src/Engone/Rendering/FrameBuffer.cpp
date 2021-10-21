@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
+//#if ENGONE_GLFW
 #include "FrameBuffer.h"
-
 #include <GL/glew.h>
 
 namespace engone {
@@ -33,3 +33,4 @@ namespace engone {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }
+//#endif

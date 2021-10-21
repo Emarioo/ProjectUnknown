@@ -168,7 +168,7 @@ void Container::SwitchItem(Item** a, Item** b,int button, int action) {
 		//bug::out < "SwitchItemLocation pointer is nullptr" < bug::end;
 		return;
 	}
-	if (engone::IsActionDown(KeySwitchItem)) {
+	if (engone::IsKeybindingDown(KeySwitchItem)) {
 		Item** temp = a;
 		a = b;
 		b = temp;

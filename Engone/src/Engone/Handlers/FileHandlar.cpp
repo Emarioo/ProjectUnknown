@@ -7,55 +7,50 @@
 
 namespace engone {
 
-	bool FileExist(const std::string& path) {
+	bool FindFile(const std::string& path) {
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
 	}
-	void GetFiles(const std::string& path, std::vector<std::string>* list) {
+	void GetFiles(const std::string& path, std::vector<std::string>& list) {
 		for (const auto& entry : std::filesystem::directory_iterator(path)) {
-			list->push_back(entry.path().generic_string());
+			list.push_back(entry.path().generic_string());
 		}
-		for (int i = 0; i < list->size();i++) {
-			std::cout << list->at(i) << std::endl;
-		}
+		/*
+		for (int i = 0; i < list.size();i++) {
+			std::cout << list.at(i) << std::endl;
+		}*/
 	}
-	FileReport WriteTextFile(const std::string& path_, std::vector<std::string>& text) {
-		std::string path = path_;
-		std::ofstream file(path);
-		std::vector<std::string> out;
+	FileReport ReadTextFile(const std::string& path, std::vector<std::string>& list)
+	{
+		std::ifstream file(path);
+
 		if (!file) {
-			bug::out < bug::RED < "Cannot find file '" < path < "'\n";
 			return FileReport::NotFound;
-		} else {
-			for (int i = 0; i < text.size(); i++) {
-				if (i != 0)
-					file << "\n";
-				file << text[i];
-			} 
+		}
+
+		std::string line;
+		while (getline(file, line))
+		{
+			list.push_back(line);
 		}
 		file.close();
 		return FileReport::Success;
 	}
-
-	std::vector<std::string> ReadTextFile(const std::string& path_, FileReport* err) {
-		*err = FileReport::Success;
-		std::string path = path_;
-		std::ifstream file(path);
-
+	FileReport WriteTextFile(const std::string& path, std::vector<std::string>& list) {
+		std::ofstream file(path);
 		std::vector<std::string> out;
 		if (!file) {
-			*err = FileReport::NotFound;
-			bug::out < bug::RED <"Cannot find file '" < path  <"'\n";
-			return out;
+			return FileReport::NotFound;
 		}
-		std::string line;
-		while (getline(file, line))
-		{
-			out.push_back(line);
-		}
+		for (int i = 0; i < list.size(); i++) {
+			if (i != 0)
+				file.write("\n", 1);
+			file.write(&(list[i][0]), list[i].length());
+		} 
 		file.close();
-		return out;
-	}/*
+		return FileReport::Success;
+	}
+	/*
 	template<class T>
 	T ReadT(std::ifstream* f) {
 		T buf;
@@ -169,7 +164,7 @@ namespace engone {
 
 		// Dependecies
 		if (data->diffuse_map!="blank")
-			AddTextureAsset(data->diffuse_map);
+			AddTexture(data->diffuse_map,new Texture("assets/textures/"+data->diffuse_map));
 
 	}
 	void LoadMesh(Mesh* data, const std::string& path_) {
@@ -481,9 +476,9 @@ namespace engone {
 		file.close();
 		
 		if (useArmature == 0) {
-			data->shaderType = ShaderType::Color;
+			data->shaderType = 0;// ShaderType::Color;
 		} else if (useArmature == 1) {
-			data->shaderType = ShaderType::ColorBone;
+			data->shaderType = 0;// ShaderType::ColorBone;
 		}
 		for (std::string& mat : materials) {
 			AddMaterialAsset(mat);

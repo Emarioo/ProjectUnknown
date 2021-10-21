@@ -1,5 +1,7 @@
 #include "gonpch.h"
 
+#if ENGONE_AL
+
 #include "SoundHandler.h"
 
 namespace engone {
@@ -72,3 +74,4 @@ namespace engone {
 		alCall(alcCloseDevice(device));
 	}
 }
+#endif

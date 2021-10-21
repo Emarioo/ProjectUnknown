@@ -42,10 +42,13 @@ void WorldHandler::Update(float delta) {
 }
 void WorldHandler::Render() {
 
+	using namespace engone;
+	Shader* gui = GetShader("gui");
+
 	// background
 	if (color.a != 0) {
-		engone::BindTexture(0, "blank");
-		engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+		gui->SetInt("uTextured", 0);
+		engone::DrawRect(gui,x, y, w, h, color.r, color.g, color.b, color.a);
 	}
 
 	float itemStride = h / 8;
@@ -53,13 +56,15 @@ void WorldHandler::Render() {
 
 	for (int i = 0; i < worldItems.size();i++) {
 		WorldItem& item = worldItems[i];
-		engone::BindTexture(0, "blank");
+		gui->SetInt("uTextured", 0);
 		//bug::out < y < bug::end;
-		engone::DrawRect(x+itemGap, y+h-itemStride*(i+1)+scrollOffset, w-2*itemGap, itemStride-itemGap, 0.4f, 0.2f, 0.6f, 1);
+		engone::DrawRect(gui,x+itemGap, y+h-itemStride*(i+1)+scrollOffset, w-2*itemGap, itemStride-itemGap, 0.4f, 0.2f, 0.6f, 1);
 
-		engone::SetColor(1,1,1,1);
-		engone::SetTransform(x+itemGap+ (w - 2 * itemGap)/2,y+h-itemStride*(i+1)+(itemStride - itemGap)/2+ scrollOffset);
-		engone::SetSize(1, 1);
-		engone::DrawString("consolas42", item.name,true, w - 2 * itemGap,itemStride - itemGap,-1);
+		gui->SetVec2("uPos", { x + itemGap + (w - 2 * itemGap) / 2,y + h - itemStride * (i + 1) + (itemStride - itemGap) / 2 + scrollOffset });
+		gui->SetVec2("uSize", { 1,1 });
+		gui->SetVec4("uColor", 1,1,1,1 );
+		gui->SetInt("uTextured", 1);
+
+		engone::DrawString(GetFont("consolas42"), item.name,true, itemStride-itemGap,w - 2 * itemGap,itemStride - itemGap);
 	}
 }

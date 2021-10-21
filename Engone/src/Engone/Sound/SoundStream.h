@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Libaudio.h"
-
 #include "SoundSource.h"
 
 namespace engone {

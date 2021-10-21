@@ -2,7 +2,7 @@
 
 #include "Rendering/Renderer.h"
 #include "Handlers/ObjectHandler.h"
-#include "Handlers/UIHandler.h"
+#include "UI/GUIManager.h"
 #include "Handlers/SoundHandler.h"
 #include "DebugTool/DebugHandler.h"
 #include "Utility/Utilities.h"
@@ -18,6 +18,8 @@ namespace engone {
 	
 	FrameBuffer& GetDepthBuffer();
 	glm::mat4& GetLightProj();
+	void SetProjection(float ratio);
+	void UpdateProjection();
 
 	/*
 	Initialize engine, window, event...

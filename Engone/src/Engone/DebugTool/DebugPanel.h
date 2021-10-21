@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../UI/IBase.h"
+//#include "../UI/IBase.h"
 
 namespace engone {
+	/*
 	class DebugPanel : public IBase {
 	public:
 		DebugPanel(const std::string& name);
@@ -13,5 +14,5 @@ namespace engone {
 
 		void Update(float delta) override;
 		void Render() override;
-	};
+	};*/
 }

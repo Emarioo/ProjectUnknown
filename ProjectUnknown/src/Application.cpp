@@ -19,6 +19,8 @@
 #include "Other/GameStatistics.h"
 #include "Other/InformativeTips.h"
 
+#include "Engone/Sound/SoundStream.h"
+
 float ang = 0;
 float vel = 1;
 engone::Light* light;
@@ -106,33 +108,39 @@ void Render(double lag) {
 			// All this should be automated and customizable in the engine.
 
 			// Shadow stuff
-			if (BindShader(ShaderType::Depth)) {
+			Shader* depth = GetShader("depth");
+			if (depth!=nullptr) {
+				depth->Bind();
 				glCullFace(GL_BACK);
-				GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
+				depth->SetMatrix("uLightMatrix", GetLightProj()*lightView);
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
 				RenderRawObjects(lag);
 				GetDepthBuffer().Unbind();
 			}
-			
+			Shader* objectShader = GetShader("object");
+
 			glViewport(0, 0, Width(), Height());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-			BindShader(ShaderType::Color);
-			GetShader(ShaderType::Color)->SetInt("shadow_map",0);
-			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+			objectShader->Bind();
+			objectShader->SetInt("shadow_map",0);
+			objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(lag);
 			
 			if (IsKey(GLFW_KEY_K)) {
 				SwitchBlendDepth(true);
-				BindShader(ShaderType::Experiment);
-				GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-				cont.Draw();
+				Shader* experiment = GetShader("experiment");
+				if (experiment != nullptr) {
+					experiment->Bind();
+					experiment->SetInt("uTexture", 0);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
+					cont.Draw();
+				}
 			}
 		}
 	}
@@ -169,7 +177,7 @@ bool OnKey(engone::Event& e) {
 					}
 				}*/
 			}
-			if (engone::IsActionDown(KeyPause)) {
+			if (engone::IsKeybindingDown(KeyPause)) {
 				if (engone::CheckState(GameState::Paused)) {
 					engone::SetState(GameState::Paused, false);
 					engone::LockCursor(true);
@@ -195,7 +203,12 @@ bool OnMouse(engone::Event& e) {
 	}*/
 	return false;
 }
-
+static const std::string experimentGLSL = {
+#include "Shaders/experiment.glsl"
+};
+static const std::string depthGLSL = {
+#include "Shaders/depth.glsl"
+};
 // Is this really supposed to be here?
 void CustomDimension() {
 	using namespace engone;
@@ -318,11 +331,10 @@ void runApp(bool isDebugBuild) {
 
 	//-- Assets should be loaded else where. Maybe where you start the game.  Only if they havent't been loaded though.
 	{
-		AddShader(ShaderType::Light, "lightSource");
-		AddShader(ShaderType::Experiment, "experiment");
-		AddShader(ShaderType::Terrain, "terrain");
+		AddShader("depth",new Shader(depthGLSL,true));
+		AddShader("experiment",new Shader(experimentGLSL,true));
 
-		AddFont("consolas42");
+		AddFont("consolas",new Font("assets/fonts/consolas42"));
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");
@@ -389,8 +401,8 @@ void runApp(bool isDebugBuild) {
 	*/
 
 	//-- Event
-	AddListener(new EventListener(EventType::Key,OnKey));
-	AddListener(new EventListener(EventType::Click,OnMouse));
+	AddListener(new Listener(EventType::Key,OnKey));
+	AddListener(new Listener(EventType::Click,OnMouse));
 
 	//-- Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));

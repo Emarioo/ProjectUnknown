@@ -8,6 +8,13 @@ extern "C" {
 
 namespace engone {
 	
+	static const std::string armatureSource = {
+#include "Shaders/armature.glsl"
+	};
+	static const std::string objectSource = {
+#include "Shaders/object.glsl"
+	};
+
 	FrameBuffer depthBuffer;
 	glm::mat4 lightProjection;
 	FrameBuffer& GetDepthBuffer()
@@ -19,6 +26,22 @@ namespace engone {
 		return lightProjection;
 	}
 	TriangleBuffer temp_;
+
+	static glm::mat4 projMatrix;
+	static glm::mat4 viewMatrix;
+	static float fov, zNear, zFar;
+	void SetProjection(float ratio)
+	{
+		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
+	}
+	void UpdateViewMatrix(double lag)
+	{
+		viewMatrix = glm::inverse(
+			glm::translate(glm::mat4(1.0f), GetCamera()->position + GetCamera()->velocity * (float)lag) *
+			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
+			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
+		);
+	}
 
 	static int lastMouseX=0, lastMouseY=0;
 	// Move somewhere else
@@ -37,12 +60,15 @@ namespace engone {
 	void InitEngone()
 	{
 		InitRenderer();
-		
+#if ENGONE_AL
 		InitSound();
-		InitInterface();
+#endif
+		InitGUI();
 		ReadOptions();
 
-		AddListener(new EventListener(EventType::Move, FirstPerson));
+		
+
+		AddListener(new Listener(EventType::Move, FirstPerson));
 
 		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
 
@@ -52,15 +78,23 @@ namespace engone {
 		temp_.Init(true,vMap,4*3,iMap,6);
 		temp_.SetAttrib(0, 3, 3, 0);
 
-		UpdateKeyboard(false);
+		//UpdateKeyboard(false);
 
 		depthBuffer.Init();
 		float near_plane = 1.f, far_plane = 20.5f;
 		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
+
+		fov = 90.f;
+		zNear = 0.1f;
+		zFar = 400.f;
+
+		SetProjection((float)Width() / Height());
 	}
 	void ExitEngone() 
 	{
+#if ENGONE_AL
 		UninitSound();
+#endif
 	}
 
 	int vecLimit = 500;
@@ -109,20 +143,25 @@ namespace engone {
 	void UpdateUI(double delta) 
 	{
 		UpdateTimedFunc(delta);
-		UpdateInterface(delta);
+		UpdatePanels(delta);
 	}
 	// If hitbox buffer is too small
 	bool reachedLimit = false;
-	void RenderRawObjects(double lag) 
+	void RenderRawObjects(Shader* shader, double lag) 
 	{
 		for (GameObject* o : GetObjects()) {
 			if (o->renderComponent.model != nullptr) {
 				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
 					Mesh* mesh = o->renderComponent.model->meshes[i];
 					if (mesh != nullptr) {
+						shader->SetMatrix("uTransform", o->renderComponent.matrix *
+							glm::translate(o->velocity * (float)lag) * // special
+							o->renderComponent.model->matrices[i]);
+						/*
 						SetTransform(o->renderComponent.matrix*
 							glm::translate(o->velocity*(float)lag)* // special
 							o->renderComponent.model->matrices[i]);
+						*/
 						mesh->Draw();
 					}
 				}
@@ -144,28 +183,32 @@ namespace engone {
 
 		UpdateViewMatrix(lag);
 
-		if (BindShader(ShaderType::Color))
+		Shader* shader = GetShader("object");
+
+		if (!shader->error)
 		{
+			shader->Bind();
+
 			UpdateProjection();
-			GetBoundShader()->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
+			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
 			for (GameObject* o : GetObjects())
 			{
 				if (o->renderComponent.model != nullptr) 
 				{
-					BindLights(o->position);
+					BindLights(shader,o->position);
 					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) 
 					{
 						Mesh* mesh = o->renderComponent.model->meshes[i];
 						if (mesh != nullptr)
 						{
-							if (mesh->shaderType == ShaderType::Color)
+							if (mesh->shaderType == "object")
 							{// The shader might not be called here. so binding lights may be unecessary
 								for (int i = 0; i < mesh->materials.size()&&i<4;i++) 
 								{// Maximum of 4 materials
-									PassMaterial(i,mesh->materials[i]);
+									PassMaterial(shader,i,mesh->materials[i]);
 									//bug::out < i < bug::end;
 								}
-								SetTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+								shader->SetMatrix("uTransform", o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} 
@@ -181,17 +224,18 @@ namespace engone {
 				}
 			}
 		}
-		
-		if (BindShader(ShaderType::ColorBone))
+		shader = GetShader("armature");
+		if (!shader->error)
 		{
+			shader->Bind();
 			UpdateProjection();
-			GetBoundShader()->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
+			shader->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
 			for (GameObject* o : GetObjects()) 
 			{
 				if (o->renderComponent.model != nullptr)
 				{
 					//bug::outs < "Update " < o->name<"\n";
-					BindLights(o->position);
+					BindLights(shader,o->position);
 					if (o->renderComponent.model->armature != nullptr) 
 					{
 						if (!o->renderComponent.model->armature->hasError) 
@@ -203,7 +247,7 @@ namespace engone {
 							for (int i = 0; i < count; i++) 
 							{
 								//bug::outs < mats[i] < "\n";
-								GetBoundShader()->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
+								shader->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
 							}
 						}
 					}
@@ -212,13 +256,13 @@ namespace engone {
 						Mesh* mesh = o->renderComponent.model->meshes[i];
 						if (mesh != nullptr) 
 						{
-							if (mesh->shaderType == ShaderType::ColorBone) 
+							if (mesh->shaderType == "armature") 
 							{// The shader might not be called here. so binding lights may be unecessary
 								for (int i = 0; i < mesh->materials.size() && i < 4; i++) 
 								{// Maximum of 4 materials
-									PassMaterial(i, mesh->materials[i]);
+									PassMaterial(shader,i, mesh->materials[i]);
 								}
-								SetTransform(o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
+								shader->SetMatrix("uTransform",o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} 
@@ -295,11 +339,12 @@ namespace engone {
 				}
 			}
 		}*/
-		
-		if (BindShader(ShaderType::Outline))
+		shader = GetShader("outline");
+		if (shader!=nullptr)
 		{
+			shader->Bind();
 			UpdateProjection();
-			SetTransform(glm::mat4(1));
+			shader->SetMatrix("uTransform",glm::mat4(1));
 			glLineWidth(2.f);
 			/*
 			GameObject* n = GetObjectByName("Player");
@@ -422,7 +467,7 @@ namespace engone {
 							o->renderComponent.GetArmatureTransforms(mats);
 							for (int i = 0; i < count; i++) {
 								//bug::outs < mats[i] < "\n";
-								GetBoundShader()->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
+								shader->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
 							}
 
 							int atVec = 0;
@@ -518,7 +563,7 @@ namespace engone {
 		}*/
 	}
 	void RenderUI(double lag) {
-		RenderInterface(lag);
+		RenderPanels();
 	}
 
 	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){

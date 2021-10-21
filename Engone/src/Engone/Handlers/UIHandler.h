@@ -2,7 +2,7 @@
 
 #include "AssetHandler.h"
 #include "../UI/IElement.h"
-#include "../EventHandler.h"
+#include "../EventManager.h"
 
 /*
 Global Manager for 2D elements (buttons, text)

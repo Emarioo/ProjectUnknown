@@ -1,7 +1,8 @@
 #include "gonpch.h"
 
-#include "SoundStream.h"
 #include "../Handlers/Filehandler.h"
+
+#include "SoundStream.h"
 
 namespace engone {
 
@@ -34,7 +35,7 @@ namespace engone {
 		}
 	}
 	void SoundStream::Init(const std::string& path) {
-		if (engone::FileExist(path)) {
+		if (engone::FindFile(path)) {
 			int channels, bps;
 			bufferData = LoadWAV(path, channels, bufferFreq, bps, bufferSize);
 			bufferFormat = to_al_format(channels, bps);

@@ -92,11 +92,16 @@ void Hotbar::Update(float delta) {
 void Hotbar::Render() {
 
 	// Inventory background
-	engone::BindTexture(0, "containers/hotbar");
+	engone::GetTexture("hotbar")->Bind();
 
 	//CalcConstraints();
+	engone::Shader* gui = engone::GetShader("gui");
 
-	engone::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	gui->SetVec2("uPos", {x,y});
+	gui->SetVec2("uSize", {w,h});
+	gui->SetVec4("uColor", color.r,color.g,color.b,color.a);
+
+	engone::DrawRect();
 
 	// Items
 	if (container != nullptr) {

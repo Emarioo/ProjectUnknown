@@ -1,5 +1,7 @@
 #pragma once
 
+//#if ENGONE_GLFW
+
 namespace engone {
 
 	class Buffer {
@@ -55,3 +57,4 @@ namespace engone {
 		void Draw() override;
 	};
 }
+//#endif

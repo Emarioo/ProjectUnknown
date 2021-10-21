@@ -1,5 +1,6 @@
 #pragma once
 
+#if ENGONE_AL
 #include "../Sound/SoundStream.h"
 
 namespace engone {
@@ -14,3 +15,4 @@ namespace engone {
 	*/
 	void ListenerRotation(float x, float y, float z, float x1, float y1, float z1);
 }
+#endif

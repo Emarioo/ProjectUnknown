@@ -21,8 +21,8 @@ int GetCategoriesSize() {
 std::vector<ItemType> itemList;
 std::vector<std::string> textureGroups;
 void InitItemList() {
-	engone::FileReport err;
-	std::vector<std::string> list = engone::ReadTextFile("assets/items/itemlist.dat",&err);
+	std::vector<std::string> list;
+	engone::FileReport err = engone::ReadTextFile("assets/items/itemlist.dat", list);
 	if(err==engone::FileReport::NotFound)
 		return;
 
@@ -32,7 +32,7 @@ void InitItemList() {
 		std::string str = list[i];
 		std::vector<std::string> split = engone::SplitString(list[i], ",");
 		if (str[0] == '#') {
-			engone::AddTextureAsset("items/"+str.substr(1));
+			engone::AddTexture(str.substr(1),new engone::Texture("items/"+str.substr(1)+".png"));
 			textureGroups.push_back(str.substr(1));
 			group++;
 			index = 0;
@@ -48,8 +48,8 @@ void InitItemList() {
 
 }
 void InitCraftingRecipes() {
-	engone::FileReport err;
-	std::vector<std::string> list = engone::ReadTextFile("assets/items/craftingrecipes.dat", &err);
+	std::vector<std::string> list;
+	engone::FileReport err =engone::ReadTextFile("assets/items/craftingrecipes.dat", list);
 	if (err == engone::FileReport::NotFound)
 		return;
 
@@ -111,22 +111,25 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 	if (textureGroups.size() > type.textureGroup) {
 		short index = type.textureIndex;
-		engone::BindTexture(0, "items/" + textureGroups[type.textureGroup]);
+		engone::GetTexture(textureGroups[type.textureGroup])->Bind();
 
 		float u = (index % itemWidth) * size;
 		float v = ((int)((itemWidth - 1) - index / itemWidth)) * size;
 
 		y -= h; // offsetting
 
-		engone::SetColor(1, 1, 1, 1);
-		engone::SetSize(1, 1);
-		engone::DrawUVRect(x, y, w, h, u, v, size, size);
+		engone::Shader* gui = engone::GetShader("gui");
+
+		gui->SetVec4("uColor", 1, 1, 1, 1);
+		gui->SetVec2("uPos", {x,y});
+		gui->SetVec2("uSize", {w,h});
+		engone::DrawUVRect(u, v, size, size);
 
 		if (!text.empty()) {
-			engone::SetTransform(x + w / 6, y + h / 4);
-			engone::SetColor(r, g, b, a);
-			engone::SetSize(0.75, 0.75);
-			engone::DrawString("consolas42", text, true, h * 0.6, -1);
+			gui->SetVec2("uPos", {x+w/6,y+h/4});
+			gui->SetVec2("uSize", { 0.75,0.75 });
+			gui->SetVec4("uColor", r, g, b, a);
+			engone::DrawString(engone::GetFont("consolas"), text, true, h * 0.6,w,h);
 		}
 	}
 }

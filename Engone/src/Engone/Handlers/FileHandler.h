@@ -16,12 +16,12 @@ namespace engone {
 		Syntax,
 		Corrupt
 	};
-	bool FileExist(const std::string& path);
+	bool FindFile(const std::string& path);
 
 	/*
 	fill 'list' with files in 'path' directory
 	*/
-	void GetFiles(const std::string& path, std::vector<std::string>* list);
+	void GetFiles(const std::string& path, std::vector<std::string>& list);
 	
 	/*
 	Remember to handle the returned error status
@@ -32,7 +32,7 @@ namespace engone {
 	Remember to handle the error status
 	Full file path
 	*/
-	std::vector<std::string> ReadTextFile(const std::string& path, FileReport* err);
+	FileReport ReadTextFile(const std::string& path, std::vector<std::string>& list);
 	/*
 	Remember to handle the returned error status
 	Full file path

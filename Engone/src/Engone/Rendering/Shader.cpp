@@ -1,35 +1,27 @@
 #include "gonpch.h"
 
+//#if ENGONE_GLFW
 #include "Shader.h"
-
 #include <GL/glew.h>
 
 namespace engone {
-	Shader::Shader() {
-
+	
+	Shader::Shader(const std::string& string, bool isSource) {
+		if (isSource) InitSource(string);
+		else InitFile(string);
 	}
-	Shader::Shader(const std::string& path)
-		: shaderPath(path + ".shader") {
-		ShaderProgramSource source = ParseShader(shaderPath);
-		programID = CreateShader(source.vert, source.frag);
-		isInitialized = true;
-	}
-	void Shader::Init(const std::string& path) {
-		shaderPath = path + ".shader";
-		ShaderProgramSource source = ParseShader(shaderPath);
-		programID = CreateShader(source.vert, source.frag);
-		isInitialized = true;
-	}
-	ShaderProgramSource Shader::ParseShader(const std::string& filepath) {
-		std::ifstream file(filepath);
+	bool Shader::InitFile(const std::string& path) {
+		filePath = path;
+		
+		std::ifstream file(path);
 		if (!file) {
-			bug::out < bug::RED < "Cannot find '" < filepath < "'\n";
-			hasError = true;
-			return { "", "" };
+			error = true;
+			return true;
 		}
 
-		enum class ShaderType {
-			NONE = -1, VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2
+		enum class ShaderType
+		{
+			NONE = -1, VERTEX = 0, FRAGMENT = 1
 		};
 
 		std::string line;
@@ -39,18 +31,49 @@ namespace engone {
 			if (line.find("#shader") != std::string::npos) {
 				if (line.find("vertex") != std::string::npos) {
 					type = ShaderType::VERTEX;
-				} else if (line.find("fragment") != std::string::npos) {
+				}
+				else if (line.find("fragment") != std::string::npos) {
 					type = ShaderType::FRAGMENT;
 				}
-			} else {
+			}
+			else {
 				ss[(int)type] << line << "\n";
 				if (type == ShaderType::VERTEX)
-					vertexLineCount++;
+					section[1]++;
 				else
-					fragmentLineCount++;
+					section[2]++;
 			}
 		}
-		return { ss[0].str(),ss[1].str() };
+
+		id = CreateShader(ss[0].str(), ss[1].str());
+	}
+	void Shader::InitSource(const std::string& source)
+	{
+		std::string vertex, fragment;
+
+		int vertPos = source.find("#shader vertex\n");
+		int fragPos = source.find("#shader fragment\n");
+
+		section[0] = 1;
+		section[1] = 1;
+		section[2] = 0;
+
+		for (int i = 0; i < source.length(); i++) {
+			if (source[i] == '\n') {
+				if (i < vertPos)
+					section[0]++;
+				if (i < fragPos)
+					section[1]++;
+				section[2]++;
+			}
+		}
+
+		if (vertPos != -1 && fragPos != -1) {
+			vertex = source.substr(vertPos + 15, fragPos - vertPos - 15);
+			fragment = source.substr(fragPos + 17);
+		}
+
+		id = CreateShader(vertex, fragment);
 	}
 	unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
 		unsigned int program = glCreateProgram();
@@ -80,16 +103,15 @@ namespace engone {
 			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 			char* message = (char*)alloca(length * sizeof(char));
 			glGetShaderInfoLog(id, length, &length, message);
-			bug::out < bug::RED < "Compile error with '" < shaderPath < "' (" < (type == GL_VERTEX_SHADER ? "vertex" : "fragment") < ")" < bug::end;
+			std::cout << "Compile error with " << filePath << " (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << ")\n";
 			
 			std::string number;
 			for (int i = 0; i < length;i++) {
 				if (i == 0||message[i]=='\n'&&i!=length-1) {
 					if (message[i] == '\n') {
 						i++;
-						bug::out <'\n'<bug::RED;
-					} else
-						bug::out < bug::RED;
+						std::cout <<'\n';
+					}
 					i+=2;
 					
 					while (message[i]!=')') {
@@ -97,16 +119,16 @@ namespace engone {
 						i++;
 					}
 					if (type == GL_VERTEX_SHADER)
-						bug::out < "VS "<(std::stoi(number)+1);
+						std::cout << "VS "<<(std::stoi(number)+section[0]);
 					else
-						bug::out < "FS" <(std::stoi(number)+vertexLineCount+2);
+						std::cout << "FS " <<(std::stoi(number)+section[1]);
 					number = "";
 					i++;
 				}
 				
-				bug::out < message[i];
+				std::cout << message[i];
 			}
-			bug::out < bug::end;
+			std::cout << "\n";
 			
 			glDeleteShader(id);
 			return 0;
@@ -116,7 +138,7 @@ namespace engone {
 	}
 
 	void Shader::Bind() {
-		glUseProgram(programID);
+		glUseProgram(id);
 	}
 	void Shader::SetFloat(const std::string& name, float f) {
 		glUniform1f(GetUniformLocation(name), f);
@@ -147,8 +169,9 @@ namespace engone {
 		if (uniLocations.find(name) != uniLocations.end()) {
 			return uniLocations[name];
 		}
-		unsigned int loc = glGetUniformLocation(programID, name.c_str());
+		unsigned int loc = glGetUniformLocation(id, name.c_str());
 		uniLocations[name] = loc;
 		return loc;
 	}
 }
+//#endif

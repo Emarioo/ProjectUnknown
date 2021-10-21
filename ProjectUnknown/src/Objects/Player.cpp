@@ -4,7 +4,7 @@
 
 #include "Engone/Handlers/ObjectHandler.h"
 
-#include "Engone/EventHandler.h"
+#include "Engone/EventManager.h"
 #include "Keybindings.h"
 
 #include "GameStateEnum.h"
@@ -21,14 +21,14 @@ Player::Player(float x,float y,float z) : GameObject("Player",x,y,z) {
 	*/
 }
 void Player::Update(float delta) {
-	if (engone::IsActionDown(KeyForward)) {
+	if (engone::IsKeybindingDown(KeyForward)) {
 		if (animBlending < 1 && animSpeed>0)
 			animBlending += animSpeed * delta;
 	} else {
 		if (animBlending > 0)
 			animBlending -= animSpeed * delta;
 	}
-	if (engone::IsActionDown(KeyCrouch)) {
+	if (engone::IsKeybindingDown(KeyCrouch)) {
 		renderComponent.animator.Speed("goblin_run", 
 			flight|| !engone::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
 		);
@@ -80,23 +80,23 @@ glm::vec3 Player::Movement(float delta) {
 		float speed = walkSpeed;
 		if (!CheckState(GameState::CameraToPlayer) ||flight) {
 			speed = camSpeed;
-			if (IsActionDown(KeySprint))
+			if (IsKeybindingDown(KeySprint))
 				speed = camFastSpeed;
 
-			if (IsActionDown(KeyJump)) {
+			if (IsKeybindingDown(KeyJump)) {
 				move.y += speed;
 			}
-			if (IsActionDown(KeyCrouch)) {
+			if (IsKeybindingDown(KeyCrouch)) {
 				move.y -= speed;
 			}
 			if(flight)
 				velocity.y = 0;
 		} else {
 			velocity.y += gravity;
-			if (IsActionDown(KeySprint))
+			if (IsKeybindingDown(KeySprint))
 				speed = sprintSpeed;
 
-			if (IsActionDown(KeyJump)) {
+			if (IsKeybindingDown(KeyJump)) {
 				if (onGround) {
 					velocity.y = 5;
 					onGround = false;
@@ -104,16 +104,16 @@ glm::vec3 Player::Movement(float delta) {
 			}
 		}
 
-		if (IsActionDown(KeyForward)) {
+		if (IsKeybindingDown(KeyForward)) {
 			move.z -= speed;
 		}
-		if (IsActionDown(KeyBack)) {
+		if (IsKeybindingDown(KeyBack)) {
 			move.z += speed;
 		}
-		if (IsActionDown(KeyRight)) {
+		if (IsKeybindingDown(KeyRight)) {
 			move.x += speed;
 		}
-		if (IsActionDown(KeyLeft)) {
+		if (IsKeybindingDown(KeyLeft)) {
 			move.x -= speed;
 		}
 		/*
