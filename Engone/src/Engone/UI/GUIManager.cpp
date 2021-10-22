@@ -55,6 +55,23 @@ namespace engone
 		}
 	}
 
+	IElement::IElement(const std::string& name) : name(name)
+	{
+	}
+	template <class T>
+	T* IElement::Component()
+	{
+		IComponent* out = components[T::type];
+		if (out != nullptr) {
+			return static_cast<T>(out);
+		}
+		else {
+			T* t = new T();
+			components[T::type] = t;
+			return t;
+		}
+	}
+
 	//-- namespace global stuff
 
 	static const std::string guiShaderSource = {
@@ -76,6 +93,15 @@ namespace engone
 			panels.push_back(panel);
 		else
 			panels.insert(panels.begin() + insertIndex, panel);
+	}
+	Panel* GetPanel(const std::string& name)
+	{
+		for (int i = 0; i < panels.size();i++) {
+			if (panels[i].name == name) {
+				return panels[i];
+			}
+		}
+		return nullptr;
 	}
 	void InitGUI()
 	{

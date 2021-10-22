@@ -9,6 +9,37 @@
 namespace engone
 {
 	class Panel;
+
+	enum class ICompType
+	{
+		Color
+	};
+	class IComponent
+	{
+	public:
+		IComponent() = default;
+		static const ICompType type;
+	};
+	class IColor : public IComponent
+	{
+	public:
+		float r, g, b, a;
+		static const ICompType type=ICompType::Color;
+		IColor() : r(1), g(1), b(1), a(1) {
+		}
+		IColor(float gray, float alpha = 1) : r(gray), g(gray), b(gray), a(alpha) {
+		}
+		IColor(int gray, int alpha = 255) : r(gray / 255.f), g(gray / 255.f), b(gray / 255.f), a(gray / 255.f)
+		{
+		}
+		IColor(float red, float green, float blue, float alpha = 1) : r(red), g(green), b(blue), a(alpha)
+		{
+		}
+		IColor(int red, int green, int blue, int alpha = 255) : r(red / 255.f), g(green / 255.f), b(blue / 255.f), a(alpha / 255.f)
+		{
+		}
+	};
+
 	class ConstraintX
 	{
 	public:
@@ -16,28 +47,32 @@ namespace engone
 		{
 
 		}
-		Panel* Center(int pos, Panel* stick = nullptr)
+		Panel* Center(int pos, bool pixelated=true, Panel* stick = nullptr)
 		{
 			raw = 0;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
-		Panel* Left(int pos, Panel* stick = nullptr)
+		Panel* Left(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			side = -1;
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
-		Panel* Right(int pos, Panel* stick = nullptr)
+		Panel* Right(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			side = 1;
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
 		float Value();
 	private:
+		bool pixelSpace;
 		float raw = 0;
 		Panel* panel = nullptr;
 		Panel* parent = nullptr;
@@ -50,29 +85,33 @@ namespace engone
 		{
 
 		}
-		Panel* Center(int pos, Panel* stick = nullptr)
+		Panel* Center(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			side = 0;
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
-		Panel* Bottom(int pos, Panel* stick = nullptr)
+		Panel* Bottom(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			side = -1;
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
-		Panel* Top(int pos, Panel* stick = nullptr)
+		Panel* Top(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			side = 1;
+			pixelSpace = pixelated;
 			raw = pos;
 			parent = stick;
 			return panel;
 		}
 		float Value();
 	private:
+		bool pixelSpace;
 		float raw = 0;
 		Panel* panel = nullptr;
 		Panel* parent = nullptr;
@@ -85,14 +124,16 @@ namespace engone
 		{
 
 		}
-		Panel* Center(int pos, Panel* stick = nullptr)
+		Panel* Center(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
 		float Value();
 	private:
+		bool pixelSpace;
 		float raw = 0;
 		Panel* panel = nullptr;
 		Panel* parent = nullptr;
@@ -104,14 +145,16 @@ namespace engone
 		{
 
 		}
-		Panel* Center(int pos, Panel* stick = nullptr)
+		Panel* Center(int pos, bool pixelated = true, Panel* stick = nullptr)
 		{
 			raw = pos;
+			pixelSpace = pixelated;
 			parent = stick;
 			return panel;
 		}
 		float Value();
 	private:
+		bool pixelSpace;
 		float raw = 0;
 		Panel* panel = nullptr;
 		Panel* parent = nullptr;
@@ -839,15 +882,56 @@ namespace engone
 		Panel* panel;
 
 	};
+	class IElement
+	{
+	public:
+		IElement(const std::string& name);
+		std::string name;
+
+		template <class T>
+		T* Component();
+		
+		virtual void OnEvent(Event& e);
+		virtual void _OnComponentUpdate();
+		virtual void OnUpdate(float delta);
+		virtual void OnRender();
+
+	protected:
+		std::unordered_map<ICompType, IComponent*> components;
+		std::vector<IElement*> children;
+	};
+	class IPanel : IElement
+	{
+	public:
+		IPanel(const std::string& name);
+
+		virtual void OnUpdate();
+		virtual void OnRender();
+
+	};
+	
+	class IButton : IElement
+	{
+	public:
+		IButton(const std::string& name);
+
+		std::function<void(Event& e)> function;
+		virtual void OnEvent(Event& e);
+
+		virtual void OnUpdate();
+		virtual void OnRender();
+
+	};
+
 	class Panel
 	{
 	public:
-		Panel()
-			: x(this), y(this), w(this), h(this)
+		Panel(const std::string& name)
+			: x(this), y(this), w(this), h(this), name(name)
 		{
 			Init();
 		}
-
+		std::string name;
 		float priority = 0;
 		ConstraintX x;
 		ConstraintY y;
@@ -855,6 +939,11 @@ namespace engone
 		ConstraintH h;
 
 		Panel* CenterX(int pos, Panel* stick = nullptr)
+		{
+			y.Center(pos, stick);
+			return this;
+		}
+		Panel* CenterX(float pos, Panel* stick = nullptr)
 		{
 			y.Center(pos, stick);
 			return this;
@@ -1059,6 +1148,8 @@ namespace engone
 			}
 			return false;
 		}
+
+
 	protected:
 		//TriangleBuffer buffer;
 		std::vector<Panel*> children;
@@ -1454,6 +1545,7 @@ namespace engone
 		}
 	};
 	void AddPanel(Panel* panel);
+	Panel* GetPanel(const std::string& name);
 	void InitGUI();
 	void RenderPanels();
 	void UpdatePanels(float delta);

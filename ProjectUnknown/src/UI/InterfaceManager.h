@@ -11,6 +11,21 @@
 
 #include "GameStateEnum.h"
 
+namespace ui
+{
+	Item* heldItem;
+	void SetHeldItem(Item* item);
+	Item* GetHeldItem();
+	Item* TakeHeldItem();
+	Item** GetHeldItemPointer();
+
+	void Render(double lag);
+
+	void SetupIntro();
+	void SetupMainMenu();
+	void SetupGameUI();
+}
+/*
 class InterfaceManager {
 private:
 public:
@@ -21,11 +36,11 @@ public:
 	//WorldHandler* worldHandler=nullptr;
 
 	// Check if nullptr
-	engone::IElement* uiFade = nullptr;
+	//engone::IElement* uiFade = nullptr;
 
 	// Game ui
 	// Check if nullptr
-	IntroScene* introScene=nullptr;Inventory* inventory=nullptr;CraftingList* craftingList=nullptr;Infobar* infobar=nullptr;Hotbar* hotbar=nullptr;
+	//IntroScene* introScene=nullptr;Inventory* inventory=nullptr;CraftingList* craftingList=nullptr;Infobar* infobar=nullptr;Hotbar* hotbar=nullptr;
 
 	Item* heldItem;
 	void SetHeldItem(Item* item);
@@ -40,3 +55,4 @@ public:
 	void SetupGameUI();
 };
 extern InterfaceManager interfaceManager;
+*/
