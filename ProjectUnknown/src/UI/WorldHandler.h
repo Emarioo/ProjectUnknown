@@ -11,7 +11,7 @@ public:
 
 };
 
-class WorldHandler : public engine::IBase {
+class WorldHandler : public engone::IBase {
 public:
 	WorldHandler(const std::string& name);
 

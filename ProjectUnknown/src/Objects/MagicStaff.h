@@ -2,7 +2,7 @@
 
 #include "Engone/Objects/GameObject.h"
 
-class MagicStaff : public engine::GameObject {
+class MagicStaff : public engone::GameObject {
 public:
 	MagicStaff(float x,float y,float z);
 	void Update(float delta) override;

@@ -2,7 +2,7 @@
 
 #include "UIHandler.h"
 
-namespace engine {
+namespace engone {
 
 	// Events
 	double mouseX, mouseY;
@@ -288,7 +288,7 @@ namespace engine {
 		SetDimension("classic");
 		*/
 	void InitInterface() {
-		SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
+		//SetInterfaceCallbacks(KeyEvent, MouseEvent, ScrollEvent, DragEvent, ResizeEvent, FocusEvent);
 
 		//font1.Data("verdana38");
 		//font1.Data("consolas42");

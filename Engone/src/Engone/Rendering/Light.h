@@ -1,6 +1,8 @@
 #pragma once
 
-namespace engine {
+#include "glm/glm.hpp"
+
+namespace engone {
 	enum class LightType {
 		None,
 		Direction,

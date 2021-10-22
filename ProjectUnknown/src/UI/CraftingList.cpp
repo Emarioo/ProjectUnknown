@@ -7,14 +7,14 @@
 
 #include "Keybindings.h"
 
-CraftingList::CraftingList(const std::string& name) : engine::IBase(name) {
+CraftingList::CraftingList(const std::string& name) : engone::IBase(name) {
 
 }
 bool CraftingList::MouseEvent(int mx, int my, int action, int button) {
 		//CalcConstraints();
 
-		float mouseX = engine::ToFloatScreenX(mx);
-		float mouseY = engine::ToFloatScreenY(my);
+		float mouseX = engone::ToFloatScreenX(mx);
+		float mouseY = engone::ToFloatScreenY(my);
 
 		if (action != 1)
 			return false;
@@ -86,11 +86,11 @@ bool CraftingList::MouseEvent(int mx, int my, int action, int button) {
 	return false;
 }
 bool CraftingList::KeyEvent(int key, int action) {
-	if (engine::TestActionKey(KeyCrafting,key)) {
+	if (engone::IsKeybindingDown(KeyCrafting)) {
 		if (action == 1) {
 			active = !active;
 			if (!interfaceManager.inventory->active) {
-				engine::LockCursor(!active);
+				engone::LockCursor(!active);
 			}
 		}
 	}
@@ -98,8 +98,8 @@ bool CraftingList::KeyEvent(int key, int action) {
 }
 bool CraftingList::ScrollEvent(double scroll) {
 
-	float mouseX = engine::GetFloatMouseX();
-	float mouseY = engine::GetFloatMouseY();
+	float mouseX = engone::GetFloatMouseX();
+	float mouseY = engone::GetFloatMouseY();
 
 	float recipeX = w * 72 / 512.f;
 	float recipeW = w * 440 / 512.f;
@@ -170,8 +170,13 @@ void CraftingList::Render() {
 	//CalcConstraints();
 
 	// Crafting background
-	engine::BindTexture(0, "containers/craftinglist");
-	engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::GetTexture("craftinglist")->Bind();
+	engone::Shader* gui = engone::GetShader("gui");
+	gui->SetVec2("uPos", { x,y });
+	gui->SetVec2("uSize", { w,h });
+	gui->SetVec4("uColor", color.r,color.g,color.b,color.a );
+	gui->SetInt("uTextured", 1 );
+	engone::DrawRect();
 
 	float iw = w * (64 / 512.f);
 	float ih = h * (64 / 850.f);
@@ -197,32 +202,42 @@ void CraftingList::Render() {
 		float catGap = h * 68 / 850.f;
 
 		// Category Marking
-		engine::BindTexture(0, "blank");
-		engine::DrawRect(x + catX, y + h - catY - catGap * selectedCategory + scrolling - ih, iw, ih, 0.5, 0.5, 1, 0.5);
+		gui->SetInt("uTextured",0);
+		gui->SetVec2("uPos", { x + catX, y + h - catY - catGap * selectedCategory + scrolling - ih });
+		gui->SetVec2("uSize", { iw, ih });
+		gui->SetVec4("uColor", 0.5, 0.5, 1, 0.5);
+		engone::DrawRect();
 
 		// Crafting list
-		engine::SetRenderArea(x, y + bottomH, w, h - bottomH);
+		//engone::SetRenderArea(x, y + bottomH, w, h - bottomH);
+
+		engone::Font* consolas = engone::GetFont("consolas42");
 
 		for (int i = 0; i < category->recipes.size(); i++) {
 			CraftingRecipe* recipe = &category->recipes[i];
 			ItemType type = GetItemType(recipe->output.name);
 			if (selectedRecipe == i) {
-				engine::BindTexture(0, "blank");
-				engine::DrawRect(x + listX, y + h + listY - listGap * i + scrolling - ih, recipeW, ih, 0.5, 0.5, 1, 0.5);
+				gui->SetInt("uTextured", 0);
+				//engone::BindTexture(0, "blank");
+				gui->SetVec2("uPos", { x + listX, y + h + listY - listGap * i + scrolling - ih });
+				gui->SetVec2("uSize", { recipeW, ih });
+				gui->SetVec4("uColor", 0.5, 0.5, 1, 0.5);
+				engone::DrawRect();
 			}
-			engine::SetTransform(0, 0);
 			DrawItem(type, x + listX, y + h + listY - listGap * i + scrolling, iw, ih, 1, 1, 1, 1, "");
-			engine::SetTransform(x + listX + iw, y + h + listY - listGap * i + scrolling - ih * 0.85);
 
-			engine::DrawString("consolas42", type.name, false, ih * 0.7f, -1);
+			gui->SetVec2("uPos", { x + listX + iw, y + h + listY - listGap * i + scrolling - ih * 0.85 });
+			gui->SetVec2("uSize", { 1,1 });
+			gui->SetVec4("uColor", 1,1,1,1);
+
+			engone::DrawString(consolas, type.name, false, ih * 0.7f, iw,ih);
 		}
-		engine::SetRenderArea(-1, -1, 2, 2);
+		//engone::SetRenderArea(-1, -1, 2, 2);
 		// Ingredients
 		if (-1 < selectedRecipe && selectedRecipe < category->recipes.size()) {
 			CraftingRecipe* recipe = &category->recipes[selectedRecipe];
 			Container* inventory = interfaceManager.inventory->container;
 			for (int i = 0; i < recipe->inputs.size(); i++) {
-				engine::SetTransform(0, 0);
 				ItemType type = GetItemType(recipe->inputs[i].name);
 
 				int count = inventory->GetItemCount(type.name);
@@ -239,10 +254,10 @@ void CraftingList::Render() {
 			float countW = w * 132 / 512.f;
 			float countH = h * 55 / 850.f;
 
-			engine::SetColor(1, 1, 1, 1);
-			engine::SetTransform(x + countX + countW / 2, y + h - countY - countH / 2);
-			engine::SetSize(1, 1);
-			engine::DrawString("consolas42", std::to_string(craftCount), true, countH * 0.8, -1);
+			gui->SetVec4("uColor", 1, 1, 1, 1);
+			gui->SetVec2("uPos", { x + countX + countW / 2, y + h - countY - countH / 2 });
+			gui->SetVec2("uSize", { 1, 1 });
+			engone::DrawString(consolas, std::to_string(craftCount), true, countH * 0.8, countW,countH);
 		}
 	}
 }

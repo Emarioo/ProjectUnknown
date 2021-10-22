@@ -5,7 +5,7 @@
 
 #include "../Objects/Camera.h"
 
-namespace engine {
+namespace engone {
 
 	// Move this to ProjectUnknown?
 	void AddDimension(const std::string& s, Dimension dim);

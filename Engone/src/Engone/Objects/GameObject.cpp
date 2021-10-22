@@ -2,7 +2,7 @@
 
 #include "GameObject.h"
 
-namespace engine {
+namespace engone {
 	GameObject::GameObject(const std::string& name): name(name) {
 
 	}

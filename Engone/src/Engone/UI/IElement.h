@@ -5,7 +5,7 @@
 #include "ITransition.h"
 #include "IBase.h"
 
-namespace engine {
+namespace engone {
 	class IElement : public IBase {
 	public:
 		IElement(const std::string& name, int priority);

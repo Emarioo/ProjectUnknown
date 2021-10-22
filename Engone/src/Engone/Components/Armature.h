@@ -2,7 +2,7 @@
 
 #include "../DebugTool/DebugHandler.h"
 
-namespace engine {
+namespace engone {
 	class Bone {
 	public:
 		unsigned short parent = 0;

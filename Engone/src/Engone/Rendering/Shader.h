@@ -1,28 +1,8 @@
 #pragma once
 
-#include "../DebugTool/DebugHandler.h"
+//#if ENGONE_GLFW
 
-#define MAX_ENGINE_SHADERS 8
-#define MAX_CUSTOM_SHADERS 10
-
-/*
-This is the standard value for custom shaders.
-#define MAX_CUSTOM_SHADERS 10
-*/
-namespace ShaderType {
-	enum EngineShaderType : unsigned char {
-		NONE = MAX_CUSTOM_SHADERS,
-		Color,
-		ColorBone,
-		UV,
-		UVBone,
-		Interface,
-		Outline,
-		Depth
-	};
-}
-
-namespace engine {
+namespace engone {
 
 	struct ShaderProgramSource {
 		std::string vert;
@@ -31,14 +11,16 @@ namespace engine {
 
 	class Shader {
 	public:
-		Shader();
+		Shader()=default;
+		/*
+		@isSource determines whether the string should be interpreted as file path
+		or the source for glsl shader.
+		*/
+		Shader(const std::string& string, bool isSource);
 
-		Shader(const std::string& path);
+		bool InitFile(const std::string& path);
+		void InitSource(const std::string& source);
 
-		void Init(const std::string& path);
-		unsigned int CreateShader(const std::string& vert, const std::string& frag);
-		unsigned int CompileShader(const unsigned int, const std::string& src);
-		ShaderProgramSource ParseShader(const std::string& filepath);
 		void Bind();
 		void SetInt(const std::string& name, int i);
 		void SetFloat(const std::string& name, float f);
@@ -49,14 +31,19 @@ namespace engine {
 		void SetVec4(const std::string& name, float f0, float f1, float f2, float f3);
 		void SetMatrix(const std::string& name, glm::mat4 v);
 		
-		unsigned int GetUniformLocation(const std::string& name);
-		std::string shaderPath;
-		unsigned int programID;
-		bool hasError = false;
-		bool isInitialized = false;
+		std::string filePath;
+
+		bool error = false;
 	private:
-		char err;
+		unsigned int id;
+		unsigned int CreateShader(const std::string& vert, const std::string& frag);
+		unsigned int CompileShader(const unsigned int, const std::string& src);
+
+		unsigned int GetUniformLocation(const std::string& name);
 		std::unordered_map<std::string, unsigned int> uniLocations;
-		int vertexLineCount,fragmentLineCount;
+		int section[3]{1,1,1};
+
+		char err;
 	};
 }
+//#endif

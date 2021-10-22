@@ -1,6 +1,6 @@
 #include "propch.h"
 
-#include "Engone/Engine.h"
+#include "Engone/Engone.h"
 
 #include "Objects/Goblin.h"
 #include "Objects/Gnorg.h"
@@ -19,34 +19,30 @@
 #include "Other/GameStatistics.h"
 #include "Other/InformativeTips.h"
 
+#include "Engone/Sound/SoundStream.h"
+
 float ang = 0;
 float vel = 1;
-engine::Light* light;
-engine::SoundStream melody;
+engone::Light* light;
+engone::SoundStream melody;
 
-engine::Animation* quater = nullptr;
-engine::Model* tommy = nullptr;
-ModelObject* bendy = nullptr;
-engine::Channels channel;
+engone::Animation* quater = nullptr;
+engone::Model* tommy = nullptr;
+engone::Channels channel;
 float n = -1;
 unsigned short lastN = -1;
 void Update(double delta) {
-	using namespace engine;
+	using namespace engone;
 
 	//melody.UpdateStream();
 	
-	light->position.x = 5 * glm::cos(engine::GetPlayTime());// bez3 * 2;
-	light->position.z = 5 * glm::sin(engine::GetPlayTime());// bez3 * 2;
+	light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
+	light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 	
 	if (CheckState(GameState::Game)) {
 		if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
-	}
-	//double f = fmod(engine::GetPlayTime(),2.);
-
-	if (bendy != nullptr) {
-		bendy->matrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) * glm::mat4_cast(glm::quat(0.5, fmod(engine::GetPlayTime()/6, 1),0,0)) * glm::translate(glm::vec3(0,2,0));
 	}
 	
 	if (quater != nullptr) {
@@ -66,8 +62,8 @@ void Update(double delta) {
 			}
 		}
 		else {
-			tommy = engine::GetModelAsset("Tom");
-			//std::cout << tommy << std::endl;
+			tommy = engone::GetModelAsset("Tom");
+			std::cout << tommy << std::endl;
 		}
 
 		n += 24*delta/60;
@@ -88,14 +84,14 @@ void Update(double delta) {
 		glm::translate(glm::vec3(0, 0, 5.2))
 		)[3]);
 	*/
-	engine::UpdateUI(delta);
+	UpdateUI(delta);
 }
-engine::TriangleBuffer cont;
-engine::TriangleBuffer itemContainer2;
+engone::TriangleBuffer cont;
+engone::TriangleBuffer itemContainer2;
 
 float coloring = 0;
 void Render(double lag) {
-	using namespace engine;
+	using namespace engone;
 	SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
 		if (HasFocus()) {
@@ -112,51 +108,57 @@ void Render(double lag) {
 			// All this should be automated and customizable in the engine.
 
 			// Shadow stuff
-			if (BindShader(ShaderType::Depth)) {
+			Shader* depth = GetShader("depth");
+			if (depth!=nullptr) {
+				depth->Bind();
 				glCullFace(GL_BACK);
-				GetShader(ShaderType::Depth)->SetMatrix("uLightMatrix", GetLightProj()*lightView);
+				depth->SetMatrix("uLightMatrix", GetLightProj()*lightView);
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
 				RenderRawObjects(lag);
 				GetDepthBuffer().Unbind();
 			}
-			
+			Shader* objectShader = GetShader("object");
+
 			glViewport(0, 0, Width(), Height());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-			BindShader(ShaderType::Color);
-			GetShader(ShaderType::Color)->SetInt("shadow_map",0);
-			GetShader(ShaderType::Color)->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+			objectShader->Bind();
+			objectShader->SetInt("shadow_map",0);
+			objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(lag);
 			
-			if (engine::IsKey(GLFW_KEY_K)) {
+			if (IsKey(GLFW_KEY_K)) {
 				SwitchBlendDepth(true);
-				BindShader(ShaderType::Experiment);
-				GetShader(ShaderType::Experiment)->SetInt("uTexture", 0);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-				cont.Draw();
+				Shader* experiment = GetShader("experiment");
+				if (experiment != nullptr) {
+					experiment->Bind();
+					experiment->SetInt("uTexture", 0);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
+					cont.Draw();
+				}
 			}
 		}
 	}
 
 	// Render IBase, IElement...
-	engine::RenderUI(lag);
+	RenderUI(lag);
 	// Render custom things like items dragged by the mouse
 	interfaceManager.Render(lag);
 }
-void OnKey(int key, int action) {
-	if (engine::CheckState(GameState::Game)) {
-		if (action == 1) {
-			if (key == GLFW_KEY_O) {
-				engine::ReadOptions();
-				if (engine::GetDimension() != nullptr)
-					engine::GetDimension()->UpdateAllChunks();
+bool OnKey(engone::Event& e) {
+	if (engone::CheckState(GameState::Game)) {
+		if (e.action == 1) {
+			if (e.key == GLFW_KEY_O) {
+				engone::ReadOptions();
+				if (engone::GetDimension() != nullptr)
+					engone::GetDimension()->UpdateAllChunks();
 			}
-			if (key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
+			if (e.key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
 				/*IElement* el = GetElement("editor_script");
 				if (el != nullptr) {
 					if (!el->selected) {
@@ -175,22 +177,22 @@ void OnKey(int key, int action) {
 					}
 				}*/
 			}
-			if (engine::TestActionKey(KeyPause, key)) {
-				if (engine::CheckState(GameState::Paused)) {
-					engine::SetState(GameState::Paused, false);
-					engine::LockCursor(true);
-					
+			if (engone::IsKeybindingDown(KeyPause)) {
+				if (engone::CheckState(GameState::Paused)) {
+					engone::SetState(GameState::Paused, false);
+					engone::LockCursor(true);
 				} else {
-					engine::SetState(GameState::Paused, true);
-					engine::LockCursor(false);
+					engone::SetState(GameState::Paused, true);
+					engone::LockCursor(false);
 				}
 			}
 		}
 	}
+	return false;
 }
 
 //  Do something about that const string. It's not supposed to be there.
-void OnMouse(double mx,double my,int action,int button,const std::string& elementName) {
+bool OnMouse(engone::Event& e) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
 	/*if (IsGameState(Play)) {
 		if (action == 0) {
@@ -199,12 +201,18 @@ void OnMouse(double mx,double my,int action,int button,const std::string& elemen
 			}
 		}
 	}*/
+	return false;
 }
-
+static const std::string experimentGLSL = {
+#include "Shaders/experiment.glsl"
+};
+static const std::string depthGLSL = {
+#include "Shaders/depth.glsl"
+};
 // Is this really supposed to be here?
 void CustomDimension() {
-	using namespace engine;
-	float a = 5 * engine::GetOptionf("scale") / 500;
+	using namespace engone;
+	float a = 5 * GetOptionf("scale") / 500;
 	Dimension classic;
 	Biome waterD(0.3, -6 * a, 2 * a);
 	Biome waterS(0.4, 2 * a, 6 * a);
@@ -264,35 +272,37 @@ void CustomDimension() {
 	gray.Flat(0.5,1,1,0);
 	noise.AddBiome(gray);
 	Dimension& dim = noise;
-	dim.Init(gameHandler.player);
-	engine::AddDimension("classic",dim);
+	dim.Init(game::GetPlayer());
+	engone::AddDimension("classic",dim);
 	//engine::SetDimension("classic");
 }
 void runApp(bool isDebugBuild) {
-	// Init the absolutely neccessary stuff
-	engine::SetState(GameState::DebugLog,isDebugBuild);
-	engine::Initialize();
-	engine::GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
-	if (engine::LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
+	using namespace engone;
+
+	//-- Init the absolutely neccessary stuff
+	SetState(GameState::DebugLog,isDebugBuild); // temporary
+	InitEngone();
+	//GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
+	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
-
+	
+	//-- Init game stuff
 	bool startGame = true;
-
 	if (startGame) {
-		gameHandler.StartGame();
+		game::StartGame();
 	}
 	else if (!isDebugBuild) {
-		engine::SetState(GameState::Intro, true);
+		SetState(GameState::Intro, true);
 		interfaceManager.SetupIntro();
-		engine::SetCursorVisibility(false);
+		SetCursorVisibility(false);
 	} else {
-		 engine::SetState(GameState::Menu, true);
-		 engine::SetupDebugPanel();
+		 SetState(GameState::Menu, true);
+		 SetupDebugPanel();
 	}
 	//interfaceManager.SetupMainMenu();
 
-	// Debug Options - move this else where. like the debugpanel
+	//-- Debug Options - move this else where. like the debugpanel
 	/*
 	bug::set("LoadMesh", 1);
 	bug::set("LoadMesh.Weights", 1);
@@ -319,16 +329,12 @@ void runApp(bool isDebugBuild) {
 
 	//bug::set("LoadMaterial", 1);
 
-	// Assets should be loaded else where. Maybe where you start the game. 
-	// Only if they havent't been loaded though.
+	//-- Assets should be loaded else where. Maybe where you start the game.  Only if they havent't been loaded though.
 	{
-		using namespace engine;
+		AddShader("depth",new Shader(depthGLSL,true));
+		AddShader("experiment",new Shader(experimentGLSL,true));
 
-		AddShader(ShaderType::Light, "lightSource");
-		AddShader(ShaderType::Experiment, "experiment");
-		AddShader(ShaderType::Terrain, "terrain");
-
-		AddFont("consolas42");
+		AddFont("consolas",new Font("assets/fonts/consolas42"));
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");
@@ -360,8 +366,8 @@ void runApp(bool isDebugBuild) {
 	//engine::AddTextureAsset("magicstaff_fireball");
 	{
 		// Remove some of the quaternion values and see if it works
-		using namespace engine;
-		AddAnimationAsset("Quater");
+		
+		/*AddAnimationAsset("Quater");
 		quater = GetAnimationAsset("Quater");
 		
 		quater->Modify(0, 60);
@@ -372,33 +378,33 @@ void runApp(bool isDebugBuild) {
 		z.Add({ Bezier, 60, 0.5 });
 
 		//cha.Add(PosX, x);
-		channel.Add(PosX, z);
+		channel.Add(QuaX, z);
 		//cha.Add(QuaZ, z);
 		//cha.Add(QuaW, w);
 
 		quater->AddObjectChannels(0, channel);
-
+		*/
 		//std::cout << "obs "<< quater->objects.size() << std::endl;
 		//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 	}
 
 	/*
 	melody.Init("assets/sounds/melody.wav");
-
 	engine::SoundBuffer trumpet;
 	trumpet.Init("assets/sounds/trumpet.wav");
-
 	engine::SoundSource trumpetS;
 	trumpetS.Init();
 	trumpetS.Bind(trumpet);
-
 	//trumpetS.Play();
 	//melody.source.Play();
-
 	melody.source.Gain(0.25);
 	*/
 
-	// Game World setup - debug purpose at the moment
+	//-- Event
+	AddListener(new Listener(EventType::Key,OnKey));
+	AddListener(new Listener(EventType::Click,OnMouse));
+
+	//-- Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));
 	//engine::AddObject(new Goblin(0, -3, 0));
 	//engine::AddObject(new Gnorg(5, 0,5));
@@ -411,39 +417,30 @@ void runApp(bool isDebugBuild) {
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
 
-
-	ModelObject* charles = new ModelObject(3, 0, 0, "Charles");
-	ModelObject* tom = new ModelObject(-3, 0, 0, "Tom");
-	bendy = new ModelObject(0, -5, 0, "Static");
-	engine::AddObject(charles);
-	charles->renderMesh = true;
-	//charles->renderHitbox = true;
-	engine::AddObject(tom);
-	tom->renderMesh = true;
-	engine::AddObject(bendy);
-	//tom->renderHitbox = true;
-	//std::cout << "Done here\n";
+	ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
+	ModelObject* tom=new ModelObject(3, 0, 0, "Tom");
+	AddObject(charles);
+	AddObject(tom);
 	//ob->quaternion = {1,0.5,0,0};
-
-
-	gameHandler.player = new Player(0, 0, 0);
-	engine::GetCamera()->position.x = 0;
-	engine::GetCamera()->position.z = 5;
-	gameHandler.player->flight = true;
-	engine::AddObject(gameHandler.player);
-	engine::SetState(GameState::CameraToPlayer,false);
+	
+	game::SetPlayer(new Player(0, 0, 0));
+	GetCamera()->position.x = 0;
+	GetCamera()->position.z = 5;
+	game::GetPlayer()->flight = true;
+	AddObject(game::GetPlayer());
+	SetState(GameState::CameraToPlayer,false);
 	//engine::GetCamera()->SetPosition(0,0,-5);
 
-	engine::DirLight* l = new engine::DirLight({ 2,-4,1 });
+	DirLight* l = new DirLight({ 2,-4,1 });
 	
 	//l->linear = 0.25;
 	//l->quadratic = 0.059;
-	engine::AddLight(light=l);
+	AddLight(light=l);
 	//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 
 	//CustomDimension();
 	
-	// Shadow framebuffer
+	// Shadow framebuffer - move some where else
 	float v[]{
 		-1,-1,0,0,
 		1,-1,1,0,
@@ -458,7 +455,7 @@ void runApp(bool isDebugBuild) {
 	cont.SetAttrib(0,2,4,0);
 	cont.SetAttrib(1,2,4,2);
 
-	engine::Start(Update, Render, 60);
+	Start(Update, Render, 60);
 }
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR lpCmdLine, INT nCmdShow)

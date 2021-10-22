@@ -2,7 +2,7 @@
 
 #include "Text.h"
 
-namespace engine {
+namespace engone {
 	/*
 	 max : max length of text
 	 size : standard is 64 / Window Height
@@ -373,7 +373,7 @@ namespace engine {
 
 		float atX = 0;
 		float atY = 0;
-		float ratio = charHeight /(renderer::Wid()/ renderer::Hei());
+		float ratio = charHeight /(Wid()/ Hei());
 
 		int i=0;
 		for (char cha : text) {
@@ -455,16 +455,16 @@ namespace engine {
 		SetTransform(xpos, ypos);
 		SetColor(r, g, b, a * alpha);
 		if (f) {
-			engine::DrawString(font, text, center, actualHeight, atChar);
+			engone::DrawString(font, text, center, actualHeight, atChar);
 		} else {
-			engine::DrawString(font, text, center, actualHeight, -1);
+			engone::DrawString(font, text, center, actualHeight, -1);
 		}
 		/*
 		if (f) {
 			//std::cout << (x + PixelPosX(atChar)) << " " << (y + PixelPosY(atChar)) << std::endl;
-			renderer::GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
-			renderer::GuiColor(r, g, b, a);
-			renderer::BindTexture("blank");
+			GuiTransform(x+ScreenPosX(atChar), y-ScreenPosY(atChar));
+			GuiColor(r, g, b, a);
+			BindTexture("blank");
 			marker.Draw();
 		}*/
 	}

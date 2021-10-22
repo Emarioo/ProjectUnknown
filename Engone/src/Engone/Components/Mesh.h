@@ -4,7 +4,7 @@
 #include "../Rendering/Buffer.h"
 #include "Material.h"
 
-namespace engine {
+namespace engone {
 
 	class Mesh {
 	public:
@@ -12,7 +12,7 @@ namespace engine {
 		~Mesh() = default;
 
 		std::vector<Material*> materials;
-		unsigned char shaderType = 0;
+		const char* shaderType = "";
 		TriangleBuffer container;
 		void Draw() {
 			container.Draw();

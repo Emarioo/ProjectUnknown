@@ -2,7 +2,7 @@
 
 #include "IColor.h"
 
-namespace engine {
+namespace engone {
 	IColor::IColor()
 		: r(1), g(1), b(1), a(1) {}
 	IColor::IColor(float f)

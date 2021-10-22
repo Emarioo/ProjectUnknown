@@ -1,8 +1,10 @@
 #include "gonpch.h"
 
+#if ENGONE_AL
+
 #include "SoundHandler.h"
 
-namespace engine {
+namespace engone {
 
 	// Add Debug option? sound_device_list
 	void list_audio_devices(const ALCchar* devices)
@@ -72,3 +74,4 @@ namespace engine {
 		alCall(alcCloseDevice(device));
 	}
 }
+#endif

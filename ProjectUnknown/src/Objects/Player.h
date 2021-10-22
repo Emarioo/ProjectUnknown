@@ -2,7 +2,7 @@
 
 #include "Engone/Objects/GameObject.h"
 
-class Player : public engine::GameObject {
+class Player : public engone::GameObject {
 private:
 	float animBlending = 0;
 	float animSpeed = 1.7;

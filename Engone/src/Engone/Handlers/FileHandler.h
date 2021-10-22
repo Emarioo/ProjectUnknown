@@ -9,19 +9,19 @@
 #include "../Components/Model.h"
 #include "../DebugTool/DebugHandler.h"
 
-namespace engine {
+namespace engone {
 	enum class FileReport {
 		Success,
 		NotFound,
 		Syntax,
 		Corrupt
 	};
-	bool FileExist(const std::string& path);
+	bool FindFile(const std::string& path);
 
 	/*
 	fill 'list' with files in 'path' directory
 	*/
-	void GetFiles(const std::string& path, std::vector<std::string>* list);
+	void GetFiles(const std::string& path, std::vector<std::string>& list);
 	
 	/*
 	Remember to handle the returned error status
@@ -32,7 +32,7 @@ namespace engine {
 	Remember to handle the error status
 	Full file path
 	*/
-	std::vector<std::string> ReadTextFile(const std::string& path, FileReport* err);
+	FileReport ReadTextFile(const std::string& path, std::vector<std::string>& list);
 	/*
 	Remember to handle the returned error status
 	Full file path

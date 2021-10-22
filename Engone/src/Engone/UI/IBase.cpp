@@ -4,7 +4,7 @@
 
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 	IBase::IBase(const std::string& name)
 	: name(name),
 		conX(IConstraintX(this)), conY(IConstraintY(this)),

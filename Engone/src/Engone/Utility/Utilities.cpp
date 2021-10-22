@@ -4,7 +4,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace engine {
+namespace engone {
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
@@ -36,12 +36,13 @@ namespace engine {
 		}
 		return out;
 	}
+	/*
 	void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
 		ar[ind] = f0;
 		ar[ind + 1] = f1;
 		ar[ind + 2] = f2;
 		ar[ind + 3] = f3;
-	}
+	}*/
 	float lerp(float a, float b, float c) {
 		return (1 - c) * a + c * b;
 	}
@@ -51,6 +52,7 @@ namespace engine {
 	float distance(float x, float y, float x1, float y1) {
 		return sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
 	}
+	/*
 	void insert(float* ar, int off, int len, float* data) { // carefull with going overboard
 		//std::cout << "INSERT ";
 		for (int i = 0; i < len; i++) {
@@ -58,12 +60,13 @@ namespace engine {
 			//std::cout << off + i << "_" << ar[off + i] << "   ";
 		}
 		//std::cout << std::endl;
-	}
+	}*/
 	float bezier(float x, float xStart, float xEnd) {
 		float t = (x - xStart) / (xEnd - xStart);
 		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * pow(t, 2) + pow(t, 3));
 		return va;
 	}
+	/*
 	std::string Crypt(const std::string& word, const std::string& key, bool encrypt) {
 		std::string out = "";
 		for (int i = 0; i < word.length();i++) {
@@ -76,7 +79,7 @@ namespace engine {
 			out += (at % 256);
 		}
 		return out;
-	}
+	}*/
 	double GetPlayTime() {
 		return glfwGetTime();
 	}
@@ -93,23 +96,25 @@ namespace engine {
 	std::string GetClock() {
 		time_t t;
 		time(&t);
-		auto tm = *localtime(&t);
+		tm tm;
+		localtime_s(&tm, &t);
 		std::string str= std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
 		return str;
 	}
+	/*
 	void CountingTest(int times, int numElements, std::function<int()> func) {
 		std::vector<int> occurrences(numElements);
 
-		double bef = engine::GetSystemTime();
+		double bef = GetSystemTime();
 		for (int i = 0; i < times; i++) {
 			int index = func();
 			if(index>-1&&index<numElements)
 				occurrences[func()]++;
 		}
-		double aft = engine::GetSystemTime();
+		double aft = GetSystemTime();
 		for (int i = 0; i < numElements; i++) {
 			std::cout << i << " " << occurrences[i] << std::endl;
 		}
 		std::cout << "Time: " << (aft - bef) << std::endl;
-	}
+	}*/
 }

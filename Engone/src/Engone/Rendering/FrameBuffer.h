@@ -1,6 +1,8 @@
 #pragma once
 
-namespace engine {
+//#if ENGONE_GLFW
+
+namespace engone {
 	class FrameBuffer {
 	public:
 		FrameBuffer();
@@ -12,3 +14,4 @@ namespace engine {
 		unsigned int texture;
 	};
 }
+//#endif

@@ -8,7 +8,7 @@
 
 #include "GLFW/glfw3.h"
 
-namespace engine {
+namespace engone {
 
 	/*
 	https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f
@@ -147,6 +147,7 @@ namespace engine {
 	bool IsKey(int key) {
 		return glfwGetKey(GetWindow(),key)==GLFW_PRESS;
 	}
+	/*
 	std::unordered_map<unsigned short, int> keyboard_keyActionMap;
 	void AddActionKey(unsigned short keyName, int keyCode) {
 		keyboard_keyActionMap[keyName] = keyCode;
@@ -165,7 +166,7 @@ namespace engine {
 	/*
 	path directory starts where the .exe is. Example "data/keybindings.dat"
 	return true if successful
-	*/
+	
 	int LoadKeybindings(const std::string& path) {
 		std::ifstream file(path,std::ios::binary);
 		
@@ -228,4 +229,5 @@ namespace engine {
 	void ClearKeybindings() {
 		keyboard_keyActionMap.clear();
 	}
+	*/
 }

@@ -3,7 +3,7 @@
 #include "IBase.h"
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 
 	IConstraintX::IConstraintX(IBase* b) : _this(b) {}
 	IBase* IConstraintX::Center(int pos) {

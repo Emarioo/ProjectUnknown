@@ -2,10 +2,12 @@
 
 #include "../Handlers/FileHandler.h"
 #include "../Rendering/Texture.h"
+#include "../Rendering/Font.h"
+#include "../Rendering/Shader.h"
 #include "../DebugTool/DebugHandler.h"
 
 
-namespace engine {
+namespace engone {
 	
 	struct TimedFunc {
 		TimedFunc(std::function<void()> f, float t) : func(f), time(t) {}
@@ -60,8 +62,15 @@ namespace engine {
 	*/
 	Model* GetModelAsset(const std::string& name);
 	void DeleteModelAsset(const std::string& name);
-
+	/*
 	void AddTextureAsset(const std::string& name);
 	Texture* GetTextureAsset(const std::string& name);
 	void DeleteTextureAsset(const std::string& name);
+	*/
+	Font* GetFont(const std::string& name);
+	void AddFont(const std::string& name, Font* font);
+	Shader* GetShader(const std::string& name);
+	void AddShader(const std::string& name, Shader* shader);
+	Texture* GetTexture(const std::string& name);
+	void AddTexture(const std::string& name, Texture* texture);
 }

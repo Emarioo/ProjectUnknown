@@ -6,7 +6,7 @@
 
 #include "../Handlers/AssetHandler.h"
 
-namespace engine {
+namespace engone {
 	class GameObject {
 	public:
 		GameObject(const std::string& name);

@@ -26,19 +26,21 @@
     <ClInclude Include="src\Engone\Components\RenderComponent.h" />
     <ClInclude Include="src\Engone\Components\Animator.h" />
     <ClInclude Include="src\Engone\Components\Model.h" />
+    <ClInclude Include="src\Engone\ConsoleHandler.h" />
     <ClInclude Include="src\Engone\DebugTool\DebugPanel.h" />
     <ClInclude Include="src\Engone\DebugTool\LogLine.h" />
+    <ClInclude Include="src\Engone\EventManager.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
+    <ClInclude Include="src\Engone\UI\GUIManager.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
-    <ClInclude Include="src\Engone\Engine.h" />
+    <ClInclude Include="src\Engone\Engone.h" />
     <ClInclude Include="src\Engone\Components\Animation.h" />
     <ClInclude Include="src\Engone\Components\Armature.h" />
     <ClInclude Include="src\Engone\Components\Mesh.h" />
     <ClInclude Include="src\Engone\Handlers\AssetHandler.h" />
     <ClInclude Include="src\Engone\Handlers\FileHandler.h" />
-    <ClInclude Include="src\Engone\Handlers\UIHandler.h" />
     <ClInclude Include="src\Engone\Handlers\ObjectHandler.h" />
     <ClInclude Include="src\Engone\Objects\GameObject.h" />
     <ClInclude Include="src\Engone\Objects\Camera.h" />
@@ -50,13 +52,7 @@
     <ClInclude Include="src\Engone\Handlers\SoundHandler.h" />
     <ClInclude Include="src\Engone\Sound\SoundSource.h" />
     <ClInclude Include="src\Engone\Sound\SoundStream.h" />
-    <ClInclude Include="src\Engone\UI\Font.h" />
-    <ClInclude Include="src\Engone\UI\IBase.h" />
-    <ClInclude Include="src\Engone\UI\IColor.h" />
-    <ClInclude Include="src\Engone\UI\IConstraint.h" />
-    <ClInclude Include="src\Engone\UI\IElement.h" />
-    <ClInclude Include="src\Engone\UI\ITransition.h" />
-    <ClInclude Include="src\Engone\UI\Text.h" />
+    <ClInclude Include="src\Engone\Rendering\Font.h" />
     <ClInclude Include="src\Engone\DebugTool\DebugHandler.h" />
     <ClInclude Include="src\Engone\Utility\Utilities.h" />
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
@@ -74,18 +70,20 @@
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
     <ClCompile Include="src\Engone\Components\Model.cpp" />
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
+    <ClCompile Include="src\Engone\ConsoleHandler.cpp" />
     <ClCompile Include="src\Engone\DebugTool\DebugPanel.cpp" />
     <ClCompile Include="src\Engone\DebugTool\LogLine.cpp" />
-    <ClCompile Include="src\Engone\Engine.cpp" />
+    <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Components\Animation.cpp" />
+    <ClCompile Include="src\Engone\EventManager.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
     <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
-    <ClCompile Include="src\Engone\Handlers\UIHandler.cpp" />
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Components\Animator.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
+    <ClCompile Include="src\Engone\UI\GUIManager.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gonpch.h</PrecompiledHeaderFile>
@@ -103,13 +101,7 @@
     <ClCompile Include="src\Engone\Handlers\SoundHandler.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
-    <ClCompile Include="src\Engone\UI\Font.cpp" />
-    <ClCompile Include="src\Engone\UI\IBase.cpp" />
-    <ClCompile Include="src\Engone\UI\IColor.cpp" />
-    <ClCompile Include="src\Engone\UI\IConstraint.cpp" />
-    <ClCompile Include="src\Engone\UI\IElement.cpp" />
-    <ClCompile Include="src\Engone\UI\ITransition.cpp" />
-    <ClCompile Include="src\Engone\UI\Text.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Font.cpp" />
     <ClCompile Include="src\Engone\DebugTool\DebugHandler.cpp" />
     <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
     <ClCompile Include="src\Engone\Utility\GameOptions.cpp" />
@@ -117,6 +109,9 @@
     <ClCompile Include="src\Engone\Utility\Languages.cpp" />
     <ClCompile Include="src\vendor\Libaudio.cpp" />
     <ClCompile Include="src\Engone\World\Dimension.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Engone\Shaders\outline.shader" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -195,7 +190,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -217,8 +212,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>
-      </PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -240,7 +234,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -262,8 +256,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>
-      </PreprocessorDefinitions>
+      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>

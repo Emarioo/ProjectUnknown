@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../UI/IBase.h"
+//#include "../UI/IBase.h"
 
-namespace engine {
-	class DebugPanel : public engine::IBase {
+namespace engone {
+	/*
+	class DebugPanel : public IBase {
 	public:
 		DebugPanel(const std::string& name);
 
@@ -13,5 +14,5 @@ namespace engine {
 
 		void Update(float delta) override;
 		void Render() override;
-	};
+	};*/
 }

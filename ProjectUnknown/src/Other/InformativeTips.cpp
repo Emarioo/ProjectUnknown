@@ -76,7 +76,7 @@ Tip::Tip(const std::string& text, Statistic stat1, Statistic stat2, Criteria cri
 }
 Tip::~Tip(){}
 std::string Tip::GetTip() {
-	std::vector<std::string> split = engine::SplitString(text, "[x]");
+	std::vector<std::string> split = engone::SplitString(text, "[x]");
 	for (int i = 0; i < split.size() - 1; i++) {
 		if (stats.size() > i)
 			split[0] += gameStatistics.GetStringStat(stats[i]) + split[i + 1];
@@ -102,7 +102,7 @@ bool Tip::IsFulfilled() {
 std::mt19937 global_gen;
 std::uniform_real_distribution global_dis;
 InformativeTips::InformativeTips() {
-	global_gen.seed(engine::GetSystemTime());
+	global_gen.seed(engone::GetSystemTime());
 	// Death tips
 	AddDeathTip({ "You have died [x] times.", PlayerDeaths });
 	AddDeathTip({ "Are you raging because you have died [x] times the last hour.",PlayerDeathsLastHour,{PlayerDeathsLastHour,7,0} });

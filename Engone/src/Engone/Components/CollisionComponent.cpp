@@ -2,7 +2,7 @@
 
 #include "CollisionComponent.h"
 
-namespace engine {
+namespace engone {
 	Location::Location()
 		: loc(1) {}
 	void Location::Rotate(glm::vec3 v) {

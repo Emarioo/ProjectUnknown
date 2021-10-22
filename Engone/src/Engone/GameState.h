@@ -14,7 +14,7 @@ namespace GameState {
 	};
 }
 
-namespace engine {
+namespace engone {
 	void SetState(unsigned char state,bool f);
 	bool CheckState(unsigned char state);
 }

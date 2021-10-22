@@ -2,7 +2,7 @@
 
 #include "MetaComponent.h"
 
-namespace engine {
+namespace engone {
 
 	MetaBase::MetaBase(MetaIdentity identity)
 	: identity(identity) {};

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "../Rendering/Buffer.h"
 #include "../Rendering/Renderer.h"
 #include "../Keyboard.h"
-#include "Font.h"
+#include "../Rendering/Font.h"
 
-namespace engine {
+namespace engone {
 	/*
 	Text should fit in a box
 

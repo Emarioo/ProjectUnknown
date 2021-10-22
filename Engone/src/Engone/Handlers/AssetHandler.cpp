@@ -2,7 +2,7 @@
 
 #include "AssetHandler.h"
 
-namespace engine {
+namespace engone {
 
 	std::vector<TimedFunc> functions;
 	void AddTimedFunction(std::function<void()> func, float time) {
@@ -10,7 +10,7 @@ namespace engine {
 	}
 	void UpdateTimedFunc(float delta) {
 		int n = 0;
-		for (TimedFunc& f : functions) { // Will this cuse problems? Removing an element in a for loop
+		for (TimedFunc& f : functions) { // Will this cause problems? Removing an element in a for loop
 			f.time -= delta;
 			if (f.time < 0) {
 				f.func();
@@ -124,10 +124,11 @@ namespace engine {
 	void DeleteModelAsset(const std::string& name) {
 		models.erase(name);
 	}
+	/*
 	std::unordered_map<std::string, Texture> textures;
 	void AddTextureAsset(const std::string& name) {// Change this system so it is simular to every other system. FileExist?
 		std::string path = "assets/textures/" + name + ".png";
-		if (FileExist(path)) {
+		if (FindFile(path)) {
 			textures[name] = Texture(path);
 		} else {
 			bug::out < bug::RED < "Cannot find Texture '" < path < bug::end;
@@ -142,5 +143,33 @@ namespace engine {
 	}
 	void DeleteTextureAsset(const std::string& name) {
 		textures.erase(name);
+	}
+	*/
+	static std::unordered_map<std::string, Font*> fonts;
+	static std::unordered_map<std::string, Texture*> textures;
+	static std::unordered_map<std::string, Shader*> shaders;
+	Font* GetFont(const std::string& name)
+	{
+		return fonts[name];
+	}
+	void AddFont(const std::string& name, Font* font)
+	{
+		fonts[name] = font;
+	}
+	Shader* GetShader(const std::string& name)
+	{
+		return shaders[name];
+	}
+	void AddShader(const std::string& name, Shader* shader)
+	{
+		shaders[name] = shader;
+	}
+	Texture* GetTexture(const std::string& name)
+	{
+		return textures[name];
+	}
+	void AddTexture(const std::string& name, Texture* texture)
+	{
+		textures[name] = texture;
 	}
 }

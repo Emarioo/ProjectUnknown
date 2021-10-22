@@ -33,13 +33,7 @@
     <ClInclude Include="src\Engone\Rendering\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\UI\Font.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\IElement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\Text.h">
+    <ClInclude Include="src\Engone\Rendering\Font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Utility\GameOptions.h">
@@ -51,7 +45,7 @@
     <ClInclude Include="src\Engone\World\Dimension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Engine.h">
+    <ClInclude Include="src\Engone\Engone.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Objects\GameObject.h">
@@ -111,25 +105,10 @@
     <ClInclude Include="src\Engone\Handlers\FileHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Handlers\UIHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engone\Handlers\SoundHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Handlers\ObjectHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\IBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\IConstraint.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\IColor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\UI\ITransition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Languages.h">
@@ -153,6 +132,15 @@
     <ClInclude Include="src\Engone\Rendering\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engone\ConsoleHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engone\UI\GUIManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp">
@@ -173,13 +161,7 @@
     <ClCompile Include="src\Engone\Rendering\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\UI\Font.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\IElement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\Text.cpp">
+    <ClCompile Include="src\Engone\Rendering\Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utility\GameOptions.cpp">
@@ -194,7 +176,7 @@
     <ClCompile Include="src\Engone\World\Dimension.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Engine.cpp">
+    <ClCompile Include="src\Engone\Engone.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utility\Utilities.cpp">
@@ -239,22 +221,7 @@
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Handlers\UIHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Handlers\SoundHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\IConstraint.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\IBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\IColor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\UI\ITransition.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\DebugTool\DebugHandler.cpp">
@@ -275,5 +242,17 @@
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engone\EventManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\ConsoleHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\UI\GUIManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Engone\Shaders\outline.shader" />
   </ItemGroup>
 </Project>

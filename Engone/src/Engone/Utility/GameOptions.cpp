@@ -2,7 +2,7 @@
 
 #include "GameOptions.h"
 
-namespace engine {
+namespace engone {
 
 	std::map<std::string, int> intOptions;
 	std::map<std::string, float> floatOptions;
@@ -20,8 +20,8 @@ namespace engine {
 		floatOptions[s] = f;
 	}
 	void ReadOptions() {
-		FileReport err;
-		std::vector<std::string> list = ReadTextFile("data/gameoptions.txt", &err);
+		std::vector<std::string> list;
+		FileReport err = ReadTextFile("data/gameoptions.txt", list);
 		if (err == FileReport::NotFound)
 			return;
 		for (std::string s : list) {

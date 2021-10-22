@@ -1,10 +1,10 @@
 #include "gonpch.h"
 
+//#if ENGONE_GLFW
 #include "FrameBuffer.h"
-
 #include <GL/glew.h>
 
-namespace engine {
+namespace engone {
 	FrameBuffer::FrameBuffer() {}
 	void FrameBuffer::Init() {
 		glGenFramebuffers(1, &fbo);
@@ -33,3 +33,4 @@ namespace engine {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }
+//#endif

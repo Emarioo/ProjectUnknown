@@ -4,7 +4,7 @@
 
 #include "../Rendering/Renderer.h"
 
-namespace engine {
+namespace engone {
 	ITransition::ITransition(bool* act) {
 		activator = act;
 	}

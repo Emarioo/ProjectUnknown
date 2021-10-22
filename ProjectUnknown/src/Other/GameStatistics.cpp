@@ -43,10 +43,12 @@ GameStatistics::GameStatistics() {
 	SetStat(SkippedTutorial,1);
 	SetStat(WorldPlaytimeHours,.5f);
 }
+/*
 GameStatistics::~GameStatistics() {
 	std::cout << "It's about to go!" << std::endl;
 
 }
+*/
 void GameStatistics::AddStringEnum(const std::string& name, Statistic stat) {
 	keymap[name] = stat;
 }

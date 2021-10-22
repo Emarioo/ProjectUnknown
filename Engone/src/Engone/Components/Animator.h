@@ -3,7 +3,7 @@
 #include "Animation.h"
 #include "Model.h"
 
-namespace engine {
+namespace engone {
 
 	class AnimProp {
 	public:

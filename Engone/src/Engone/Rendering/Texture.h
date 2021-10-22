@@ -1,22 +1,39 @@
 #pragma once
 
-class Texture
+//#if ENGONE_GLFW
+
+namespace engone
 {
-private:
-	unsigned int id;
-	unsigned char* buffer=nullptr;
-	int width=0, height, BPP=0;
-public:
-	Texture();
-	Texture(const std::string& path);
-	void LoadTex(const std::string& path);
-	~Texture();
+	class Texture
+	{
+	private:
+		unsigned int id;
+		unsigned char* buffer = nullptr;
+		int width = 0, height, BPP = 0;
+	public:
+		Texture();
+		/*
+		Check if the texture's error variable is true
+		*/
+		Texture(const std::string& path);
+		~Texture();
+		/*
+		@return true if file isn't found
+		*/
+		bool Init(const std::string& path);
+		void Init(int w, int h, void* data);
 
-	std::string filepath;
+		std::string filepath;
 
-	void Bind(unsigned int slot = 0) const;
-	void Unbind() const;
+		void SubData(int x, int y, int w, int h, void* data);
 
-	inline int GetWidth();
-	inline int GetHeight();
-};
+		void Bind(unsigned int slot = 0) const;
+		void Unbind() const;
+
+		int GetWidth();
+		int GetHeight();
+
+		bool error=false;
+	};
+}
+//#endif

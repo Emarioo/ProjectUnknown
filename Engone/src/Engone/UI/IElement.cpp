@@ -2,7 +2,7 @@
 
 #include "IElement.h"
 
-namespace engine {
+namespace engone {
 
 	IElement::IElement(const std::string& name, int priority) :
 		IBase(name), priority(priority)

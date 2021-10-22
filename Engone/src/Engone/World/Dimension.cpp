@@ -4,7 +4,7 @@
 
 #include "../Utility/Utilities.h"
 
-namespace engine {
+namespace engone {
 
 	Dimension::Dimension() {}
 	Dimension::Dimension(int s) {
@@ -40,7 +40,7 @@ namespace engine {
 	int tick = 0;
 	void Dimension::CleanChunks() {
 		int px = player->position.x / chunkSize, pz = player->position.z / chunkSize;
-		int befTime = engine::GetPlayTime();
+		int befTime = engone::GetPlayTime();
 		for (int i = 0; i < loadedChunks.size(); i++) {
 			Chunk* c = &loadedChunks.at(i);
 			float dx = c->x - px;
@@ -63,11 +63,11 @@ namespace engine {
 				c->z -= 2 * dz - abs(dz) / dz;
 				UpdateChunk(c);
 			}
-			if (engine::GetPlayTime()-befTime>40) {
+			if (engone::GetPlayTime()-befTime>40) {
 				break;
 			}
 		}
-		//int aftTime = engine::GetTime();
+		//int aftTime = engone::GetTime();
 		//bug::out < (aftTime - befTime) < bug::end;
 		/*
 		for each chunk

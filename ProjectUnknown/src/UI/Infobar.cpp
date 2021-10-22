@@ -6,7 +6,7 @@
 
 #include "Engone/Rendering/Renderer.h"
 
-Infobar::Infobar(const std::string& name) : engine::IBase(name) {
+Infobar::Infobar(const std::string& name) : engone::IBase(name) {
 	active = true;
 }
 void Infobar::Update(float delta) {
@@ -14,11 +14,17 @@ void Infobar::Update(float delta) {
 }
 void Infobar::Render() {
 	// Inventory background
-	engine::BindTexture(0, "containers/infobar");
+	engone::GetTexture("infobar")->Bind();
 
-	engine::DrawRect(x, y, w, h, color.r, color.g, color.b, color.a);
+	engone::Shader* gui = engone::GetShader("gui");
+	gui->SetVec2("uPos", { x,y });
+	gui->SetVec2("uSize", { w,h });
+	gui->SetVec4("uColor", color.r, color.g, color.b, color.a);
+	gui->SetInt("uTextured", 1);
 
-	Player* plr = gameHandler.player;
+	engone::DrawRect();
+
+	Player* plr = game::GetPlayer();
 
 	float health = plr->health / plr->maxHealth;
 	float stamina = plr->stamina / plr->maxStamina;
@@ -31,40 +37,50 @@ void Infobar::Render() {
 	float barBorderW = w * 2 / 550.f;
 	float barBorderH = h * 2 / 226.f;
 
-	engine::BindTexture(0, "blank");
+	gui->SetInt("uTextured", 0);
 
 	float baseX = x + barBorderW;
 	float baseY = y + h - barBorderH - barHeight;
 	float strideY = (barHeight + barGap);
 
-	engine::SetColor(0, 1, 0, 1);
-	engine::DrawRect(baseX, baseY, health * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY });
+	gui->SetVec2("uSize", { health * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0, 1, 0, 1);
+	engone::DrawRect();
 
-	engine::SetColor(1, 1, 0, 1);
-	engine::DrawRect(baseX, baseY - strideY, stamina * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - strideY });
+	gui->SetVec2("uSize", { stamina * fullWidth, barHeight });
+	gui->SetVec4("uColor", 1, 1, 0, 1);
+	engone::DrawRect();
 
-	engine::SetColor(0.8, 0.5, 0.2, 1);
-	engine::DrawRect(baseX, baseY - 2 * strideY, hunger * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - 2 * strideY });
+	gui->SetVec2("uSize", { hunger * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0.8, 0.5, 0.2, 1);
+	engone::DrawRect();
 
-	engine::SetColor(0.1, 0.2, 1, 1);
-	engine::DrawRect(baseX, baseY - 3 * strideY, mana * fullWidth, barHeight);
+	gui->SetVec2("uPos", { baseX, baseY - 3 * strideY });
+	gui->SetVec2("uSize", { mana * fullWidth, barHeight });
+	gui->SetVec4("uColor", 0.1, 0.2, 1, 1);
+	engone::DrawRect();
 
-	engine::SetColor(1, 1, 1, 1);
-	engine::SetSize(1, 1);
+	gui->SetVec2("uSize", { 1,1 });
+	gui->SetVec4("uColor", 1, 1, 1, 1);
 
 	float textX = x + fullWidth / 2 + barBorderW;
 	float textY = y + h - barBorderH - barHeight / 2;
 
-	engine::SetTransform(textX, textY);
-	engine::DrawString("consolas42", std::to_string((int)plr->health) + "/" + std::to_string((int)plr->maxHealth), true, barHeight, -1);
+	engone::Font* consolas = engone::GetFont("consolas");
 
-	engine::SetTransform(textX, textY - strideY);
-	engine::DrawString("consolas42", std::to_string((int)plr->stamina) + "/" + std::to_string((int)plr->maxStamina), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY });
+	engone::DrawString(consolas, std::to_string((int)plr->health) + "/" + std::to_string((int)plr->maxHealth), true, barHeight,fullWidth,barHeight);
 
-	engine::SetTransform(textX, textY - 2 * strideY);
-	engine::DrawString("consolas42", std::to_string((int)plr->hunger) + "/" + std::to_string((int)plr->maxHunger), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY-strideY });
+	engone::DrawString(consolas, std::to_string((int)plr->stamina) + "/" + std::to_string((int)plr->maxStamina), true, barHeight, fullWidth, barHeight);
 
-	engine::SetTransform(textX, textY - 3 * strideY);
-	engine::DrawString("consolas42", std::to_string((int)plr->mana) + "/" + std::to_string((int)plr->maxMana), true, barHeight, -1);
+	gui->SetVec2("uPos", { textX,textY - strideY*2 });
+	engone::DrawString(consolas, std::to_string((int)plr->hunger) + "/" + std::to_string((int)plr->maxHunger), true, barHeight, fullWidth, barHeight);
+
+	gui->SetVec2("uPos", { textX,textY - strideY*3 });
+	engone::DrawString(consolas, std::to_string((int)plr->mana) + "/" + std::to_string((int)plr->maxMana), true, barHeight, fullWidth, barHeight);
 
 }

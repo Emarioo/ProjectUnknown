@@ -1,8 +1,9 @@
 #pragma once
 
+#if ENGONE_AL
 #include "../Sound/SoundStream.h"
 
-namespace engine {
+namespace engone {
 	// returns false if error
 	bool InitSound();
 	void UninitSound();
@@ -14,3 +15,4 @@ namespace engine {
 	*/
 	void ListenerRotation(float x, float y, float z, float x1, float y1, float z1);
 }
+#endif

@@ -2,7 +2,7 @@
 
 #include "LogLine.h"
 
-namespace engine {
+namespace engone {
 	void SetupDebugPanel();
 }
 namespace bug {

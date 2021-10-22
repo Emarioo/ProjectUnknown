@@ -1,9 +1,8 @@
 #include "gonpch.h"
 
-#include "SoundBuffer.h"
-
 #include "Handlers/FileHandler.h"
 
+#include "SoundBuffer.h"
 #include "Libaudio.h"
 
 bool al_check_error() {
@@ -15,7 +14,7 @@ bool al_check_error() {
 	return false;
 }
 
-namespace engine {
+namespace engone {
 	static ALenum to_al_format(short channels, short samples) {
 		bool stereo = (channels > 1);
 
@@ -43,7 +42,7 @@ namespace engine {
 			alCall(alDeleteBuffers(1, &id));
 	}
 	void SoundBuffer::Init(const char* path) {
-		if (engine::FileExist(path)) {
+		if (engone::FindFile(path)) {
 			//TEST_ERROR("buffer generation");
 			ALsizei size, freq;
 			int channels, bps;

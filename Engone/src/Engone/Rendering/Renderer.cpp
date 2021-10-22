@@ -1,22 +1,38 @@
 #include "gonpch.h"
 
-#include "Renderer.h"
-
-#include "../Handlers/AssetHandler.h"
 #include "../Handlers/ObjectHandler.h"
 
-namespace engine {
-	
-	WindowTypes windowType = NONE;
-	WindowTypes GetWindowType() {
+//#if ENGONE_GLFW
+#include "Renderer.h"
+
+namespace engone {
+	static WindowType windowType = NONE;
+	static int winX = 0, winY = 0, winW = 0, winH = 0;
+	static GLFWwindow* window = nullptr;
+	static bool windowHasFocus = true;
+	/*
+	static glm::mat4 projMatrix;
+	static glm::mat4 viewMatrix;
+	static float fov,zNear,zFar;
+	*/
+	static const int TEXT_BATCH = 40;
+	static float verts[4 * 4 * TEXT_BATCH];
+	static TriangleBuffer textBuffer, rectBuffer;
+
+	static bool isCursorVisible = true, isCursorLocked=false;
+
+	static std::vector<Light*> lights;
+
+	/*
+	std::function<void(int, int)> KeyEvent = nullptr;
+	std::function<void(double, double, int, int)> MouseEvent = nullptr;
+	std::function<void(double)> ScrollEvent = nullptr;
+	std::function<void(double, double)> DragEvent = nullptr;
+	std::function<void(int, int)> ResizeEvent = nullptr;
+	std::function<void(int)> FocusEvent = nullptr;*/
+	WindowType  GetWindowType() {
 		return windowType;
 	}
-	int winX = 0;
-	int winY = 0;
-	int winW = 0;
-	int winH = 0;
-
-	GLFWwindow* window=nullptr;
 	GLFWwindow* GetWindow() {
 		return window;
 	}
@@ -40,10 +56,13 @@ namespace engine {
 		if (window != nullptr)
 			glfwSetWindowSize(window, w, h);
 	}
+	void SetWindowTitle(const char* title) {
+		glfwSetWindowTitle(window, title);
+	}
 	/*
 	Width of game screen not window!
 	*/
-	float Width() {
+	int Width() {
 		int temp;
 		glfwGetWindowSize(window, &temp, nullptr);
 		return temp;
@@ -51,7 +70,7 @@ namespace engine {
 	/*
 	Height of game screen not window!
 	*/
-	float Height() {
+	int Height() {
 		int temp;
 		glfwGetWindowSize(window, nullptr, &temp);
 		return temp;
@@ -67,95 +86,15 @@ namespace engine {
 	}
 	float ToFloatScreenH(float h) {
 		return 2.f * (h) / Height();
-	}
-	float renMouseX;
-	float renMouseY;
-	float GetMouseX() {
-		return renMouseX;
-	}
-	float GetMouseY() {
-		return renMouseY;
-	}
+	}/*
 	float GetFloatMouseX() {
-		return ToFloatScreenX(renMouseX);
+		return ToFloatScreenX(GetMouseX());
 	}
 	float GetFloatMouseY() {
-		return ToFloatScreenY(renMouseY);
-	}
-	bool windowHasFocus = true;
+		return ToFloatScreenY(GetMouseY());
+	}*/
 	bool HasFocus() {
 		return windowHasFocus;
-	}
-	std::function<void(int, int)> KeyEvent = nullptr;
-	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		// This is for debug purposes
-		if (key == GLFW_KEY_1) {
-			SetWindowType(Windowed);
-		}
-		else if (key == GLFW_KEY_2) {
-			SetWindowType(Fullscreen);
-		}
-		else if (key == GLFW_KEY_3) {
-			SetWindowType(BorderlessFullscreen);
-		}
-
-		if (KeyEvent != nullptr) {
-			KeyEvent(key, action);
-		}
-	}
-	std::function<void(double, double, int, int)> MouseEvent = nullptr;
-	void MouseCallback(GLFWwindow* window, int action, int button, int mods) {
-		if (MouseEvent != nullptr)
-			MouseEvent(renMouseX, renMouseY, action, button);
-	}
-	std::function<void(double)> ScrollEvent = nullptr;
-	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-		if (ScrollEvent != nullptr) {
-			ScrollEvent(yoffset);
-		}
-	}
-	float cameraSensitivity = 0.1f;// TODO: MOVE THIS SOMEWHERE
-	std::function<void(double, double)> DragEvent = nullptr;
-	void DragCallback(GLFWwindow* window, double mx, double my) {
-		if (IsCursorLocked()) {
-			GetCamera()->rotation.y -= (mx - renMouseX) * (3.14159f / 360) * cameraSensitivity;
-			GetCamera()->rotation.x -= (my - renMouseY) * (3.14159f / 360) * cameraSensitivity;
-		}
-		if (DragEvent != nullptr)
-			DragEvent(mx, my);
-		renMouseX = mx;
-		renMouseY = my;
-	}
-	std::function<void(int, int)> ResizeEvent = nullptr;
-	void ResizeCallback(GLFWwindow* window, int width, int height) {
-		glViewport(0, 0, width, height);
-		if (windowType == Windowed) {
-			winW = width;
-			winH = height;
-		}
-		if (ResizeEvent != nullptr)
-			ResizeEvent(width, height);
-	}
-	std::function<void(int)> FocusEvent = nullptr;
-	void WindowFocusCallback(GLFWwindow* window, int focus) {
-		windowHasFocus = focus;
-		if (FocusEvent != nullptr) {
-			FocusEvent(focus);
-		}
-	}
-	void SetInterfaceCallbacks(
-		std::function<void(int, int)> key,
-		std::function<void(double, double, int, int)> mouse,
-		std::function<void(double)> scroll,
-		std::function<void(double, double)> drag,
-		std::function<void(int, int)> resize,
-		std::function<void(int)> focus) {
-		KeyEvent = key;
-		MouseEvent = mouse;
-		ScrollEvent = scroll;
-		DragEvent = drag;
-		ResizeEvent = resize;
-		FocusEvent = focus;
 	}
 	void MakeWindow(const char* title) {
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -209,15 +148,8 @@ namespace engine {
 			return;
 		}
 		glfwMakeContextCurrent(window);
-
-		glfwSetKeyCallback(window, KeyCallback);
-		glfwSetMouseButtonCallback(window, MouseCallback);
-		glfwSetScrollCallback(window, ScrollCallback);
-		glfwSetCursorPosCallback(window, DragCallback);
-		glfwSetWindowFocusCallback(window, WindowFocusCallback);
-		glfwSetWindowSizeCallback(window, ResizeCallback);
 	}
-	void SetWindowType(WindowTypes t) {
+	void SetWindowType(WindowType t) {
 		if (t == windowType)
 			return;
 		if (window == nullptr) {
@@ -287,11 +219,7 @@ namespace engine {
 		return;*/
 	}
 	
-	glm::mat4 projMatrix;
-	glm::mat4 viewMatrix;
-	float fov;
-	float zNear;
-	float zFar;
+	/*
 	void SetProjection(float ratio) {
 		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
@@ -301,16 +229,9 @@ namespace engine {
 			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
 			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
 		);
-	}
+	}*/
 	
-	const int TEXT_BATCH = 40;
-	float verts[4 * 4 * TEXT_BATCH];
-	TriangleBuffer textContainer;
-	TriangleBuffer rectContainer;
-	TriangleBuffer uvRectContainer;
-
-	Shader shaders[MAX_CUSTOM_SHADERS+MAX_ENGINE_SHADERS];
-	unsigned char boundShader = 0;
+#if gone
 	bool BindShader(unsigned char shader) {
 		if (shaders[shader].isInitialized) {
 			boundShader = shader;
@@ -321,7 +242,7 @@ namespace engine {
 	}
 	void AddShader(unsigned char shader, const std::string& _path) {
 		std::string path = "assets/shaders/" + _path;
-		if (FileExist(path + ".shader")) {
+		if (FindFile(path + ".shader")) {
 			shaders[shader].Init(path);
 		} else {
 			bug::out <bug::RED< "Cannot find '" < path < ".shader'" < bug::end;
@@ -347,6 +268,7 @@ namespace engine {
 			return &shaders[boundShader];
 		return &shaders[ShaderType::NONE];
 	}
+#endif
 	void InitRenderer() {
 		if (!glfwInit()) {
 			std::cout << "Not Init Window!" << std::endl;
@@ -387,6 +309,7 @@ namespace engine {
 		
 		// These shaders from the engine are placed in the assets/shaders folder where custom shaders are placed.
 		//  They should be compiled with the game in strings instead of loaded from files when starting game.
+		/*
 		AddShader(ShaderType::Color, "color");
 		AddShader(ShaderType::ColorBone, "colorWeight");
 		AddShader(ShaderType::UV, "texture");
@@ -394,62 +317,36 @@ namespace engine {
 		AddShader(ShaderType::Interface, "interface");
 		AddShader(ShaderType::Outline, "outline");
 		AddShader(ShaderType::Depth, "simpleDepth");
-		
-		AddTextureAsset("blank");
+		*/
 
 		std::uint32_t indes[TEXT_BATCH*6];
 		for (int i = 0; i < TEXT_BATCH; i++) {
-			indes[0 + 6 * i] = 2 + 4 * i;
+			indes[0 + 6 * i] = 0 + 4 * i;
 			indes[1 + 6 * i] = 1 + 4 * i;
-			indes[2 + 6 * i] = 0 + 4 * i;
-			indes[3 + 6 * i] = 0 + 4 * i;
+			indes[2 + 6 * i] = 2 + 4 * i;
+			indes[3 + 6 * i] = 2 + 4 * i;
 			indes[4 + 6 * i] = 3 + 4 * i;
-			indes[5 + 6 * i] = 2 + 4 * i;
+			indes[5 + 6 * i] = 0 + 4 * i;
 		}
-		textContainer.Init(true,nullptr,4*4*TEXT_BATCH,indes,6*TEXT_BATCH);
-		textContainer.SetAttrib(0, 4, 4, 0);
+		textBuffer.Init(true,nullptr,4*4*TEXT_BATCH,indes,6*TEXT_BATCH);
+		textBuffer.SetAttrib(0, 4, 4, 0);
 		float temp[]{
-			0, 1, 0, 1,
 			0, 0, 0, 0,
-			1, 0, 1, 0,
-			1, 1, 1, 1
+			0, 1, 0, 1,
+			1, 1, 1, 1,
+			1, 0, 1, 0
 		};
 		unsigned int temp2[]{
 			0,1,2,
 			2,3,0
 		};
-		float temp3[]{
-			-.5, -.5, 0, 0,
-			-.5, .5, 0, 1,
-			.5, .5, 1, 1,
-			.5, -.5, 1, 0
-		};
-		unsigned int temp4[]{
-			2,1,0,
-			0,3,2
-		};
-		rectContainer.Init(false, temp,16, temp2, 6);
-		rectContainer.SetAttrib(0, 4, 4, 0);
-
-		uvRectContainer.Init(true, temp3, 16, temp4, 6);
-		uvRectContainer.SetAttrib(0, 4, 4, 0);
-		
-		BindShader(ShaderType::Interface);
-		SetSize(1, 1);
-		SetRenderArea(-1, -1, 2, 2);
-		
-		fov = 90.f;
-		zNear = 0.1f;
-		zFar = 400.f;
-
-		SetProjection((float)Width() / Height());
+		rectBuffer.Init(true, temp,16, temp2, 6);
+		rectBuffer.SetAttrib(0, 4, 4, 0);
 	}
 
-	bool isCursorVisible = true;
 	bool IsCursorVisible() {
 		return isCursorVisible;
 	}
-	bool isCursorLocked = false;
 	bool IsCursorLocked() {
 		return isCursorLocked;
 	}
@@ -480,9 +377,6 @@ namespace engine {
 	void RenderTermin() {
 		glfwTerminate();
 	}
-	void SetWindowTitle(const char* title) {
-		glfwSetWindowTitle(window, title);
-	}
 	void SwitchBlendDepth(bool b) {
 		if (b) {
 			glEnable(GL_BLEND);
@@ -492,7 +386,7 @@ namespace engine {
 			glEnable(GL_DEPTH_TEST);
 		}
 	}
-
+#if gone
 	void SetTransform(glm::mat4 m) {
 		if (GetBoundShader() != nullptr)
 			GetBoundShader()->SetMatrix("uTransform", m);
@@ -540,7 +434,6 @@ namespace engine {
 			bug::out < bug::RED < "Texture is null '" < texture->filepath <"'\n";
 		}
 	}
-	std::unordered_map<std::string, Font*> fonts;
 	void AddFont(const std::string& name) {
 		if (fonts.count(name) == 0) {
 			fonts[name] = new Font(name);
@@ -554,7 +447,249 @@ namespace engine {
 		}
 		return nullptr;
 	}
+#endif
+	static void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3)
+	{
+		ar[ind] = f0;
+		ar[ind + 1] = f1;
+		ar[ind + 2] = f2;
+		ar[ind + 3] = f3;
+	}
+	/*
 	
+	*/
+	void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar)
+	{
+		if (text.length() == 0 && atChar == -1)
+			return;
+		if (font == nullptr) {
+			std::cout << "DrawString: Font is null\n";
+			return;
+		}
+		else if (font->texture.error) {
+			return;
+		}
+		else {
+			font->texture.Bind();
+		}
+
+		std::vector<std::string> lines;
+		std::vector<float> lineWidths;
+
+		float reachedWidth = 0;
+		float spacing = 0;
+		int lineIndex = 0;
+		std::string word;
+		float wordWidth = 0;
+		lines.push_back("");
+		lineWidths.push_back(0);
+		for (int i = 0; i < text.length(); i++) {
+			unsigned char chr = text[i];
+			//std::cout << (int)chr << "\n";
+
+			float added = wantedHeight * (font->charWid[chr] / (float)font->charSize);
+			//if (wordWidth != 0 && lineWidths[lineIndex] != 0)
+			added += spacing;
+
+			/*
+			if (wordWidth==0&&lineWidths[lineIndex] == 0 && chr == ' ') {// skip space in the beginning of line
+				continue;
+			}
+			*/
+
+			if (chr == '\n') {// || chr == ' ' && lineWidths[lineIndex] + wordWidth + added > reachedWidth) { // new line
+				//if (lineWidths[lineIndex] + wordWidth < maxWidth) {
+				lines[lineIndex] += word;
+				lineWidths[lineIndex] += wordWidth;
+				if (chr == ' ') {
+					lines[lineIndex] += ' ';
+					lineWidths[lineIndex] += added;
+				}
+				//if (chr == '\n')
+				//	lines[lineIndex] += '\n';
+				//if (i!=text.length()-1) {
+				lineWidths.push_back(0);
+				//	if(chr=='\n')
+				lines.push_back("\n");
+				//	else
+				//		lines.push_back("");
+				//}
+				//}
+				//else {
+				//	lineWidths.push_back(wordWidth);
+				//	lines.push_back(word);
+				//}
+				word = "";
+				wordWidth = 0;
+				lineIndex++;
+				continue;
+			}
+			/*
+			if (lineWidths[lineIndex]+ wordWidth + added >maxWidth) {
+				i--;
+
+				if (word[0] == ' ') {
+					word = word.substr(1);
+					wordWidth -= spacing+wantedHeight * (font->charWid[chr] / (float)font->charSize);
+				}
+
+				lineWidths.push_back(wordWidth);
+				lines.push_back(word);
+				word = "";
+				wordWidth = 0;
+				lineIndex++;
+				continue;
+			}
+			*/
+			/*
+			if (chr == ' ') {
+				lines[lineIndex] += word;
+				lineWidths[lineIndex] += wordWidth;
+				word = "";
+				wordWidth = 0;
+			}
+			*/
+			word += chr;
+			wordWidth += added;
+
+			// add the last stuff if the last character is reached
+			if (i == text.size() - 1) {
+				lines[lineIndex] += word;
+				lineWidths[lineIndex] += wordWidth;
+			}
+			// get the maximum width
+			if (wordWidth > reachedWidth) {
+				reachedWidth = wordWidth;
+			}
+		}
+		//std::cout << "Lines " << lineWidths.size() << " " << lines.size() << "\n";
+
+		if (reachedWidth > maxWidth) {
+			wantedHeight *= maxWidth / reachedWidth;
+			for (int i = 0; i < lineWidths.size(); i++) {
+				//lineWidths[i] -= spacing * (lines[i].length() - 1);
+				lineWidths[i] *= maxWidth / reachedWidth;
+				//lineWidths[i] += spacing*(lines[i].length()-1);
+				//std::cout << rowWidths[i] << "\n";
+			}
+		}
+		if (lineWidths.size() * wantedHeight > maxHeight) {
+			for (int i = 0; i < lineWidths.size(); i++) {
+				//lineWidths[i] -= spacing * (lines[i].length() - 1);
+				lineWidths[i] *= maxHeight / (lineWidths.size() * wantedHeight);
+				//lineWidths[i] += spacing*(lines[i].length()-1);
+				//std::cout << rowWidths[i] << "\n";
+			}
+			wantedHeight = maxHeight / lineWidths.size();
+		}
+		//std::cout << wantedHeight << "\n";
+		float x = 0;
+		float y = 0;
+		if (center) {
+			y = (maxHeight - wantedHeight * lines.size()) / 2;
+		}
+		int dataIndex = 0;
+		//std::cout << lines[0] << "\n";
+		if (atChar != -1) { // do marker
+			//std::cout << lines.size()<<"\n";
+			for (int i = 0; i < lines.size(); i++) {
+				if (center)
+					x = (maxWidth - lineWidths[i]) / 2;
+				else
+					x = 0;
+				for (int j = 0; j < lines[i].length(); j++) {
+					char chr = lines[i][j];
+
+					float wStride = wantedHeight * (font->charWid[chr] / (float)font->charSize);
+
+					if (atChar == dataIndex) {
+						break;
+					}
+					x += wStride + spacing;
+
+					dataIndex++;
+				}
+				if (atChar == dataIndex)
+					break;
+				y += wantedHeight;
+			}
+			if (atChar != dataIndex) {
+				if (center)
+					x = maxWidth / 2;
+				else
+					x = 0;
+			}
+			dataIndex = 0;
+			//std::cout << x << "\n";
+			float wuv = font->charWid[0] / (float)font->imgSize;
+			float u = (0 % 16);
+			float v = 15 - (0 / 16);
+			float markerW = wantedHeight * (font->charWid[0] / (float)font->charSize);
+			Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 4 + 16 * dataIndex, x, y + wantedHeight, (u) / 16, (v) / 16);
+			Insert4(verts, 8 + 16 * dataIndex, x + markerW, y + wantedHeight, (u) / 16 + wuv, (v) / 16);
+			Insert4(verts, 12 + 16 * dataIndex, x + markerW, y, (u) / 16 + wuv, (v + 1) / 16);
+			dataIndex = 1;
+			if (center) {
+				y = (maxHeight - wantedHeight * lines.size()) / 2;
+			}
+		}
+		for (int i = 0; i < lines.size(); i++) {
+			//std::cout << "[" << lines[i] << "] " << "\n";
+			float x = 0;
+			if (center)
+				x = (maxWidth - lineWidths[i]) / 2;
+			//std::cout << lines[i].length()<<"\n";
+			for (int j = 0; j < lines[i].length(); j++) {
+				char chr = lines[i][j];
+				//if (chr == '\n')
+				//	continue;
+				float wStride = wantedHeight * (font->charWid[chr] / (float)font->charSize);
+
+				float wuv = font->charWid[chr] / (float)font->imgSize;
+				float u = (chr % 16);
+				float v = 15 - (chr / 16);
+
+				Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v+1) / 16);
+				Insert4(verts, 4 + 16 * dataIndex, x, y+ wantedHeight, (u) / 16, (v) / 16);
+				Insert4(verts, 8 + 16 * dataIndex, x + wStride, y+ wantedHeight, (u) / 16 + wuv, (v) / 16);
+				Insert4(verts, 12 + 16 * dataIndex, x + wStride, y, (u) / 16 + wuv, (v+1) / 16);
+				x += wStride + spacing;
+
+				if (dataIndex == TEXT_BATCH) {
+					textBuffer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
+					textBuffer.Draw();
+					dataIndex = 0;
+				}
+				else {
+					dataIndex++;
+				}
+			}
+			y += wantedHeight;
+		}
+
+		int charIndex = dataIndex % TEXT_BATCH;
+		memset(&verts[16 * charIndex], 0, 16 * (TEXT_BATCH - charIndex) * sizeof(float));
+
+		//memset(&verts[0], 0, 16 * (TEXT_BATCH) * sizeof(float));
+		/*
+		Insert4(verts,0, 0, 0, 0, 0);
+		Insert4(verts,4, 1, 0, 0, 1);
+		Insert4(verts,8, 1, 1, 1, 1);
+		Insert4(verts,12, 0, 1, 1, 0);
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				std::cout << verts[i * 4 + j]<<" ";
+			}
+			std::cout << "\n";
+		}*/
+
+		textBuffer.ModifyVertices(0, 16 * TEXT_BATCH, verts);
+		textBuffer.Draw();
+		//rectBuffer.Draw();
+	}
+#if gone
 	void DrawString(const std::string& _font, const std::string& text, bool center,float charHeight,int atChar) {
 		// Setup
 		
@@ -571,7 +706,7 @@ namespace engine {
 		} else
 			return;
 
-		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(renderer::Wid()/renderer::Hei());
+		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(Wid()/Hei());
 
 		float ratio = charHeight * ((float)Height() / Width());
 		float maxHeight = charHeight;
@@ -686,7 +821,7 @@ namespace engine {
 		else
 			return;
 
-		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(renderer::Wid()/renderer::Hei());
+		//float charWidth = charHeight* (font->charWid[65] / (float)font->charSize)/(Wid()/Hei());
 
 		float ratio = charHeight * ((float)Height() / Width());
 		float maxHeight = charHeight;
@@ -787,39 +922,41 @@ namespace engine {
 		textContainer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
 		textContainer.Draw();
 	}
+#endif
 	void DrawRect() {
-		rectContainer.Draw();
-	}
-	void DrawRect(float x, float y) {
-		SetTransform(x, y);
-		rectContainer.Draw();
-	}
-	void DrawRect(float x, float y, float w, float h) {
-		SetTransform(x, y);
-		SetSize(w, h);
-		rectContainer.Draw();
-	}
-	void DrawRect(float x, float y, float w, float h, float r, float g, float b, float a) {
-		SetTransform(x, y);
-		SetSize(w, h);
-		SetColor(r, g, b, a);
-		rectContainer.Draw();
-	}
-	void DrawUVRect(float x, float y, float xw, float yh, float u, float v, float uw, float vh) {
-		SetTransform(0, 0);
-		SetSize(1, 1);
-		SetColor(1, 1, 1, 1);
 		float vertices[16]{
-			x,y,u,v,
-			x,y+yh,u,v+vh,
-			x + xw,y + yh,u + uw,v + vh,
-			x+xw,y,u+uw,v
+		0,0,0,0,
+		0,1,0,1,
+		1,1,1,1,
+		1,0,1,0
 		};
-		uvRectContainer.ModifyVertices(0, 16, vertices);
-		uvRectContainer.Draw();
+		rectBuffer.ModifyVertices(0, 16, vertices);
+		rectBuffer.Draw();
 	}
-
-	std::vector<Light*> lights;
+	void DrawRect(Shader* shad, float x,float y,float w,float h,float r,float g,float b,float a)
+	{
+		float vertices[16]{
+		0,0,0,0,
+		0,1,0,1,
+		1,1,1,1,
+		1,0,1,0
+		};
+		rectBuffer.ModifyVertices(0, 16, vertices);
+		shad->SetVec2("uPos", { x,y });
+		shad->SetVec2("uSize", { w,h });
+		shad->SetVec4("uColor", r,g,b,a);
+		rectBuffer.Draw();
+	}
+	void DrawUVRect(float u, float v, float uw, float vh) {
+		float vertices[16]{
+			0,0,u,v,
+			0,1,u,v+vh,
+			1,1,u + uw,v + vh,
+			1,0,u+uw,v
+		};
+		rectBuffer.ModifyVertices(0, 16, vertices);
+		rectBuffer.Draw();
+	}
 	void AddLight(Light* l) {
 		lights.push_back(l);
 	}
@@ -835,8 +972,8 @@ namespace engine {
 	Binds light to current shader
 	 If one of the four closest light are already bound then don't rebind them [Not added]
 	*/
-	void BindLights(glm::vec3 objectPos) {
-		if (GetBoundShader() != nullptr) {
+	void BindLights(Shader* shader, glm::vec3 objectPos) {
+		if (shader != nullptr) {
 			// List setup
 			const int N_POINTLIGHTS = 4;
 			const int N_SPOTLIGHTS = 2;
@@ -901,71 +1038,73 @@ namespace engine {
 
 			// Pass light to shader
 			if (dir != nullptr) {
-				PassLight(dir);
+				PassLight(shader,dir);
 				lightCount.x++;
 			}
 
 			for (int i = 0; i < N_POINTLIGHTS; i++) {
 				if (points[i] != nullptr) {
-					PassLight(i, points[i]);
+					PassLight(shader,i, points[i]);
 					lightCount.y++;
 				} else
 					break;
 			}
 			for (int i = 0; i < N_SPOTLIGHTS; i++) {
 				if (spots[i] != nullptr) {
-					PassLight(i, spots[i]);
+					PassLight(shader,i, spots[i]);
 					lightCount.z++;
 				} else
 					break;
 			}
-			GetBoundShader()->SetIVec3("uLightCount", lightCount);
+			shader->SetIVec3("uLightCount", lightCount);
 		}
 	}
 	std::vector<Light*>& GetLights() {
 		return lights;
 	}
-	void PassLight(DirLight* light) {
+	void PassLight(Shader* shader, DirLight* light) {
 		if (light != nullptr) {
-			GetBoundShader()->SetVec3("uDirLight.ambient", light->ambient);
-			GetBoundShader()->SetVec3("uDirLight.diffuse", light->diffuse);
-			GetBoundShader()->SetVec3("uDirLight.specular", light->specular);
-			GetBoundShader()->SetVec3("uDirLight.direction", light->direction);
+			shader->SetVec3("uDirLight.ambient", light->ambient);
+			shader->SetVec3("uDirLight.diffuse", light->diffuse);
+			shader->SetVec3("uDirLight.specular", light->specular);
+			shader->SetVec3("uDirLight.direction", light->direction);
 		}
 	}
-	void PassLight(int index, PointLight* light) {
+	void PassLight(Shader* shader, int index, PointLight* light) {
 		std::string u = "uPointLights[" + index + (std::string)"].";
 		if (light != nullptr) {
-			GetBoundShader()->SetVec3(u + "ambient", light->ambient);
-			GetBoundShader()->SetVec3(u + "diffuse", light->diffuse);
-			GetBoundShader()->SetVec3(u + "specular", light->specular);
-			GetBoundShader()->SetVec3(u + "position", light->position);
-			GetBoundShader()->SetFloat(u + "constant", light->constant);
-			GetBoundShader()->SetFloat(u + "linear", light->linear);
-			GetBoundShader()->SetFloat(u + "quadratic", light->quadratic);
+			shader->SetVec3(u + "ambient", light->ambient);
+			shader->SetVec3(u + "diffuse", light->diffuse);
+			shader->SetVec3(u + "specular", light->specular);
+			shader->SetVec3(u + "position", light->position);
+			shader->SetFloat(u + "constant", light->constant);
+			shader->SetFloat(u + "linear", light->linear);
+			shader->SetFloat(u + "quadratic", light->quadratic);
 		}
 	}
-	void PassLight(int index, SpotLight* light) {
+	void PassLight(Shader* shader, int index, SpotLight* light) {
 		std::string u = "uSpotLights[" + index + (std::string)"].";
 		if (light!=nullptr) {
-			GetBoundShader()->SetVec3(u + "ambient", light->ambient);
-			GetBoundShader()->SetVec3(u + "diffuse", light->diffuse);
-			GetBoundShader()->SetVec3(u + "specular", light->specular);
-			GetBoundShader()->SetVec3(u + "position", light->position);
-			GetBoundShader()->SetVec3(u + "direction", light->direction);
-			GetBoundShader()->SetFloat(u + "cutOff", light->cutOff);
-			GetBoundShader()->SetFloat(u + "outerCutOff", light->outerCutOff);
+			shader->SetVec3(u + "ambient", light->ambient);
+			shader->SetVec3(u + "diffuse", light->diffuse);
+			shader->SetVec3(u + "specular", light->specular);
+			shader->SetVec3(u + "position", light->position);
+			shader->SetVec3(u + "direction", light->direction);
+			shader->SetFloat(u + "cutOff", light->cutOff);
+			shader->SetFloat(u + "outerCutOff", light->outerCutOff);
 		}
 	}
-	void PassMaterial(int index, Material* material) {
-		if (GetBoundShader() != nullptr) {
+	void PassMaterial(Shader* shader, int index, Material* material) {
+		if (shader != nullptr) {
 			if (!material->diffuse_map.empty()) {
-				BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
-				GetBoundShader()->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
+				std::cout << "PassMaterial - texture not bound!\n";
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
 			}
-			GetBoundShader()->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
-			GetBoundShader()->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
-			GetBoundShader()->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
+			shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
+			shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
+			shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
 		}
 	}
 }
+//#endif
