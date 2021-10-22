@@ -16,6 +16,7 @@ namespace engine {
 		//std::cout << "tram " << std::endl;
 		if (model != nullptr) {
 			if (model->armature != nullptr) {
+				//std::cout << model->armature->bones.size() << "\n";
 				std::vector<glm::mat4> modelT(model->armature->bones.size());
 				for (int i = 0; i < model->armature->bones.size(); i++) {
 					glm::mat4 loc = model->armature->bones[i].localMat;

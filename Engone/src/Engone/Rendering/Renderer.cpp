@@ -327,6 +327,16 @@ namespace engine {
 			bug::out <bug::RED< "Cannot find '" < path < ".shader'" < bug::end;
 		}
 	}
+	void AddShaderFromInclude(unsigned char shader, const std::string& text)
+	{
+		//std::string path = "assets/shaders/" + _path;
+		//if (FileExist(path + ".shader")) {
+		//	shaders[shader].Init(path);
+		//}
+		//else {
+			//bug::out < bug::RED < "Cannot find '" < path < ".shader'" < bug::end;
+		//}
+	}
 	Shader* GetShader(unsigned char shader) {
 		if(shaders[shader].isInitialized)
 			return &shaders[shader];

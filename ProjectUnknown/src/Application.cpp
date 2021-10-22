@@ -26,6 +26,7 @@ engine::SoundStream melody;
 
 engine::Animation* quater = nullptr;
 engine::Model* tommy = nullptr;
+ModelObject* bendy = nullptr;
 engine::Channels channel;
 float n = -1;
 unsigned short lastN = -1;
@@ -41,6 +42,11 @@ void Update(double delta) {
 		if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 		}
+	}
+	//double f = fmod(engine::GetPlayTime(),2.);
+
+	if (bendy != nullptr) {
+		bendy->matrix = glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)) * glm::mat4_cast(glm::quat(0.5, fmod(engine::GetPlayTime()/6, 1),0,0)) * glm::translate(glm::vec3(0,2,0));
 	}
 	
 	if (quater != nullptr) {
@@ -61,7 +67,7 @@ void Update(double delta) {
 		}
 		else {
 			tommy = engine::GetModelAsset("Tom");
-			std::cout << tommy << std::endl;
+			//std::cout << tommy << std::endl;
 		}
 
 		n += 24*delta/60;
@@ -82,7 +88,7 @@ void Update(double delta) {
 		glm::translate(glm::vec3(0, 0, 5.2))
 		)[3]);
 	*/
-	UpdateUI(delta);
+	engine::UpdateUI(delta);
 }
 engine::TriangleBuffer cont;
 engine::TriangleBuffer itemContainer2;
@@ -296,8 +302,8 @@ void runApp(bool isDebugBuild) {
 	bug::set("LoadMesh.Normals", 1);
 	//bug::set("LoadMesh.Buffer", 1);
 	*/
-	bug::set("LoadAnimation", 1);
-	bug::set("LoadAnimation.Frames", 1);
+	//bug::set("LoadAnimation", 1);
+	//bug::set("LoadAnimation.Frames", 1);
 		
 	//bug::set("LoadCollider", 1);
 	//bug::set("LoadCollider.Vectors", 1);
@@ -307,7 +313,7 @@ void runApp(bool isDebugBuild) {
 	//bug::set("LoadArmature.Bones", 1);
 	//bug::set("LoadArmature.Matrix", 1);
 		 
-	bug::set("LoadModel", 1);
+	//bug::set("LoadModel", 1);
 	//bug::set("LoadModel.Mesh", 1);
 	//bug::set("LoadModel.Matrix", 1);
 
@@ -406,9 +412,17 @@ void runApp(bool isDebugBuild) {
 	//engine::AddObject(tutorial);
 
 
-	ModelObject* ob;
-	engine::AddObject(ob=new ModelObject(3, 0, 0,"Charles"));
-	engine::AddObject(ob=new ModelObject(-3, 0, 0,"Tom"));
+	ModelObject* charles = new ModelObject(3, 0, 0, "Charles");
+	ModelObject* tom = new ModelObject(-3, 0, 0, "Tom");
+	bendy = new ModelObject(0, -5, 0, "Static");
+	engine::AddObject(charles);
+	charles->renderMesh = true;
+	//charles->renderHitbox = true;
+	engine::AddObject(tom);
+	tom->renderMesh = true;
+	engine::AddObject(bendy);
+	//tom->renderHitbox = true;
+	//std::cout << "Done here\n";
 	//ob->quaternion = {1,0.5,0,0};
 
 

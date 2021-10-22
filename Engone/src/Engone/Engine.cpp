@@ -123,6 +123,8 @@ namespace engine {
 			UpdateProjection();
 			GetBoundShader()->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
 			for (GameObject* o : GetObjects()) {
+				if (!o->renderMesh)
+					continue;
 				if (o->renderComponent.model != nullptr) {
 					BindLights(o->position);
 					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
@@ -133,7 +135,7 @@ namespace engine {
 									PassMaterial(i,mesh->materials[i]);
 									//bug::out < i < bug::end;
 								}
-								SetTransform(o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
+								SetTransform(o->matrix*o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} else {
@@ -151,6 +153,8 @@ namespace engine {
 			UpdateProjection();
 			GetBoundShader()->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
 			for (GameObject* o : GetObjects()) {
+				if (!o->renderMesh)
+					continue;
 				if (o->renderComponent.model != nullptr) {
 					//bug::outs < "Update " < o->name<"\n";
 					BindLights(o->position);
@@ -173,7 +177,7 @@ namespace engine {
 								for (int i = 0; i < mesh->materials.size() && i < 4; i++) {// Maximum of 4 materials
 									PassMaterial(i, mesh->materials[i]);
 								}
-								SetTransform(o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
+								SetTransform(o->matrix * o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
 						} else {
@@ -366,12 +370,13 @@ namespace engine {
 							//bug::outs < o->renderComponent.animator.enabledAnimations["georgeBoneAction"].frame < "\n";
 							Armature* arm = o->renderComponent.model->armature;
 							int count = arm->bones.size();
+							//std::cout << count << "\n";
 							std::vector<glm::mat4> mats(count);
 							o->renderComponent.GetArmatureTransforms(mats);
-							for (int i = 0; i < count; i++) {
+							/*for (int i = 0; i < count; i++) {
 								//bug::outs < mats[i] < "\n";
 								GetBoundShader()->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
-							}
+							}*/
 
 							int atVec = 0;
 							int atInd = 0;
@@ -391,23 +396,16 @@ namespace engine {
 								continue;
 							}
 							for (int i = 0; i < arm->bones.size(); i++) {
-								glm::vec3 v = mats[i][3];
+								glm::vec3 v = (mats[i]* o->renderComponent.matrix)[3];
 								hitboxVec[atVec++] = v.x;
 								hitboxVec[atVec++] = v.y;
 								hitboxVec[atVec++] = v.z;
 								hitboxVec[atVec++] = hitboxColor.x;
 								hitboxVec[atVec++] = hitboxColor.y;
 								hitboxVec[atVec++] = hitboxColor.z;
-							}
-							for (int i = 0; i < c.coll->quad.size() / 4; i++) {
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
+
+								hitboxInd[atInd++] = i;
+								hitboxInd[atInd++] = i+1;
 							}
 							/*
 							for (int i = 0; i < c.coll->tri.size() / 3; i++) {
@@ -423,7 +421,7 @@ namespace engine {
 								hitboxVec[i] = 0;
 							}
 							for (int i = atInd; i < lineLimit * 2; i++) {
-								hitboxVec[i] = 0;
+								hitboxInd[i] = 0;
 							}
 							hitbox.ModifyVertices(0, vecLimit * 6, hitboxVec);
 							hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);

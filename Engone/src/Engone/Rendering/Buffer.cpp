@@ -50,13 +50,13 @@ namespace engine {
 		//glEnableVertexArrayAttrib(va, loc); old?
 		glVertexAttribIPointer(loc, count, GL_UNSIGNED_SHORT, stride * sizeof(int), (const void*)(offset * sizeof(int)));
 	}
-	void Buffer::ModifyVertices(unsigned int offset, unsigned int icount, void* data) {
+	void Buffer::ModifyIndices(unsigned int offset, unsigned int icount, void* data) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, icount * sizeof(unsigned int), data);
 	}
-	void Buffer::ModifyIndices(unsigned int offset, unsigned int count, void* data) {// count in number of floats
+	void Buffer::ModifyVertices(unsigned int offset, unsigned int vcount, void* data) {// count in number of floats
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-		glBufferSubData(GL_ARRAY_BUFFER, offset, count * sizeof(float), data);
+		glBufferSubData(GL_ARRAY_BUFFER, offset, vcount * sizeof(float), data);
 	}
 	TriangleBuffer::TriangleBuffer(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount)
 	: Buffer(dynamic,vertices,vertexCount,indices,indexCount) {}

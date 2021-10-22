@@ -20,7 +20,10 @@ namespace engine {
 		glm::quat quaternion;
 		glm::vec3 scale;
 
-		glm::mat4 matrix;
+		/*
+		This can be altered in the game loop to apply custom transformation, rotation and scaling.
+		*/
+		glm::mat4 matrix=glm::mat4(1);
 
 		RenderComponent renderComponent;
 		MetaComponent metaComponent;

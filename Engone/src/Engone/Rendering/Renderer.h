@@ -107,6 +107,7 @@ namespace engine {
 	Shader* GetBoundShader();
 
 	void AddShader(unsigned char shader, const std::string& path);
+	void AddShaderFromInclude(unsigned char shader, const std::string& text);
 
 	/*
 	Set transform uniform for current shader

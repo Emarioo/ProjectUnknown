@@ -19,10 +19,14 @@ void main()
 #version 330 core
 
 layout(location = 0) out vec4 oColor;
+layout(location = 1) out float gl_FragDepth;
+
 
 in vec3 fColor;
 
+
 void main()
 {
-	oColor = fColor;
+	oColor = vec4(fColor,1);
+	gl_FragDepth = 0.5;
 };
