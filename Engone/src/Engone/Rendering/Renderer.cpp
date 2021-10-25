@@ -23,13 +23,6 @@ namespace engone {
 
 	static std::vector<Light*> lights;
 
-	/*
-	std::function<void(int, int)> KeyEvent = nullptr;
-	std::function<void(double, double, int, int)> MouseEvent = nullptr;
-	std::function<void(double)> ScrollEvent = nullptr;
-	std::function<void(double, double)> DragEvent = nullptr;
-	std::function<void(int, int)> ResizeEvent = nullptr;
-	std::function<void(int)> FocusEvent = nullptr;*/
 	WindowType  GetWindowType() {
 		return windowType;
 	}
@@ -305,18 +298,6 @@ namespace engone {
 		};
 		border.Setup(true,ver,4*4,ind,6);
 		border.SetAttrib(0, 4, 4, 0);
-		*/
-		
-		// These shaders from the engine are placed in the assets/shaders folder where custom shaders are placed.
-		//  They should be compiled with the game in strings instead of loaded from files when starting game.
-		/*
-		AddShader(ShaderType::Color, "color");
-		AddShader(ShaderType::ColorBone, "colorWeight");
-		AddShader(ShaderType::UV, "texture");
-		AddShader(ShaderType::UVBone, "textureWeight");
-		AddShader(ShaderType::Interface, "interface");
-		AddShader(ShaderType::Outline, "outline");
-		AddShader(ShaderType::Depth, "simpleDepth");
 		*/
 
 		std::uint32_t indes[TEXT_BATCH*6];
@@ -1097,6 +1078,7 @@ namespace engone {
 	void PassMaterial(Shader* shader, int index, Material* material) {
 		if (shader != nullptr) {
 			if (!material->diffuse_map.empty()) {
+
 				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
 				std::cout << "PassMaterial - texture not bound!\n";
 				shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);

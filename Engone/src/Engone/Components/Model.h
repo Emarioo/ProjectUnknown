@@ -21,8 +21,10 @@ namespace engone {
 		return is false if animation couldn't be found.
 		*/
 		bool AddAnimation(const std::string& name);
-		Armature* armature=nullptr;
-		void SetArmature(const std::string& name);
+		//Armature* armature=nullptr;
+		//void SetArmature(const std::string& name);
+
+		Collider* collider;
 		std::string colliderName="";
 		void SetCollider(const std::string& name);
 

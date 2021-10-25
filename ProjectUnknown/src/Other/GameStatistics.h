@@ -40,11 +40,11 @@ enum Statistic : unsigned short {
 
 // Add a string keymap for statistic enum
 
-class GameStatistics
+namespace gamestats
 {
-public:
-	GameStatistics();
-	
+
+	void Init();
+
 	void AddStringEnum(const std::string& name,Statistic stat);
 	/*
 	Get enum stat from string, enum keymap
@@ -67,11 +67,4 @@ public:
 	Can get int and float stats and turn them into strings
 	*/
 	std::string GetStringStat(Statistic stat);
-private:
-	int statI[MAX_INT_STAT];
-	float statF[MAX_FLOAT_STAT];
-	std::string statS[MAX_STRING_STAT];
-
-	std::unordered_map<std::string, Statistic> keymap;
-};
-extern GameStatistics gameStatistics;
+}

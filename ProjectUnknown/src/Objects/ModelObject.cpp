@@ -7,7 +7,7 @@ ModelObject::ModelObject(float x, float y, float z,const std::string& model)
 	
 	renderComponent.SetModel(model);
 
-	renderComponent.animator.Enable("Quater", { true, 1, 1 });
+	//renderComponent.animator.Enable("Quater", { true, 1, 1 });
 }
 void ModelObject::Update(float delta) {
 	/*
@@ -25,5 +25,5 @@ void ModelObject::Update(float delta) {
 	//renderComponent.animator.Blend("charlesBone", 1);
 	//renderComponent.animator.Speed("charlesBone", 1);
 
-	renderComponent.animator.Update(delta);
+	//renderComponent.animator.Update(delta);
 }

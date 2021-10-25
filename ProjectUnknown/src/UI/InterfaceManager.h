@@ -1,19 +1,19 @@
 #pragma once
-
+/*
 #include "Inventory.h"
 #include "WorldHandler.h"
 #include "CraftingList.h"
 #include "Infobar.h"
 #include "Hotbar.h"
 #include "IntroScene.h"
-
+*/
+#include "Items/Item.h"
 #include "Engone/UI/GUIManager.h"
 
 #include "GameStateEnum.h"
 
 namespace ui
 {
-	Item* heldItem;
 	void SetHeldItem(Item* item);
 	Item* GetHeldItem();
 	Item* TakeHeldItem();

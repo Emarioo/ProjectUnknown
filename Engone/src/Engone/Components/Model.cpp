@@ -2,7 +2,7 @@
 
 #include "Model.h"
 
-#include "../Handlers/AssetHandler.h"
+#include "../Handlers/AssetManager.h"
 
 namespace engone {
 	
@@ -21,12 +21,14 @@ namespace engone {
 		} else hasError = true;
 		return false;
 	}
+	/*
 	void Model::SetArmature(const std::string& name) {
 		Armature* arma = GetArmatureAsset(name);
 		if (arma != nullptr) {
 			armature = arma;
 		} else hasError = true;
 	}
+	*/
 	void Model::SetCollider(const std::string& name) {
 		colliderName = name;
 		hasCollider = true;

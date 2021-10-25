@@ -39,7 +39,7 @@
     <ClInclude Include="src\Engone\Components\Animation.h" />
     <ClInclude Include="src\Engone\Components\Armature.h" />
     <ClInclude Include="src\Engone\Components\Mesh.h" />
-    <ClInclude Include="src\Engone\Handlers\AssetHandler.h" />
+    <ClInclude Include="src\Engone\Handlers\AssetManager.h" />
     <ClInclude Include="src\Engone\Handlers\FileHandler.h" />
     <ClInclude Include="src\Engone\Handlers\ObjectHandler.h" />
     <ClInclude Include="src\Engone\Objects\GameObject.h" />
@@ -77,7 +77,7 @@
     <ClCompile Include="src\Engone\Components\Animation.cpp" />
     <ClCompile Include="src\Engone\EventManager.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
-    <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
+    <ClCompile Include="src\Engone\Handlers\AssetManager.cpp" />
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
@@ -111,7 +111,7 @@
     <ClCompile Include="src\Engone\World\Dimension.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Engone\Shaders\outline.shader" />
+    <None Include="src\Engone\Shaders\outline.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

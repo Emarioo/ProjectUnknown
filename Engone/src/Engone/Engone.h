@@ -19,7 +19,7 @@ namespace engone {
 	FrameBuffer& GetDepthBuffer();
 	glm::mat4& GetLightProj();
 	void SetProjection(float ratio);
-	void UpdateProjection();
+	void UpdateProjection(Shader* shader);
 
 	/*
 	Initialize engine, window, event...
@@ -38,7 +38,7 @@ namespace engone {
 	*/
 	void UpdateObjects(double delta);
 
-	void RenderUI(double lag);
+	//void RenderUI(double lag);
 	/*
 	Render objects, hitboxes with the appropriate shaders.
 	*/
@@ -46,7 +46,18 @@ namespace engone {
 	/*
 	Render objects without doing anything but calling the object's draw function.
 	*/
-	void RenderRawObjects(double lag);
+	void RenderRawObjects(Shader* shader, double lag);
+
+	struct TimedFunc
+	{
+		TimedFunc(std::function<void()> f, float t) : func(f), time(t) {}
+		std::function<void()> func;
+		float time = 0;
+	};
+
+	void AddTimedFunction(std::function<void()> func, float time);
+	void UpdateTimedFunc(float delta);
+
 	/*
 	Start the game loop and give the engine update and render calls.
 	The argument is delta for update and lag for render

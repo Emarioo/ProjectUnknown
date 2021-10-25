@@ -21,6 +21,25 @@
 
 #include "Engone/Sound/SoundStream.h"
 
+/*
+	Shader* shad = GetShader("object");
+			//Shader* shad = testShader;
+			shad->Bind();
+
+			glm::mat4 proj = glm::perspective(90.f,(float)Width()/Height(),0.01f,400.f);
+			glm::mat4 view = glm::inverse(
+				glm::translate(glm::mat4(1.0f), GetCamera()->position) *
+				glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
+				glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
+			);
+			shad->SetMatrix("uProj",proj*view);
+			shad->SetMatrix("uTransform", glm::translate(glm::vec3(0, 0, 1)));
+
+			GetMeshAsset("Cube")->Draw();
+
+			testBuffer.Draw();
+*/
+
 float ang = 0;
 float vel = 1;
 engone::Light* light;
@@ -89,6 +108,13 @@ void Update(double delta) {
 engone::TriangleBuffer cont;
 engone::TriangleBuffer itemContainer2;
 
+engone::TriangleBuffer testBuffer;
+static const std::string& testSource = {
+#include "Shaders/test.glsl"
+};
+
+static engone::Shader* testShader;
+
 float coloring = 0;
 void Render(double lag) {
 	using namespace engone;
@@ -105,6 +131,11 @@ void Render(double lag) {
 				coloring = 0;
 			}
 
+			glViewport(0, 0, Width(), Height());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glCullFace(GL_BACK);
+
+
 			// All this should be automated and customizable in the engine.
 
 			// Shadow stuff
@@ -116,7 +147,7 @@ void Render(double lag) {
 				glViewport(0, 0, 1024, 1024);
 				GetDepthBuffer().Bind();
 				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderRawObjects(lag);
+				RenderRawObjects(depth,lag);
 				GetDepthBuffer().Unbind();
 			}
 			Shader* objectShader = GetShader("object");
@@ -130,8 +161,8 @@ void Render(double lag) {
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 			RenderObjects(lag);
-			
-			if (IsKey(GLFW_KEY_K)) {
+			if (IsKeyDown(GLFW_KEY_K)) {
+				//std::cout << "yes\n";
 				SwitchBlendDepth(true);
 				Shader* experiment = GetShader("experiment");
 				if (experiment != nullptr) {
@@ -142,13 +173,15 @@ void Render(double lag) {
 					cont.Draw();
 				}
 			}
+
 		}
 	}
 
 	// Render IBase, IElement...
-	RenderUI(lag);
+	RenderUI();
 	// Render custom things like items dragged by the mouse
-	interfaceManager.Render(lag);
+	ui::Render(lag);
+	//interfaceManager.Render(lag);
 }
 bool OnKey(engone::Event& e) {
 	if (engone::CheckState(GameState::Game)) {
@@ -282,7 +315,6 @@ void runApp(bool isDebugBuild) {
 	//-- Init the absolutely neccessary stuff
 	SetState(GameState::DebugLog,isDebugBuild); // temporary
 	InitEngone();
-	//GetEventCallbacks(OnKey, OnMouse, nullptr, nullptr);
 	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
@@ -294,7 +326,8 @@ void runApp(bool isDebugBuild) {
 	}
 	else if (!isDebugBuild) {
 		SetState(GameState::Intro, true);
-		interfaceManager.SetupIntro();
+		ui::SetupIntro();
+		//interfaceManager.SetupIntro();
 		SetCursorVisibility(false);
 	} else {
 		 SetState(GameState::Menu, true);
@@ -303,15 +336,15 @@ void runApp(bool isDebugBuild) {
 	//interfaceManager.SetupMainMenu();
 
 	//-- Debug Options - move this else where. like the debugpanel
-	/*
+	
 	bug::set("LoadMesh", 1);
-	bug::set("LoadMesh.Weights", 1);
-	bug::set("LoadMesh.Triangles", 1);
-	bug::set("LoadMesh.Vectors", 1);
-	bug::set("LoadMesh.Colors", 1);
-	bug::set("LoadMesh.Normals", 1);
+	//bug::set("LoadMesh.Weights", 1);
+	//bug::set("LoadMesh.Triangles", 1);
+	//bug::set("LoadMesh.Vectors", 1);
+	//bug::set("LoadMesh.Colors", 1);
+	//bug::set("LoadMesh.Normals", 1);
 	//bug::set("LoadMesh.Buffer", 1);
-	*/
+	
 	//bug::set("LoadAnimation", 1);
 	//bug::set("LoadAnimation.Frames", 1);
 		
@@ -323,8 +356,8 @@ void runApp(bool isDebugBuild) {
 	//bug::set("LoadArmature.Bones", 1);
 	//bug::set("LoadArmature.Matrix", 1);
 		 
-	//bug::set("LoadModel", 1);
-	//bug::set("LoadModel.Mesh", 1);
+	bug::set("LoadModel", 1);
+	bug::set("LoadModel.Mesh", 1);
 	//bug::set("LoadModel.Matrix", 1);
 
 	//bug::set("LoadMaterial", 1);
@@ -417,13 +450,17 @@ void runApp(bool isDebugBuild) {
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
 
-	ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
-	ModelObject* tom=new ModelObject(3, 0, 0, "Tom");
-	AddObject(charles);
+	//ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
+	ModelObject* tom=new ModelObject(3, 0, 0, "Static");
+	//ModelObject* test = new ModelObject(0, 0, 0, "VertexColor");
+	//AddObject(charles);
 	AddObject(tom);
+	//AddObject(test);
 	//ob->quaternion = {1,0.5,0,0};
 	
-	game::SetPlayer(new Player(0, 0, 0));
+	
+
+	game::SetPlayer(new Player(0, 0, -5));
 	GetCamera()->position.x = 0;
 	GetCamera()->position.z = 5;
 	game::GetPlayer()->flight = true;
@@ -440,6 +477,18 @@ void runApp(bool isDebugBuild) {
 
 	//CustomDimension();
 	
+	float a[]{
+		0,0,0,
+		1,0,0,
+		0,1,0,
+	};
+	unsigned int b[]{
+		0,1,2
+	};
+	testBuffer.Init(false,a,9,b,3);
+	testBuffer.SetAttrib(0, 3, 3, 0);
+	testShader = new Shader(testSource,true);
+
 	// Shadow framebuffer - move some where else
 	float v[]{
 		-1,-1,0,0,

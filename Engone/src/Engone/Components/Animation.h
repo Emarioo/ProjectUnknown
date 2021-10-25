@@ -24,7 +24,7 @@ namespace engone {
 	};
 	enum ChannelType : unsigned char {
 		PosX=0, PosY, PosZ, 
-		RotX, RotY, RotZ, // Not used. Reprecated
+		RotX, RotY, RotZ, // Not used. Deprecated
 		ScaX, ScaY, ScaZ, 
 		QuaX, QuaY, QuaZ, QuaW
 	};

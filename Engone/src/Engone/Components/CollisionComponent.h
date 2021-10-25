@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Handlers/AssetHandler.h"
+#include "../Handlers/AssetManager.h"
 
 namespace engone {
 	class Location {

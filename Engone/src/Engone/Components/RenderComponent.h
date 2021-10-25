@@ -21,7 +21,7 @@ namespace engone {
 		
 		void SetModel(const std::string& name);
 		/*
-		Parameter is an array of glm::mat4 with bones.size()
+		Argument is an array of glm::mat4 with bones.size()
 		*/
 		void GetArmatureTransforms(std::vector<glm::mat4>& mats);
 

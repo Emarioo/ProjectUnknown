@@ -10,35 +10,145 @@ namespace engone
 {
 	class Panel;
 
-	enum class ICompType
+	class IElement;
+	enum class IPropType
 	{
-		Color
+		X, Y, W, H, Color, Texture
 	};
-	class IComponent
-	{
-	public:
-		IComponent() = default;
-		static const ICompType type;
-	};
-	class IColor : public IComponent
+	class IProperty
 	{
 	public:
-		float r, g, b, a;
-		static const ICompType type=ICompType::Color;
-		IColor() : r(1), g(1), b(1), a(1) {
-		}
-		IColor(float gray, float alpha = 1) : r(gray), g(gray), b(gray), a(alpha) {
-		}
-		IColor(int gray, int alpha = 255) : r(gray / 255.f), g(gray / 255.f), b(gray / 255.f), a(gray / 255.f)
-		{
-		}
-		IColor(float red, float green, float blue, float alpha = 1) : r(red), g(green), b(blue), a(alpha)
-		{
-		}
-		IColor(int red, int green, int blue, int alpha = 255) : r(red / 255.f), g(green / 255.f), b(blue / 255.f), a(alpha / 255.f)
-		{
-		}
+		IProperty(IElement* element);
+		static const IPropType type;
+		IElement* element;
 	};
+	class IColor : public IProperty
+	{
+	public:
+		IColor(IElement* element);
+		static const IPropType type= IPropType::Color;
+
+		float r=1, g=1, b=1, a=1;
+
+		void Set(float gray, float alpha = 1);
+		void Set(int gray, int alpha = 255);
+		void Set(float red, float green, float blue, float alpha = 1);
+		void Set(int red, int green, int blue, int alpha = 255);
+	};
+	class ITexture : public IProperty
+	{
+	public:
+		ITexture(IElement* element);
+		static const IPropType type = IPropType::Color;
+
+		Texture* texture;
+
+		void Set(Texture* texture);
+	};
+	class IX : public IProperty
+	{
+	public:
+		IX(IElement* element);
+		static const IPropType type = IPropType::X;
+
+		float value;
+		bool fixed;
+		char side;
+		IElement* attached;
+
+		IX* Center(float value, bool fixed = true, IElement* stick = nullptr);
+		IX* Left(float value, bool fixed = true, IElement* stick = nullptr);
+		IX* Right(float value, bool fixed = true, IElement* stick = nullptr);
+		float Value();
+	};
+	class IY : public IProperty
+	{
+	public:
+		IY(IElement* element);
+		static const IPropType type = IPropType::Y;
+
+		float value;
+		bool fixed;
+		char side;
+		IElement* attached;
+
+		IY* Center(float value, bool fixed = true, IElement* stick = nullptr);
+		IY* Bottom(float value, bool fixed = true, IElement* stick = nullptr);
+		IY* Top(float value, bool fixed = true, IElement* stick = nullptr);
+		float Value();
+	};
+	class IW : public IProperty
+	{
+	public:
+		IW(IElement* element);
+		static const IPropType type = IPropType::W;
+
+		float value;
+		bool fixed;
+		IElement* attached;
+
+		IW* Center(float value, bool fixed = true, IElement* stick = nullptr);
+		float Value();
+	};
+	class IH : public IProperty
+	{
+	public:
+		IH(IElement* element);
+		static const IPropType type = IPropType::H;
+
+		float value;
+		bool fixed;
+		IElement* attached;
+
+		IH* Center(float value, bool fixed = true, IElement* stick = nullptr);
+		float Value();
+	};
+	class IElement
+	{
+	public:
+		IElement(const std::string& name);
+		std::string name;
+		float finalX, finalY, finalW, finalH;
+		int priority;
+
+		template <class T>
+		T* Property();
+
+		bool _OnEvent(Event& e);
+		virtual bool OnEvent(Event& e) { return false; }
+		void _OnUpdate(float delta);
+		virtual void OnUpdate(float delta) {}
+		void _OnRender();
+		virtual void OnRender() {}
+
+	protected:
+		std::unordered_map<IPropType, IProperty*> properties;
+		std::vector<IElement*> children;
+	};
+	class IPanel : IElement
+	{
+	public:
+		IPanel(const std::string& name);
+
+		virtual void OnRender() override;
+
+	};
+	class IButton : IElement
+	{
+	public:
+		IButton(const std::string& name);
+
+		std::function<void(Event& e)> function;
+		virtual bool OnEvent(Event& e);
+
+		virtual void OnRender();
+
+	};
+	void AddElement(IElement* element);
+	IElement* GetElement(const std::string& name);
+	void UpdateUI(float delta);
+	void RenderUI();
+
 
 	class ConstraintX
 	{
@@ -880,46 +990,6 @@ namespace engone
 		virtual bool OnEvent(Event& e) { return false; }
 
 		Panel* panel;
-
-	};
-	class IElement
-	{
-	public:
-		IElement(const std::string& name);
-		std::string name;
-
-		template <class T>
-		T* Component();
-		
-		virtual void OnEvent(Event& e);
-		virtual void _OnComponentUpdate();
-		virtual void OnUpdate(float delta);
-		virtual void OnRender();
-
-	protected:
-		std::unordered_map<ICompType, IComponent*> components;
-		std::vector<IElement*> children;
-	};
-	class IPanel : IElement
-	{
-	public:
-		IPanel(const std::string& name);
-
-		virtual void OnUpdate();
-		virtual void OnRender();
-
-	};
-	
-	class IButton : IElement
-	{
-	public:
-		IButton(const std::string& name);
-
-		std::function<void(Event& e)> function;
-		virtual void OnEvent(Event& e);
-
-		virtual void OnUpdate();
-		virtual void OnRender();
 
 	};
 

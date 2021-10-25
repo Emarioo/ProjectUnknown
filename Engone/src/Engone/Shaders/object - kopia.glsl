@@ -3,14 +3,13 @@ R"(
 #version 330 core
 
 layout(location = 0) in vec3 vPos;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec3 vTexture;// first two is uv second is material index
+//layout(location = 1) in vec3 vNormal;
+//layout(location = 2) in vec3 vTexture;// first two is uv second is material index
 
 out vec3 fPos;
 flat out vec3 fNormal;
 out vec2 fUV;
 flat out int fMat;
-
 out vec4 fPosLightSpace;
 
 uniform mat4 uProj;
@@ -19,11 +18,11 @@ uniform mat4 uLightSpaceMatrix;
 
 void main()
 {
-	fPos = vec3(uTransform * vec4(vPos,1));
-	fNormal = fPos-vec3(uTransform * vec4(vPos-vNormal, 1));
-	fUV = vTexture.xy;
-	fMat = int(vTexture.z);
-	fPosLightSpace = uLightSpaceMatrix * vec4(fPos, 1);
+	//fPos = vec3(uTransform * vec4(vPos,1));
+	//fNormal = fPos-vec3(uTransform * vec4(vPos-vNormal, 1));
+	//fUV = vTexture.xy;
+	//fMat = int(vTexture.z);
+	//fPosLightSpace = uLightSpaceMatrix * vec4(fPos, 1);
 
 	//fNormal = mat3(transpose(inverse(uTransform)))*vNormal; // Do this on the cpu and pass into the shader via uniform
 	
@@ -185,12 +184,12 @@ void main()
 {
 	//vec3 normal = texture(uMaterials.normal_map, fUV).rgb*fNormal;
 	//normal = normalize((normal * 2 - 1));
-	vec3 normal = normalize(fNormal);
+	// vec3 normal = normalize(fNormal);
 
-	vec3 viewDir = normalize(uCamera - fPos);
+	// vec3 viewDir = normalize(uCamera - fPos);
 	
-	float shadow = ShadowCalculation(fPosLightSpace);
-
+	// float shadow = ShadowCalculation(fPosLightSpace);
+	/*
 	vec3 result = vec3(0);
 	if(uLightCount.x==1)
 		result += CalcDirLight(uDirLight, normal, viewDir,shadow);
@@ -200,9 +199,9 @@ void main()
 	for (int i = 0; i < uLightCount.z; i++) {
 		result += CalcSpotLight(uSpotLights[i], normal, fPos, viewDir, 0);
 	}
-
+	*/
 	//texture(uMaterials[fMat].diffuse_map, fUV).rgb * 
-	result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb * uMaterials[fMat].diffuse_color;
-	oColor = vec4(result, 1);
+	// result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb * uMaterials[fMat].diffuse_color;
+	oColor = vec4(1,1,1,1);
 };
 )"

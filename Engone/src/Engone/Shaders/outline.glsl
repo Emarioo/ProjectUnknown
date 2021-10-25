@@ -1,3 +1,4 @@
+R"(
 #shader vertex
 #version 330 core
 
@@ -26,3 +27,4 @@ void main()
 {
 	oColor = vec4(fColor,1);
 };
+)"

@@ -141,6 +141,9 @@
     <ClInclude Include="src\Engone\UI\GUIManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\Serialization\Serializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp">
@@ -251,8 +254,11 @@
     <ClCompile Include="src\Engone\UI\GUIManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engone\Serialization\Serializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Engone\Shaders\outline.shader" />
+    <None Include="src\Engone\Shaders\outline.glsl" />
   </ItemGroup>
 </Project>

@@ -206,13 +206,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\UI\CraftingList.cpp" />
-    <ClCompile Include="src\UI\Hotbar.cpp" />
-    <ClCompile Include="src\UI\Infobar.cpp" />
     <ClCompile Include="src\UI\InterfaceManager.cpp" />
-    <ClCompile Include="src\UI\IntroScene.cpp" />
-    <ClCompile Include="src\UI\Inventory.cpp" />
-    <ClCompile Include="src\UI\WorldHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -236,13 +230,7 @@
     <ClInclude Include="src\Other\InformativeTips.h" />
     <ClInclude Include="src\propch.h" />
     <ClInclude Include="src\ShaderType.h" />
-    <ClInclude Include="src\UI\CraftingList.h" />
-    <ClInclude Include="src\UI\Hotbar.h" />
-    <ClInclude Include="src\UI\Infobar.h" />
     <ClInclude Include="src\UI\InterfaceManager.h" />
-    <ClInclude Include="src\UI\IntroScene.h" />
-    <ClInclude Include="src\UI\Inventory.h" />
-    <ClInclude Include="src\UI\WorldHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ProjectUnknown.rc" />
@@ -255,6 +243,9 @@
     <ProjectReference Include="..\Engone\Engone.vcxproj">
       <Project>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\test.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

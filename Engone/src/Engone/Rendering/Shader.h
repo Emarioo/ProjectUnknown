@@ -42,8 +42,6 @@ namespace engone {
 		unsigned int GetUniformLocation(const std::string& name);
 		std::unordered_map<std::string, unsigned int> uniLocations;
 		int section[3]{1,1,1};
-
-		char err;
 	};
 }
 //#endif

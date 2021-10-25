@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
 #include "FileHandler.h"
-#include "AssetHandler.h"
+#include "AssetManager.h"
 
 #define error(x) if(x==true){data->hasError=true;return;}
 
@@ -476,9 +476,9 @@ namespace engone {
 		file.close();
 		
 		if (useArmature == 0) {
-			data->shaderType = 0;// ShaderType::Color;
+			data->shaderType = "object";// ShaderType::Color;
 		} else if (useArmature == 1) {
-			data->shaderType = 0;// ShaderType::ColorBone;
+			data->shaderType = "armature";// ShaderType::ColorBone;
 		}
 		for (std::string& mat : materials) {
 			AddMaterialAsset(mat);

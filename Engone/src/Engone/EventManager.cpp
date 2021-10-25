@@ -87,7 +87,7 @@ namespace engone
 			e.scancode = scancode;
 			e.action = action;
 			events.push_back(e);
-			SetInput(key, action == 1);
+			SetInput(key, action != 0);
 			ExecuteListeners();
 			});
 		glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
@@ -251,6 +251,7 @@ namespace engone
 		file.read(reinterpret_cast<char*>(&sets[0]), sizeof(keyset) * numKeys);
 
 		for (int i = 0; i < numKeys; i++) {
+			//std::cout << sets[i].id << " " << sets[i].keys[0] << "\n";
 			AddKeybinding(sets[i].id, sets[i].keys[0], sets[i].keys[1], sets[i].keys[2]);
 		}
 
@@ -276,8 +277,9 @@ namespace engone
 
 		int i = 0;
 		for (auto& pair : keybindings) {
-			sets->id = pair.first;
-			memcpy_s(sets->keys, 3, pair.second.keys, 3);
+			sets[i].id = pair.first;
+			memcpy_s(&sets[i].keys[0], 3*sizeof(int), &pair.second.keys[0], 3*sizeof(int));
+			//std::cout << sets[i].id << " " << sets[i].keys[0]<<"\n";
 			i++;
 		}
 

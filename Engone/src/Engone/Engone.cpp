@@ -7,13 +7,6 @@ extern "C" {
 }
 
 namespace engone {
-	
-	static const std::string armatureSource = {
-#include "Shaders/armature.glsl"
-	};
-	static const std::string objectSource = {
-#include "Shaders/object.glsl"
-	};
 
 	FrameBuffer depthBuffer;
 	glm::mat4 lightProjection;
@@ -36,12 +29,29 @@ namespace engone {
 	}
 	void UpdateViewMatrix(double lag)
 	{
+		//GetCamera()->rotation.y += 0.001;
+		//std::cout << GetCamera()->rotation.x <<" "<< GetCamera()->rotation.y <<" "<< GetCamera()->rotation.z << "\n";
 		viewMatrix = glm::inverse(
-			glm::translate(glm::mat4(1.0f), GetCamera()->position + GetCamera()->velocity * (float)lag) *
+			glm::translate(glm::mat4(1.0f), GetCamera()->position)*
 			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
 			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
 		);
 	}
+	void UpdateProjection(Shader* shader)
+	{
+		if (shader != nullptr)
+			shader->SetMatrix("uProj", projMatrix * viewMatrix);
+	}
+
+	static const std::string objectSource = {
+#include "Shaders/object.glsl"
+	};
+	static const std::string armatureSource = {
+#include "Shaders/armature.glsl"
+	};
+	static const std::string outlineSource = {
+#include "Shaders/outline.glsl"
+	};
 
 	static int lastMouseX=0, lastMouseY=0;
 	// Move somewhere else
@@ -63,10 +73,13 @@ namespace engone {
 #if ENGONE_AL
 		InitSound();
 #endif
-		InitGUI();
-		ReadOptions();
+		AddShader("object", new Shader(objectSource, true));
+		AddShader("armature", new Shader(armatureSource, true));
+		AddShader("outline", new Shader(outlineSource, true));
 
-		
+		InitGUI();
+		InitEvents(GetWindow());
+		ReadOptions();
 
 		AddListener(new Listener(EventType::Move, FirstPerson));
 
@@ -87,7 +100,6 @@ namespace engone {
 		fov = 90.f;
 		zNear = 0.1f;
 		zFar = 400.f;
-
 		SetProjection((float)Width() / Height());
 	}
 	void ExitEngone() 
@@ -152,11 +164,14 @@ namespace engone {
 		for (GameObject* o : GetObjects()) {
 			if (o->renderComponent.model != nullptr) {
 				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
+					//std::cout << " okay2\n";
 					Mesh* mesh = o->renderComponent.model->meshes[i];
 					if (mesh != nullptr) {
-						shader->SetMatrix("uTransform", o->renderComponent.matrix *
-							glm::translate(o->velocity * (float)lag) * // special
-							o->renderComponent.model->matrices[i]);
+						//std::cout << o->GetName()<<" okay3\n";
+						shader->SetMatrix("uTransform", o->renderComponent.matrix);
+						/*  *
+						glm::translate(o->velocity * (float)lag)* // special
+							o->renderComponent.model->matrices[i]
 						/*
 						SetTransform(o->renderComponent.matrix*
 							glm::translate(o->velocity*(float)lag)* // special
@@ -189,7 +204,7 @@ namespace engone {
 		{
 			shader->Bind();
 
-			UpdateProjection();
+			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
 			for (GameObject* o : GetObjects())
 			{
@@ -201,6 +216,7 @@ namespace engone {
 						Mesh* mesh = o->renderComponent.model->meshes[i];
 						if (mesh != nullptr)
 						{
+							//std::cout <<mesh->shaderType<< " drawn\n";
 							if (mesh->shaderType == "object")
 							{// The shader might not be called here. so binding lights may be unecessary
 								for (int i = 0; i < mesh->materials.size()&&i<4;i++) 
@@ -208,6 +224,7 @@ namespace engone {
 									PassMaterial(shader,i,mesh->materials[i]);
 									//bug::out < i < bug::end;
 								}
+								//std::cout << "drawn\n";
 								shader->SetMatrix("uTransform", o->renderComponent.matrix*o->renderComponent.model->matrices[i]);
 								mesh->Draw();
 							}
@@ -228,7 +245,7 @@ namespace engone {
 		if (!shader->error)
 		{
 			shader->Bind();
-			UpdateProjection();
+			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
 			for (GameObject* o : GetObjects()) 
 			{
@@ -343,7 +360,7 @@ namespace engone {
 		if (shader!=nullptr)
 		{
 			shader->Bind();
-			UpdateProjection();
+			UpdateProjection(shader);
 			shader->SetMatrix("uTransform",glm::mat4(1));
 			glLineWidth(2.f);
 			/*
@@ -565,7 +582,24 @@ namespace engone {
 	void RenderUI(double lag) {
 		RenderPanels();
 	}
-
+	static std::vector<TimedFunc> functions;
+	void AddTimedFunction(std::function<void()> func, float time)
+	{
+		functions.push_back(TimedFunc(func, time));
+	}
+	void UpdateTimedFunc(float delta)
+	{
+		int n = 0;
+		for (TimedFunc& f : functions) { // Will this cause problems? Removing an element in a for loop
+			f.time -= delta;
+			if (f.time < 0) {
+				f.func();
+				functions.erase(functions.begin() + n);
+				n--;
+			}
+			n++;
+		}
+	}
 	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){
 		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
 		hitbox.SetAttrib(0, 3, 6, 0);

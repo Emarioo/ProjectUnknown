@@ -21,6 +21,7 @@ namespace engone {
 		Animator() {}
 
 		Model* model=nullptr;
+		Armature* armature=nullptr;
 
 		/*
 		Temporary active animations

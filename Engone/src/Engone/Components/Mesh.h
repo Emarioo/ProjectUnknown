@@ -12,7 +12,7 @@ namespace engone {
 		~Mesh() = default;
 
 		std::vector<Material*> materials;
-		const char* shaderType = "";
+		std::string shaderType = "";
 		TriangleBuffer container;
 		void Draw() {
 			container.Draw();

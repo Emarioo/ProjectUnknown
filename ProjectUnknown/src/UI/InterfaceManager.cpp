@@ -8,6 +8,7 @@
 
 namespace ui
 {
+	static Item* heldItem;
 	void SetHeldItem(Item* item)
 	{
 		if (heldItem != nullptr) {
@@ -32,7 +33,7 @@ namespace ui
 	void Render(double lag)
 	{
 		/*
-		if (inventory != nullptr) {
+		if (inventory != nullptr) {:
 			if (inventory->IsActive()) {
 				float iw = 64 / 1920.f * 2;
 				float ih = 64 / 1080.f * 2;

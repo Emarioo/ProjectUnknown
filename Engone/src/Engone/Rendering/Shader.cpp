@@ -73,6 +73,10 @@ namespace engone {
 			fragment = source.substr(fragPos + 17);
 		}
 
+		if (vertex.size() == 0 || fragment.size() == 0) {
+			std::cout << "Is this shader source correct?\n" << source << "\n";
+		}
+
 		id = CreateShader(vertex, fragment);
 	}
 	unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
