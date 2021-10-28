@@ -19,6 +19,8 @@
 #include "Other/GameStatistics.h"
 #include "Other/InformativeTips.h"
 
+#include "Engone/Handlers/AssetManager.h"
+
 #include "Engone/Sound/SoundStream.h"
 
 /*
@@ -45,8 +47,8 @@ float vel = 1;
 engone::Light* light;
 engone::SoundStream melody;
 
-engone::Animation* quater = nullptr;
-engone::Model* tommy = nullptr;
+engone::AnimationAsset* quater = nullptr;
+//engone::Model* tommy = nullptr;
 engone::Channels channel;
 float n = -1;
 unsigned short lastN = -1;
@@ -65,9 +67,9 @@ void Update(double delta) {
 	}
 	
 	if (quater != nullptr) {
-		if (tommy != nullptr) {
+		/*if (tommy != nullptr) {
 			if ((unsigned short)lastN != (unsigned short)n) {
-				if ((unsigned short) n < tommy->armature->bones.size()) {
+				if ((unsigned short)n < tommy->armature->bones.size()) {
 					//std::cout << "change "<< (unsigned short)n<<" > "<<((unsigned short)n + 1) << std::endl;
 					//std::cout << quater->objects.size() << std::endl;
 					quater->objects[(unsigned short)n+1]=channel;
@@ -81,9 +83,10 @@ void Update(double delta) {
 			}
 		}
 		else {
-			tommy = engone::GetModelAsset("Tom");
+			//tommy = engone::GetAsset<Model*>("Tom");
 			std::cout << tommy << std::endl;
 		}
+		*/
 
 		n += 24*delta/60;
 	}
@@ -137,9 +140,8 @@ void Render(double lag) {
 
 
 			// All this should be automated and customizable in the engine.
-
 			// Shadow stuff
-			Shader* depth = GetShader("depth");
+			Shader* depth = GetAsset<Shader>("depth");
 			if (depth!=nullptr) {
 				depth->Bind();
 				glCullFace(GL_BACK);
@@ -150,21 +152,28 @@ void Render(double lag) {
 				RenderRawObjects(depth,lag);
 				GetDepthBuffer().Unbind();
 			}
-			Shader* objectShader = GetShader("object");
+			Shader* objectShader = GetAsset<Shader>("object");
+			if (objectShader != nullptr) {
+				glViewport(0, 0, Width(), Height());
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glCullFace(GL_BACK);
+				objectShader->Bind();
+				objectShader->SetInt("shadow_map", 0);
+				objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 
-			glViewport(0, 0, Width(), Height());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glCullFace(GL_BACK);
-			objectShader->Bind();
-			objectShader->SetInt("shadow_map",0);
-			objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-			RenderObjects(lag);
+				RenderObjects(lag);
+
+				//objectShader->Bind();
+				//objectShader->SetMatrix("uTransform", glm::mat4(1));
+				//testBuffer.Draw();
+				//GetAsset<MeshAsset>("Leaf")->buffer.Draw();
+			}
 			if (IsKeyDown(GLFW_KEY_K)) {
 				//std::cout << "yes\n";
 				SwitchBlendDepth(true);
-				Shader* experiment = GetShader("experiment");
+				Shader* experiment = GetAsset<Shader>("experiment");
 				if (experiment != nullptr) {
 					experiment->Bind();
 					experiment->SetInt("uTexture", 0);
@@ -311,14 +320,13 @@ void CustomDimension() {
 }
 void runApp(bool isDebugBuild) {
 	using namespace engone;
-
 	//-- Init the absolutely neccessary stuff
 	SetState(GameState::DebugLog,isDebugBuild); // temporary
 	InitEngone();
 	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
-	
+	std::cout << "Started \n";
 	//-- Init game stuff
 	bool startGame = true;
 	if (startGame) {
@@ -336,7 +344,6 @@ void runApp(bool isDebugBuild) {
 	//interfaceManager.SetupMainMenu();
 
 	//-- Debug Options - move this else where. like the debugpanel
-	
 	bug::set("LoadMesh", 1);
 	//bug::set("LoadMesh.Weights", 1);
 	//bug::set("LoadMesh.Triangles", 1);
@@ -361,13 +368,36 @@ void runApp(bool isDebugBuild) {
 	//bug::set("LoadModel.Matrix", 1);
 
 	//bug::set("LoadMaterial", 1);
+	/*
+	std::ifstream test("assets/Leaf.mesh",std::ios::binary);
+	if(!test){
+		std::cout << "shit\n";
+	}
+	test.seekg(0, test.end);
+	int size = test.tellg();
+	test.seekg(test.beg);
+	
+	std::cout << "size: "<<size << "\n";
+
+	unsigned short* wow = new unsigned short[size/2];
+	
+	test.read(reinterpret_cast<char*>(wow), size);
+
+	test.close();
+
+	for (int i = 0; i < size/2;i++){
+		std::cout << wow[i]<<" ";
+	}*/
 
 	//-- Assets should be loaded else where. Maybe where you start the game.  Only if they havent't been loaded though.
 	{
-		AddShader("depth",new Shader(depthGLSL,true));
-		AddShader("experiment",new Shader(experimentGLSL,true));
+		AddAsset<Shader>("depth",new Shader(depthGLSL,true));
+		AddAsset<Shader>("experiment",new Shader(experimentGLSL,true));
 
-		AddFont("consolas",new Font("assets/fonts/consolas42"));
+		AddAsset<Font>("consolas","fonts/consolas42");
+
+		//AddAsset<MaterialAsset>("Material.001");
+		AddAsset<MeshAsset>("Leaf");
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");

@@ -33,6 +33,7 @@ namespace engone {
 	}
 	void CollisionComponent::UpdatePoints() {
 		points.clear();
+#if gone
 		if (coll != nullptr) {
 			for (glm::vec3 p : coll->points) {
 				Location loc;
@@ -41,6 +42,7 @@ namespace engone {
 				points.push_back(loc.vec());
 			}
 		}
+#endif
 	}
 
 	bool CollisionComponent::IsClose(CollisionComponent* c2) {
@@ -51,8 +53,8 @@ namespace engone {
 		return true;
 	}
 	void CollisionComponent::SetCollider(const std::string& name) {
-		coll = GetColliderAsset(name);
-		isActive = coll != nullptr;
+	//	coll = GetColliderAsset(name);
+	//	isActive = coll != nullptr;
 		UpdatePoints();
 	}
 	void CollisionComponent::SetMatrix(glm::mat4 mat) {

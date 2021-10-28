@@ -2,7 +2,6 @@
 
 #include "Animator.h"
 
-#include "Handlers/AssetHandler.h"
 
 #include "../DebugTool/DebugHandler.h"
 
@@ -16,6 +15,7 @@ namespace engone {
 
 	}
 	void Animator::Update(float delta) {
+#if gone
 		if (model != nullptr) {
 			std::vector<std::string> disable;
 			for (auto& p : enabledAnimations) {
@@ -54,6 +54,7 @@ namespace engone {
 				}
 			}*/
 		}
+#endif
 	}
 	void Animator::Blend(const std::string& name, float blend) {
 		if (enabledAnimations.count(name) > 0) {
@@ -70,6 +71,7 @@ namespace engone {
 	The animation will be added to the model. This is mainly used for debug purposes.
 	*/
 	void Animator::Enable(const std::string& name, AnimProp prop) {
+#if gone
 		if (model != nullptr) {
 			bool found = false;
 			for (auto a : model->animations) {
@@ -86,6 +88,7 @@ namespace engone {
 					enabledAnimations[name] = prop;
 			}
 		}
+#endif
 	}
 	void Animator::Disable(const std::string& name) {
 		enabledAnimations.erase(name);

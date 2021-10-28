@@ -7,7 +7,6 @@
 #include "Engone/Handlers/FileHandler.h"
 #include "Engone/Rendering/Renderer.h"
 #include "Engone/Engone.h"
-#include "Engone/Handlers/AssetHandler.h"
 
 std::vector<CraftingCategory> craftingCategories;
 CraftingCategory* GetCategory(int index) {
@@ -32,7 +31,7 @@ void InitItemList() {
 		std::string str = list[i];
 		std::vector<std::string> split = engone::SplitString(list[i], ",");
 		if (str[0] == '#') {
-			engone::AddTexture(str.substr(1),new engone::Texture("items/"+str.substr(1)+".png"));
+			engone::AddAsset<engone::Texture>("items/"+str.substr(1));
 			textureGroups.push_back(str.substr(1));
 			group++;
 			index = 0;
@@ -111,14 +110,14 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 	if (textureGroups.size() > type.textureGroup) {
 		short index = type.textureIndex;
-		engone::GetTexture(textureGroups[type.textureGroup])->Bind();
+		engone::GetAsset<engone::Texture>(textureGroups[type.textureGroup])->Bind();
 
 		float u = (index % itemWidth) * size;
 		float v = ((int)((itemWidth - 1) - index / itemWidth)) * size;
 
 		y -= h; // offsetting
 
-		engone::Shader* gui = engone::GetShader("gui");
+		engone::Shader* gui = engone::GetAsset<engone::Shader>("gui");
 
 		gui->SetVec4("uColor", 1, 1, 1, 1);
 		gui->SetVec2("uPos", {x,y});
@@ -129,7 +128,7 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 			gui->SetVec2("uPos", {x+w/6,y+h/4});
 			gui->SetVec2("uSize", { 0.75,0.75 });
 			gui->SetVec4("uColor", r, g, b, a);
-			engone::DrawString(engone::GetFont("consolas"), text, true, h * 0.6,w,h);
+			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6,w,h);
 		}
 	}
 }

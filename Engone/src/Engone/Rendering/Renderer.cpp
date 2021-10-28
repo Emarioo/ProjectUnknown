@@ -263,10 +263,13 @@ namespace engone {
 	}
 #endif
 	void InitRenderer() {
+		std::cout << "Init?\n";
 		if (!glfwInit()) {
+			std::cout << "crap\n";
 			std::cout << "Not Init Window!" << std::endl;
 			return;
 		}
+		std::cout << "Wee\n";
 
 		windowType = Windowed;
 		MakeWindow("Project Unknown");
@@ -1075,17 +1078,23 @@ namespace engone {
 			shader->SetFloat(u + "outerCutOff", light->outerCutOff);
 		}
 	}
-	void PassMaterial(Shader* shader, int index, Material* material) {
-		if (shader != nullptr) {
-			if (!material->diffuse_map.empty()) {
+	void PassMaterial(Shader* shader, int index, MaterialAsset* material) {
+		if (shader != nullptr&&material!=nullptr) {
+			if (material->diffuse_map!=nullptr) {
 
+				material->diffuse_map->Bind(index+1);
 				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
-				std::cout << "PassMaterial - texture not bound!\n";
+				//std::cout << "PassMaterial - texture not bound!\n";
 				shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
+			}else{
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
 			}
 			shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
 			shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
 			shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
+		}else{
+			//std::cout << "shader or material is nullptr in Passmaterial\n";
 		}
 	}
 }

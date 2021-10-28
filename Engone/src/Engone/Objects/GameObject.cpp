@@ -77,6 +77,7 @@ namespace engone {
 	Will cause errors if collisionComponent is inactive
 	*/
 	glm::vec3 GameObject::WillCollide(GameObject* o1, float delta) {
+#if gone
 		CollisionComponent& c0 = collisionComponent;
 		CollisionComponent& c1 = o1->collisionComponent;
 		glm::vec3 out = velocity;
@@ -161,7 +162,8 @@ namespace engone {
 					out = newOut;
 			}
 		}
-		return out * -1.f;
+#endif
+		return {};// out * -1.f;
 	}
 	void GameObject::SetName(std::string name) {
 		this->name = name;

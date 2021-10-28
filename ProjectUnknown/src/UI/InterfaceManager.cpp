@@ -223,7 +223,7 @@ namespace ui
 			return;
 		hasGameUI = true;
 		using namespace engone;
-		engone::AddTexture("inventory", new engone::Texture("assets/textures/containers/inventory.png"));
+		engone::AddAsset<engone::Texture>("inventory", "textures/containers/inventory");
 
 		/*
 

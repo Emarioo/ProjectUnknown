@@ -1,5 +1,6 @@
 #include "gonpch.h"
 
+#if gone
 #include "../Handlers/FileHandler.h"
 
 //#if ENGONE_GLFW
@@ -48,4 +49,4 @@ namespace engone {
 		return true;
 	}
 }
-//#endif
+#endif

@@ -2,11 +2,11 @@
 
 #include "../Utility/Utilities.h"
 
-#include "../Components/Animation.h"
-#include "../Components/Mesh.h"
-#include "../Components/Collider.h"
-#include "../Components/Armature.h"
-#include "../Components/Model.h"
+//#include "../Components/Animation.h"
+//#include "../Components/Mesh.h"
+//#include "../Components/Collider.h"
+//#include "../Components/Armature.h"
+//#include "../Components/Model.h"
 #include "../DebugTool/DebugHandler.h"
 
 namespace engone {
@@ -38,6 +38,7 @@ namespace engone {
 	Full file path
 	*/
 	FileReport WriteTextFile(const std::string& path, std::vector<std::string>& text);
+#if gone
 	/*
 	File path is converted to "assets/materials/"+path+".material"
 	Returned object's hasError is true if any errors occur
@@ -68,4 +69,5 @@ namespace engone {
 	Returned object's hasError is true if any errors occur
 	*/
 	void LoadModel(Model* data, const std::string& path);
+#endif
 }

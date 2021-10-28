@@ -1,5 +1,5 @@
 #include "gonpch.h"
-
+#if gone
 #include "../Handlers/FileHandler.h"
 //#if ENGONE_GLFW
 #include "Texture.h"
@@ -12,7 +12,6 @@
 
 namespace engone
 {
-	Texture::Texture(){}
 	/*
 	Remember to check if file exists
 	Full path required
@@ -89,4 +88,4 @@ namespace engone
 		return height;
 	}
 }
-//#endif
+#endif

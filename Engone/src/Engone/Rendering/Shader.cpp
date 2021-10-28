@@ -1,5 +1,6 @@
 #include "gonpch.h"
 
+#if gone
 //#if ENGONE_GLFW
 #include "Shader.h"
 #include <GL/glew.h>
@@ -178,4 +179,4 @@ namespace engone {
 		return loc;
 	}
 }
-//#endif
+#endif

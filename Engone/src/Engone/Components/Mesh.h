@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../Rendering/Shader.h"
 #include "../Rendering/Buffer.h"
-#include "Material.h"
 
 namespace engone {
 
@@ -11,7 +9,7 @@ namespace engone {
 		Mesh() = default;
 		~Mesh() = default;
 
-		std::vector<Material*> materials;
+	//	std::vector<Material*> materials;
 		std::string shaderType = "";
 		TriangleBuffer container;
 		void Draw() {

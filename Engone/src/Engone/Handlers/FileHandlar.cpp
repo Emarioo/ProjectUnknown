@@ -119,6 +119,7 @@ namespace engone {
 		file.close();
 		return text;
 	}*/
+#if gone
 	void LoadMaterial(Material* data, const std::string& path_) {
 		if (data == nullptr)
 			return;
@@ -837,4 +838,5 @@ namespace engone {
 			data->SetCollider(colliderName);
 		}
 	}
+#endif
 }

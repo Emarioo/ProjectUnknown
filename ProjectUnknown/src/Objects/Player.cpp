@@ -28,6 +28,7 @@ void Player::Update(float delta) {
 		if (animBlending > 0)
 			animBlending -= animSpeed * delta;
 	}
+	/*
 	if (engone::IsKeybindingDown(KeyCrouch)) {
 		renderComponent.animator.Speed("goblin_run", 
 			flight|| !engone::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
@@ -40,7 +41,7 @@ void Player::Update(float delta) {
 	renderComponent.animator.Blend("goblin_run", 1 - animBlending);
 
 	renderComponent.animator.Update(delta);
-
+	*/
 	Movement(delta);
 }
 glm::vec3 Player::Movement(float delta) {

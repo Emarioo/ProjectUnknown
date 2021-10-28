@@ -2,8 +2,7 @@
 
 #include "../EventManager.h"
 
-//#if ENGONE_GLFW
-#include "../Handlers/AssetHandler.h"
+#include "../Handlers/AssetManager.h"
 #include "../Rendering/Texture.h"
 
 namespace engone
@@ -1109,16 +1108,17 @@ namespace engone
 		void OnRender()
 		{
 			if (ra != 0) { // panel is transparent
-				GetShader("gui")->SetVec2("uSize", {renderW, renderH});
-				GetShader("gui")->SetVec2("uPos", { renderX, renderY });
-				GetShader("gui")->SetVec4("uColor", rr, rg, rb, ra);
+				Shader* gui = GetAsset<Shader>("gui");
+				gui->SetVec2("uSize", { renderW, renderH });
+				gui->SetVec2("uPos", { renderX, renderY });
+				gui->SetVec4("uColor", rr, rg, rb, ra);
 
 				if (texture != nullptr) {
 					texture->Bind();
-					GetShader("gui")->SetInt("uTextured", 1);
+					gui->SetInt("uTextured", 1);
 				}
 				else
-					GetShader("gui")->SetInt("uTextured", 0);
+					gui->SetInt("uTextured", 0);
 
 				DrawRect();
 			}
@@ -1518,7 +1518,7 @@ namespace engone
 		}
 		virtual void OnRender() override
 		{
-			Shader* shad = GetShader("gui");
+			Shader* shad = GetAsset<Shader>("gui");
 			shad->Bind();
 			//std::cout << shad<<"\n";
 			shad->SetVec2("uPos", { panel->renderX,panel->renderY });
@@ -1587,7 +1587,7 @@ namespace engone
 		}
 		virtual void OnRender() override
 		{
-			Shader* shad = GetShader("gui");
+			Shader* shad = GetAsset<Shader>("gui");
 			shad->SetInt("uTextured", 1);
 			int size;
 			if (column != 0) {

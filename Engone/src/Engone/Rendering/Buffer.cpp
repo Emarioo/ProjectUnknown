@@ -64,6 +64,8 @@ namespace engone {
 	TriangleBuffer::TriangleBuffer(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount)
 	: Buffer(dynamic,vertices,vertexCount,indices,indexCount) {}
 	void TriangleBuffer::Draw() {
+		if (vertexCount == 0||indexCount==0)
+			return;
 		glBindVertexArray(vertexArray);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -72,6 +74,8 @@ namespace engone {
 	LineBuffer::LineBuffer(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount)
 		: Buffer(dynamic, vertices, vertexCount, indices, indexCount) {}
 	void LineBuffer::Draw() {
+		if (vertexCount == 0 || indexCount == 0)
+			return;
 		glBindVertexArray(vertexArray);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);

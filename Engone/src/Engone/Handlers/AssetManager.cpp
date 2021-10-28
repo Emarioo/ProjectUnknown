@@ -1,7 +1,8 @@
 #include "gonpch.h"
 
 #include "AssetManager.h"
-#include "FileHandler.h"
+
+#include "../Utility/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
@@ -10,15 +11,16 @@
 
 namespace engone {
 
-	void TextureAsset::Load(const std::string& path)
+	void Texture::Load(const std::string& path)
 	{
-		if (!FindFile("assets/" + path)) {
+		//std::cout << "Texture " << path << "\n";
+		/*if (!FindFile("assets/" + path + ".png")) {
 			error = MissingFile;
 			return;
-		}
-		if (path.length() > 4) {
+		}*/
+		//if (path.length() > 4) {
 			stbi_set_flip_vertically_on_load(1);
-			buffer = stbi_load(("assets/"+path).c_str(), &width, &height, &BPP, 4);
+			buffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
 
 			glGenTextures(1, &id);
 			glBindTexture(GL_TEXTURE_2D, id);
@@ -33,15 +35,38 @@ namespace engone {
 
 			if (buffer)
 				stbi_image_free(buffer);
-		}
+		//}
 	}
-	void TextureAsset::Bind(unsigned int slot)
+	void Texture::Init(int w, int h, void* data)
+	{
+		width = w;
+		height = h;
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	void Texture::SubData(int x, int y, int w, int h, void* data)
+	{
+		glBindTexture(GL_TEXTURE_2D, id);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	void Texture::Bind(unsigned int slot)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 	}
-
-	void ShaderAsset::Load(const std::string& path)
+	int Texture::GetWidth()
+	{
+		return width;
+	}
+	int Texture::GetHeight()
+	{
+		return height;
+	}
+	void Shader::Load(const std::string& path)
 	{
 		std::ifstream file(path);
 		if (!file) {
@@ -76,7 +101,7 @@ namespace engone {
 
 		id = CreateShader(ss[0].str(), ss[1].str());
 	}
-	void ShaderAsset::Init(const std::string& source)
+	void Shader::Init(const std::string& source)
 	{
 		std::string vertex, fragment;
 
@@ -108,7 +133,7 @@ namespace engone {
 
 		id = CreateShader(vertex, fragment);
 	}
-	unsigned int ShaderAsset::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+	unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 	{
 		unsigned int program = glCreateProgram();
 		unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
@@ -124,7 +149,7 @@ namespace engone {
 
 		return program;
 	}
-	unsigned int ShaderAsset::CompileShader(unsigned int type, const std::string& source)
+	unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 	{
 		unsigned int id = glCreateShader(type);
 		const char* src = source.c_str();
@@ -172,43 +197,43 @@ namespace engone {
 
 		return id;
 	}
-	void ShaderAsset::Bind()
+	void Shader::Bind()
 	{
 		glUseProgram(id);
 	}
-	void ShaderAsset::SetFloat(const std::string& name, float f)
+	void Shader::SetFloat(const std::string& name, float f)
 	{
 		glUniform1f(GetUniformLocation(name), f);
 	}
-	void ShaderAsset::SetVec2(const std::string& name, glm::vec2 v)
+	void Shader::SetVec2(const std::string& name, glm::vec2 v)
 	{
 		glUniform2f(GetUniformLocation(name), v.x, v.y);
 	}
-	void ShaderAsset::SetIVec2(const std::string& name, glm::ivec2 v)
+	void Shader::SetIVec2(const std::string& name, glm::ivec2 v)
 	{
 		glUniform2i(GetUniformLocation(name), v.x, v.y);
 	}
-	void ShaderAsset::SetVec3(const std::string& name, glm::vec3 v)
+	void Shader::SetVec3(const std::string& name, glm::vec3 v)
 	{
 		glUniform3f(GetUniformLocation(name), v.x, v.y, v.z);
 	}
-	void ShaderAsset::SetIVec3(const std::string& name, glm::ivec3 v)
+	void Shader::SetIVec3(const std::string& name, glm::ivec3 v)
 	{
 		glUniform3i(GetUniformLocation(name), v.x, v.y, v.z);
 	}
-	void ShaderAsset::SetVec4(const std::string& name, float f0, float f1, float f2, float f3)
+	void Shader::SetVec4(const std::string& name, float f0, float f1, float f2, float f3)
 	{
 		glUniform4f(GetUniformLocation(name), f0, f1, f2, f3);
 	}
-	void ShaderAsset::SetInt(const std::string& name, int v)
+	void Shader::SetInt(const std::string& name, int v)
 	{
 		glUniform1i(GetUniformLocation(name), v);
 	}
-	void ShaderAsset::SetMatrix(const std::string& name, glm::mat4 mat)
+	void Shader::SetMatrix(const std::string& name, glm::mat4 mat)
 	{
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
 	}
-	unsigned int ShaderAsset::GetUniformLocation(const std::string& name)
+	unsigned int Shader::GetUniformLocation(const std::string& name)
 	{
 		if (uniLocations.find(name) != uniLocations.end()) {
 			return uniLocations[name];
@@ -216,6 +241,39 @@ namespace engone {
 		unsigned int loc = glGetUniformLocation(id, name.c_str());
 		uniLocations[name] = loc;
 		return loc;
+	}
+
+	void Font::Load(const std::string& path)
+	{
+		std::vector<std::string> list;
+		/*
+		FileReport err = ReadTextFile(path + ".txt", list);
+
+		if (err == FileReport::Success) {
+			if (list.size() == 2) {
+				charWid[0] = std::stoi(list.at(0));
+				int num = std::stoi(list.at(1));
+				for (int i = 1; i < 256; i++) {
+					charWid[i] = num;
+				}
+			}
+			else {
+				int i = 0;
+				for (std::string s : list) {
+					std::vector<std::string> list2 = SplitString(s, ",");
+					for (std::string s2 : list2) {
+						charWid[i] = std::stoi(s2);
+						i++;
+					}
+				}
+			}
+			texture.Load(path);
+			if (!texture) {
+				error = texture.error;
+			}
+		}else
+			error = MissingFile;
+			*/
 	}
 	void MaterialAsset::Load(const std::string& path)
 	{
@@ -225,8 +283,14 @@ namespace engone {
 			return;
 		}
 		try {
-			file.read(&diffuse_map);
-			std::cout << diffuse_map << "\n";
+			std::string diffuse_mapName;
+			std::string root = GetRootPath();
+			file.read(&diffuse_mapName);
+			//std::cout << "Path: "<< root << diffuse_mapName << "\n";
+			if(diffuse_mapName.length()!=0)
+				diffuse_map = GetAsset<Texture>(root+diffuse_mapName);
+
+			//std::cout << "Diffuse "<<diffuse_map << "\n";
 
 			file.read<glm::vec3>(&diffuse_color);
 			file.read<glm::vec3>(&specular);
@@ -402,7 +466,57 @@ namespace engone {
 			return;
 		}
 		try {
+			file.read(&frameStart);
+			file.read(&frameEnd);
+			file.read(&defaultSpeed);
 			
+			uint8_t objectCount;
+			file.read(&objectCount);
+
+			for (int i = 0; i < objectCount; i++) {
+				uint16_t index,curves;
+				
+				file.read(&index);
+				file.read(&curves);
+
+				bool curveB[13]{ 0,0,0,0,0,0,0,0,0,0,0,0,0 };
+				for (int j = 12; j >= 0; j--) {
+					if (0 <= curves - pow(2, j)) {
+						curves -= pow(2, j);
+						curveB[j] = 1;
+					}
+					else {
+						curveB[j] = 0;
+					}
+				}
+
+				objects[index] = Channels();
+				Channels* channels = &objects[index];
+
+				const std::string curve_order[]{ "PX","PY","PZ","RX","RY","RZ","SX","SY","SZ","QX","QY","QZ","QW" };
+				for (ChannelType cha = PosX; cha < 13; cha = (ChannelType)(cha + 1)) {
+					if (curveB[cha]) {
+						uint16_t keys;
+						file.read(&keys);
+
+						channels->fcurves[cha] = FCurve();
+						FCurve* fcurve = &channels->fcurves[cha];
+
+						for (int k = 0; k < keys; k++) {
+							PolationType polation;
+							file.read(&polation); // 1 byte
+
+							uint16_t frame;
+							file.read(&frame);
+
+							float value;
+							file.read(&value);
+
+							fcurve->frames.push_back(Keyframe(polation, frame, value));
+						}
+					}
+				}
+			}
 		}
 		catch (AssetError err) {
 			error = err;
@@ -411,33 +525,268 @@ namespace engone {
 	}
 	void MeshAsset::Load(const std::string& path)
 	{
+		//std::cout << "Pathe "<<path << "\n";
 		FileReader file(path);
 		if (!file) {
 			error = file.error;
 			return;
 		}
 		try {
+			std::cout << "started " << path << " "<<file.error<<"\n";
 			uint16_t pointCount;
 			uint16_t textureCount;
 			uint8_t materialCount;
-			file.read<MeshType>(&meshType);
-			file.read<uint16_t>(&pointCount);
-			file.read<uint16_t>(&textureCount);
-			file.read<uint8_t>(&materialCount);
-
+			file.read(&meshType);
+			file.read(&pointCount);
+			file.read(&textureCount);
+			file.read(&materialCount);
+			//std::cout << "uhu\n";
+			std::string root = GetRootPath();
 			for (int i = 0; i < materialCount; i++) {
 				std::string materialName;
 				file.read(&materialName);
-				std::cout << "Matloc: " << file.path.substr(0, file.path.find_last_of("/")) << "\n";
-				materials.push_back(GetAsset<Material>(
-					file.path.substr(0, file.path.find_last_of("/")) + materialName
-				));
+				
+				//std::cout << "Matloc: " << root<<materialName<< "\n";
+				MaterialAsset* asset = GetAsset<MaterialAsset>(root + materialName);
+				
+				if(asset)
+					materials.push_back(asset);
+				else{
+					//std::cout << "Damn error\n";
+				}
+				
+				//std::cout << materials.back()->error << " err\n";
+			}
+			//std::cout << "uh2u\n";
+			uint16_t weightCount = 0,triangleCount;
+			if(meshType==MeshType::Boned){
+				file.read(&weightCount);
+			}
+			file.read(&triangleCount);
+			
+			std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
+
+			int uPointSize = 3 * pointCount;
+			float* uPoint = new float[uPointSize];
+			file.read(uPoint, uPointSize);
+
+			int uTextureSize = textureCount * 3;
+			float* uTexture = new float[uTextureSize];
+
+			file.read(uTexture, uTextureSize);
+
+			// Weight
+			int uWeightS = weightCount * 3;
+			int* uWeightI = new int[uWeightS];
+			float* uWeightF = new float[uWeightS];
+			if (meshType==MeshType::Boned) {
+				char index[3];
+				float floats[3];
+				for (int i = 0; i < weightCount; i++) {
+					file.read(index, 3);
+
+					file.read(floats, 3);
+					uWeightI[i * 3] = index[0];
+					uWeightI[i * 3 + 1] = index[1];
+					uWeightI[i * 3 + 2] = index[2];
+					uWeightF[i * 3] = floats[0];
+					uWeightF[i * 3 + 1] = floats[1];
+					uWeightF[i * 3 + 2] = floats[2];
+				}
 			}
 
+			int tStride = 6;
+			if (meshType==MeshType::Boned)
+				tStride = 9;
+			int trisS = triangleCount * tStride;
+			uint16_t* tris = new uint16_t[trisS];
+			//std::cout << "head: "<<file.readHead << "\n";
 
+			//file.file.read(reinterpret_cast<char*>(tris), trisS*2);
+			file.read(tris, trisS);
+			
+			//std::cout << "err? " << file.error << "\n";
+			//std::cout << file.readHead << " "<<trisS<< "\n";
 
+			//std::cout << "stride " << tStride << "\n";
+			for (int i = 0; i < trisS;i++) {
+				 //for (int j = 0; j < tStride;j++) {
+					//std::cout << tris[i]<<" ";
+				//}
+				//std::cout << "\n";
+			}
+
+			std::vector<uint16_t> indexNormal;
+			std::vector<float> uNormal;
+			for (int i = 0; i < triangleCount; i++) {
+				for (int j = 0; j < 3; j++) {
+					if (tris[i * tStride + j * tStride / 3] * 3 + 2 >= uPointSize) {
+						std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
+						throw AssetError::CorruptedData;
+					}
+				}
+				glm::vec3 p0(uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 2]);
+				glm::vec3 p1(uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 2]);
+				glm::vec3 p2(uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 2]);
+				//std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
+				//std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
+				//std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
+				glm::vec3 cro = glm::cross(p1 - p0, p2 - p0);
+				//std::cout << cro.x << " " << cro.y << " " << cro.z << std::endl;
+				glm::vec3 norm = glm::normalize(cro);
+				//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
+
+				bool same = false;
+				for (int j = 0; j < uNormal.size() / 3; j++) {
+					if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
+						same = true;
+						indexNormal.push_back(j);
+						break;
+					}
+				}
+				if (!same) {
+					uNormal.push_back(norm.x);
+					uNormal.push_back(norm.y);
+					uNormal.push_back(norm.z);
+					indexNormal.push_back(uNormal.size() / 3 - 1);
+				}
+			}
+
+			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
+			unsigned int* triangleOut = new unsigned int[triangleCount * 3];
+
+			int uvStride = 1 + (tStride) / 3;
+			for (int i = 0; i < triangleCount; i++) {
+				for (int t = 0; t < 3; t++) {
+					bool same = false;
+					for (int v = 0; v < uniqueVertex.size() / (uvStride); v++) {
+						if (uniqueVertex[v * uvStride] != tris[i * tStride + 0 + t * tStride / 3])
+							continue;
+						if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
+							continue;
+						if (uniqueVertex[v * uvStride + 2] != tris[i * tStride + 1 + t * tStride / 3])
+							continue;
+						if (meshType==MeshType::Boned) {
+							if (uniqueVertex[v * uvStride + 3] != tris[i * tStride + 2 + t * tStride / 3])
+								continue;
+						}
+						same = true;
+						triangleOut[i * 3 + t] = v;
+						break;
+					}
+					if (!same) {
+						triangleOut[i * 3 + t] = uniqueVertex.size() / (uvStride);
+
+						uniqueVertex.push_back(tris[i * tStride + 0 + t * tStride / 3]);
+						uniqueVertex.push_back(indexNormal[i]);
+						uniqueVertex.push_back(tris[i * tStride + 1 + t * tStride / 3]);
+						if (meshType==MeshType::Boned) {
+							uniqueVertex.push_back(tris[i * tStride + 2 + t * tStride / 3]);
+						}
+					}
+				}
+			}
+			/*
+			if (bug::is("load_mesh_?")) {
+				bug::out < bug::LIME < "  Special" < bug::end;
+				for (int i = 0; i < uniqueVertex.size() / (uvStride); i++) {
+					for (int j = 0; j < uvStride; j++) {
+						bug::out < uniqueVertex[i * uvStride + j];
+					}
+					bug::out < bug::end;
+				}
+			}
+			*/
+
+			int vStride = 3 + 3 + 3;
+			if (meshType == MeshType::Boned)
+				vStride += 6;
+			float* vertexOut = new float[(uniqueVertex.size() / uvStride) * vStride];
+			for (int i = 0; i < uniqueVertex.size() / uvStride; i++) {
+				// Position
+				for (int j = 0; j < 3; j++) {
+					if (uniqueVertex[i * uvStride] * 3 + j > uPointSize) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
+						throw AssetError::CorruptedData;
+					}
+					vertexOut[i * vStride + j] = uPoint[uniqueVertex[i * uvStride] * 3 + j];
+				}
+				// Normal
+				for (int j = 0; j < 3; j++) {
+					if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
+						throw AssetError::CorruptedData;
+					}
+					vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
+				}
+				// UV
+				for (int j = 0; j < 3; j++) {
+					if (uniqueVertex[i * uvStride + 2] * 3 + j > uTextureSize) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
+						//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
+						throw AssetError::CorruptedData;
+					}
+					else
+						vertexOut[i * vStride + 3 + 3 + j] = uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
+				}
+				if (meshType == MeshType::Boned) {
+					// Bone Index
+					for (int j = 0; j < 3; j++) {
+						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
+							//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
+							throw AssetError::CorruptedData;
+						}
+						vertexOut[i * vStride + 3 + 3 + 3 + j] = uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
+					}
+					// Weight
+					for (int j = 0; j < 3; j++) {
+						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
+							//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
+							throw AssetError::CorruptedData;
+						}
+						vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
+					}
+				}
+			}
+
+			/*
+			for (int i = 0; i < (uniqueVertex.size() / uvStride) * vStride; i++) {
+				std::cout << vertexOut[i] << " ";
+				if ((i + 1) / (vStride) == (float)(i + 1) / (vStride))
+					std::cout << std::endl;
+			}
+			for (int i = 0; i < triangleCount*3; i++) {
+				std::cout << triangleOut[i] << " ";
+				if ((i + 1) / (3) == (float)(i + 1) / (3))
+					std::cout << std::endl;
+			}*/
+
+			buffer.Init(false, vertexOut, (uniqueVertex.size() / uvStride) * vStride, triangleOut, triangleCount * 3);
+			buffer.SetAttrib(0, 3, vStride, 0);// Position
+			buffer.SetAttrib(1, 3, vStride, 3);// Normal
+			buffer.SetAttrib(2, 3, vStride, 3 + 3);// Color
+			if (meshType == MeshType::Boned) {
+				buffer.SetAttrib(3, 3, vStride, 3 + 3 + 3);// Bone Index
+				buffer.SetAttrib(4, 3, vStride, 3 + 3 + 3 + 3);// Weight
+			}
+
+			// Cleanup
+			delete[] uPoint;
+			delete[] uTexture;
+			delete[] uWeightI;
+			delete[] uWeightF;
+			delete[] tris;
+			delete[] vertexOut;
+			delete[] triangleOut;
 		}
 		catch (AssetError err) {
+			if (err == MissingData) {
+				std::cout << "Missing Data\n";
+			}
+			else if(err==CorruptedData){
+				std::cout << "Corrupted Data\n";
+			}
+			std::cout << err<<"error\n";
 			error = err;
 		}
 		file.close();
@@ -465,7 +814,27 @@ namespace engone {
 			return;
 		}
 		try {
+			uint8_t boneCount;
+			file.read(&boneCount);
 
+			// Acquire and Load Data
+			for (int i = 0; i < boneCount; i++) {
+				Bone b;
+				file.read(&b.parent);
+				
+				for (int x = 0; x < 4; x++) {
+					for (int y = 0; y < 4; y++) {
+						file.read(&b.localMat[x][y]);
+					}
+				}
+				for (int x = 0; x < 4; x++) {
+					for (int y = 0; y < 4; y++) {
+						file.read(&b.invModel[x][y]);
+					}
+				}
+
+				bones.push_back(b);
+			}
 		}
 		catch (AssetError err) {
 			error = err;
@@ -480,68 +849,78 @@ namespace engone {
 			return;
 		}
 		try {
+			std::string armatureName;
+			file.read(&armatureName);
 
+			uint8_t animCount;
+			file.read(&animCount);
+
+			std::vector<std::string> animationsNames;
+			for (int i = 0; i < animCount; i++) {
+				std::string animationName;
+				file.read(&animationName);
+				
+				animationsNames.push_back(animationName);
+			}
+
+			uint8_t meshCount;
+			file.read(&meshCount);
+			
+			std::string root = GetRootPath();
+
+			for (int i = 0; i < meshCount; i++) {
+				std::string meshName;
+				file.read(&meshName);
+
+				glm::mat4 mat(1);
+				for (int x = 0; x < 4; x++) {
+					for (int y = 0; y < 4; y++) {
+						file.read(&mat[x][y]);
+					}
+				}
+
+				MeshAsset* mesh = GetAsset<MeshAsset>(root+meshName);
+				if (mesh != nullptr) {
+					if (mesh) {
+						meshes.push_back(mesh);
+						transforms.push_back(mat);
+					}
+				}
+			}
+
+			std::string colliderName;
+			file.read(&colliderName);
+
+			// Dependecies
+			if (!armatureName.empty()) {
+				//AddArmatureAsset(armatureName);
+				//data->SetArmature(armatureName);
+			}
+			for (int i = 0; i < animationsNames.size(); i++) {
+				//AddAnimationAsset(animations[i]);
+				//data->AddAnimation(animations[i]);
+			}
+			if (!colliderName.empty()) {
+				//AddColliderAsset(colliderName);
+				//data->SetCollider(colliderName);
+			}
 		}
 		catch (AssetError err) {
 			error = err;
 		}
 		file.close();
 	}
-	static std::unordered_map<std::string, MaterialAsset*> materials;
-	static std::unordered_map<std::string, AnimationAsset*> animations;
-	static std::unordered_map<std::string, MeshAsset*> meshes;
-	static std::unordered_map<std::string, ColliderAsset*> colliders;
-	static std::unordered_map<std::string, ArmatureAsset*> armatures;
-	static std::unordered_map<std::string, ModelAsset*> models;
-	static std::unordered_map<std::string, TextureAsset*> textures;
-	static std::unordered_map<std::string, FontAsset*> fonts;
-	static std::unordered_map<std::string, ShaderAsset*> shaders;
-	template <class T>
-	AssetError AddAsset(const std::string& path)
-	{
-		T* asset;
-		if (T.type == AssetType::Material) {
-			asset = new MaterialAsset(file);
-			materials[path] = asset;
-		}
-		else if(T.type==AssetType::Animation) {
-			asset = new AnimationAsset(file);
-			animations[path] = asset;
-		}
-		return asset->error;
-	}
-	template <class T>
-	AssetError AddAsset(const std::string& name, T* asset)
-	{
-		if (T.type == AssetType::Material) {
-			materials[path] = asset;
-		}
-		else if (T.type == AssetType::Animation) {
-			animations[path] = asset;
-		}
-		return asset->error;
-	}
-	template <class T>
-	T* GetAsset(const std::string& path)
-	{
-		if (T.type == AssetType::Material) {
-			if (materials.count(path) > 0) {
-				return materials[path];
-			}
-		}
-		else if (T.type == AssetType::Animation) {
-			if (animations.count(path) > 0) {
-				return animations[path];
-			}
-		}
-		return nullptr;
-	}
-	template <class T>
-	void RemoveAsset(const std::string& name)
-	{
-		assets.erase(name);
-	}
-
+	std::unordered_map<std::string, MaterialAsset*> engone_materials;
+	std::unordered_map<std::string, AnimationAsset*> engone_animations;
+	std::unordered_map<std::string, MeshAsset*> engone_meshes;
+	std::unordered_map<std::string, ColliderAsset*> engone_colliders;
+	std::unordered_map<std::string, ArmatureAsset*> engone_armatures;
+	std::unordered_map<std::string, ModelAsset*> engone_models;
+	std::unordered_map<std::string, Texture*> engone_textures;
+	std::unordered_map<std::string, Font*> engone_fonts;
+	std::unordered_map<std::string, Shader*> engone_shaders;
+	
+	/*
 	static std::unordered_map<std::string, Material> materials;
 	void AddMaterialAsset(const std::string& file) {
 		if (materials.count(file) == 0) {
@@ -646,7 +1025,8 @@ namespace engone {
 	void DeleteModelAsset(const std::string& name) {
 		models.erase(name);
 	}
-	/*
+
+	
 	std::unordered_map<std::string, Texture> textures;
 	void AddTextureAsset(const std::string& name) {// Change this system so it is simular to every other system. FileExist?
 		std::string path = "assets/textures/" + name + ".png";
@@ -667,6 +1047,7 @@ namespace engone {
 		textures.erase(name);
 	}
 	*/
+	/*
 	static std::unordered_map<std::string, Font*> fonts;
 	static std::unordered_map<std::string, Texture*> textures;
 	static std::unordered_map<std::string, Shader*> shaders;
@@ -694,4 +1075,5 @@ namespace engone {
 	{
 		textures[name] = texture;
 	}
+	*/
 }

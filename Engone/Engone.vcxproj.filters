@@ -27,15 +27,6 @@
     <ClInclude Include="src\Engone\Rendering\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Font.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engone\Utility\GameOptions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,22 +60,7 @@
     <ClInclude Include="src\vendor\Libaudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\Animation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engone\Components\Animator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Components\Armature.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Components\Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Components\Model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Components\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Keyboard.h">
@@ -94,12 +70,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Components\MetaComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Components\Collider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Handlers\AssetHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Handlers\FileHandler.h">
@@ -141,7 +111,7 @@
     <ClInclude Include="src\Engone\UI\GUIManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Serialization\Serializer.h">
+    <ClInclude Include="src\Engone\Handlers\AssetManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -156,15 +126,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Font.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utility\GameOptions.cpp">
@@ -200,22 +161,13 @@
     <ClCompile Include="src\vendor\Libaudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Components\Animation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Components\Animator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Components\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Components\CollisionComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp">
@@ -254,7 +206,7 @@
     <ClCompile Include="src\Engone\UI\GUIManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Serialization\Serializer.cpp">
+    <ClCompile Include="src\Engone\Handlers\AssetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Animation.h"
-#include "Model.h"
+//#include "Animation.h"
+//#include "Model.h"
+
+#include "../Handlers/AssetManager.h"
 
 namespace engone {
 
@@ -20,8 +22,8 @@ namespace engone {
 	public:
 		Animator() {}
 
-		Model* model=nullptr;
-		Armature* armature=nullptr;
+		//Model* model=nullptr;
+		//Armature* armature=nullptr;
 
 		/*
 		Temporary active animations

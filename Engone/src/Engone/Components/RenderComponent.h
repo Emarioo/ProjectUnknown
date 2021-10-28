@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Animator.h"
-#include "Model.h"
-#include "../Handlers/AssetHandler.h"
+#include "../Handlers/AssetManager.h"
 
 namespace engone {
 
@@ -10,8 +9,8 @@ namespace engone {
 	public:
 		RenderComponent() = default;
 
-		Animator animator;
-		Model* model=nullptr;
+	//	Animator animator;
+	//	Model* model=nullptr;
 		/*
 		Matrix which contains the position and rotation the renderer should use when rendering.
 		It gets updated before calling the RenderObjects function.

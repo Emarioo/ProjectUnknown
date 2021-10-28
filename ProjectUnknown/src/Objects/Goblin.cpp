@@ -13,8 +13,8 @@ Goblin::Goblin(float x, float y, float z) : GameObject("Goblin",x,y,z) {
 	//renderComponent.SetBone("goblin_skeleton");
 	
 	renderComponent.SetModel("testing");
-	renderComponent.animator.Enable("goblin_idle", {0,true,0.5,1});
-	renderComponent.animator.Enable("goblin_run", {0,true,0.5,1});
+	//renderComponent.animator.Enable("goblin_idle", {0,true,0.5,1});
+	//renderComponent.animator.Enable("goblin_run", {0,true,0.5,1});
 	//bug::out < renderComponent.model->animations[0]->name < bug::end;
 	//renderComponent.animator.Disable("ArmatureAction");
 	//renderComponent.animator.running = true;
@@ -33,8 +33,8 @@ void Goblin::Update(float delta) {
 	renderComponent.animator.Blend("goblin_idle",blending);
 	renderComponent.animator.Blend("goblin_run",1-blending);
 	*/
-	renderComponent.animator.Blend("goblin_idle",1);
-	renderComponent.animator.Blend("goblin_run",0);
+	//renderComponent.animator.Blend("goblin_idle",1);
+	//renderComponent.animator.Blend("goblin_run",0);
 
-	renderComponent.animator.Update(delta);
+	//renderComponent.animator.Update(delta);
 }

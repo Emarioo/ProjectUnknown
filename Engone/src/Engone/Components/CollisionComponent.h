@@ -23,7 +23,7 @@ namespace engone {
 		*/
 		bool isActive = false;
 
-		Collider* coll = nullptr;
+		//Collider* coll = nullptr;
 		void SetCollider(const std::string& name);
 
 		glm::mat4 matrix = glm::mat4(1);

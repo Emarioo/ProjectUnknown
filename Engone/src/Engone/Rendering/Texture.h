@@ -1,7 +1,7 @@
 #pragma once
 
 //#if ENGONE_GLFW
-
+#if gone
 namespace engone
 {
 	class Texture
@@ -11,7 +11,7 @@ namespace engone
 		unsigned char* buffer = nullptr;
 		int width = 0, height, BPP = 0;
 	public:
-		Texture();
+		Texture()=default;
 		/*
 		Check if the texture's error variable is true
 		*/
@@ -36,4 +36,4 @@ namespace engone
 		bool error=false;
 	};
 }
-//#endif
+#endif

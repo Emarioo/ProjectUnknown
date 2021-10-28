@@ -1,7 +1,7 @@
 #pragma once
 
 //#if ENGONE_GLFW
-
+#if gone
 namespace engone {
 
 	struct ShaderProgramSource {
@@ -44,4 +44,4 @@ namespace engone {
 		int section[3]{1,1,1};
 	};
 }
-//#endif
+#endif

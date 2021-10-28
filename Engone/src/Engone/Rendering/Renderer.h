@@ -10,11 +10,12 @@
 //#include "../EventManager.h"
 //#include "glm/glm.hpp"
 
-#include "Shader.h"
-#include "../Components/Material.h"
+//#include "Shader.h"
+//#include "../Components/Material.h"
+#include "../Handlers/AssetManager.h"
 #include "Light.h"
 #include "../Objects/Camera.h"
-#include "Font.h"
+//#include "Font.h"
 #include "Buffer.h"
 #include "FrameBuffer.h"
 
@@ -186,6 +187,6 @@ namespace engone {
 	void PassLight(Shader* shader, DirLight* light);
 	void PassLight(Shader* shader, int index, PointLight* light);
 	void PassLight(Shader* shader, int index, SpotLight* light);
-	void PassMaterial(Shader* shader, int index, Material* material);
+	void PassMaterial(Shader* shader, int index, MaterialAsset* material);
 }
 //#endif

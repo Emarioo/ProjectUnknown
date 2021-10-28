@@ -5,14 +5,17 @@
 namespace engone {
 
 	void RenderComponent::SetModel(const std::string& name) {
+#if gone
 		Model* mod = GetModelAsset(name);
 		if (mod != nullptr) {
 			model = mod;
 			animator.model = mod;
 		}
 		else hasError = true;
+#endif
 	}
 	void RenderComponent::GetArmatureTransforms(std::vector<glm::mat4>& mats) {
+#if gone
 		//std::cout << "tram " << std::endl;
 		if (model != nullptr) {
 			if (model->armature != nullptr) {
@@ -59,5 +62,6 @@ namespace engone {
 				}
 			}
 		}
+#endif
 	}
 }

@@ -7,19 +7,23 @@
 namespace engone {
 	
 	void Model::AddMesh(const std::string& name, glm::mat4 matrix) {
+#if gone
 		Mesh* mesh = GetMeshAsset(name);
 		if (mesh != nullptr) {
 			meshes.push_back(mesh);
 			matrices.push_back(matrix);
 		} else hasError = true;
+#endif
 	}
 	bool Model::AddAnimation(const std::string& name) {
+#if gone
 		Animation* anim = GetAnimationAsset(name);
 		if (anim != nullptr) {
 			animations.push_back(anim);
 			return true;
 		} else hasError = true;
 		return false;
+#endif
 	}
 	/*
 	void Model::SetArmature(const std::string& name) {

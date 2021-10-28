@@ -213,17 +213,18 @@ namespace engone
 		IColor* color = Property<IColor>();
 
 		if (color->a != 0) { // panel is transparent
-			GetShader("gui")->SetVec2("uPos", { finalX, finalY });
-			GetShader("gui")->SetVec2("uSize", { finalW, finalH });
-			GetShader("gui")->SetVec4("uColor", color->r, color->g, color->b, color->a);
+			Shader* gui = GetAsset<Shader>("gui");
+			gui->SetVec2("uPos", { finalX, finalY });
+			gui->SetVec2("uSize", { finalW, finalH });
+			gui->SetVec4("uColor", color->r, color->g, color->b, color->a);
 
 			Texture* texture = Property<ITexture>()->texture;
 			if (texture != nullptr) {
 				texture->Bind();
-				GetShader("gui")->SetInt("uTextured", 1);
+				gui->SetInt("uTextured", 1);
 			}
 			else
-				GetShader("gui")->SetInt("uTextured", 0);
+				gui->SetInt("uTextured", 0);
 
 			DrawRect();
 		}
@@ -236,7 +237,7 @@ namespace engone
 	void InitGUI()
 	{
 		guiShader = new Shader(guiShaderSource, true);
-		AddShader("gui", guiShader);
+		AddAsset<Shader>("gui", guiShader);
 		AddListener(new Listener(EventType::Click | EventType::Move | EventType::Scroll | EventType::Key, [](Event& e) {
 			for (int i = 0; i < elements.size();i++) {
 				if (elements[i]->_OnEvent(e)) {

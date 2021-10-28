@@ -1,7 +1,7 @@
 #pragma once
 
 //#if ENGONE_GLFW
-
+#if gone
 #include "Texture.h"
 
 namespace engone {
@@ -29,4 +29,4 @@ namespace engone {
 		bool error = false;
 	};
 }
-//#endif
+#endif

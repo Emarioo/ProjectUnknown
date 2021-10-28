@@ -73,9 +73,9 @@ namespace engone {
 #if ENGONE_AL
 		InitSound();
 #endif
-		AddShader("object", new Shader(objectSource, true));
-		AddShader("armature", new Shader(armatureSource, true));
-		AddShader("outline", new Shader(outlineSource, true));
+		AddAsset<Shader>("object", new Shader(objectSource, true));
+		AddAsset<Shader>("armature", new Shader(armatureSource, true));
+		AddAsset<Shader>("outline", new Shader(outlineSource, true));
 
 		InitGUI();
 		InitEvents(GetWindow());
@@ -162,6 +162,7 @@ namespace engone {
 	void RenderRawObjects(Shader* shader, double lag) 
 	{
 		for (GameObject* o : GetObjects()) {
+			/*
 			if (o->renderComponent.model != nullptr) {
 				for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) {
 					//std::cout << " okay2\n";
@@ -176,11 +177,12 @@ namespace engone {
 						SetTransform(o->renderComponent.matrix*
 							glm::translate(o->velocity*(float)lag)* // special
 							o->renderComponent.model->matrices[i]);
-						*/
+						
 						mesh->Draw();
 					}
 				}
 			}
+			*/
 		}
 	}
 	void RenderObjects(double lag) 
@@ -195,10 +197,10 @@ namespace engone {
 				o->renderComponent.matrix = body.mat();
 			}
 		}
-
+		SwitchBlendDepth(false);
 		UpdateViewMatrix(lag);
 
-		Shader* shader = GetShader("object");
+		Shader* shader = GetAsset<Shader>("object");
 
 		if (!shader->error)
 		{
@@ -206,8 +208,21 @@ namespace engone {
 
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
+			
+			shader->SetMatrix("uTransform", glm::mat4(1));
+			MeshAsset* as = GetAsset<MeshAsset>("Leaf");
+			if (as != nullptr) {
+				for (int i = 0; i < as->materials.size();i++) {
+					
+					//std::cout << as->materials[i]->diffuse_color[0] << " " << as->materials[i]->diffuse_map << "\n";
+					PassMaterial(shader,i,as->materials[i]);
+				}
+				as->buffer.Draw();
+			}
+
 			for (GameObject* o : GetObjects())
 			{
+				/*
 				if (o->renderComponent.model != nullptr) 
 				{
 					BindLights(shader,o->position);
@@ -239,9 +254,10 @@ namespace engone {
 						}
 					}
 				}
+				*/
 			}
 		}
-		shader = GetShader("armature");
+		shader = GetAsset<Shader>("armature");
 		if (!shader->error)
 		{
 			shader->Bind();
@@ -249,6 +265,7 @@ namespace engone {
 			shader->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
 			for (GameObject* o : GetObjects()) 
 			{
+				/*
 				if (o->renderComponent.model != nullptr)
 				{
 					//bug::outs < "Update " < o->name<"\n";
@@ -293,6 +310,7 @@ namespace engone {
 						}
 					}
 				}
+				*/
 			}
 		}
 		
@@ -356,7 +374,7 @@ namespace engone {
 				}
 			}
 		}*/
-		shader = GetShader("outline");
+		shader = GetAsset<Shader>("outline");
 		if (shader!=nullptr)
 		{
 			shader->Bind();
@@ -411,6 +429,7 @@ namespace engone {
 				hitbox.Draw();
 			}*/
 
+#if gone
 			glm::vec3 hitboxColor = { 0,1,0 };
 			for (GameObject* o : GetObjects())
 			{// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
@@ -421,7 +440,6 @@ namespace engone {
 					// algorithm for removing line duplicates?
 					// Adding hitboxes together?
 					int startV = atVec;
-					
 					if (atVec + c.points.size()*6 > 6*vecLimit) {
 						if (!reachedLimit)
 							bug::out < bug::RED < "Line limit does not allow " < (atVec+c.points.size() * 6)<"/"<(6*vecLimit) < " points" < bug::end;
@@ -461,6 +479,7 @@ namespace engone {
 						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
 						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
 					}*/
+
 					// Clear the rest - how necessary is this?
 					for (int i = atVec; i < vecLimit*6; i++) {
 						hitboxVec[i] = 0;
@@ -546,6 +565,7 @@ namespace engone {
 					}
 				}
 			}
+#endif
 		}
 		/*
 		Mesh* lightCube = GetMeshAsset("LightCube");

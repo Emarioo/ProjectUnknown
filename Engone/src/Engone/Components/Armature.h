@@ -1,7 +1,10 @@
 #pragma once
 
 #include "../DebugTool/DebugHandler.h"
-#include "Model.h"
+//#include "Model.h"
+#include "Animator.h"
+#include <vector>
+#include <glm/glm.hpp>
 
 namespace engone {
 	class Bone {
@@ -19,13 +22,14 @@ namespace engone {
 		std::vector<Bone> bones;
 
 		Armature() {}
-		Model* model;
+		//Model* model;
 
 		/*
 		Parameter is an array of glm::mat4 with bones.size()
 		*/
 		void GetArmatureTransforms(std::vector<glm::mat4>& mats,Animator* animator=nullptr)
 		{
+#if gone
 			//std::cout << "tram " << std::endl;
 			if (model != nullptr) {
 					//std::cout << model->armature->bones.size() << "\n";
@@ -72,8 +76,8 @@ namespace engone {
 						mats[i] = (modelT[i]) * inv;
 				}
 			}
+#endif;
 		}
-
 		bool hasError = false;
 	};
 }

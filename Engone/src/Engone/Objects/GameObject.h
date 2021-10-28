@@ -4,7 +4,7 @@
 #include "../Components/CollisionComponent.h"
 #include "../Components/RenderComponent.h"
 
-#include "../Handlers/AssetHandler.h"
+#include "../Handlers/AssetManager.h"
 
 namespace engone {
 	class GameObject {
