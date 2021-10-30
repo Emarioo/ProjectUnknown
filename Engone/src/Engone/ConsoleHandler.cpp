@@ -26,6 +26,14 @@ namespace console
 
 		SetConsoleSize(w, h);
 	}
+	void CreateConsole()
+	{
+		bool b = AllocConsole();
+		freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+		freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+		HANDLE oHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		HANDLE iHandle = GetStdHandle(STD_INPUT_HANDLE);
+	}
 	void SetConsoleSize(int w, int h)
 	{
 		CONSOLE_SCREEN_BUFFER_INFO csbi;
