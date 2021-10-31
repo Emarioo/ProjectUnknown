@@ -53,14 +53,16 @@ namespace engone {
 #include "Shaders/outline.glsl"
 	};
 
-	static int lastMouseX=0, lastMouseY=0;
+	static int lastMouseX=-1, lastMouseY=-1;
 	// Move somewhere else
 	static double cameraSensitivity = 0.1;
 	bool FirstPerson(Event& e)
 	{
-		if (IsCursorLocked()&& GetCamera() != nullptr) {
-			GetCamera()->rotation.y -= (e.mx - lastMouseX) * (3.14159 / 360) * cameraSensitivity;
-			GetCamera()->rotation.x -= (e.my - lastMouseY) * (3.14159 / 360) * cameraSensitivity;
+		if (lastMouseX != -1) {
+			if (IsCursorLocked() && GetCamera() != nullptr) {
+				GetCamera()->rotation.y -= (e.mx - lastMouseX) * (3.14159 / 360) * cameraSensitivity;
+				GetCamera()->rotation.x -= (e.my - lastMouseY) * (3.14159 / 360) * cameraSensitivity;
+			}
 		}
 		lastMouseX = e.mx;
 		lastMouseY = e.my;

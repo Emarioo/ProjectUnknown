@@ -7,6 +7,7 @@
 #include "DebugTool.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
+#include "Server/NetworkManager.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha

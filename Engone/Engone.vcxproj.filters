@@ -105,6 +105,9 @@
     <ClInclude Include="src\Engone\Handlers\AssetManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\Server\NetworkManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engone\DebugTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -192,9 +195,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Handlers\AssetManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\DebugTool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
