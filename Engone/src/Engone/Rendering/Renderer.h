@@ -140,8 +140,9 @@ namespace engone {
 	/*
 	Closest Lights need to be bound before drawing mesh
 	*/
+
 	/*
-	Set uniforms before. uPos, USize, uColor, uTextured.
+	Set uniforms before. uPos, USize, uColor, uTextured. Make sure Blending is on, make sure uWindows is set.
 	*/
 	void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar = -1);
 

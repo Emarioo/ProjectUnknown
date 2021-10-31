@@ -4,8 +4,6 @@
 #include "../Components/CollisionComponent.h"
 #include "../Components/RenderComponent.h"
 
-#include "../Handlers/AssetManager.h"
-
 namespace engone {
 	class GameObject {
 	public:
@@ -26,7 +24,7 @@ namespace engone {
 		glm::mat4 matrix=glm::mat4(1);
 
 		RenderComponent renderComponent;
-		MetaComponent metaComponent;
+		//MetaComponent metaComponent;
 		CollisionComponent collisionComponent;
 
 		int weight = 1;

@@ -263,19 +263,17 @@ namespace engone {
 	}
 #endif
 	void InitRenderer() {
-		std::cout << "Init?\n";
+		
 		if (!glfwInit()) {
-			std::cout << "crap\n";
-			std::cout << "Not Init Window!" << std::endl;
+			std::cout << "Glfw Init error!" << std::endl;
 			return;
 		}
-		std::cout << "Wee\n";
 
 		windowType = Windowed;
 		MakeWindow("Project Unknown");
 		
 		if (glewInit() != GLEW_OK) {
-			std::cout << "Error!" << std::endl;
+			std::cout << "Glew Init Error!" << std::endl;
 			return;
 		}
 
@@ -314,7 +312,7 @@ namespace engone {
 		}
 		textBuffer.Init(true,nullptr,4*4*TEXT_BATCH,indes,6*TEXT_BATCH);
 		textBuffer.SetAttrib(0, 4, 4, 0);
-		float temp[]{
+		float temp[]{ // This will be updated in when using DrawRect or DrawUVRect
 			0, 0, 0, 0,
 			0, 1, 0, 1,
 			1, 1, 1, 1,
@@ -909,10 +907,10 @@ namespace engone {
 #endif
 	void DrawRect() {
 		float vertices[16]{
-		0,0,0,0,
-		0,1,0,1,
-		1,1,1,1,
-		1,0,1,0
+		0,0,0,1,
+		0,1,0,0,
+		1,1,1,0,
+		1,0,1,1
 		};
 		rectBuffer.ModifyVertices(0, 16, vertices);
 		rectBuffer.Draw();
@@ -920,10 +918,10 @@ namespace engone {
 	void DrawRect(Shader* shad, float x,float y,float w,float h,float r,float g,float b,float a)
 	{
 		float vertices[16]{
-		0,0,0,0,
-		0,1,0,1,
-		1,1,1,1,
-		1,0,1,0
+		0,0,0,1,
+		0,1,0,0,
+		1,1,1,0,
+		1,0,1,1
 		};
 		rectBuffer.ModifyVertices(0, 16, vertices);
 		shad->SetVec2("uPos", { x,y });

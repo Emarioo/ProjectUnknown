@@ -2,10 +2,10 @@
 
 #include "ModelObject.h"
 
-ModelObject::ModelObject(float x, float y, float z,const std::string& model) 
+ModelObject::ModelObject(float x, float y, float z, engone::ModelAsset* model) 
 	: GameObject("ModelObject",x, y, z) {
 	
-	renderComponent.SetModel(model);
+	renderComponent.model = model;
 
 	//renderComponent.animator.Enable("Quater", { true, 1, 1 });
 }

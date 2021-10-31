@@ -1,5 +1,7 @@
 #include "gonpch.h"
 
+#if gone
+
 #include "DebugHandler.h"
 
 //#include "../Handlers/UIHandler.h"
@@ -231,3 +233,4 @@ namespace bug {
 		return *this;
 	}
 }
+#endif

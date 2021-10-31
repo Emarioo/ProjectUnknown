@@ -2,7 +2,7 @@
 
 namespace console
 {
-	enum class ConsoleColor : int8_t
+	enum class ConsoleColor : uint8_t
 	{
 		BLACK = 0,
 		NAVY,
@@ -37,6 +37,7 @@ namespace console
 		_YELLOW = 0xe0,
 		_WHITE = 0xf0,
 	};
+	//ConsoleColor operator|(ConsoleColor a, ConsoleColor b);
 
 	//-- Console settings
 	void InitConsole(int w, int h);
@@ -54,13 +55,16 @@ namespace console
 	int GetHeight();
 
 	//-- Console Drawing
-	// Not handling out of bounds
-	void FillConsole(int x, int y, int w, int h, char chr, int color);
-	void FillConsole(int x, int y, char chr, int color);
-	void ConsoleString(int x, int y, const std::string& str, int color);
-	void ConsoleCenterString(int x, int y, const std::string& str, int color);
+	/*
+	Not handling out of bounds, chr=0 will only change the color
+	*/
+	void FillConsole(int x, int y, int w, int h, char chr, ConsoleColor color);
+	// chr=0 will only change the color
+	void FillConsole(int x, int y, char chr, ConsoleColor color);
+	void ConsoleString(int x, int y, const std::string& str, ConsoleColor color);
+	void ConsoleCenterString(int x, int y, const std::string& str, ConsoleColor color);
 	// Will clear screen
-	void ClearConsole(int color);
-	void DrawConsoleBuffer();
+	void ClearConsole(ConsoleColor color);
+	void RenderConsole();
 
 }

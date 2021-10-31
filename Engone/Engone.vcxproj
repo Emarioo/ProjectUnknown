@@ -24,8 +24,7 @@
     <ClInclude Include="src\Engone\Components\RenderComponent.h" />
     <ClInclude Include="src\Engone\Components\Animator.h" />
     <ClInclude Include="src\Engone\ConsoleHandler.h" />
-    <ClInclude Include="src\Engone\DebugTool\DebugPanel.h" />
-    <ClInclude Include="src\Engone\DebugTool\LogLine.h" />
+    <ClInclude Include="src\Engone\DebugTool.h" />
     <ClInclude Include="src\Engone\EventManager.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
@@ -44,7 +43,6 @@
     <ClInclude Include="src\Engone\Handlers\SoundHandler.h" />
     <ClInclude Include="src\Engone\Sound\SoundSource.h" />
     <ClInclude Include="src\Engone\Sound\SoundStream.h" />
-    <ClInclude Include="src\Engone\DebugTool\DebugHandler.h" />
     <ClInclude Include="src\Engone\Utility\Utilities.h" />
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
     <ClInclude Include="src\Engone\Keyboard.h" />
@@ -61,8 +59,7 @@
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
     <ClCompile Include="src\Engone\ConsoleHandler.cpp" />
-    <ClCompile Include="src\Engone\DebugTool\DebugPanel.cpp" />
-    <ClCompile Include="src\Engone\DebugTool\LogLine.cpp" />
+    <ClCompile Include="src\Engone\DebugTool.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\EventManager.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
@@ -88,7 +85,6 @@
     <ClCompile Include="src\Engone\Handlers\SoundHandler.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
-    <ClCompile Include="src\Engone\DebugTool\DebugHandler.cpp" />
     <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
     <ClCompile Include="src\Engone\Utility\GameOptions.cpp" />
     <ClCompile Include="src\Engone\Utility\Keyboard.cpp" />

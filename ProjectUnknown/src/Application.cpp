@@ -60,11 +60,7 @@ void Update(double delta) {
 	light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
 	light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 	
-	if (CheckState(GameState::Game)) {
-		if (HasFocus() && !CheckState(GameState::Paused)) {
-			UpdateObjects(delta);
-		}
-	}
+	UpdateEngine(delta);
 	
 	if (quater != nullptr) {
 		/*if (tommy != nullptr) {
@@ -106,7 +102,6 @@ void Update(double delta) {
 		glm::translate(glm::vec3(0, 0, 5.2))
 		)[3]);
 	*/
-	UpdateUI(delta);
 }
 engone::TriangleBuffer cont;
 engone::TriangleBuffer itemContainer2;
@@ -123,74 +118,12 @@ void Render(double lag) {
 	using namespace engone;
 	SwitchBlendDepth(false);
 	if (CheckState(GameState::Game)) {
-		if (HasFocus()) {
-			//move += 0.01f;
-			glm::mat4 lightView = glm::lookAt({-2,4,-1}, glm::vec3(0), { 0,1,0 });
-			
-			glClearColor(0.05f, 0.08f, 0.08f, 1);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			coloring += lag;
-			if (coloring>1) {
-				coloring = 0;
-			}
-
-			glViewport(0, 0, Width(), Height());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glCullFace(GL_BACK);
-
-
-			// All this should be automated and customizable in the engine.
-			// Shadow stuff
-			Shader* depth = GetAsset<Shader>("depth");
-			if (depth!=nullptr) {
-				depth->Bind();
-				glCullFace(GL_BACK);
-				depth->SetMatrix("uLightMatrix", GetLightProj()*lightView);
-				glViewport(0, 0, 1024, 1024);
-				GetDepthBuffer().Bind();
-				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderRawObjects(depth,lag);
-				GetDepthBuffer().Unbind();
-			}
-			Shader* objectShader = GetAsset<Shader>("object");
-			if (objectShader != nullptr) {
-				glViewport(0, 0, Width(), Height());
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				glCullFace(GL_BACK);
-				objectShader->Bind();
-				objectShader->SetInt("shadow_map", 0);
-				objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-
-				RenderObjects(lag);
-
-				//objectShader->Bind();
-				//objectShader->SetMatrix("uTransform", glm::mat4(1));
-				//testBuffer.Draw();
-				//GetAsset<MeshAsset>("Leaf")->buffer.Draw();
-			}
-			if (IsKeyDown(GLFW_KEY_K)) {
-				//std::cout << "yes\n";
-				SwitchBlendDepth(true);
-				Shader* experiment = GetAsset<Shader>("experiment");
-				if (experiment != nullptr) {
-					experiment->Bind();
-					experiment->SetInt("uTexture", 0);
-					glActiveTexture(GL_TEXTURE1);
-					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-					cont.Draw();
-				}
-			}
-
-		}
+		
 	}
+	RenderEngine(lag);
 
-	// Render IBase, IElement...
-	RenderUI();
 	// Render custom things like items dragged by the mouse
 	ui::Render(lag);
-	//interfaceManager.Render(lag);
 }
 bool OnKey(engone::Event& e) {
 	if (engone::CheckState(GameState::Game)) {
@@ -322,11 +255,11 @@ void runApp(bool isDebugBuild) {
 	using namespace engone;
 	//-- Init the absolutely neccessary stuff
 	SetState(GameState::DebugLog,isDebugBuild); // temporary
+
 	InitEngone();
 	if (LoadKeybindings("data/keybindings.dat")<KEY_COUNT) {
 		CreateDefualtKeybindings();
 	}
-	std::cout << "Started \n";
 	//-- Init game stuff
 	bool startGame = true;
 	if (startGame) {
@@ -339,12 +272,12 @@ void runApp(bool isDebugBuild) {
 		SetCursorVisibility(false);
 	} else {
 		 SetState(GameState::Menu, true);
-		 SetupDebugPanel();
+		 //SetupDebugPanel();
 	}
 	//interfaceManager.SetupMainMenu();
 
 	//-- Debug Options - move this else where. like the debugpanel
-	bug::set("LoadMesh", 1);
+	//bug::set("LoadMesh", 1);
 	//bug::set("LoadMesh.Weights", 1);
 	//bug::set("LoadMesh.Triangles", 1);
 	//bug::set("LoadMesh.Vectors", 1);
@@ -363,8 +296,8 @@ void runApp(bool isDebugBuild) {
 	//bug::set("LoadArmature.Bones", 1);
 	//bug::set("LoadArmature.Matrix", 1);
 		 
-	bug::set("LoadModel", 1);
-	bug::set("LoadModel.Mesh", 1);
+	//bug::set("LoadModel", 1);
+	//bug::set("LoadModel.Mesh", 1);
 	//bug::set("LoadModel.Matrix", 1);
 
 	//bug::set("LoadMaterial", 1);
@@ -388,6 +321,8 @@ void runApp(bool isDebugBuild) {
 	for (int i = 0; i < size/2;i++){
 		std::cout << wow[i]<<" ";
 	}*/
+	//std::string filePath = "assets/Font.png";
+
 
 	//-- Assets should be loaded else where. Maybe where you start the game.  Only if they havent't been loaded though.
 	{
@@ -395,9 +330,6 @@ void runApp(bool isDebugBuild) {
 		AddAsset<Shader>("experiment",new Shader(experimentGLSL,true));
 
 		AddAsset<Font>("consolas","fonts/consolas42");
-
-		//AddAsset<MaterialAsset>("Material.001");
-		AddAsset<MeshAsset>("Leaf");
 
 		//AddAnimAsset("goblin_slash");
 		//AddBoneAsset("goblin_skeleton");
@@ -480,15 +412,17 @@ void runApp(bool isDebugBuild) {
 	//tutorial->renderHitbox = true;
 	//engine::AddObject(tutorial);
 
+	//ModelObject* axis = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Axis/Axis"));
+	//AddObject(axis);
+
 	//ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
-	ModelObject* tom=new ModelObject(3, 0, 0, "Static");
+	//ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant/Plant"));
+	ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant.001/Plant.001"));
 	//ModelObject* test = new ModelObject(0, 0, 0, "VertexColor");
 	//AddObject(charles);
 	AddObject(tom);
 	//AddObject(test);
 	//ob->quaternion = {1,0.5,0,0};
-	
-	
 
 	game::SetPlayer(new Player(0, 0, -5));
 	GetCamera()->position.x = 0;

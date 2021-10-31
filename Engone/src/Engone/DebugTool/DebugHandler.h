@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LogLine.h"
-
+//#include "LogLine.h"
+#if gone
 namespace engone {
 	void SetupDebugPanel();
 }
@@ -80,3 +80,4 @@ namespace bug {
 	extern debug out;
 	extern debugs outs;
 }
+#endif

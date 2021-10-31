@@ -7,17 +7,22 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
+#include "DebugTool.h"
+
 #include "GL/glew.h"
 
 namespace engone {
 
 	void Texture::Load(const std::string& path)
 	{
+		Logging({"AssetManager","Texture"}, "Path: " + path, LogStatus::Info);
+
 		//std::cout << "Texture " << path << "\n";
-		/*if (!FindFile("assets/" + path + ".png")) {
+		if (!FindFile("assets/" + path + ".png")) {
 			error = MissingFile;
+			Logging({"AssetManager","Texture"}, "Missing file: "+path, LogStatus::Error);
 			return;
-		}*/
+		}
 		//if (path.length() > 4) {
 			stbi_set_flip_vertically_on_load(1);
 			buffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
@@ -246,7 +251,7 @@ namespace engone {
 	void Font::Load(const std::string& path)
 	{
 		std::vector<std::string> list;
-		/*
+		
 		FileReport err = ReadTextFile(path + ".txt", list);
 
 		if (err == FileReport::Success) {
@@ -267,19 +272,22 @@ namespace engone {
 					}
 				}
 			}
-			texture.Load(path);
+			texture.Load(path+".png");
 			if (!texture) {
 				error = texture.error;
+				std::cout << "shite?\n";
 			}
 		}else
 			error = MissingFile;
-			*/
+			
 	}
 	void MaterialAsset::Load(const std::string& path)
 	{
+		//std::cout << "load " << path << "\n";
 		FileReader file(path);
 		if (!file) {
 			error = file.error;
+			//std::cout <<" mae error "<<file.error<<"\n";
 			return;
 		}
 		try {
@@ -292,12 +300,15 @@ namespace engone {
 
 			//std::cout << "Diffuse "<<diffuse_map << "\n";
 
-			file.read<glm::vec3>(&diffuse_color);
-			file.read<glm::vec3>(&specular);
-			file.read<float>(&shininess);
+			file.read(&diffuse_color);
+			file.read(&specular);
+			file.read(&shininess);
+
+			//std::cout << diffuse_color[0] << " " << diffuse_color[1] << " " << diffuse_color[2] << "\n";
 		}
 		catch (AssetError err) {
 			error = err;
+			std::cout << " mat error " << err<<"\n";
 		}
 		file.close();
 		// add diffuse_map as a texture asset
@@ -525,14 +536,13 @@ namespace engone {
 	}
 	void MeshAsset::Load(const std::string& path)
 	{
-		//std::cout << "Pathe "<<path << "\n";
+		//std::cout << "Try load "<<path << "\n";
 		FileReader file(path);
 		if (!file) {
 			error = file.error;
 			return;
 		}
 		try {
-			std::cout << "started " << path << " "<<file.error<<"\n";
 			uint16_t pointCount;
 			uint16_t textureCount;
 			uint8_t materialCount;
@@ -545,7 +555,7 @@ namespace engone {
 			for (int i = 0; i < materialCount; i++) {
 				std::string materialName;
 				file.read(&materialName);
-				
+
 				//std::cout << "Matloc: " << root<<materialName<< "\n";
 				MaterialAsset* asset = GetAsset<MaterialAsset>(root + materialName);
 				
@@ -564,7 +574,7 @@ namespace engone {
 			}
 			file.read(&triangleCount);
 			
-			std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
+			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 
 			int uPointSize = 3 * pointCount;
 			float* uPoint = new float[uPointSize];
@@ -786,7 +796,7 @@ namespace engone {
 			else if(err==CorruptedData){
 				std::cout << "Corrupted Data\n";
 			}
-			std::cout << err<<"error\n";
+			std::cout <<path<<" error "<<err<<"\n";
 			error = err;
 		}
 		file.close();
@@ -822,16 +832,8 @@ namespace engone {
 				Bone b;
 				file.read(&b.parent);
 				
-				for (int x = 0; x < 4; x++) {
-					for (int y = 0; y < 4; y++) {
-						file.read(&b.localMat[x][y]);
-					}
-				}
-				for (int x = 0; x < 4; x++) {
-					for (int y = 0; y < 4; y++) {
-						file.read(&b.invModel[x][y]);
-					}
-				}
+				file.read(&b.localMat);
+				file.read(&b.invModel);
 
 				bones.push_back(b);
 			}
@@ -849,61 +851,70 @@ namespace engone {
 			return;
 		}
 		try {
-			std::string armatureName;
-			file.read(&armatureName);
-
-			uint8_t animCount;
-			file.read(&animCount);
-
-			std::vector<std::string> animationsNames;
-			for (int i = 0; i < animCount; i++) {
-				std::string animationName;
-				file.read(&animationName);
-				
-				animationsNames.push_back(animationName);
-			}
-
-			uint8_t meshCount;
-			file.read(&meshCount);
-			
 			std::string root = GetRootPath();
 
-			for (int i = 0; i < meshCount; i++) {
-				std::string meshName;
-				file.read(&meshName);
+			uint16_t objectCount;
+			file.read(&objectCount);
+			for (int i = 0; i < objectCount;i++) {
+				instances.push_back({});
+				AssetInstance& instance = instances.back();
+				
+				uint8_t instanceType;
+				file.read(&instanceType);
 
-				glm::mat4 mat(1);
-				for (int x = 0; x < 4; x++) {
-					for (int y = 0; y < 4; y++) {
-						file.read(&mat[x][y]);
-					}
+				std::string name;
+				file.read(&name);
+
+				//std::cout << "intance "<<name << "\n";
+
+				switch (instanceType){
+				case 0:
+					instance.asset = GetAsset<MeshAsset>(root + name);
+					break;
+				case 1:
+					instance.asset = GetAsset<ArmatureAsset>(root + name);
+					break;
+				case 2:
+					instance.asset = GetAsset<ColliderAsset>(root + name);
+					break;
 				}
 
-				MeshAsset* mesh = GetAsset<MeshAsset>(root+meshName);
-				if (mesh != nullptr) {
-					if (mesh) {
-						meshes.push_back(mesh);
-						transforms.push_back(mat);
-					}
-				}
+				file.read(&instance.parent);
+				file.read(&instance.localMat);
+				//file.read(&instance.invModel);
 			}
+			/*
+			uint16_t armatureCount;
+			file.read(&armatureCount);
+			for (int i = 0; i < armatureCount; i++) {
+				instances.push_back({});
+				AssetInstance& instance = instances.back();
 
-			std::string colliderName;
-			file.read(&colliderName);
+				std::string name;
+				file.read(&name);
 
-			// Dependecies
-			if (!armatureName.empty()) {
-				//AddArmatureAsset(armatureName);
-				//data->SetArmature(armatureName);
+				instance.asset = GetAsset<ArmatureAsset>(root + name);
+
+				file.read(&instance.parent);
+				file.read(&instance.localMat);
+				file.read(&instance.invModel);
 			}
-			for (int i = 0; i < animationsNames.size(); i++) {
-				//AddAnimationAsset(animations[i]);
-				//data->AddAnimation(animations[i]);
+			uint16_t colliderCount;
+			file.read(&colliderCount);
+			for (int i = 0; i < colliderCount; i++) {
+				instances.push_back({});
+				AssetInstance& instance=instances.back();
+
+				std::string name;
+				file.read(&name);
+
+				instance.asset = GetAsset<ColliderAsset>(root + name);
+
+				file.read(&instance.parent);
+				file.read(&instance.localMat);
+				file.read(&instance.invModel);
 			}
-			if (!colliderName.empty()) {
-				//AddColliderAsset(colliderName);
-				//data->SetCollider(colliderName);
-			}
+			*/
 		}
 		catch (AssetError err) {
 			error = err;

@@ -63,8 +63,9 @@ void InitCraftingRecipes() {
 		} else if (str[0] == '/') {
 			break;
 		} else {
-			if (lastCat == nullptr)
-				bug::out < "ItemHandler.cpp : InitCraftingRecipes - lastCat is nullptr\n";
+			if (lastCat == nullptr) {
+				std::cout << "ItemHandler.cpp : InitCraftingRecipes - lastCat is nullptr\n";
+			}
 			CraftingRecipe* recipe = lastCat->AddRecipe(split[0], std::stoi(split[1]));
 			for (int i = 1; i < split.size()/2; i++) {
 				recipe->AddInput(split[2*i], std::stoi(split[2*i+1]));

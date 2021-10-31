@@ -4,7 +4,7 @@
 #include "Handlers/ObjectHandler.h"
 #include "UI/GUIManager.h"
 #include "Handlers/SoundHandler.h"
-#include "DebugTool/DebugHandler.h"
+#include "DebugTool.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
 
@@ -47,6 +47,15 @@ namespace engone {
 	Render objects without doing anything but calling the object's draw function.
 	*/
 	void RenderRawObjects(Shader* shader, double lag);
+
+	/*
+	Render objects, ui, debug tool
+	*/
+	void RenderEngine(double lag);
+	/*
+	Update objects, ui, debug tool
+	*/
+	void UpdateEngine(double delta);
 
 	struct TimedFunc
 	{

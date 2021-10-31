@@ -12,7 +12,7 @@ Gnorg::Gnorg(float x, float y, float z) : GameObject("Gnorg",x,y,z) {
 	*/
 	//renderComponent.SetBone("goblin_skeleton");
 
-	renderComponent.SetModel("Gnorg");
+	//renderComponent.SetModel("Gnorg");
 	//renderComponent.animator.Enable("goblin_idle", { 0,true,0.5,1 });
 	//renderComponent.animator.Enable("goblin_run", { 0,true,0.5,1 });
 	//bug::out < renderComponent.model->animations[0]->name < bug::end;

@@ -80,7 +80,7 @@ namespace engone {
 		if (fileToRead != nullptr) {
 			fileAtByte += sizeof(T) * count;
 			if (fileAtByte > fileSize) {
-				bug::out < bug::RED < "Corruption at '" < filePath < "' : missing " < (fileAtByte - fileSize) < " bytes\n";
+				//bug::out < bug::RED < "Corruption at '" < filePath < "' : missing " < (fileAtByte - fileSize) < " bytes\n";
 				return true;
 			}
 			fileToRead->read(reinterpret_cast<char*>(&buffer[0]), (std::streamsize)sizeof(T) * count);
@@ -93,7 +93,7 @@ namespace engone {
 		if (fileToRead != nullptr) {
 			fileAtByte += sizeof(T);
 			if (fileAtByte > fileSize) {
-				bug::out < bug::RED < "Corruption at '" < filePath < "' : missing " < (fileAtByte - fileSize) < " bytes\n";
+				//bug::out < bug::RED < "Corruption at '" < filePath < "' : missing " < (fileAtByte - fileSize) < " bytes\n";
 				return true;
 			}
 			fileToRead->read(reinterpret_cast<char*>(&buffer[0]), sizeof(T));

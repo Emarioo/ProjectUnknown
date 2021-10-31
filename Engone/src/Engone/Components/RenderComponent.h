@@ -17,8 +17,10 @@ namespace engone {
 		Changes to this function will not affect anything.
 		*/
 		glm::mat4 matrix=glm::mat4(1);
+		ModelAsset* model;
 		
-		void SetModel(const std::string& name);
+		void GetInstanceTransforms(std::vector<glm::mat4>& mats);
+
 		/*
 		Argument is an array of glm::mat4 with bones.size()
 		*/

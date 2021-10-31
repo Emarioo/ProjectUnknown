@@ -4,6 +4,12 @@
 
 namespace console
 {
+	/*
+	ConsoleColor operator|(ConsoleColor a, ConsoleColor b)
+	{
+		return (ConsoleColor)(a | b);
+	}*/
+
 	static HANDLE inHandle;
 	static HANDLE outHandle;
 	static INPUT_RECORD inRecord[20];
@@ -12,17 +18,22 @@ namespace console
 	static CHAR_INFO* consoleBuffer;
 	static int width, height;
 
+	static bool needUpdate=false;
+
 	void InitConsole(int w, int h)
 	{
 		inHandle = GetStdHandle(STD_INPUT_HANDLE);
 		outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 
+		// create window
 		//DWORD mode;
 		//GetConsoleMode(inHandle, &mode);
 		//std::cout << mode<<"\n";
 
 		//mode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
 		//SetConsoleMode(inHandle,mode);
+
+		SetConsoleCursorBlinking(false);
 
 		SetConsoleSize(w, h);
 	}
@@ -53,6 +64,7 @@ namespace console
 			consoleBuffer[i].Char.AsciiChar = 0;
 			consoleBuffer[i].Char.UnicodeChar = 0;
 		}
+		needUpdate = true;
 	}
 	void SetConsoleCursorBlinking(bool f)
 	{
@@ -63,9 +75,11 @@ namespace console
 	}
 	void GetConsoleInput(std::string& str)
 	{
+
 		SetConsoleCursorBlinking(true);
 		std::getline(std::cin, str);
 		SetConsoleCursorBlinking(false);
+
 	}
 	void SetTitleConsole(const std::string& str)
 	{
@@ -120,7 +134,7 @@ namespace console
 	{
 		SetConsoleCursorPosition(outHandle, { (short)x,(short)y });
 	}
-	void FillConsole(int x, int y, int w, int h, char chr, int color)
+	void FillConsole(int x, int y, int w, int h, char chr, ConsoleColor color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -128,10 +142,11 @@ namespace console
 			if (y + i / w<0 || y + i / w>height - 1 ||
 				x + i % w<0 || x + i % w>width - 1)
 				continue;
-			consoleBuffer[(y + i / w) * width + x + i % w].Char.UnicodeChar = chr;
-			consoleBuffer[(y + i / w) * width + x + i % w].Attributes = color;
+			if(chr!=0)
+				consoleBuffer[(y + i / w) * width + x + i % w].Char.UnicodeChar = chr;
+			consoleBuffer[(y + i / w) * width + x + i % w].Attributes = (int)color;
 		}
-
+		needUpdate = true;
 		/*
 		COORD coord = { x,y };
 		DWORD count;
@@ -151,16 +166,17 @@ namespace console
 			}
 		}*/
 	}
-	void FillConsole(int x, int y, char chr, int color)
+	void FillConsole(int x, int y, char chr, ConsoleColor color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
 		if (y<0 || y>height - 1 || x <0 || x >width - 1)
 			return;
 		consoleBuffer[y * width + x].Char.UnicodeChar = chr;
-		consoleBuffer[y * width + x].Attributes = color;
+		consoleBuffer[y * width + x].Attributes = (int)color;
+		needUpdate = true;
 	}
-	void ConsoleString(int x, int y, const std::string& str, int color)
+	void ConsoleString(int x, int y, const std::string& str, ConsoleColor color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -170,8 +186,9 @@ namespace console
 			if (x + i<0 || x + i>width - 1)
 				continue;
 			consoleBuffer[y * width + x + i].Char.UnicodeChar = str[i];
-			consoleBuffer[y * width + x + i].Attributes = color;
+			consoleBuffer[y * width + x + i].Attributes = (int)color;
 		}
+		needUpdate = true;
 		/*
 		LPWSTR nuisance;
 		nuisance = new WCHAR[str.length()];
@@ -186,7 +203,7 @@ namespace console
 		delete[] nuisance;
 		*/
 	}
-	void ConsoleCenterString(int x, int y, const std::string& str, int color)
+	void ConsoleCenterString(int x, int y, const std::string& str, ConsoleColor color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -196,8 +213,9 @@ namespace console
 			if (x + i - str.length() / 2 < 0 || x + i - str.length() / 2 > width - 1)
 				continue;
 			consoleBuffer[y * width + x + i - str.length() / 2].Char.UnicodeChar = str[i];
-			consoleBuffer[y * width + x + i - str.length() / 2].Attributes = color;
+			consoleBuffer[y * width + x + i - str.length() / 2].Attributes = (int)color;
 		}
+		needUpdate = true;
 		/*
 		LPWSTR nuisance;
 		nuisance = new WCHAR[str.length()];
@@ -211,16 +229,19 @@ namespace console
 
 		delete[] nuisance;*/
 	}
-	void DrawConsoleBuffer()
+	void RenderConsole()
 	{
 		if (consoleBuffer == nullptr)
 			return;
-		COORD s = { width,height };
-		COORD p = { 0,0 };
-		SMALL_RECT r = { 0,0,width,height };
-		WriteConsoleOutput(outHandle, consoleBuffer, s, p, &r);
+		if (needUpdate) {
+			needUpdate = false;
+			COORD s = { width,height };
+			COORD p = { 0,0 };
+			SMALL_RECT r = { 0,0,width,height };
+			WriteConsoleOutput(outHandle, consoleBuffer, s, p, &r);
+		}
 	}
-	void ClearConsole(int color)
+	void ClearConsole(ConsoleColor color)
 	{
 		FillConsole(0, 0, width, height, ' ', color);
 	}

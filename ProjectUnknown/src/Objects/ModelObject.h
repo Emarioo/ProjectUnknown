@@ -11,7 +11,7 @@ private:
 	float speed = 1;
 
 public:
-	ModelObject(float x, float y, float z, const std::string& name);
+	ModelObject(float x, float y, float z, engone::ModelAsset* name);
 	void Update(float delta) override;
 
 };

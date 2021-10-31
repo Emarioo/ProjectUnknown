@@ -1,7 +1,9 @@
 #pragma once
 
-//#include "../Handlers/FileHandler.h"
+#include "../Handlers/FileHandler.h"
 #include "../Rendering/Buffer.h"
+
+#include "Engone/Utility/Utilities.h"
 
 namespace engone {
 	enum AssetError
@@ -38,9 +40,9 @@ namespace engone {
 				file.seekg(file.beg);
 			}
 			else {
+				//std::cout << " how strangee" <<"not found " << path << "\n";
 				error = MissingFile;
 				close();
-				throw MissingFile;
 			}
 		}
 
@@ -65,11 +67,15 @@ namespace engone {
 			if(file.is_open())
 				file.close();
 		}
-
-		template <class T>
+		/*
+		T has to be convertable to int or float. Can also be char short and most of them. Maybe not long or double
+		*/
+		template <typename T>
 		void read(T* var, uint32_t size = 1)
 		{
-			if (!binaryForm) {
+			if (error == MissingFile)
+				return;
+			if (binaryForm) {
 				if (readHead - 1 + size * sizeof(T) > fileSize) {
 					error = MissingData;
 					throw MissingData;
@@ -80,8 +86,134 @@ namespace engone {
 				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
 			}
 			else {
-				//std::string line;
-				//getline(file, line)
+				try {
+					std::string line;
+					int index = 0;
+
+					while (index < size) {
+						std::getline(file, line);
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+
+						std::vector<std::string> numbers = SplitString(line, " ");
+
+						for (int i = 0; i < numbers.size(); i++) {
+							//std::cout << "num"<<numbers[i] << "\n";
+							if (numbers[i].length() == 0)
+								continue;
+							if (numbers[i].find('.') == -1) {
+								var[index++] = static_cast<T>(std::stoi(numbers[i]));
+							}
+							else {
+								float f = std::stof(numbers[i]);
+								
+								var[index++] = static_cast<T>(f);
+							}
+						}
+					}
+				}catch(std::invalid_argument e){
+					throw CorruptedData;
+				}
+			}
+		}
+		void read(glm::vec3* var, uint32_t size = 1)
+		{
+			if (error == MissingFile)
+				return;
+			if (binaryForm) {
+				if (readHead - 1 + size * sizeof(glm::vec3) > fileSize) {
+					error = MissingData;
+					throw MissingData;
+				}
+
+				file.read(reinterpret_cast<char*>(var), size * sizeof(glm::vec3));
+				readHead += size * sizeof(glm::vec3);
+				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
+			}
+			else {
+				try {
+					std::string line;
+					int index = 0;
+
+					while (index < size*3) {
+						std::getline(file, line);
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+
+						std::vector<std::string> numbers = SplitString(line, " ");
+
+						for (int i = 0; i < numbers.size(); i++) {
+							//std::cout << "num"<<numbers[i] << "\n";
+							if (numbers[i].length() == 0)
+								continue;
+							if (numbers[i].find('.') == -1) {
+								//var[index/3][index%3] = std::stoi(numbers[i]);
+							}
+							else {
+								/*
+								glm::vec3& temp = var[index / 3];
+								temp[index%3] = std::stof(numbers[i]);
+								std::cout << temp[index % 3] << "\n";
+								*/
+								var[index / 3][index%3]= std::stof(numbers[i]);
+							}
+							index++;
+						}
+					}
+				}
+				catch (std::invalid_argument e) {
+					throw CorruptedData;
+				}
+			}
+		}
+		void read(glm::mat4* var, uint32_t size = 1)
+		{
+			if (error == MissingFile)
+				return;
+			if (binaryForm) {
+				if (readHead - 1 + size * sizeof(glm::mat4) > fileSize) {
+					error = MissingData;
+					throw MissingData;
+				}
+
+				file.read(reinterpret_cast<char*>(var), size * sizeof(glm::mat4));
+				readHead += size * sizeof(glm::mat4);
+				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
+			}
+			else {
+				try {
+					std::string line;
+					int index = 0;
+
+					while (index < size * 16) {
+						std::getline(file, line);
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+
+						std::vector<std::string> numbers = SplitString(line, " ");
+
+						for (int i = 0; i < numbers.size(); i++) {
+							//std::cout << "num"<<numbers[i] << "\n";
+							if (numbers[i].length() == 0)
+								continue;
+							if (numbers[i].find('.') == -1) {
+								//var[index/3][index%3] = std::stoi(numbers[i]);
+							}
+							else {
+								/*
+								glm::vec3& temp = var[index / 3];
+								temp[index%3] = std::stof(numbers[i]);
+								std::cout << temp[index % 3] << "\n";
+								*/
+								var[index / 16][(index/4) % 4][index%4] = std::stof(numbers[i]);
+							}
+							index++;
+						}
+					}
+				}
+				catch (std::invalid_argument e) {
+					throw CorruptedData;
+				}
 			}
 		}
 		/*
@@ -89,7 +221,9 @@ namespace engone {
 		*/
 		void read(std::string* var)
 		{
-			if (!binaryForm) {
+			if (error == MissingFile)
+				return;
+			if (binaryForm) {
 				if (readHead - 1 + 1 > fileSize) {
 					error = MissingData;
 					throw MissingData;
@@ -117,8 +251,14 @@ namespace engone {
 				delete[] tempString;
 			}
 			else {
-				//std::string line;
-				//getline(file, line);
+				std::string line;
+				std::getline(file, line);
+				if(line.back()=='\r')
+					line.erase(line.end()-1);
+				//std::cout << "line " << line << "\n";
+				*var = line;
+				//std::cout << "read " << *var << "\n";
+				//*var = line;
 			}
 		}
 	};
@@ -126,16 +266,22 @@ namespace engone {
 	class Asset
 	{
 	public:
-		static const AssetType type = AssetType::None;
+		static const AssetType TYPE = AssetType::None; // General type
+		AssetType type = AssetType::None; // my type
 		Asset() = default;
 		Asset(const std::string& path) : filePath("assets/" + path) { }
 
 		std::string filePath;
 		std::string GetRootPath(){
-			std::string root=filePath.substr(6, filePath.find_last_of("/") - 6);
-			if (root.length() > 0)
-				root += "/";
-			return root;
+			int first = filePath.find_first_of("/");
+			int last = filePath.find_last_of("/");
+
+			if (first == last) {// directly in assets
+				return "";
+			}
+			else {
+				return filePath.substr(7, last-6);
+			}
 		}
 
 		AssetError error=None;
@@ -157,9 +303,9 @@ namespace engone {
 	class Texture : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Texture;
-		Texture() = default;
-		Texture(const std::string& path) : Asset(path+".png") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Texture;
+		Texture() { type == AssetType::Texture; };
+		Texture(const std::string& path) : Asset(path + ".png") { type = AssetType::Texture; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 		void Init(int w, int h, void* data);
 
@@ -177,10 +323,10 @@ namespace engone {
 	class Shader: public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Shader;
-		Shader() = default;
-		Shader(const std::string& path) : Asset(path+".glsl") { Load(filePath); };
-		Shader(const std::string& source, bool isSource) { Init(source); };
+		static const AssetType TYPE = AssetType::Shader;
+		Shader() { type = AssetType::Shader; }
+		Shader(const std::string& path) : Asset(path + ".glsl") { Load(filePath); type = AssetType::Shader; }
+		Shader(const std::string& source, bool isSource) { Init(source); type = AssetType::Shader; }
 		virtual void Load(const std::string& path) override;
 		void Init(const std::string& source);
 
@@ -206,9 +352,9 @@ namespace engone {
 	class Font: public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Font;
-		Font() = default;
-		Font(const std::string& path) : Asset(path) { Load(filePath); };
+		static const AssetType TYPE = AssetType::Font;
+		Font() { type = AssetType::Font; };
+		Font(const std::string& path) : Asset(path) { type = AssetType::Font; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		Texture texture;
@@ -221,9 +367,10 @@ namespace engone {
 	class MaterialAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Material;
-		MaterialAsset() = default;
-		MaterialAsset(const std::string& path) : Asset(path + ".material") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Material;
+
+		MaterialAsset() { type = AssetType::Material; };
+		MaterialAsset(const std::string& path) : Asset(path + ".material") { type = AssetType::Material; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		Texture* diffuse_map;
@@ -282,9 +429,9 @@ namespace engone {
 	class AnimationAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Animation;
-		AnimationAsset() = default;
-		AnimationAsset(const std::string& path) : Asset(path+".animation") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Animation;
+		AnimationAsset() { type = AssetType::Animation; };
+		AnimationAsset(const std::string& path) : Asset(path+".animation") { type = AssetType::Animation; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		Channels& Get(unsigned short i);
@@ -305,22 +452,20 @@ namespace engone {
 		*/
 		void Modify(unsigned short startFrame, unsigned short endFrame, float speed);
 		/*
-		Change to vector for better performance. This is done by ordering the objects.
-		Shouldn't be to hard.
+		
 		*/
 		std::unordered_map<unsigned short, Channels> objects;
 
 		uint16_t frameStart = 0;
 		uint16_t frameEnd = 0;
 		float defaultSpeed = 24;// frames per second. 24 is default from blender.
-
 	};
 	class MeshAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Mesh;
-		MeshAsset() = default;
-		MeshAsset(const std::string& path) : Asset(path+".mesh") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Mesh;
+		MeshAsset() { type = AssetType::Mesh; };
+		MeshAsset(const std::string& path) : Asset(path+".mesh") { type = AssetType::Mesh; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		enum class MeshType : char
@@ -337,9 +482,9 @@ namespace engone {
 	class ColliderAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Collider;
-		ColliderAsset() = default;
-		ColliderAsset(const std::string& path) : Asset(path+".collider") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Collider;
+		ColliderAsset() { type = AssetType::Collider; };
+		ColliderAsset(const std::string& path) : Asset(path+".collider") { type = AssetType::Collider; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		std::vector<AnimationAsset*> animations;
@@ -351,7 +496,7 @@ namespace engone {
 	class Bone
 	{
 	public:
-		unsigned short parent = 0;
+		uint16_t parent = 0;
 
 		glm::mat4 localMat = glm::mat4(1);
 		glm::mat4 invModel = glm::mat4(1);
@@ -362,9 +507,9 @@ namespace engone {
 	class ArmatureAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Armature;
-		ArmatureAsset() = default;
-		ArmatureAsset(const std::string& path) : Asset(path + ".armature") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Armature;
+		ArmatureAsset() { type = AssetType::Armature; };
+		ArmatureAsset(const std::string& path) : Asset(path + ".armature") { type = AssetType::Armature; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
 		std::vector<Bone> bones;
@@ -373,20 +518,40 @@ namespace engone {
 		std::vector<AnimationAsset*> animations;
 
 	};
+	class AssetInstance
+	{
+	public:
+		AssetInstance() = default;
+
+		int16_t parent = -1;
+
+		glm::mat4 localMat = glm::mat4(1);
+		glm::mat4 invModel = glm::mat4(1);
+
+		Asset* asset;
+	};
 	class ModelAsset : public Asset
 	{
 	public:
-		static const AssetType type = AssetType::Model;
-		ModelAsset() = default;
-		ModelAsset(const std::string& path) : Asset(path+".model") { Load(filePath); };
+		static const AssetType TYPE = AssetType::Model;
+		ModelAsset() { type = AssetType::Model; };
+		ModelAsset(const std::string& path) : Asset(path+".model") { type = AssetType::Model; Load(filePath); };
 		virtual void Load(const std::string& path) override;
+		
+		/*
+		List of mesh, collider and armature transforms.
+		transforms[meshes.size()+colliders.size()+1] to get the second armature transform
+		*/
+		//std::vector<glm::mat4> transforms;
+		std::vector<AssetInstance> instances;
+		std::vector<AnimationAsset*> animations;
 
-		std::vector<glm::mat4> transforms;
+		/*
+		// Instances of the assets
 		std::vector<MeshAsset*> meshes;
-
 		std::vector<ColliderAsset*> colliders;
-
 		std::vector<ArmatureAsset*> armatures;
+		*/
 
 	};
 	extern std::unordered_map<std::string, MaterialAsset*> engone_materials;
@@ -402,25 +567,25 @@ namespace engone {
 	T* AddAsset(const std::string& name, T* asset)
 	{
 		//std::cout << name <<" "<<(int)T::type<< "\n";
-		if (T::type == AssetType::Texture)
+		if (T::TYPE == AssetType::Texture)
 			engone_textures[name] = asset->cast<Texture>();
-		else if (T::type == AssetType::Font)
+		else if (T::TYPE == AssetType::Font)
 			engone_fonts[name] = asset->cast<Font>();
-		else if (T::type == AssetType::Shader)
+		else if (T::TYPE == AssetType::Shader)
 			engone_shaders[name] = asset->cast<Shader>();
-		else if (T::type == AssetType::Material) {
+		else if (T::TYPE == AssetType::Material) {
 			engone_materials[name] = asset->cast<MaterialAsset>();
 			//std::cout << "added\n";
 		}
-		else if (T::type == AssetType::Animation)
+		else if (T::TYPE == AssetType::Animation)
 			engone_animations[name] = asset->cast<AnimationAsset>();
-		else if (T::type == AssetType::Mesh)
+		else if (T::TYPE == AssetType::Mesh)
 			engone_meshes[name] = asset->cast<MeshAsset>();
-		else if (T::type == AssetType::Collider)
+		else if (T::TYPE == AssetType::Collider)
 			engone_colliders[name] = asset->cast<ColliderAsset>();
-		else if (T::type == AssetType::Armature)
+		else if (T::TYPE == AssetType::Armature)
 			engone_armatures[name] = asset->cast<ArmatureAsset>();
-		else if (T::type == AssetType::Model)
+		else if (T::TYPE == AssetType::Model)
 			engone_models[name] = asset->cast<ModelAsset>();
 		return asset;
 	}
@@ -447,63 +612,63 @@ namespace engone {
 	T* GetAsset(const std::string& name)
 	{
 		//std::cout << name << " " << (int)T::type<<" "<<(int)AssetType::Shader << "\n";
-		if (T::type == AssetType::Texture) {
+		if (T::TYPE == AssetType::Texture) {
 			if (engone_textures.count(name) > 0)
 				return engone_textures[name]->cast<T>();
 			else {
 				return AddAsset<Texture>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Font) {
+		else if (T::TYPE == AssetType::Font) {
 			if (engone_fonts.count(name) > 0)
 				return engone_fonts[name]->cast<T>();
 			else {
 				return AddAsset<Font>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Shader) {
+		else if (T::TYPE == AssetType::Shader) {
 			if (engone_shaders.count(name) > 0)
 				return engone_shaders[name]->cast<T>();
 			else {
 				return AddAsset<Shader>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Material) {
+		else if (T::TYPE == AssetType::Material) {
 			if (engone_materials.count(name) > 0)
 				return engone_materials[name]->cast<T>();
 			else {
 				return AddAsset<MaterialAsset>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Animation) {
+		else if (T::TYPE == AssetType::Animation) {
 			if (engone_animations.count(name) > 0)
 				return engone_animations[name]->cast<T>();
 			else {
 				return AddAsset<AnimationAsset>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Mesh) {
+		else if (T::TYPE == AssetType::Mesh) {
 			if (engone_meshes.count(name) > 0)
 				return engone_meshes[name]->cast<T>();
 			else {
 				return AddAsset<MeshAsset>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Collider) {
+		else if (T::TYPE == AssetType::Collider) {
 			if (engone_colliders.count(name) > 0)
 				return engone_colliders[name]->cast<T>();
 			else {
 				return AddAsset<ColliderAsset>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Armature) {
+		else if (T::TYPE == AssetType::Armature) {
 			if (engone_armatures.count(name) > 0)
 				return engone_armatures[name]->cast<T>();
 			else {
 				return AddAsset<ArmatureAsset>(name)->cast<T>();
 			}
 		}
-		else if (T::type == AssetType::Model) {
+		else if (T::TYPE == AssetType::Model) {
 			if (engone_models.count(name) > 0)
 				return engone_models[name]->cast<T>();
 			else {
@@ -515,26 +680,26 @@ namespace engone {
 	template <class T>
 	void RemoveAsset(const std::string& name)
 	{
-		if (T::type == AssetType::Texture)
+		if (T::TYPE == AssetType::Texture)
 			if (engone_textures.count(name) > 0) { // needs to be copied to the other ones
 				delete engone_textures[name];
 				engone_textures.erase(name);
 			}
-		else if (T::type == AssetType::Font)
+		else if (T::TYPE == AssetType::Font)
 			engone_fonts.erase(name);
-		else if (T::type == AssetType::Shader)
+		else if (T::TYPE == AssetType::Shader)
 			engone_shaders.erase(name);
-		else if (T::type == AssetType::Material)
+		else if (T::TYPE == AssetType::Material)
 			engone_materials.erase(name);
-		else if (T::type == AssetType::Animation) 
+		else if (T::TYPE == AssetType::Animation)
 			engone_animations.erase(name);
-		else if (T::type == AssetType::Mesh)
+		else if (T::TYPE == AssetType::Mesh)
 			engone_meshes.erase(name);
-		else if (T::type == AssetType::Collider)
+		else if (T::TYPE == AssetType::Collider)
 			engone_colliders.erase(name);
-		else if (T::type == AssetType::Armature)
+		else if (T::TYPE == AssetType::Armature)
 			engone_armatures.erase(name);
-		else if (T::type == AssetType::Model)
+		else if (T::TYPE == AssetType::Model)
 			engone_models.erase(name);
 		
 	}

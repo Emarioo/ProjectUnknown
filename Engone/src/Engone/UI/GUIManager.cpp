@@ -278,6 +278,7 @@ namespace engone
 	}
 	void RenderUI()
 	{
+		SwitchBlendDepth(true);
 		guiShader->Bind();
 		guiShader->SetVec2("uWindow", {Width(),Height()});
 		for (int i = 0; i < elements.size();i++) {
