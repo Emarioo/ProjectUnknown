@@ -22,4 +22,5 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#define WIN32_LEAN_AND_MEAN // don't include winsock
 #include <Windows.h>

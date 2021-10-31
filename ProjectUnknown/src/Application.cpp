@@ -543,9 +543,10 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	return 0;
 }
 int main(int argc, char* argv[]) {
+	engone::InitNetwork();
 
 	//std::cout << informativeTips.GetDeathTip() << std::endl;
 	//std::cin.get();
-	runApp(true);
+	//runApp(true);
 	return 0;
 }

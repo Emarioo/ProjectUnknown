@@ -29,6 +29,7 @@
     <ClInclude Include="src\Engone\EventManager.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
+    <ClInclude Include="src\Engone\Server\NetworkManager.h" />
     <ClInclude Include="src\Engone\UI\GUIManager.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
@@ -72,6 +73,7 @@
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Components\Animator.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
+    <ClCompile Include="src\Engone\Server\NetworkManager.cpp" />
     <ClCompile Include="src\Engone\UI\GUIManager.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -178,7 +180,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -200,7 +202,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -222,7 +224,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -244,7 +246,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
