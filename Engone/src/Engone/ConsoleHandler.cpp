@@ -4,11 +4,10 @@
 
 namespace console
 {
-	/*
 	ConsoleColor operator|(ConsoleColor a, ConsoleColor b)
 	{
-		return (ConsoleColor)(a | b);
-	}*/
+		return (ConsoleColor)((uint8_t)a | (uint8_t)b);
+	}
 
 	static HANDLE inHandle;
 	static HANDLE outHandle;

@@ -32,6 +32,7 @@ namespace engone
 	}
 	void Server::OnConnect()
 	{
+		/*
 		acceptor.async_accept([=](std::error_code ec, asio::ip::tcp::socket socket) {
 			if (!ec) {
 				std::cout << "connect " << socket.remote_endpoint() << "\n";
@@ -49,6 +50,7 @@ namespace engone
 				std::cout << "error " << ec.message()<<" "<<ec.value() << "\n";
 			}
 			});
+		*/
 	}
 	void Server::SetReceive(std::function<void(void*, uint32_t)> onReceive)
 	{
@@ -56,6 +58,7 @@ namespace engone
 	}
 	void Server::OnReceive(asio::ip::tcp::socket& socket)
 	{
+		/*
 		asio::async_read(socket,asio::buffer(buffer.data(), buffer.size()),
 			[&](std::error_code ec, std::size_t length) {
 				if (!ec) {
@@ -67,6 +70,7 @@ namespace engone
 					OnReceive(socket);
 				}
 			});
+		*/
 	}
 	void Server::Start(const std::string& port)
 	{
@@ -97,6 +101,7 @@ namespace engone
 	}
 	void Client::OnReceive(asio::ip::tcp::socket& socket)
 	{
+		/*
 		asio::async_read(socket, asio::buffer(buffer.data(), buffer.size()),
 			[&](std::error_code ec, std::size_t length) {
 				if (!ec) {
@@ -111,6 +116,7 @@ namespace engone
 
 				}
 			});
+		*/
 	}
 	void Client::Connect(const std::string& ip, uint16_t port)
 	{
@@ -118,7 +124,7 @@ namespace engone
 
 		std::error_code ec;
 		asio::ip::tcp::endpoint endpoint(asio::ip::make_address(ip, ec), port);
-
+		/*
 		asio::async_connect(socket, endpoint, [&](std::error_code ec, asio::ip::tcp::endpoint enpoint) {
 			if (!ec) {
 				std::cout << "connected\n";
@@ -131,13 +137,13 @@ namespace engone
 				std::cout << "not connected\n";
 			}
 			});
-
+		*/
 		InitIOContext();
 	}
 	void Client::Send(void* data, uint32_t size)
 	{
 		std::error_code ec;
-		asio::write(socket, asio::buffer(data, size), ec);
+		//asio::write(socket, asio::buffer(data, size), ec);
 	}
 
 	void InitNetwork()

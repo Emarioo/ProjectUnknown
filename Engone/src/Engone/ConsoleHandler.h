@@ -37,7 +37,7 @@ namespace console
 		_YELLOW = 0xe0,
 		_WHITE = 0xf0,
 	};
-	//ConsoleColor operator|(ConsoleColor a, ConsoleColor b);
+	ConsoleColor operator|(ConsoleColor a, ConsoleColor b);
 
 	//-- Console settings
 	void InitConsole(int w, int h);

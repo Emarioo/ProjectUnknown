@@ -2,11 +2,15 @@
 
 #include "DebugTool.h"
 
+#include "EventManager.h"
+
 namespace engone
 {
 	static bool enabled = true;
 	static bool newMessage1=false;
 	static bool newMessage2=false;
+
+	static int selectedLine = 0;
 
 	LogLine::LogLine(): message("Base"), status(LogStatus::Header), opened(true) {}
 	LogLine::LogLine(const std::string& msg, LogStatus status) : message(msg), status(status)	{}
@@ -43,7 +47,7 @@ namespace engone
 				if (opened)
 					color = console::ConsoleColor::WHITE;
 				else
-					color = console::ConsoleColor::GRAY;
+					color = console::ConsoleColor::SILVER;
 				break;
 			case LogStatus::Error:
 				if(opened)
@@ -58,11 +62,14 @@ namespace engone
 					color = console::ConsoleColor::GOLD;
 				break;
 			}
+			console::ConsoleColor background = console::ConsoleColor::_BLACK;
+			if(line==selectedLine)
+				background = console::ConsoleColor::_WHITE;
 
-			console::ConsoleString(2 * depth, line, message, color);
+			console::ConsoleString(2 * depth, line, message, color|background);
 			if (status == LogStatus::Header) {
 				std::string infoMsg = std::to_string(infoCount);
-				console::ConsoleString(2 * depth + message.length() + 1, line, std::to_string(infoCount), opened?console::ConsoleColor::WHITE:console::ConsoleColor::GRAY);
+				console::ConsoleString(2 * depth + message.length() + 1, line, std::to_string(infoCount), opened?console::ConsoleColor::WHITE:console::ConsoleColor::SILVER);
 				console::ConsoleString(2 * depth + message.length() + 1 + infoMsg.length() + 1, line, std::to_string(errorCount), opened ? console::ConsoleColor::RED : console::ConsoleColor::BLOOD);
 			}
 			line++;
@@ -82,7 +89,28 @@ namespace engone
 	}
 	void DebugInit()
 	{
+		AddListener(new Listener(EventType::Key, [](Event& e) {
+			if (e.key==VK_UP) {
+				selectedLine--;
+				if (selectedLine < 0) {
+					selectedLine = 0;
+				}
+			}
+			else if (e.key == VK_DOWN) {
+				selectedLine++;
+				if (selectedLine > 50) {
+					selectedLine = 49;
+				}
+			}
+			else if (e.key == VK_LEFT) {
 
+			}
+			else if (e.key == VK_RIGHT) {
+				
+			}
+
+			return false;
+			}));
 	}
 	void UpdateDebug(double delta)
 	{

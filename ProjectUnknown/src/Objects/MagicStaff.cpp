@@ -1,4 +1,4 @@
-#include "propch.h"
+#include "gonpch.h"
 
 #include "MagicStaff.h"
 

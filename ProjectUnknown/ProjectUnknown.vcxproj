@@ -100,7 +100,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)Engone/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/asio-1.20.0/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,7 +122,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)Engone/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/asio-1.20.0/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,7 +145,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)Engone/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/asio-1.20.0/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -167,7 +167,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)Engone/src/vendor;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/asio-1.20.0/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -30,7 +30,6 @@
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\Engone\Server\NetworkManager.h" />
     <ClInclude Include="src\Engone\UI\GUIManager.h" />
-    <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
     <ClInclude Include="src\Engone\Engone.h" />
     <ClInclude Include="src\Engone\Handlers\AssetManager.h" />
@@ -48,6 +47,7 @@
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
     <ClInclude Include="src\Engone\Keyboard.h" />
     <ClInclude Include="src\Engone\Languages.h" />
+    <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\vendor\Libaudio.h" />
     <ClInclude Include="src\Engone\World\Biome.h" />
     <ClInclude Include="src\Engone\World\Dimension.h" />
