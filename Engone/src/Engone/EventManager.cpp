@@ -27,14 +27,17 @@ namespace engone
 	}
 	bool operator==(EventType a, EventType b)
 	{
-		//std::cout << int(a) << " - " << int(b)<<" "<<(((char)a & (char)b)>0) << "\n";
-		return (char(a) & char(b)) > 0;
+		if ( (char(a)&char(EventType::GLFW)) && (char(b)&char(EventType::GLFW))|| 
+			(char(a) & char(EventType::Console)) && (char(b) & char(EventType::Console)) ) {
+			return (char(a) & char(b)) > 0;
+		}
+		return false;
 	}
 
 	Event::Event(EventType type) : eventType(type) {}
-	Listener::Listener(EventType eventTypes, std::function<bool(Event&)> f)
+	Listener::Listener(EventType eventTypes, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f){}
-	Listener::Listener(EventType eventTypes, int priority, std::function<bool(Event&)> f)
+	Listener::Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f), priority(priority){}
 	void SetInput(int code, bool down)
 	{
@@ -65,8 +68,8 @@ namespace engone
 					continue;
 
 				if ((char)listeners[i]->eventTypes & (char)events[j].eventType) {
-					//std::cout << "hm\n";
-					if (listeners[i]->run(events[j]))
+					EventType types = listeners[i]->run(events[j]);
+					if (char(types)!=0)
 						breaker = (char)(breaker | (char)listeners[i]->eventTypes);
 				}
 			}
@@ -82,7 +85,7 @@ namespace engone
 	void InitEvents(GLFWwindow* window)
 	{
 		glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-			Event e(EventType::Key);
+			Event e(EventType::Key | EventType::GLFW);
 			e.key = key;
 			e.scancode = scancode;
 			e.action = action;
@@ -91,7 +94,7 @@ namespace engone
 			ExecuteListeners();
 			});
 		glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-			Event e(EventType::Click);
+			Event e(EventType::Click|EventType::GLFW);
 			e.button = button;
 			e.action = action;
 			e.mx = mouseX;
@@ -103,14 +106,14 @@ namespace engone
 		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mx, double my) {
 			mouseX = mx;
 			mouseY = my;
-			Event e(EventType::Move);
+			Event e(EventType::Move | EventType::GLFW);
 			e.mx = mx;
 			e.my = my;
 			events.push_back(e);
 			ExecuteListeners();
 			});
 		glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-			Event e(EventType::Scroll);
+			Event e(EventType::Scroll | EventType::GLFW);
 			e.scrollX = xoffset;
 			e.scrollY = yoffset;
 			e.mx = mouseX;
@@ -122,13 +125,13 @@ namespace engone
 			ExecuteListeners();
 			});
 		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus) {
-			Event e(EventType::Focus);
+			Event e(EventType::Focus | EventType::GLFW);
 			e.focused = focus;
 			events.push_back(e);
 			ExecuteListeners();
 			});
 		glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-			Event e(EventType::Resize);
+			Event e(EventType::Resize | EventType::GLFW);
 			e.width = width;
 			e.height = height;
 			events.push_back(e);
@@ -136,8 +139,7 @@ namespace engone
 			});
 	}
 	void AddListener(Listener* listener)
-	{
-		// Prevent duplicates
+	{// Prevent duplicates
 		for (int i = 0; i < listeners.size(); i++) {
 			if (listener == listeners[i]) {
 				return;
@@ -303,7 +305,8 @@ namespace engone
 					switch (inRecord[i].EventType) {
 					case KEY_EVENT:
 						SetInput(inRecord[i].Event.KeyEvent.wVirtualKeyCode, inRecord[i].Event.KeyEvent.bKeyDown);
-						e.eventType = EventType::Key;
+						e.eventType = EventType::Key|EventType::Console;
+						
 						e.key = inRecord[i].Event.KeyEvent.wVirtualKeyCode;
 						e.scancode = inRecord[i].Event.KeyEvent.wVirtualScanCode;
 						e.action = inRecord[i].Event.KeyEvent.bKeyDown;
@@ -324,7 +327,7 @@ namespace engone
 						e.my = mouseY;
 						switch (inRecord[i].Event.MouseEvent.dwEventFlags) {
 						case 0:
-							e.eventType = EventType::Click;
+							e.eventType = EventType::Click | EventType::Console;
 							if (lastL != lb) {
 								e.action = lb;
 								e.button = VK_LBUTTON;
@@ -345,11 +348,11 @@ namespace engone
 							}
 							break;
 						case MOUSE_MOVED:
-							e.eventType = EventType::Move;
+							e.eventType = EventType::Move | EventType::Console;
 							events.push_back(e);
 							break;
 						case MOUSE_WHEELED:
-							e.eventType = EventType::Scroll;
+							e.eventType = EventType::Scroll | EventType::Console;
 							scrollY = inRecord[i].Event.MouseEvent.dwButtonState > 0 ? 1 : -1;
 							e.scrollY = scrollY;
 							// what about horisontal scroll?

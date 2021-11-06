@@ -125,7 +125,7 @@ void Render(double lag) {
 	// Render custom things like items dragged by the mouse
 	ui::Render(lag);
 }
-bool OnKey(engone::Event& e) {
+engone::EventType OnKey(engone::Event& e) {
 	if (engone::CheckState(GameState::Game)) {
 		if (e.action == 1) {
 			if (e.key == GLFW_KEY_O) {
@@ -163,11 +163,11 @@ bool OnKey(engone::Event& e) {
 			}
 		}
 	}
-	return false;
+	return engone::EventType::None;
 }
 
 //  Do something about that const string. It's not supposed to be there.
-bool OnMouse(engone::Event& e) {
+engone::EventType OnMouse(engone::Event& e) {
 	//bug::out < elementName < (elementName=="uiFade")<bug::end;
 	/*if (IsGameState(Play)) {
 		if (action == 0) {
@@ -176,7 +176,7 @@ bool OnMouse(engone::Event& e) {
 			}
 		}
 	}*/
-	return false;
+	return engone::EventType::None;
 }
 static const std::string experimentGLSL = {
 #include "Shaders/experiment.glsl"
@@ -396,8 +396,8 @@ void runApp(bool isDebugBuild) {
 	*/
 
 	//-- Event
-	AddListener(new Listener(EventType::Key,OnKey));
-	AddListener(new Listener(EventType::Click,OnMouse));
+	AddListener(new Listener(EventType::Key | EventType::GLFW,OnKey));
+	AddListener(new Listener(EventType::Click | EventType::GLFW,OnMouse));
 
 	//-- Game World setup - debug purpose at the moment
 	//engine::AddObject(new Tutorial(0, 0, 0));

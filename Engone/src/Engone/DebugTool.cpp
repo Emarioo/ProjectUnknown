@@ -89,7 +89,10 @@ namespace engone
 	}
 	void DebugInit()
 	{
-		AddListener(new Listener(EventType::Key, [](Event& e) {
+		AddListener(new Listener(EventType::Key|EventType::Console, [](Event& e) {
+			//baseLog.logs[0].message = "Oh no";
+
+			console::ConsoleString(10,50, "Chicken", console::ConsoleColor::SILVER);
 			if (e.key==VK_UP) {
 				selectedLine--;
 				if (selectedLine < 0) {
@@ -109,7 +112,7 @@ namespace engone
 				
 			}
 
-			return false;
+			return EventType::None;
 			}));
 	}
 	void UpdateDebug(double delta)
@@ -132,7 +135,5 @@ namespace engone
 		
 		int atLine = 0;
 		baseLog.render(atLine,-1);
-
-
 	}
 }

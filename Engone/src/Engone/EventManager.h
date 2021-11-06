@@ -15,13 +15,15 @@ namespace engone {
 
 	enum class EventType : char
 	{
-		NONE=0,
-		Click=1,
-		Move=2,
-		Scroll=4,
-		Key=8,
-		Resize=16,
-		Focus=32,
+		None=0,
+		GLFW=1,
+		Console=2,
+		Click=4,
+		Move=8,
+		Scroll=16,
+		Key=32,
+		Resize=64,
+		Focus=128
 	};
 	EventType operator|(EventType a, EventType b);
 	bool operator==(EventType a, EventType b);
@@ -69,13 +71,13 @@ namespace engone {
 	class Listener
 	{
 	public:
-		Listener(EventType eventTypes, std::function<bool(Event&)> f);
+		Listener(EventType eventTypes, std::function<EventType(Event&)> f);
 		/*
 		@priority determines if this listener should be called first when handling events. A high number is more important.
 		This takes effect if the listener's function returns true which will stop other listeners.
 		*/
-		Listener(EventType eventTypes, int priority, std::function<bool(Event&)> f);
-		std::function<bool(Event&)> run;
+		Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f);
+		std::function<EventType(Event&)> run;
 		int priority = 0;
 		EventType eventTypes;
 	};

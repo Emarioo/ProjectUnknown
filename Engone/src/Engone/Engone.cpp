@@ -56,7 +56,7 @@ namespace engone {
 	static int lastMouseX=-1, lastMouseY=-1;
 	// Move somewhere else
 	static double cameraSensitivity = 0.1;
-	bool FirstPerson(Event& e)
+	EventType FirstPerson(Event& e)
 	{
 		if (lastMouseX != -1) {
 			if (IsCursorLocked() && GetCamera() != nullptr) {
@@ -66,7 +66,7 @@ namespace engone {
 		}
 		lastMouseX = e.mx;
 		lastMouseY = e.my;
-		return false;
+		return EventType::None;
 	}
 
 	void InitEngone()
@@ -77,13 +77,16 @@ namespace engone {
 		AddAsset<Shader>("armature", new Shader(armatureSource, true));
 		AddAsset<Shader>("outline", new Shader(outlineSource, true));
 
-		InitGUI();
+		DebugInit();
 		InitEvents(GetWindow());
+		InitEvents();
+
+		InitGUI();
 		ReadOptions();
 
 		console::InitConsole(120,50);
 
-		AddListener(new Listener(EventType::Move, FirstPerson));
+		AddListener(new Listener(EventType::Move|EventType::GLFW, FirstPerson));
 
 		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
 
@@ -701,6 +704,7 @@ namespace engone {
 	}
 	void UpdateEngine(double delta)
 	{
+		RefreshEvents();
 		//if (CheckState(GameState::Game)) {
 			//if (HasFocus() && !CheckState(GameState::Paused)) {
 		UpdateObjects(delta);
@@ -709,6 +713,8 @@ namespace engone {
 		UpdateUI(delta);
 
 		UpdateDebug(delta);
+
+		ResetEvents();
 	}
 	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){
 		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);

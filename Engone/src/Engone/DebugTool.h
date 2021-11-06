@@ -42,7 +42,7 @@ namespace engone
 	
 	*/
 	void Logging(LogHead head, const std::string& message, LogStatus status);
-
+	void DebugInit();
 	void UpdateDebug(double delta);
 	void RenderDebug(double lag);
 }
