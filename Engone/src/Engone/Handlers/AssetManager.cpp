@@ -15,12 +15,12 @@ namespace engone {
 
 	void Texture::Load(const std::string& path)
 	{
-		Logging({"AssetManager","Texture"}, "Path: " + path, LogStatus::Info);
+		Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
 
 		//std::cout << "Texture " << path << "\n";
 		if (!FindFile("assets/" + path + ".png")) {
 			error = MissingFile;
-			Logging({"AssetManager","Texture"}, "Missing file: "+path, LogStatus::Error);
+			Logging({ "AssetManager","Texture","Missing file: " + path }, LogStatus::Error);
 			return;
 		}
 		//if (path.length() > 4) {

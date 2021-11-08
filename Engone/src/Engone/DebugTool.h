@@ -10,13 +10,13 @@ namespace engone
 	};
 	struct LogHead
 	{
-		const char* strings[5];
+		std::string strings[6];
 	};
 	class LogLine
 	{
 	public:
 		LogLine();
-		LogLine(const std::string& msg, LogStatus status);
+		LogLine(const std::string& msg, int indent, LogStatus status);
 		
 		bool opened = false;
 
@@ -25,8 +25,7 @@ namespace engone
 		std::string message;
 		int errorCount=0;
 		int infoCount=0;
-
-		std::vector<LogLine> logs;
+		int indent = 0;
 
 		void add(LogHead& head, const std::string& msg, LogStatus& status, int depth=0);
 		
@@ -41,7 +40,7 @@ namespace engone
 			
 	
 	*/
-	void Logging(LogHead head, const std::string& message, LogStatus status);
+	void Logging(LogHead head, LogStatus status);
 
 	void UpdateDebug(double delta);
 	void RenderDebug(double lag);
