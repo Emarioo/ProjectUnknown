@@ -241,10 +241,12 @@ namespace engone
 		AddListener(new Listener(EventType::Click | EventType::Move | EventType::Scroll | EventType::Key, [](Event& e) {
 			for (int i = 0; i < elements.size();i++) {
 				if (elements[i]->_OnEvent(e)) {
-					return true;
+					return EventType::Click;
+					// This is bad. Like really bad. It will cause issues and you will spend an hour on it.
+					// Almost forgot to mention the issue. What if the "disabled" event is move, scroll or key and not click? - 2021-11-06
 				}
 			}
-			return false;
+			return EventType::None;
 			}));
 	}
 	void AddElement(IElement* element)
