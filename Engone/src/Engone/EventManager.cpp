@@ -1,6 +1,7 @@
 #include "gonpch.h"
 
 #include "EventManager.h"
+#include "DebugTool.h"
 
 namespace engone
 {
@@ -64,13 +65,13 @@ namespace engone
 		char breaker = 0;
 		for (int j = 0; j < events.size(); j++) {
 			for (int i = 0; i < listeners.size(); i++) {
-				if ((char)listeners[i]->eventTypes & breaker)
+				if ((char)listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
 					continue;
 
-				if ((char)listeners[i]->eventTypes & (char)events[j].eventType) {
+				if ((char)listeners[i]->eventTypes == (char)events[j].eventType) {
 					EventType types = listeners[i]->run(events[j]);
 					if (char(types)!=0)
-						breaker = (char)(breaker | (char)listeners[i]->eventTypes);
+						breaker = (char)(breaker | (char(listeners[i]->eventTypes)<<2>>2));// <<2>>2 to ignore console and glfw type
 				}
 			}
 		}

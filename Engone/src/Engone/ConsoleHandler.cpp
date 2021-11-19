@@ -4,9 +4,9 @@
 
 namespace console
 {
-	ConsoleColor operator|(ConsoleColor a, ConsoleColor b)
+	Color operator|(Color a, Color b)
 	{
-		return (ConsoleColor)((uint8_t)a | (uint8_t)b);
+		return (Color)((uint8_t)a | (uint8_t)b);
 	}
 
 	static HANDLE inHandle;
@@ -19,7 +19,7 @@ namespace console
 
 	static bool needUpdate=false;
 
-	void InitConsole(int w, int h)
+	void Init(int w, int h)
 	{
 		inHandle = GetStdHandle(STD_INPUT_HANDLE);
 		outHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -32,11 +32,11 @@ namespace console
 		//mode = ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT | ENABLE_EXTENDED_FLAGS;
 		//SetConsoleMode(inHandle,mode);
 
-		SetConsoleCursorBlinking(false);
+		SetCursorBlinking(false);
 
-		SetConsoleSize(w, h);
+		SetSize(w, h);
 	}
-	void CreateConsole()
+	void Allocate()
 	{
 		bool b = AllocConsole();
 		freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
@@ -44,7 +44,7 @@ namespace console
 		HANDLE oHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 		HANDLE iHandle = GetStdHandle(STD_INPUT_HANDLE);
 	}
-	void SetConsoleSize(int w, int h)
+	void SetSize(int w, int h)
 	{
 		CONSOLE_SCREEN_BUFFER_INFO csbi;
 		GetConsoleScreenBufferInfo(outHandle, &csbi);
@@ -73,7 +73,7 @@ namespace console
 		}
 		needUpdate = true;
 	}
-	void SetConsoleCursorBlinking(bool f)
+	void SetCursorBlinking(bool f)
 	{
 		CONSOLE_CURSOR_INFO info;
 		GetConsoleCursorInfo(outHandle, &info);
@@ -82,13 +82,12 @@ namespace console
 	}
 	void GetConsoleInput(std::string& str)
 	{
-
-		SetConsoleCursorBlinking(true);
+		// Needs fixing
+		SetCursorBlinking(true);
 		std::getline(std::cin, str);
-		SetConsoleCursorBlinking(false);
-
+		SetCursorBlinking(false);
 	}
-	void SetTitleConsole(const std::string& str)
+	void SetTitle(const std::string& str)
 	{
 		TCHAR* title = new TCHAR[str.length() + 1];
 		for (int i = 0; i < str.length(); i++)
@@ -137,11 +136,11 @@ namespace console
 		else
 			return -1;*/
 	}
-	void SetConsoleCursor(int x, int y)
+	void SetCursor(int x, int y)
 	{
 		SetConsoleCursorPosition(outHandle, { (short)x,(short)y });
 	}
-	void FillConsole(int x, int y, int w, int h, char chr, ConsoleColor color)
+	void Fill(int x, int y, int w, int h, char chr, Color color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -173,7 +172,7 @@ namespace console
 			}
 		}*/
 	}
-	void FillConsole(int x, int y, char chr, ConsoleColor color)
+	void Fill(int x, int y, char chr, Color color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -183,7 +182,7 @@ namespace console
 		consoleBuffer[y * width + x].Attributes = (int)color;
 		needUpdate = true;
 	}
-	void ConsoleString(int x, int y, const std::string& str, ConsoleColor color)
+	void Print(int x, int y, const std::string& str, Color color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -210,7 +209,7 @@ namespace console
 		delete[] nuisance;
 		*/
 	}
-	void ConsoleCenterString(int x, int y, const std::string& str, ConsoleColor color)
+	void PrintCenter(int x, int y, const std::string& str, Color color)
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -236,7 +235,7 @@ namespace console
 
 		delete[] nuisance;*/
 	}
-	void RenderConsole()
+	void Render()
 	{
 		if (consoleBuffer == nullptr)
 			return;
@@ -248,8 +247,8 @@ namespace console
 			WriteConsoleOutput(outHandle, consoleBuffer, s, p, &r);
 		}
 	}
-	void ClearConsole(ConsoleColor color)
+	void Clear(Color color)
 	{
-		FillConsole(0, 0, width, height, ' ', color);
+		Fill(0, 0, width, height, ' ', color);
 	}
 }

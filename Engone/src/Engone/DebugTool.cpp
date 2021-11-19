@@ -7,88 +7,18 @@
 namespace engone
 {
 	static bool enabled = true;
-	static bool newMessage1=false;
-	static bool newMessage2=false;
+	static bool renderNew=false;
+	static bool updateNew=false;
 
 	static int selectedLine = 0;
 
 	//LogLine::LogLine(): message("Base"), status(LogStatus::Header), opened(true) {}
 	LogLine::LogLine(const std::string& msg,int indent, LogStatus status) : message(msg), indent(indent), status(status)	{}
-	void LogLine::add(LogHead& head, const std::string& msg, LogStatus& status, int depth)
-	{
-		/*
-		if (status == LogStatus::Error) errorCount++;
-		else infoCount++;
-
-		if (head.strings[depth] == nullptr) {
-			for (int i = 0; i < logs.size();i++) {
-				if (logs[i].message == msg) { // check if error?
-					return;
-				}
-			}
-			logs.push_back(LogLine(msg, status));
-		}
-		else {
-			for (int i = 0; i < logs.size(); i++) {
-				if (0==strcmp(head.strings[depth],logs[i].message.c_str())) {
-					logs[i].add(head, msg, status, depth + 1);
-					return;
-				}
-			}
-			logs.push_back(LogLine(head.strings[depth], LogStatus::Header));
-			logs.back().add(head,msg,status,depth+1);
-		}
-		*/
-	}
-	void LogLine::render(int& line, int depth)
-	{
-		/*
-		if (depth != -1) {
-			console::ConsoleColor color;
-			switch (status) {
-			case LogStatus::Info:
-				if (opened)
-					color = console::ConsoleColor::WHITE;
-				else
-					color = console::ConsoleColor::SILVER;
-				break;
-			case LogStatus::Error:
-				if(opened)
-					color = console::ConsoleColor::RED;
-				else
-					color = console::ConsoleColor::BLOOD;
-				break;
-			case LogStatus::Header:
-				if(opened)
-					color = console::ConsoleColor::YELLOW;
-				else
-					color = console::ConsoleColor::GOLD;
-				break;
-			}
-			console::ConsoleColor background = console::ConsoleColor::_BLACK;
-			if(line==selectedLine)
-				background = console::ConsoleColor::_WHITE;
-
-			console::ConsoleString(2 * depth, line, message, color|background);
-			if (status == LogStatus::Header) {
-				std::string infoMsg = std::to_string(infoCount);
-				console::ConsoleString(2 * depth + message.length() + 1, line, std::to_string(infoCount), opened?console::ConsoleColor::WHITE:console::ConsoleColor::SILVER);
-				console::ConsoleString(2 * depth + message.length() + 1 + infoMsg.length() + 1, line, std::to_string(errorCount), opened ? console::ConsoleColor::RED : console::ConsoleColor::BLOOD);
-			}
-			line++;
-		}
-		if (opened) {
-			for (int i = 0; i < logs.size(); i++) {
-				logs[i].render(line, depth + 1);
-			}
-		}
-		*/
-	}
 	std::vector<LogLine> lines;
 	void Logging(LogHead head, LogStatus status)
 	{
-		newMessage1 = true;
-		newMessage2 = true;
+		renderNew = true;
+		updateNew = true;
 		
 		int indent = 0;
 		for (int i = 0; i < lines.size(); i++) {
@@ -106,14 +36,7 @@ namespace engone
 				indent++;
 				if (head.strings[indent].empty())
 					return;
-			}/*
-			else if (i == lines.size() - 1) {
-				lines.push_back({ head.strings[indent], indent, status });
-
-				indent++;
-				if (head.strings[indent].empty())
-					return;
-			}*/
+			}
 		}
 		while(!head.strings[indent].empty()){
 			lines.push_back({ head.strings[indent], indent, status });
@@ -123,27 +46,66 @@ namespace engone
 	void DebugInit()
 	{
 		AddListener(new Listener(EventType::Key|EventType::Console, [](Event& e) {
-			//baseLog.logs[0].message = "Oh no";
+			if (e.action == 1) {
+				if (e.key == VK_UP) {
+					int newSelected = 0;
+					int closedIndent = 9999;
+					for (int i = 0; i < lines.size(); i++) {
+						if (lines[i].indent > closedIndent)
+							continue;
 
-			console::ConsoleString(10,50, "Chicken", console::ConsoleColor::SILVER);
-			if (e.key==VK_UP) {
-				selectedLine--;
-				if (selectedLine < 0) {
-					selectedLine = 0;
+						if (lines[i].opened) {
+							closedIndent = 9990;
+						}
+						else {
+							closedIndent = lines[i].indent;
+						}
+						if (selectedLine == i) {
+							selectedLine = newSelected;
+							break;
+						}
+						newSelected = i;
+					}
+				}
+				else if (e.key == VK_DOWN) {
+					int closedIndent = 9999;
+					for (int i = selectedLine; i < lines.size();i++) {
+						if (lines[i].indent > closedIndent)
+							continue;
+
+						if (lines[i].opened) {
+							closedIndent = 9990;
+						}
+						else {
+							closedIndent = lines[i].indent;
+						}
+						if (selectedLine != i) {
+							selectedLine = i;
+							break;
+						}
+					}
+				}
+				else if (e.key == VK_LEFT) {
+
+					if (!lines[selectedLine].opened) {
+						for (int i = selectedLine; i >= 0; i--) {
+							//console::ConsoleString(50, i, std::to_string(lines[]));
+							if (lines[selectedLine].indent-1==lines[i].indent) {
+								lines[i].opened = false;
+								selectedLine = i;
+								break;
+							}
+						}
+					}else
+						lines[selectedLine].opened = false;
+					
+				}
+				else if (e.key == VK_RIGHT) {
+					lines[selectedLine].opened = true;
 				}
 			}
-			else if (e.key == VK_DOWN) {
-				selectedLine++;
-				if (selectedLine > 50) {
-					selectedLine = 49;
-				}
-			}
-			else if (e.key == VK_LEFT) {
-
-			}
-			else if (e.key == VK_RIGHT) {
-				
-			}
+			renderNew = true;
+			updateNew = true;
 
 			return EventType::None;
 			}));
@@ -152,56 +114,73 @@ namespace engone
 	{
 		if (!enabled)
 			return;
-		if (!newMessage1)
+		if (!updateNew)
 			return;
 
-		newMessage1=false;
+		updateNew =false;
 	}
 	void RenderDebug(double lag)
 	{
 		if (!enabled)
 			return;
-		if (!newMessage2)
+		if (!renderNew)
 			return;
 
-		newMessage2=false;
-		
-		for(int i=0;i<lines.size();i++){
+		using namespace console;
+
+		Clear(Color::_BLACK);
+
+		int off=2;
+
+		renderNew =false;
+		int closedIndent=9999;
+		int line = 0;
+		for (int i = 0; i < lines.size(); i++) {
 			LogStatus status = lines[i].status;
 			bool opened = lines[i].opened;
 			int indent = lines[i].indent;
 
-			console::ConsoleColor color;
+			if (indent > closedIndent)
+				continue;
+
+			if (opened) {
+				closedIndent = 999;
+			}
+			else {
+				closedIndent = indent;
+			}
+
+			Color color;
 			switch (status) {
 			case LogStatus::Info:
 				if (opened)
-					color = console::ConsoleColor::WHITE;
+					color = Color::WHITE;
 				else
-					color = console::ConsoleColor::SILVER;
+					color = Color::SILVER;
 				break;
 			case LogStatus::Error:
 				if (opened)
-					color = console::ConsoleColor::RED;
+					color = Color::RED;
 				else
-					color = console::ConsoleColor::BLOOD;
+					color = Color::BLOOD;
 				break;
 			case LogStatus::Header:
 				if (opened)
-					color = console::ConsoleColor::YELLOW;
+					color = Color::YELLOW;
 				else
-					color = console::ConsoleColor::GOLD;
+					color = Color::GOLD;
 				break;
 			}
-			console::ConsoleColor background = console::ConsoleColor::_BLACK;
-			if (i == selectedLine)
-				background = console::ConsoleColor::_WHITE;
-
-			console::ConsoleString(2 * indent, i, lines[i].message, color | background);
+			if (i==selectedLine)
+				Print(2*indent, line, "X", Color::YELLOW);
+			
+			Print(off+2 * indent, line, lines[i].message, color);
 			if (status == LogStatus::Header) {
 				std::string infoMsg = std::to_string(lines[i].infoCount);
-				console::ConsoleString(2 * indent +lines[i].message.length() + 1, i, std::to_string(lines[i].infoCount), opened ? console::ConsoleColor::WHITE : console::ConsoleColor::SILVER);
-				console::ConsoleString(2 * indent + lines[i].message.length() + 1 + infoMsg.length() + 1, i, std::to_string(lines[i].errorCount), opened ? console::ConsoleColor::RED : console::ConsoleColor::BLOOD);
+				Print(off+2 * indent +lines[i].message.length() + 1, line, std::to_string(lines[i].infoCount), opened ? Color::WHITE : Color::SILVER);
+				Print(off+2 * indent + lines[i].message.length() + 1 + infoMsg.length() + 1, line, std::to_string(lines[i].errorCount), opened ? Color::RED : Color::BLOOD);
 			}
+			line++;
 		}
 	}
 }

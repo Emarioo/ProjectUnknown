@@ -263,11 +263,12 @@ namespace engone {
 	}
 #endif
 	void InitRenderer() {
-		
+		std::cout << "init Glfw\n";
 		if (!glfwInit()) {
 			std::cout << "Glfw Init error!" << std::endl;
 			return;
 		}
+		std::cout << "Finished init\n";
 
 		windowType = Windowed;
 		MakeWindow("Project Unknown");

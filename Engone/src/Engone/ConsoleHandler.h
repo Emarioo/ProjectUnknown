@@ -2,7 +2,7 @@
 
 namespace console
 {
-	enum class ConsoleColor : uint8_t
+	enum class Color : uint8_t
 	{
 		BLACK = 0,
 		NAVY,
@@ -37,17 +37,18 @@ namespace console
 		_YELLOW = 0xe0,
 		_WHITE = 0xf0,
 	};
-	ConsoleColor operator|(ConsoleColor a, ConsoleColor b);
+	Color operator|(Color a, Color b);
 
 	//-- Console settings
-	void InitConsole(int w, int h);
-	void SetConsoleSize(int w, int h);
-	void SetTitleConsole(const std::string& str);
+	void Init(int w, int h);
+	void Allocate();
+	void SetSize(int w, int h);
+	void SetTitle(const std::string& str);
 
 	//-- Cursor
-	void SetConsoleCursorBlinking(bool f);
+	void SetCursorBlinking(bool f);
 	// Not handling out of bounds
-	void SetConsoleCursor(int x, int y);
+	void SetCursor(int x, int y);
 
 	//-- Get stuff
 	void GetConsoleInput(std::string& str);
@@ -58,13 +59,13 @@ namespace console
 	/*
 	Not handling out of bounds, chr=0 will only change the color
 	*/
-	void FillConsole(int x, int y, int w, int h, char chr, ConsoleColor color);
+	void Fill(int x, int y, int w, int h, char chr, Color color);
 	// chr=0 will only change the color
-	void FillConsole(int x, int y, char chr, ConsoleColor color);
-	void ConsoleString(int x, int y, const std::string& str, ConsoleColor color);
-	void ConsoleCenterString(int x, int y, const std::string& str, ConsoleColor color);
+	void Fill(int x, int y, char chr, Color color);
+	void Print(int x, int y, const std::string& str, Color color= Color::WHITE);
+	void PrintCenter(int x, int y, const std::string& str, Color color = Color::WHITE);
 	// Will clear screen
-	void ClearConsole(ConsoleColor color);
-	void RenderConsole();
+	void Clear(Color color);
+	void Render();
 
 }

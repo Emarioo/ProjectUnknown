@@ -84,7 +84,7 @@ namespace engone {
 		InitGUI();
 		ReadOptions();
 
-		console::InitConsole(120,50);
+		console::Init(120,50);
 
 		AddListener(new Listener(EventType::Move|EventType::GLFW, FirstPerson));
 
@@ -691,7 +691,7 @@ namespace engone {
 
 		RenderDebug(lag);
 
-		console::RenderConsole();
+		console::Render();
 
 		// Camera location
 		Shader* gui = GetAsset<Shader>("gui");

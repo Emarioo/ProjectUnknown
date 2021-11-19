@@ -13,6 +13,14 @@
 
 namespace engone {
 
+	std::string toString(AssetError e){
+		switch (e) {
+		case MissingFile: return "Missing File";
+		case MissingData: return "Missing Data";
+		case BadSyntax: return "Bad Syntax";
+		case CorruptedData: return "Corrupted Data";
+		}
+	}
 	void Texture::Load(const std::string& path)
 	{
 		Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
@@ -20,7 +28,7 @@ namespace engone {
 		//std::cout << "Texture " << path << "\n";
 		if (!FindFile("assets/" + path + ".png")) {
 			error = MissingFile;
-			Logging({ "AssetManager","Texture","Missing file: " + path }, LogStatus::Error);
+			Logging({ "AssetManager","Texture",toString(error ) + ": " + path }, LogStatus::Error);
 			return;
 		}
 		//if (path.length() > 4) {
@@ -76,6 +84,8 @@ namespace engone {
 		std::ifstream file(path);
 		if (!file) {
 			error = MissingFile;
+			Logging({ "AssetManager","Shader",toString(error) + ": " + path }, LogStatus::Error);
+			return;
 		}
 
 		enum class ShaderType
@@ -275,21 +285,25 @@ namespace engone {
 			texture.Load(path+".png");
 			if (!texture) {
 				error = texture.error;
-				std::cout << "shite?\n";
 			}
-		}else
+		}
+		else {
 			error = MissingFile;
+		}
+		if (error) {
+			Logging({ "AssetManager","Font",toString(error) + ": " + path }, LogStatus::Error);
+		}
 			
 	}
 	void MaterialAsset::Load(const std::string& path)
 	{
 		//std::cout << "load " << path << "\n";
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
 			//std::cout <<" mae error "<<file.error<<"\n";
 			return;
-		}
+		}*/
 		try {
 			std::string diffuse_mapName;
 			std::string root = GetRootPath();
@@ -308,7 +322,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			std::cout << " mat error " << err<<"\n";
+			Logging({ "AssetManager","Material",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 		// add diffuse_map as a texture asset
@@ -472,10 +486,10 @@ namespace engone {
 	void AnimationAsset::Load(const std::string& path)
 	{
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
 			return;
-		}
+		}*/
 		try {
 			file.read(&frameStart);
 			file.read(&frameEnd);
@@ -531,6 +545,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
+			Logging({ "AssetManager","Animation",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
@@ -538,10 +553,10 @@ namespace engone {
 	{
 		//std::cout << "Try load "<<path << "\n";
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
 			return;
-		}
+		}*/
 		try {
 			uint16_t pointCount;
 			uint16_t textureCount;
@@ -631,7 +646,7 @@ namespace engone {
 			for (int i = 0; i < triangleCount; i++) {
 				for (int j = 0; j < 3; j++) {
 					if (tris[i * tStride + j * tStride / 3] * 3 + 2 >= uPointSize) {
-						std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
+						//std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
 						throw AssetError::CorruptedData;
 					}
 				}
@@ -789,40 +804,42 @@ namespace engone {
 			delete[] vertexOut;
 			delete[] triangleOut;
 		}
-		catch (AssetError err) {
+		catch (AssetError err) {/*
 			if (err == MissingData) {
 				std::cout << "Missing Data\n";
 			}
 			else if(err==CorruptedData){
 				std::cout << "Corrupted Data\n";
 			}
-			std::cout <<path<<" error "<<err<<"\n";
+			std::cout <<path<<" error "<<err<<"\n";*/
 			error = err;
+			Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
 	void ColliderAsset::Load(const std::string& path)
 	{
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
 			return;
-		}
+		}*/
 		try {
 
 		}
 		catch (AssetError err) {
 			error = err;
+			Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
 	void ArmatureAsset::Load(const std::string& path)
 	{
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
 			return;
-		}
+		}*/
 		try {
 			uint8_t boneCount;
 			file.read(&boneCount);
@@ -840,25 +857,27 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
+			Logging({ "AssetManager","Armature",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
 	void ModelAsset::Load(const std::string& path)
 	{
 		FileReader file(path);
-		if (!file) {
+		/*if (!file) {
 			error = file.error;
+			Logging({ "AssetManager","Model","Missing: " + path }, LogStatus::Error);
 			return;
-		}
+		}*/
 		try {
 			std::string root = GetRootPath();
 
 			uint16_t objectCount;
 			file.read(&objectCount);
-			for (int i = 0; i < objectCount;i++) {
+			for (int i = 0; i < objectCount; i++) {
 				instances.push_back({});
 				AssetInstance& instance = instances.back();
-				
+
 				uint8_t instanceType;
 				file.read(&instanceType);
 
@@ -867,7 +886,7 @@ namespace engone {
 
 				//std::cout << "intance "<<name << "\n";
 
-				switch (instanceType){
+				switch (instanceType) {
 				case 0:
 					instance.asset = GetAsset<MeshAsset>(root + name);
 					break;
@@ -918,6 +937,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
+			Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}

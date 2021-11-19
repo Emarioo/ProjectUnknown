@@ -14,6 +14,7 @@ namespace engone {
 		BadSyntax,
 		CorruptedData
 	};
+	std::string toString(AssetError t);
 	enum class AssetType : char
 	{
 		None = 0,
@@ -73,7 +74,7 @@ namespace engone {
 		template <typename T>
 		void read(T* var, uint32_t size = 1)
 		{
-			if (error == MissingFile)
+			if (error != None)
 				return;
 			if (binaryForm) {
 				if (readHead - 1 + size * sizeof(T) > fileSize) {
@@ -118,7 +119,7 @@ namespace engone {
 		}
 		void read(glm::vec3* var, uint32_t size = 1)
 		{
-			if (error == MissingFile)
+			if (error != None)
 				return;
 			if (binaryForm) {
 				if (readHead - 1 + size * sizeof(glm::vec3) > fileSize) {
@@ -168,7 +169,7 @@ namespace engone {
 		}
 		void read(glm::mat4* var, uint32_t size = 1)
 		{
-			if (error == MissingFile)
+			if (error != None)
 				return;
 			if (binaryForm) {
 				if (readHead - 1 + size * sizeof(glm::mat4) > fileSize) {

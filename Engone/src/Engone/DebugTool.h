@@ -15,7 +15,7 @@ namespace engone
 	class LogLine
 	{
 	public:
-		LogLine();
+		LogLine()=default;
 		LogLine(const std::string& msg, int indent, LogStatus status);
 		
 		bool opened = false;
@@ -26,22 +26,11 @@ namespace engone
 		int errorCount=0;
 		int infoCount=0;
 		int indent = 0;
-
-		void add(LogHead& head, const std::string& msg, LogStatus& status, int depth=0);
-		
-		void render(int& line,int depth);
 	};
 
-	/*
-	AssetManger 52 30
-		ModelAsset 10 0
-			Can't find thing
-		MaterialAsset 20 10
-			
-	
-	*/
 	void Logging(LogHead head, LogStatus status);
 
+	void DebugInit();
 	void UpdateDebug(double delta);
 	void RenderDebug(double lag);
 }
