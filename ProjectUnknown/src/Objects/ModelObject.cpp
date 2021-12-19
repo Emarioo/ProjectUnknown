@@ -5,11 +5,15 @@
 ModelObject::ModelObject(float x, float y, float z, engone::ModelAsset* model) 
 	: GameObject("ModelObject",x, y, z) {
 	
-	renderComponent.model = model;
+	renderComponent.SetModel(model);
 
-	//renderComponent.animator.Enable("Quater", { true, 1, 1 });
+	//renderComponent.animator.Enable("Leaf.003","RISE", { true, 1, 1 });
+	//renderComponent.animator.Enable("Leaf2.001","SidePlantWind.004", { true, 1, 1 });
+	renderComponent.animator.Enable("PlantArmature.001","PlantWind.002", { true, 1, 1 });
+	//renderComponent.animator.Enable("PlantGoo_C.001","PlantWind.002", { true, 1, 1 });
 }
 void ModelObject::Update(float delta) {
+	
 	/*
 	if (engine::IsKey(GLFW_KEY_W)) {
 		if (blending < 1 && speed>0)

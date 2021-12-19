@@ -2,12 +2,12 @@
 
 #include "Rendering/Renderer.h"
 #include "Handlers/ObjectHandler.h"
-#include "UI/GUIManager.h"
-#include "Handlers/SoundHandler.h"
-#include "DebugTool.h"
+#include "UI/GuiHandler.h"
+#include "Sound/SoundHandler.h"
+#include "DebugHandler.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
-#include "Server/NetworkManager.h"
+#include "Server/NetworkHandler.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha

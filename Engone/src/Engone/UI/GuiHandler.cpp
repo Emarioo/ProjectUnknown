@@ -1,8 +1,6 @@
 #include "gonpch.h"
 
-//#if ENGONE_GLFW
-
-#include "GUIManager.h"
+#include "GuiHandler.h"
 
 namespace engone
 {

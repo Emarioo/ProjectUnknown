@@ -1,11 +1,196 @@
 #include "gonpch.h"
 
-#include "DebugTool.h"
+#include "DebugHandler.h"
 
-#include "EventManager.h"
+#include "EventHandler.h"
+
+#include <time.h>
 
 namespace engone
 {
+	namespace log
+	{
+		ConsoleColorCode operator|(ConsoleColorCode c0, ConsoleColorCode c1)
+		{
+			return (ConsoleColorCode)((char)c0|(char)c1);
+		}
+		HANDLE hConsole = GetStdHandle(-11);
+		logger out;
+		char TIME = 24;
+		logger logger::operator<<(const std::string& s)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+				/*if (s.size() > 0) {
+					if (s.back() == end) {
+						std::cout << s;
+						if (resetColor) {
+							SetConsoleTextAttribute(hConsole, GRAY1);
+						}
+					}
+					else {
+
+					}
+				}*/
+			std::cout << s;
+			//}
+			return *this;
+		}
+		logger logger::operator<<(float f)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << f;
+			//}
+			return *this;
+		}
+		logger logger::operator<<(double d)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << d;
+
+			//}
+			return *this;
+		}
+		logger logger::operator<<(char c)
+		{
+			if (c == TIME) {
+				time_t timer=time(NULL);
+				struct tm info;
+				localtime_s(&info,&timer);
+				char buffer[9];
+				strftime(buffer,9,"%H:%M:%S",&info);
+				std::cout << "[" << buffer<<"]";
+			}else
+			//if (engone::CheckState(GameState::DebugLog)) {
+				std::cout << c;
+			/*if (c == end) {
+				if (resetColor)
+					SetConsoleTextAttribute(hConsole, GRAY1);
+			}
+			else {
+
+			}*/
+			//}
+			//print+=""+i;
+			return *this;
+		}
+		logger logger::operator<<(int i)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << i;
+			//print+=""+i;
+
+		//}
+			return *this;
+		}
+		logger logger::operator<<(unsigned int i)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << i;
+			//print+=""+i;
+
+		//}
+			return *this;
+		}
+		logger logger::operator<<(char* s)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << s;
+
+			//}
+			return *this;
+		}
+		logger logger::operator<<(void* t)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << t;
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::ivec2 v)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << v.x << " " << v.y << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::vec2 v)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << v.x << " " << v.y << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::vec3 v)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << v.x << " " << v.y << " " << v.z << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::ivec3 v)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << v.x << " " << v.y << " " << v.z << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::vec4 v)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << v.x << " " << v.y << " " << v.z << " " << v.w << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::quat q)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			std::cout << "[" << q.x << " " << q.y << " " << q.z << " " << q.w << "]";
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(glm::mat4 m)
+		{
+			//if (engone::CheckState(GameState::DebugLog)) {
+			for (int i = 0; i < 4; i++) {
+				std::cout << "[" << m[i].x << " " << m[i].y << " " << m[i].z << " " << m[i].w << "]" << "\n";
+			}
+
+			//if (spaces)
+			//	std::cout << " ";
+		//}
+			return *this;
+		}
+		logger logger::operator<<(ConsoleColorCode t)
+		{
+			//if (engone::CheckState(GameState::DebugLog))
+			if (hConsole != NULL)
+				SetConsoleTextAttribute(hConsole, t);
+			return *this;
+		}
+	}
+	/*debug debug::operator<(engone::ShaderType t) {
+		if (doPrint) {
+			std::cout << (int)t;
+			if (spaces)
+				std::cout << " ";
+		}
+		return *this;
+	}*/
+
 	static bool enabled = true;
 	static bool renderNew=false;
 	static bool updateNew=false;
@@ -17,6 +202,13 @@ namespace engone
 	std::vector<LogLine> lines;
 	void Logging(LogHead head, LogStatus status)
 	{
+		for (int i = 1; i < 6;i++) {
+			if (head.strings[i].empty()) {
+				std::cout << head.strings[i-1] << "\n";
+				break;
+			}
+		}
+		
 		renderNew = true;
 		updateNew = true;
 		
@@ -127,7 +319,7 @@ namespace engone
 			return;
 
 		using namespace console;
-
+		
 		Clear(Color::_BLACK);
 
 		int off=2;

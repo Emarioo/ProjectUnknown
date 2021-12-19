@@ -1,27 +1,14 @@
 #pragma once
 
-
-//#if ENGONE_GLFW
-
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-//#include "../EventManager.h"
-//#include "glm/glm.hpp"
-
-//#include "Shader.h"
-//#include "../Components/Material.h"
-#include "../Handlers/AssetManager.h"
+#include "../Handlers/AssetHandler.h"
 #include "Light.h"
 #include "../Objects/Camera.h"
-//#include "Font.h"
 #include "Buffer.h"
 #include "FrameBuffer.h"
-
-// This class is the renderer class. Not really a class but you get the idea...
-// It handles textures, lights and shaders
-// It does not control which objects to render but is instead used as a tool to render them
 
 namespace engone {
 
@@ -73,16 +60,22 @@ namespace engone {
 
 	void UpdateViewMatrix(double lag);
 
-	bool IsCursorVisible();
-	void SetCursorVisibility(bool f);
 	/*
-	Also known as gameplay/first person mode.
+	@return: true if the cursor is visible.
+	*/
+	bool IsCursorVisible();
+	/*
+	@visible: if true, the cursor will be made visible.
+	*/
+	void SetCursorVisible(bool visible);
+	/*
+	@return: whether the cursor is locked to the window.
 	*/
 	bool IsCursorLocked();
 	/*
-	Disable cursor and use raw cursor motion. Gameplay/first person mode in other words.
+	@locked: if true, the cursor will be made invisible and locked to the window. Use this when you want the player to lock around.
 	*/
-	void LockCursor(bool f);
+	void LockCursor(bool locked);
 
 	/*
 	Starts glfw, projection matrix, shaders, rect and text container

@@ -3,32 +3,33 @@
 //#include "Animation.h"
 //#include "Model.h"
 
-#include "../Handlers/AssetManager.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engone {
 
-	class AnimProp {
+	class AnimationProperty {
 	public:
-		AnimProp() = default;
-		AnimProp(bool loop, float blend, float speed);
-		AnimProp(float frame, bool loop, float blend, float speed);
+		AnimationProperty() = default;
+		AnimationProperty(bool loop, float blend, float speed);
+		AnimationProperty(float frame, bool loop, float blend, float speed);
+
 		float frame;
 		float speed;// multiplier to the default speed
 		bool loop;
 		float blend;
+		std::string instanceName;
+		std::string animationName;
 	};
 
 	class Animator {
 	public:
-		Animator() {}
+		Animator() = default;
 
-		//Model* model=nullptr;
-		//Armature* armature=nullptr;
-
+		ModelAsset* model;
 		/*
 		Temporary active animations
 		*/
-		std::unordered_map<std::string, AnimProp> enabledAnimations;
+		std::vector<AnimationProperty> enabledAnimations;
 		
 		void Update(float delta);
 
@@ -37,7 +38,7 @@ namespace engone {
 		/*
 		Second argument can be done like this: {frame, loop, blend, speed}
 		*/
-		void Enable(const std::string& name,AnimProp prop);
+		void Enable(const std::string& instanceName,const std::string& animationName, AnimationProperty prop);
 		void Disable(const std::string& name);
 	};
 }

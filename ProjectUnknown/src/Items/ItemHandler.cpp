@@ -2,10 +2,7 @@
 
 #include "ItemHandler.h"
 
-#include "Engone/Utility/Utilities.h"
-
 #include "Engone/Handlers/FileHandler.h"
-#include "Engone/Rendering/Renderer.h"
 #include "Engone/Engone.h"
 
 std::vector<CraftingCategory> craftingCategories;

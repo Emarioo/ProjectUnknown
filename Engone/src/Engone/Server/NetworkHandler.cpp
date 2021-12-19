@@ -1,8 +1,6 @@
 #include "gonpch.h"
 
-#include "NetworkManager.h"
-
-#include <iostream>
+#include "NetworkHandler.h"
 
 namespace engone
 {

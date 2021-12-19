@@ -56,6 +56,7 @@ namespace ui
 		}
 		*/
 	}
+	/*
 	bool hasIntro = false;
 	void SetupIntro()
 	{
@@ -74,8 +75,8 @@ namespace ui
 		engone::AddBase(introScene = new IntroScene("IntroScene"));
 		introScene->conX.Center(0.f)->conY.Center(0.f)
 			->conW.Center(331 / 1920.f * 2)->conH.Center(277 / 1080.f * 2)->SetFixed();
-		*/
-	}
+		
+	}*/
 	// What to do with these?
 	bool uiFadeBool = false;
 	bool hideStart = false;
@@ -223,7 +224,7 @@ namespace ui
 			return;
 		hasGameUI = true;
 		using namespace engone;
-		engone::AddAsset<engone::Texture>("inventory", "textures/containers/inventory");
+		//engone::AddAsset<engone::Texture>("inventory", "textures/containers/inventory");
 
 		/*
 

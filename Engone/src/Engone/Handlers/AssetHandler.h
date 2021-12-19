@@ -15,6 +15,7 @@ namespace engone {
 		CorruptedData
 	};
 	std::string toString(AssetError t);
+
 	enum class AssetType : char
 	{
 		None = 0,
@@ -28,6 +29,12 @@ namespace engone {
 		Model,
 		Collider
 	};
+	std::string toString(AssetError t);
+	namespace log
+	{
+		logger operator<<(logger log, AssetType type);
+	}
+	
 	class FileReader
 	{
 	public:
@@ -93,6 +100,8 @@ namespace engone {
 
 					while (index < size) {
 						std::getline(file, line);
+						if (line[0] == '#')
+							continue;
 						if (line.back() == '\r')
 							line.erase(line.end() - 1);
 
@@ -138,6 +147,8 @@ namespace engone {
 
 					while (index < size*3) {
 						std::getline(file, line);
+						if (line[0] == '#')
+							continue;
 						if (line.back() == '\r')
 							line.erase(line.end() - 1);
 
@@ -188,6 +199,8 @@ namespace engone {
 
 					while (index < size * 16) {
 						std::getline(file, line);
+						if (line[0] == '#')
+							continue;
 						if (line.back() == '\r')
 							line.erase(line.end() - 1);
 
@@ -253,13 +266,18 @@ namespace engone {
 			}
 			else {
 				std::string line;
-				std::getline(file, line);
-				if(line.back()=='\r')
-					line.erase(line.end()-1);
-				//std::cout << "line " << line << "\n";
-				*var = line;
-				//std::cout << "read " << *var << "\n";
-				//*var = line;
+				int index = 0;
+
+				while (index < 1) {
+					std::getline(file, line);
+					if (line[0] == '#')
+						continue;
+					if (line.back() == '\r')
+						line.erase(line.end() - 1);
+					
+					*var = line;
+					index++;
+				}
 			}
 		}
 	};
@@ -272,6 +290,7 @@ namespace engone {
 		Asset() = default;
 		Asset(const std::string& path) : filePath("assets/" + path) { }
 
+		std::string baseName;
 		std::string filePath;
 		std::string GetRootPath(){
 			int first = filePath.find_first_of("/");
@@ -283,6 +302,14 @@ namespace engone {
 			else {
 				return filePath.substr(7, last-6);
 			}
+		}
+		void SetBaseName(const std::string& name)
+		{
+			int last = name.find_last_of("/");
+			if(last!=-1)
+				baseName = name.substr(last+1);
+			else
+				baseName = name;
 		}
 
 		AssetError error=None;
@@ -374,7 +401,7 @@ namespace engone {
 		MaterialAsset(const std::string& path) : Asset(path + ".material") { type = AssetType::Material; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
-		Texture* diffuse_map;
+		Texture* diffuse_map=nullptr;
 		glm::vec3 diffuse_color = { 1,1,1 };
 		glm::vec3 specular = { .5f,.5,.5f };
 		float shininess = .5;
@@ -424,7 +451,7 @@ namespace engone {
 		/*
 		Add values to the references given in the argument
 		*/
-		void GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater);
+		void GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannel);
 		std::unordered_map<ChannelType, FCurve> fcurves;
 	};
 	class AnimationAsset : public Asset
@@ -502,7 +529,7 @@ namespace engone {
 		glm::mat4 localMat = glm::mat4(1);
 		glm::mat4 invModel = glm::mat4(1);
 
-		Bone() {}
+		Bone() = default;
 
 	};
 	class ArmatureAsset : public Asset
@@ -515,15 +542,13 @@ namespace engone {
 
 		std::vector<Bone> bones;
 
-		std::vector<MeshAsset*> meshes;
-		std::vector<AnimationAsset*> animations;
-
 	};
 	class AssetInstance
 	{
 	public:
 		AssetInstance() = default;
 
+		std::string name;
 		int16_t parent = -1;
 
 		glm::mat4 localMat = glm::mat4(1);
@@ -567,6 +592,9 @@ namespace engone {
 	template <class T>
 	T* AddAsset(const std::string& name, T* asset)
 	{
+		if (asset->error!=None) {
+			log::out << log::RED << log::TIME << toString(asset->error) << ": " << asset->filePath << "\n" << log::SILVER;
+		}
 		//std::cout << name <<" "<<(int)T::type<< "\n";
 		if (T::TYPE == AssetType::Texture)
 			engone_textures[name] = asset->cast<Texture>();
@@ -596,7 +624,9 @@ namespace engone {
 	template <class T>
 	T* AddAsset(const std::string& name,const std::string& path)
 	{
-		return AddAsset<T>(name, new T(path));
+		T* t = new T(path);
+		t->SetBaseName(name);
+		return AddAsset<T>(name, t);
 	}
 	/*
 	@path is based in the assets directory
@@ -704,61 +734,4 @@ namespace engone {
 			engone_models.erase(name);
 		
 	}
-#if gone
-	/*
-	If file isn't found an error will occur and an empty object will
-	be created. Set the object's hasError to false to modify
-	*/
-	void AddAnimationAsset(const std::string& file);
-	/*
-	returns nullptr if name doesn't exist
-	*/
-	Animation* GetAnimationAsset(const std::string& name);
-	void DeleteAnimationAsset(const std::string& name);
-
-	void AddArmatureAsset(const std::string& file);
-	/*
-	returns nullptr if name doesn't exist
-	*/
-	Armature* GetArmatureAsset(const std::string& name);
-
-	void DeleteArmatureAsset(const std::string& name);
-
-	void AddMaterialAsset(const std::string& file);
-	Material* GetMaterialAsset(const std::string& name);
-	void DeleteMaterialAsset(const std::string& name);
-
-	void AddMeshAsset(const std::string& file);
-	Mesh* GetMeshAsset(const std::string& name);
-	void DeleteMeshAsset(const std::string& name);
-
-	void AddColliderAsset(const std::string& file);
-	/*
-	Add empty collider. Used for objects with unique collisions
-	*/
-	//CollData* AddColl(const std::string& name);
-	/*
-	Will return nullptr if collider doesn't exist
-	*/
-	Collider* GetColliderAsset(const std::string& name);
-	void DeleteColliderAsset(const std::string& name);
-
-	void AddModelAsset(const std::string& file);
-	/*
-	Modified to try adding model asset to the game unless it already is loaded.
-	*/
-	Model* GetModelAsset(const std::string& name);
-	void DeleteModelAsset(const std::string& name);
-	/*
-	void AddTextureAsset(const std::string& name);
-	Texture* GetTextureAsset(const std::string& name);
-	void DeleteTextureAsset(const std::string& name);
-	*/
-	Font* GetFont(const std::string& name);
-	void AddFont(const std::string& name, Font* font);
-	Shader* GetShader(const std::string& name);
-	void AddShader(const std::string& name, Shader* shader);
-	Texture* GetTexture(const std::string& name);
-	void AddTexture(const std::string& name, Texture* texture);
-#endif
 }

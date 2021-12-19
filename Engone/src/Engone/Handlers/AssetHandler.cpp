@@ -1,13 +1,13 @@
 #include "gonpch.h"
 
-#include "AssetManager.h"
+#include "AssetHandler.h"
 
 #include "../Utility/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
 
-#include "DebugTool.h"
+#include "DebugHandler.h"
 
 #include "GL/glew.h"
 
@@ -21,14 +21,48 @@ namespace engone {
 		case CorruptedData: return "Corrupted Data";
 		}
 	}
+	std::string toString(AssetType type)
+	{
+		switch (type) {
+		case AssetType::None:
+			return "None";
+		case AssetType::Texture:
+			return "Texture";
+		case AssetType::Font:
+			return "Font";
+		case AssetType::Shader:
+			return "Shader";
+		case AssetType::Material:
+			return "Material";
+		case AssetType::Mesh:
+			return "Mesh";
+		case AssetType::Animation:
+			return "Animation";
+		case AssetType::Armature:
+			return "Armature";
+		case AssetType::Model:
+			return "Model";
+		case AssetType::Collider:
+			return "Collider";
+		}
+	}
+	namespace log
+	{
+		logger operator<<(logger log, AssetType type)
+		{
+			log << toString(type);
+			return log;
+		}
+	}
 	void Texture::Load(const std::string& path)
 	{
-		Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
+		//Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
 
 		//std::cout << "Texture " << path << "\n";
-		if (!FindFile("assets/" + path + ".png")) {
+		if (!FindFile(path)) {
 			error = MissingFile;
-			Logging({ "AssetManager","Texture",toString(error ) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Texture",toString(error) + ": " + path }, LogStatus::Error);
+			//log::out << log::RED << log::TIME<< toString(error) << ": " << path << "\n"<<log::SILVER;
 			return;
 		}
 		//if (path.length() > 4) {
@@ -45,6 +79,8 @@ namespace engone {
 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 			glBindTexture(GL_TEXTURE_2D, 0);
+
+			//log::out << log::SILVER <<log::TIME << " Loaded " << path << "\n";
 
 			if (buffer)
 				stbi_image_free(buffer);
@@ -352,7 +388,7 @@ namespace engone {
 	{
 		fcurves[channel] = fcurve;
 	}
-	void Channels::GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater)
+	void Channels::GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannels)
 	{
 		float build[9]{ 0,0,0,0,0,0,1,1,1 };
 		glm::quat q0 = glm::quat(1, 0, 0, 0);
@@ -389,10 +425,12 @@ namespace engone {
 				if (type > ScaZ) {
 					slerpT = 0;
 					q0[curve.first - QuaX] = a->value;
+					*usedChannels = *usedChannels | (1 << curve.first);
 					continue;
 				}
 				else {
 					build[curve.first] = a->value;
+					*usedChannels = *usedChannels | (1 << curve.first);
 					continue;
 				}
 			}
@@ -413,10 +451,11 @@ namespace engone {
 				slerpT = lerp;
 				q0[curve.first - QuaX] = a->value;
 				q1[curve.first - QuaX] = b->value;
-
+				*usedChannels = *usedChannels | (1 << curve.first);
 			}
 			else {
 				build[curve.first] = a->value * (1 - lerp) + b->value * lerp;
+				*usedChannels = *usedChannels | (1 << curve.first);
 			}
 		}
 
@@ -428,9 +467,9 @@ namespace engone {
 		euler.y += build[4] * blend;
 		euler.z += build[5] * blend;
 
-		scale.x *= build[6] * blend;
-		scale.y *= build[7] * blend;
-		scale.z *= build[8] * blend;
+		scale.x *= build[6] * blend + (1 - blend);
+		scale.y *= build[7] * blend + (1 - blend);
+		scale.z *= build[8] * blend + (1 - blend);
 
 		//glm::mat4 matis = glm::mat4_cast(glm::slerp(glm::quat(0, 0, 0, 1),glm::slerp(q0, q1, slerpT), 1.f));
 		//glm::mat4 matis = glm::mat4_cast(glm::slerp(q0, q1, slerpT));
@@ -581,6 +620,10 @@ namespace engone {
 				}
 				
 				//std::cout << materials.back()->error << " err\n";
+			}
+			if (materialCount == 0) {
+				MaterialAsset* asset = GetAsset<MaterialAsset>("defaultMaterial");
+				materials.push_back(asset);
 			}
 			//std::cout << "uh2u\n";
 			uint16_t weightCount = 0,triangleCount;
@@ -844,11 +887,15 @@ namespace engone {
 			uint8_t boneCount;
 			file.read(&boneCount);
 
+			//log::out << path << "\n";
+			//log::out << boneCount << "\n";
+	
 			// Acquire and Load Data
 			for (int i = 0; i < boneCount; i++) {
 				Bone b;
 				file.read(&b.parent);
-				
+				//log::out << b.parent << "\n";
+				//log::out << i<<" matrix" << "\n";
 				file.read(&b.localMat);
 				file.read(&b.invModel);
 
@@ -857,7 +904,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			Logging({ "AssetManager","Armature",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Armature",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
@@ -872,11 +919,13 @@ namespace engone {
 		try {
 			std::string root = GetRootPath();
 
-			uint16_t objectCount;
-			file.read(&objectCount);
-			for (int i = 0; i < objectCount; i++) {
+			uint16_t instanceCount;
+			file.read(&instanceCount);
+			for (int i = 0; i < instanceCount; i++) {
 				instances.push_back({});
 				AssetInstance& instance = instances.back();
+
+				file.read(&instance.name);
 
 				uint8_t instanceType;
 				file.read(&instanceType);
@@ -902,38 +951,14 @@ namespace engone {
 				file.read(&instance.localMat);
 				//file.read(&instance.invModel);
 			}
-			/*
-			uint16_t armatureCount;
-			file.read(&armatureCount);
-			for (int i = 0; i < armatureCount; i++) {
-				instances.push_back({});
-				AssetInstance& instance = instances.back();
-
+			
+			uint16_t animationCount;
+			file.read(&animationCount);
+			for (int i = 0; i < animationCount; i++) {
 				std::string name;
 				file.read(&name);
-
-				instance.asset = GetAsset<ArmatureAsset>(root + name);
-
-				file.read(&instance.parent);
-				file.read(&instance.localMat);
-				file.read(&instance.invModel);
+				animations.push_back(GetAsset<AnimationAsset>(root + name));
 			}
-			uint16_t colliderCount;
-			file.read(&colliderCount);
-			for (int i = 0; i < colliderCount; i++) {
-				instances.push_back({});
-				AssetInstance& instance=instances.back();
-
-				std::string name;
-				file.read(&name);
-
-				instance.asset = GetAsset<ColliderAsset>(root + name);
-
-				file.read(&instance.parent);
-				file.read(&instance.localMat);
-				file.read(&instance.invModel);
-			}
-			*/
 		}
 		catch (AssetError err) {
 			error = err;
@@ -950,161 +975,4 @@ namespace engone {
 	std::unordered_map<std::string, Texture*> engone_textures;
 	std::unordered_map<std::string, Font*> engone_fonts;
 	std::unordered_map<std::string, Shader*> engone_shaders;
-	
-	/*
-	static std::unordered_map<std::string, Material> materials;
-	void AddMaterialAsset(const std::string& file) {
-		if (materials.count(file) == 0) {
-			materials[file] = Material();
-			LoadMaterial(&materials[file], file);
-		}
-	}
-	Material* GetMaterialAsset(const std::string& name) {
-		if (materials.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Material '" < name < "'\n";
-		} else if (!materials[name].hasError)
-			return &materials[name];
-		return nullptr;
-	}
-	void DeleteMaterialAsset(const std::string& name) {
-		materials.erase(name);
-	}
-	static std::unordered_map<std::string, Mesh> meshes;
-	void AddMeshAsset(const std::string& file) {
-		if (meshes.count(file) == 0) {
-			meshes[file] = Mesh();
-			LoadMesh(&meshes[file], file);
-		}
-	}
-	Mesh* GetMeshAsset(const std::string& name) {
-		if (meshes.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Mesh '" < name < "'\n";
-		} else if (!meshes[name].hasError)
-			return &meshes[name];
-		return nullptr;
-	}
-	void DeleteMeshAsset(const std::string& name) {
-		meshes.erase(name);
-	}
-	static std::unordered_map<std::string, Animation> animations;
-	void AddAnimationAsset(const std::string& file) {
-		if (animations.count(file) == 0) {
-			animations[file] = Animation();
-			LoadAnimation(&animations[file], file);
-		}
-	}
-	Animation* GetAnimationAsset(const std::string& name) {
-		if (animations.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Animation '" < name < "'\n";
-		} else
-			return &animations[name];
-	}
-	void DeleteAnimationAsset(const std::string& name) {
-		animations.erase(name);
-	}
-	static std::unordered_map<std::string, Armature> armatures;
-	void AddArmatureAsset(const std::string& file) {
-		if (armatures.count(file) == 0) {
-			armatures[file] = Armature();
-			LoadArmature(&armatures[file], file);
-		}
-	}
-	Armature* GetArmatureAsset(const std::string& name) {
-		if (armatures.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Armature '" < name < "'\n";
-		} else if (!armatures[name].hasError)
-			return &armatures[name];
-		return nullptr;
-	}
-	void DeleteArmatureAsset(const std::string& name) {
-		armatures.erase(name);
-	}
-	static std::unordered_map<std::string, Collider> colliders;
-	void AddColliderAsset(const std::string& file) {
-		if (colliders.count(file) == 0) {
-			colliders[file] = Collider();
-			LoadCollider(&colliders[file], file);
-		}
-	}
-	Collider* GetColliderAsset(const std::string& name) {
-		if (colliders.count(name) == 0) {
-			AddColliderAsset(name);
-			//bug::out < bug::RED < "Cannot find Collider '" < name < "'\n";
-		}
-		if (!colliders[name].hasError)
-			return &colliders[name];
-		return nullptr;
-	}
-	void DeleteColliderAsset(const std::string& name) {
-		colliders.erase(name);
-	}
-	static std::unordered_map<std::string, Model> models;
-	void AddModelAsset(const std::string& file) {
-		if (models.count(file) == 0) {
-			models[file] = Model();
-			LoadModel(&models[file], file);
-		}
-	}
-	Model* GetModelAsset(const std::string& name) {
-		if (models.count(name) == 0) {
-			AddModelAsset(name);
-		}
-		if (!models[name].hasError)
-			return &models[name];
-		return nullptr;
-	}
-	void DeleteModelAsset(const std::string& name) {
-		models.erase(name);
-	}
-
-	
-	std::unordered_map<std::string, Texture> textures;
-	void AddTextureAsset(const std::string& name) {// Change this system so it is simular to every other system. FileExist?
-		std::string path = "assets/textures/" + name + ".png";
-		if (FindFile(path)) {
-			textures[name] = Texture(path);
-		} else {
-			bug::out < bug::RED < "Cannot find Texture '" < path < bug::end;
-		}
-	}
-	Texture* GetTextureAsset(const std::string& name) {
-		if (textures.count(name) == 0) {
-			bug::out < bug::RED < "Cannot find Texture '" < name < "'\n";
-		} else
-			return &textures[name];
-		return nullptr;
-	}
-	void DeleteTextureAsset(const std::string& name) {
-		textures.erase(name);
-	}
-	*/
-	/*
-	static std::unordered_map<std::string, Font*> fonts;
-	static std::unordered_map<std::string, Texture*> textures;
-	static std::unordered_map<std::string, Shader*> shaders;
-	Font* GetFont(const std::string& name)
-	{
-		return fonts[name];
-	}
-	void AddFont(const std::string& name, Font* font)
-	{
-		fonts[name] = font;
-	}
-	Shader* GetShader(const std::string& name)
-	{
-		return shaders[name];
-	}
-	void AddShader(const std::string& name, Shader* shader)
-	{
-		shaders[name] = shader;
-	}
-	Texture* GetTexture(const std::string& name)
-	{
-		return textures[name];
-	}
-	void AddTexture(const std::string& name, Texture* texture)
-	{
-		textures[name] = texture;
-	}
-	*/
 }

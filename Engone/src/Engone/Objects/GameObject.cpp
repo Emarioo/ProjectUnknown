@@ -172,7 +172,7 @@ namespace engone {
 		return name;
 	}
 	void GameObject::Update(float delta) {
-
+		// this will be overrided
 	}
 	bool GameObject::IsClose(GameObject* o) {
 		return glm::length(GetPos() - o->GetPos()) < proximity + o->proximity;

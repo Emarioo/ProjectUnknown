@@ -4,7 +4,7 @@
 
 #include "Engone/Handlers/ObjectHandler.h"
 
-#include "Engone/EventManager.h"
+#include "Engone/EventHandler.h"
 #include "Keybindings.h"
 
 #include "GameStateEnum.h"

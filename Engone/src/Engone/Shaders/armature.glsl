@@ -47,6 +47,7 @@ void main()
 #version 330 core
 
 struct Material {
+	int useMap;
 	sampler2D diffuse_map;
 	vec3 diffuse_color;
 	vec3 specular;
@@ -213,8 +214,11 @@ void main()
 	for (int i = 0; i < uLightCount.z; i++) {
 		result += CalcSpotLight(uSpotLights[i], normal, fPos, viewDir, 0);
 	}
-	//texture(uMaterials[fMat].diffuse_map, fUV).rgb * 
-	result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb * uMaterials[fMat].diffuse_color;
+
+	result = uMaterials[fMat].diffuse_color;
+	if(uMaterials[fMat].useMap==1){
+		result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb;
+	}
 	oColor = vec4(result, 1);
 };
 )"

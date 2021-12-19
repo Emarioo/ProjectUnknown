@@ -3,7 +3,7 @@
 #include "Item.h"
 #include "CraftingCategory.h"
 
-#include "Engone/Handlers/AssetManager.h"
+#include "Engone/Handlers/AssetHandler.h"
 
 CraftingCategory* GetCategory(int index);
 int GetCategoriesSize();

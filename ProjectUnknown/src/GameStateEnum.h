@@ -3,10 +3,9 @@
 #include "Engone/GameState.h"
 
 namespace GameState {
-	enum GameState : unsigned char {
+	enum CustomGameState : unsigned char {
 		Intro,
 		Menu,
-		Game,
 		Paused,
 		CameraToPlayer,
 	};

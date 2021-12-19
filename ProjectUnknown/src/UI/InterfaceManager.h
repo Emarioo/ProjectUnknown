@@ -8,7 +8,7 @@
 #include "IntroScene.h"
 */
 #include "Items/Item.h"
-#include "Engone/UI/GUIManager.h"
+#include "Engone/UI/GuiHandler.h"
 
 #include "GameStateEnum.h"
 

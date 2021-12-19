@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../EventManager.h"
-
-#include "../Handlers/AssetManager.h"
+#include "../EventHandler.h"
+#include "../Handlers/AssetHandler.h"
 #include "../Rendering/Texture.h"
 
 namespace engone

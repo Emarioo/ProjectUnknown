@@ -1,13 +1,7 @@
 #pragma once
 
 #include "../Utility/Utilities.h"
-
-//#include "../Components/Animation.h"
-//#include "../Components/Mesh.h"
-//#include "../Components/Collider.h"
-//#include "../Components/Armature.h"
-//#include "../Components/Model.h"
-#include "../DebugTool/DebugHandler.h"
+#include "../DebugHandler.h"
 
 namespace engone {
 	enum class FileReport {

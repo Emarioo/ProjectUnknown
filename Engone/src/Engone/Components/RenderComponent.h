@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Animator.h"
-#include "../Handlers/AssetManager.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engone {
 
@@ -9,8 +9,7 @@ namespace engone {
 	public:
 		RenderComponent() = default;
 
-	//	Animator animator;
-	//	Model* model=nullptr;
+		Animator animator;
 		/*
 		Matrix which contains the position and rotation the renderer should use when rendering.
 		It gets updated before calling the RenderObjects function.
@@ -18,13 +17,14 @@ namespace engone {
 		*/
 		glm::mat4 matrix=glm::mat4(1);
 		ModelAsset* model;
+		void SetModel(ModelAsset* modelAsset);
 		
 		void GetInstanceTransforms(std::vector<glm::mat4>& mats);
 
 		/*
-		Argument is an array of glm::mat4 with bones.size()
+		@instance: The armature instance. Not the mesh instance
 		*/
-		void GetArmatureTransforms(std::vector<glm::mat4>& mats);
+		void GetArmatureTransforms(std::vector<glm::mat4>& mats, AssetInstance& instance, ArmatureAsset* asset);
 
 		bool hasError = false;
 

@@ -7,28 +7,28 @@
 
 namespace engone {
 	
-	AnimProp::AnimProp(bool loop, float blend, float speed)
+	AnimationProperty::AnimationProperty(bool loop, float blend, float speed)
 		: frame(0), loop(loop), blend(blend), speed(speed) {
 	}
-	AnimProp::AnimProp(float frame, bool loop, float blend, float speed) :
+	AnimationProperty::AnimationProperty(float frame, bool loop, float blend, float speed) :
 		frame(frame), loop(loop), blend(blend), speed(speed) {
 
 	}
 	void Animator::Update(float delta) {
-#if gone
+
 		if (model != nullptr) {
 			std::vector<std::string> disable;
-			for (auto& p : enabledAnimations) {
+			for (int i = 0; i < enabledAnimations.size();i++){
+				AnimationProperty& prop = enabledAnimations[i];
 				//std::cout << " enab" << std::endl;
-				for (Animation* anim : model->animations) {// This is kind of bad. A lot of animations will cause performance issues
-					if (p.first == anim->name) {
-						AnimProp& prop = p.second;
+				for (AnimationAsset* anim : model->animations) {// This is kind of bad. A lot of animations will cause performance issues
+					if (prop.animationName == anim->baseName) {
 						//std::cout << "prop" << std::endl;
 						prop.frame += anim->defaultSpeed * prop.speed * delta;
 						if (anim->frameEnd <= prop.frame) {
 							prop.frame = 0;
 							if (!prop.loop) {
-								disable.push_back(p.first);
+								disable.push_back(prop.animationName);
 								// Disable prop
 							}
 							//bug::out < model->animations[j]->frameEnd < " <= " < p.second < " V"< bug::end;
@@ -40,7 +40,10 @@ namespace engone {
 				}
 			}
 			for (std::string& str : disable) {
-				enabledAnimations.erase(str);
+				for (int i = 0; i < enabledAnimations.size(); i++) {
+					if(enabledAnimations[i].animationName==str)
+						enabledAnimations.erase(enabledAnimations.begin()+i);
+				}
 			}
 			/*
 			if (animation!=nullptr) {
@@ -54,43 +57,47 @@ namespace engone {
 				}
 			}*/
 		}
-#endif
 	}
 	void Animator::Blend(const std::string& name, float blend) {
-		if (enabledAnimations.count(name) > 0) {
-			enabledAnimations[name].blend = blend;
+		for (int i = 0; i < enabledAnimations.size(); i++) {
+			if (enabledAnimations[i].animationName == name)
+				enabledAnimations[i].blend = blend;
 		}
 	}
 	void Animator::Speed(const std::string& name, float speed) {
-		if (enabledAnimations.count(name) > 0) {
-			enabledAnimations[name].speed = speed;
+		for (int i = 0; i < enabledAnimations.size(); i++) {
+			if (enabledAnimations[i].animationName == name)
+				enabledAnimations[i].speed = speed;
 		}
 	}
 	/*
 	If animation doesn't exist in the model by default. It will try to find the asset and if it does.
 	The animation will be added to the model. This is mainly used for debug purposes.
 	*/
-	void Animator::Enable(const std::string& name, AnimProp prop) {
-#if gone
+	void Animator::Enable(const std::string& instanceName, const std::string& animationName, AnimationProperty prop) {
 		if (model != nullptr) {
 			bool found = false;
-			for (auto a : model->animations) {
-				if (a->name == name) {
+			for (AnimationAsset* a : model->animations) {
+				if (a->baseName == animationName) {
 					found = true;
 					break;
 				}
 			}
 			if (found) {
-				enabledAnimations[name] = prop;
+				prop.instanceName = instanceName;
+				prop.animationName = animationName;
+				enabledAnimations.push_back(prop);
 			}
 			else {
-				if(model->AddAnimation(name))
-					enabledAnimations[name] = prop;
+				log::out <<log::RED<< "Animator: could not find " << animationName << "\n"<<log::SILVER;
 			}
 		}
-#endif
+
 	}
 	void Animator::Disable(const std::string& name) {
-		enabledAnimations.erase(name);
+		for (int i = 0; i < enabledAnimations.size();i++) {
+			if(enabledAnimations[i].animationName==name)
+				enabledAnimations.erase(enabledAnimations.begin() + i);
+		}
 	}
 }

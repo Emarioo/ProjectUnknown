@@ -1,9 +1,6 @@
 #include "gonpch.h"
 
 #include "FileHandler.h"
-#include "AssetManager.h"
-
-#define error(x) if(x==true){data->hasError=true;return;}
 
 namespace engone {
 
@@ -50,6 +47,8 @@ namespace engone {
 		file.close();
 		return FileReport::Success;
 	}
+#ifdef begone
+#define error(x) if(x==true){data->hasError=true;return;}
 	/*
 	template<class T>
 	T ReadT(std::ifstream* f) {
@@ -119,7 +118,7 @@ namespace engone {
 		file.close();
 		return text;
 	}*/
-#if gone
+
 	void LoadMaterial(Material* data, const std::string& path_) {
 		if (data == nullptr)
 			return;

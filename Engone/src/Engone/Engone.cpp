@@ -19,7 +19,11 @@ namespace engone {
 		return lightProjection;
 	}
 	TriangleBuffer temp_;
-
+	int vecLimit = 500;
+	int lineLimit = 3000;
+	LineBuffer hitbox;
+	float* hitboxVec;
+	unsigned int* hitboxInd;
 	static glm::mat4 projMatrix;
 	static glm::mat4 viewMatrix;
 	static float fov, zNear, zFar;
@@ -71,11 +75,15 @@ namespace engone {
 
 	void InitEngone()
 	{
+		engone::SetState(GameState::RenderGame, true);
+		engone::SetState(GameState::RenderGui, true);
+
 		InitRenderer();
 
 		AddAsset<Shader>("object", new Shader(objectSource, true));
 		AddAsset<Shader>("armature", new Shader(armatureSource, true));
 		AddAsset<Shader>("outline", new Shader(outlineSource, true));
+		AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
 
 		DebugInit();
 		InitEvents(GetWindow());
@@ -84,7 +92,7 @@ namespace engone {
 		InitGUI();
 		ReadOptions();
 
-		console::Init(120,50);
+		//console::Init(120,50);
 
 		AddListener(new Listener(EventType::Move|EventType::GLFW, FirstPerson));
 
@@ -95,6 +103,12 @@ namespace engone {
 
 		temp_.Init(true,vMap,4*3,iMap,6);
 		temp_.SetAttrib(0, 3, 3, 0);
+
+		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
+		hitbox.SetAttrib(0, 3, 6, 0);
+		hitbox.SetAttrib(1, 3, 6, 3);
+		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
 
 		//UpdateKeyboard(false);
 
@@ -112,12 +126,6 @@ namespace engone {
 
 	}
 
-	int vecLimit = 500;
-	int lineLimit = 3000;
-	LineBuffer hitbox;
-	float* hitboxVec;
-	unsigned int* hitboxInd;
-
 	void UpdateObjects(double delta) 
 	{
 		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
@@ -131,6 +139,7 @@ namespace engone {
 			GameObject* o0 = GetObjects().at(i);
 
 			o0->Update(delta);
+			o0->renderComponent.animator.Update(delta);
 			/*
 			if (o0->collisionComponent.isActive) {
 				for (int j = i + 1; j < GetObjects().size();j++) {
@@ -157,13 +166,11 @@ namespace engone {
 	}
 	void UpdateUI(double delta) 
 	{
-		UpdateTimedFunc(delta);
 		UpdatePanels(delta);
 	}
 	// If hitbox buffer is too small
 	bool reachedLimit = false;
-	void RenderRawObjects(Shader* shader, double lag) 
-	{
+	void RenderRawObjects(Shader* shader, double lag) {
 		for (GameObject* o : GetObjects()) {
 			/*
 			if (o->renderComponent.model != nullptr) {
@@ -188,6 +195,7 @@ namespace engone {
 			*/
 		}
 	}
+#define BLOCK {} if(false)
 	void RenderObjects(double lag) 
 	{
 		// Update mesh transformations
@@ -201,6 +209,7 @@ namespace engone {
 			}
 		}
 
+		//log::out << "render\n";
 		SwitchBlendDepth(false);
 		UpdateViewMatrix(lag);
 
@@ -209,37 +218,24 @@ namespace engone {
 		if (!shader->error)
 		{
 			shader->Bind();
-
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-			/*
-			MeshAsset* as = GetAsset<MeshAsset>("Leaf");
-			if (as != nullptr) {
-				for (int i = 0; i < as->materials.size();i++) {
-					
-					//std::cout << as->materials[i]->diffuse_color[0] << " " << as->materials[i]->diffuse_map << "\n";
-					PassMaterial(shader,i,as->materials[i]);
-				}
-				shader->SetMatrix("uTransform", glm::mat4(1));
-				as->buffer.Draw();
-			}
-			*/
-
 			for (GameObject* o : GetObjects())
 			{
 				if (o->renderComponent.model != nullptr) 
 				{
+					//log::out << o->name << "\n";
 					BindLights(shader,o->position);
 					
 					// Get individual transforms
-					int count = o->renderComponent.model->instances.size();
-					std::vector<glm::mat4> mats(count);
+					std::vector<glm::mat4> mats;
 					o->renderComponent.GetInstanceTransforms(mats);
-
+					
 					// Draw instances
 					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
 					{
 						AssetInstance& instance = o->renderComponent.model->instances[i];
+						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
 						if (instance.asset->type == AssetType::Mesh) {
 							MeshAsset* asset = instance.asset->cast<MeshAsset>();
 							if (asset->meshType == MeshAsset::MeshType::Normal) {
@@ -255,6 +251,7 @@ namespace engone {
 				}
 			}
 		}
+
 		shader = GetAsset<Shader>("armature");
 		if (!shader->error)
 		{
@@ -263,52 +260,48 @@ namespace engone {
 			shader->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
 			for (GameObject* o : GetObjects()) 
 			{
-				/*
 				if (o->renderComponent.model != nullptr)
 				{
-					//bug::outs < "Update " < o->name<"\n";
 					BindLights(shader,o->position);
-					if (o->renderComponent.model->armature != nullptr) 
+
+					// Get individual transforms
+					std::vector<glm::mat4> mats;
+					o->renderComponent.GetInstanceTransforms(mats);
+
+					//-- Draw instances
+					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
 					{
-						if (!o->renderComponent.model->armature->hasError) 
-						{
-							//bug::outs < o->renderComponent.animator.enabledAnimations["georgeBoneAction"].frame < "\n";
-							int count = o->renderComponent.model->armature->bones.size();
-							std::vector<glm::mat4> mats(count);
-							o->renderComponent.GetArmatureTransforms(mats);
-							for (int i = 0; i < count; i++) 
-							{
-								//bug::outs < mats[i] < "\n";
-								shader->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
-							}
-						}
-					}
-					for (int i = 0; i < o->renderComponent.model->meshes.size(); i++) 
-					{
-						Mesh* mesh = o->renderComponent.model->meshes[i];
-						if (mesh != nullptr) 
-						{
-							if (mesh->shaderType == "armature") 
-							{// The shader might not be called here. so binding lights may be unecessary
-								for (int i = 0; i < mesh->materials.size() && i < 4; i++) 
-								{// Maximum of 4 materials
-									PassMaterial(shader,i, mesh->materials[i]);
+						AssetInstance& instance = o->renderComponent.model->instances[i];
+
+						if (instance.asset->type == AssetType::Mesh) {
+							MeshAsset* meshAsset = instance.asset->cast<MeshAsset>();
+							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
+								if (instance.parent == -1)
+									continue;
+								
+								AssetInstance& armature = o->renderComponent.model->instances[instance.parent];
+								if (armature.asset->type == AssetType::Armature) {
+									ArmatureAsset* armatureAsset = armature.asset->cast<ArmatureAsset>();
+									
+									std::vector<glm::mat4> boneMats;
+									o->renderComponent.GetArmatureTransforms(boneMats, armature, armatureAsset);
+									for (int j = 0; j < boneMats.size(); j++)
+									{
+										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneMats[j]);
+									}
+
+									for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
+									{
+										PassMaterial(shader, j, meshAsset->materials[j]);
+									}
+									shader->SetMatrix("uTransform", o->renderComponent.matrix * mats[i]);
+									meshAsset->buffer.Draw();
 								}
-								shader->SetMatrix("uTransform",o->renderComponent.matrix * o->renderComponent.model->matrices[i]);
-								mesh->Draw();
-							}
-						} 
-						else
-						{
-							if (!o->renderComponent.hasError) 
-							{
-								bug::out < bug::RED < "Mesh in Model is nullptr\n";
-								o->renderComponent.hasError = true;
 							}
 						}
+
 					}
 				}
-				*/
 			}
 		}
 		
@@ -621,7 +614,7 @@ namespace engone {
 	void RenderEngine(double lag)
 	{
 		SwitchBlendDepth(false);
-		//if (CheckState(GameState::Game)) {
+		if (CheckState(GameState::RenderGame)) {
 			if (HasFocus()) {
 				//move += 0.01f;
 				glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
@@ -685,15 +678,16 @@ namespace engone {
 					}
 				}*/
 			}
-		//}
+		}
+		if (CheckState(GameState::RenderGui)) {
+			RenderUI();
+		}
 
-		RenderUI();
+		//RenderDebug(lag);
 
-		RenderDebug(lag);
+		//console::Render();
 
-		console::Render();
-
-		// Camera location
+		//-- Camera location
 		Shader* gui = GetAsset<Shader>("gui");
 		gui->Bind();
 		gui->SetVec2("uPos", { 0,0 });
@@ -705,23 +699,24 @@ namespace engone {
 	void UpdateEngine(double delta)
 	{
 		RefreshEvents();
-		//if (CheckState(GameState::Game)) {
+		if (CheckState(GameState::RenderGame)) {
 			//if (HasFocus() && !CheckState(GameState::Paused)) {
-		UpdateObjects(delta);
+			UpdateObjects(delta);
 			//}
-		//}
-		UpdateUI(delta);
+		}
+		UpdateTimedFunc(delta);
+		if (CheckState(GameState::RenderGui)) {
+			UpdateUI(delta);
+		}
 
 		UpdateDebug(delta);
 
 		ResetEvents();
 	}
 	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){
-		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
-		hitbox.SetAttrib(0, 3, 6, 0);
-		hitbox.SetAttrib(1, 3, 6, 3);
-		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
+		if (update == nullptr || render == nullptr) {
+			std::cout << "Engone.cpp - Start: update or render is nullptr" << "\n";
+		}
 
 		/*
 		// Loop
@@ -772,6 +767,7 @@ namespace engone {
 
 			while (lag >= MS_PER_UPDATE)
 			{
+				UpdateEngine(MS_PER_UPDATE);
 				update(MS_PER_UPDATE);
 				lag -= MS_PER_UPDATE;
 				FPS++;
@@ -782,8 +778,9 @@ namespace engone {
 					FPS = 0;
 				}
 			}
-
+			RenderEngine(lag);
 			render(lag);
+
 			glfwSwapBuffers(GetWindow());
 			glfwPollEvents();
 		}

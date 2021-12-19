@@ -262,13 +262,14 @@ namespace engone {
 		return &shaders[ShaderType::NONE];
 	}
 #endif
+
 	void InitRenderer() {
-		std::cout << "init Glfw\n";
+		//std::cout << "init Glfw\n";
 		if (!glfwInit()) {
 			std::cout << "Glfw Init error!" << std::endl;
 			return;
 		}
-		std::cout << "Finished init\n";
+		//std::cout << "Finished init\n";
 
 		windowType = Windowed;
 		MakeWindow("Project Unknown");
@@ -333,22 +334,22 @@ namespace engone {
 	bool IsCursorLocked() {
 		return isCursorLocked;
 	}
-	void SetCursorVisibility(bool f) {
-		if (f) glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	void SetCursorVisible(bool visible) {
+		isCursorVisible = visible;
+		if (visible) glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		else glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		isCursorVisible = f;
 	}
-	void LockCursor(bool f) {
-		if (!f) {
-			SetCursorVisibility(isCursorVisible);
-			if (glfwRawMouseMotionSupported())
-				glfwSetInputMode(GetWindow(), GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-		} else {
+	void LockCursor(bool locked) {
+		isCursorLocked = locked;
+		if (locked) {
 			glfwSetInputMode(GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			if (glfwRawMouseMotionSupported())
 				glfwSetInputMode(GetWindow(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+		} else {
+			SetCursorVisible(isCursorVisible);
+			if (glfwRawMouseMotionSupported())
+				glfwSetInputMode(GetWindow(), GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
-		isCursorLocked = f;
 	}
 	void RenderClearScreen(float r, float g, float b, float a) {
 		glClearColor(r, g, b, a);

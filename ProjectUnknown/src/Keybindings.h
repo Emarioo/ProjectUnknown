@@ -1,7 +1,7 @@
 #pragma once
 
 //#include "Engone/Keyboard.h"
-#include "Engone/EventManager.h"
+#include "Engone/EventHandler.h"
 
 #define KEYBINDING_FILE "data/keybindings.dat"
 

@@ -75,7 +75,7 @@
     <ClInclude Include="src\Engone\Handlers\FileHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Handlers\SoundHandler.h">
+    <ClInclude Include="src\Engone\Sound\SoundHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\Handlers\ObjectHandler.h">
@@ -90,22 +90,22 @@
     <ClInclude Include="src\Engone\Rendering\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\EventManager.h">
+    <ClInclude Include="src\Engone\EventHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engone\ConsoleHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\UI\GUIManager.h">
+    <ClInclude Include="src\Engone\UI\GuiHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Handlers\AssetManager.h">
+    <ClInclude Include="src\Engone\Handlers\AssetHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Server\NetworkManager.h">
+    <ClInclude Include="src\Engone\Server\NetworkHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\DebugTool.h">
+    <ClInclude Include="src\Engone\DebugHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gonpch.h">
@@ -173,7 +173,7 @@
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Handlers\SoundHandler.cpp">
+    <ClCompile Include="src\Engone\Sound\SoundHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\GameState.cpp">
@@ -185,22 +185,22 @@
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\EventManager.cpp">
+    <ClCompile Include="src\Engone\EventHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\ConsoleHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\UI\GUIManager.cpp">
+    <ClCompile Include="src\Engone\UI\GuiHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Handlers\AssetManager.cpp">
+    <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\DebugTool.cpp">
+    <ClCompile Include="src\Engone\DebugHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Server\NetworkManager.cpp">
+    <ClCompile Include="src\Engone\Server\NetworkHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
