@@ -27,6 +27,7 @@
     <ClInclude Include="src\Engone\DebugHandler.h" />
     <ClInclude Include="src\Engone\EventHandler.h" />
     <ClInclude Include="src\Engone\GameState.h" />
+    <ClInclude Include="src\Engone\Module.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\Engone\Server\NetworkHandler.h" />
     <ClInclude Include="src\Engone\UI\GuiHandler.h" />
@@ -47,6 +48,7 @@
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
     <ClInclude Include="src\Engone\Keyboard.h" />
     <ClInclude Include="src\Engone\Languages.h" />
+    <ClInclude Include="src\Engone\Window.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\vendor\Libaudio.h" />
     <ClInclude Include="src\Engone\World\Biome.h" />
@@ -72,6 +74,7 @@
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Server\NetworkHandler.cpp" />
     <ClCompile Include="src\Engone\UI\GuiHandler.cpp" />
+    <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">gonpch.h</PrecompiledHeaderFile>

@@ -10,6 +10,7 @@ namespace game
 	void SetPlayer(Player* player);
 	/*
 	Start game by setting the correct game state, lock the cursor, init items
+	 intro panel
 	*/
 	void InitGame();
 	void Update(double delta);

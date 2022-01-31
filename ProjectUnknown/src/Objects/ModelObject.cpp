@@ -9,8 +9,9 @@ ModelObject::ModelObject(float x, float y, float z, engone::ModelAsset* model)
 
 	//renderComponent.animator.Enable("Leaf.003","RISE", { true, 1, 1 });
 	//renderComponent.animator.Enable("Leaf2.001","SidePlantWind.004", { true, 1, 1 });
-	renderComponent.animator.Enable("PlantArmature.001","PlantWind.002", { true, 1, 1 });
-	//renderComponent.animator.Enable("PlantGoo_C.001","PlantWind.002", { true, 1, 1 });
+	//renderComponent.animator.Enable("PlantArmature.001","PlantWind.002", { true, 1, 1 });
+	//renderComponent.animator.Enable("Leaf.003","RISE", { true, 1, 1 });
+	//renderComponent.animator.Enable("Leaf2.001","SidePlantWind.003", { true, 1, 1 });
 }
 void ModelObject::Update(float delta) {
 	

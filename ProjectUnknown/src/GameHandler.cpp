@@ -1,6 +1,7 @@
 #include "gonpch.h"
 
 #include "Engone/EventHandler.h"
+#include "Engone/Engone.h"
 
 #include "GameHandler.h"
 #include "UI/InterfaceManager.h"
@@ -24,7 +25,6 @@ static const std::string depthGLSL = {
 
 namespace game
 {
-	static bool initGameAssets = false;
 	static Player* _player;
 	void SetPlayer(Player* player)
 	{
@@ -92,8 +92,7 @@ namespace game
 		}*/
 		return engone::EventType::None;
 	}
-	void Update(double delta)
-	{
+	void Update(double delta) {
 		using namespace engone;
 
 		//melody.UpdateStream();
@@ -104,15 +103,66 @@ namespace game
 		//UpdateEngine(delta);
 
 	}
-	void Render(double lag)
-	{
+	float rot = 0;
+	float frame = 0;
+	void Render(double lag) {
 		using namespace engone;
+
+
+		ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
+		Shader* shader = GetAsset<Shader>("armature");
+		shader->Bind();
+
+		glm::mat4 fin = glm::mat4(1);
+
+		glm::mat4 axis = glm::mat4(1);
+
+		axis[1][1] = 0;
+		axis[2][1] = 1;
+		axis[1][2] = -1;
+		axis[2][2] = 0;
+
+		glm::vec3 pos = glm::vec3(1), euler, scale;
+		glm::mat4 quater = glm::mat4(1);
+
+
+		AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
+		frame += anim->defaultSpeed * 1.f / 60;
+
+		if (frame > 60) {
+			frame = 0;
+		}
+
+		short usedChannels = 0;
+		anim->objects[0].GetValues(frame, 1,
+			pos, euler, scale, quater, &usedChannels);
+
+		
+
+		glm::mat4 gameObject = glm::mat4(1);
+
+		AssetInstance& aInst = model->instances[0];
+		AssetInstance& mInst = model->instances[1];
+		ArmatureAsset* armature = aInst.asset->cast<ArmatureAsset>();
+		MeshAsset* mesh = mInst.asset->cast<MeshAsset>();
+		
+		glm::mat4 inve = glm::inverse((mInst.localMat));
+		
+		glm::mat4 bone = armature->bones[0].localMat*quater*armature->bones[0].invModel*mInst.localMat;// *(armature->bones[0].localMat * quater);
+
+		//shader->SetMatrix("uBoneTransforms[0]", bone);
+		//shader->SetMatrix("uTransform",gameObject* axis*aInst.localMat);
+
+		//PassMaterial(shader, 0, mesh->materials[0]);
+		//mesh->buffer.Draw();
+		
 
 		//RenderEngine(lag);
 
 		// Render custom things like items dragged by the mouse
 		ui::Render(lag);
 	}
+	static bool initGameAssets = false;
 	void InitGame()
 	{
 		using namespace engone;
@@ -122,17 +172,39 @@ namespace game
 			//interfaceManager.SetupGameUI();
 			initGameAssets = true;
 		}
-
-		if(false) {
+		//SetCursorVisible(true);
+		
+		if (false) {
 			SetState(GameState::RenderGame, false);
 			SetState(GameState::Intro, true);
 			//ui::SetupIntro();
 
-			Panel* intro = new Panel("intro");
-			intro->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f);
-			AddPanel(intro);
+			IElement* cover = new IElement("darkCover", 9999);
+			cover->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 0.f });
+			cover->add("fade").Fade({ 0.f,0.f }, .5f);
 
-			SetCursorVisible(false);
+			IElement* intro = new IElement("introTexture");
+			intro->Left(0)->CenterY(0)->Width(1.f)->Height(1.f)->Fixed(800 / 669.f)->Color({ 1.f })->Texture(GetAsset<Texture>("textures/intro"));
+			IElement* blank = new IElement("introBlank", 9990);
+			blank->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 1.f });
+			blank->add(intro);
+
+			AddTimer(2.f, [=] {
+				cover->setTransition("fade", true);
+				AddTimer(.5 + 2.f, [=] {
+					cover->setTransition("fade", false);
+					AddTimer(.5f, [=] {
+						RemoveElement(blank);
+						cover->setTransition("fade", true);
+						SetState(GameState::RenderGame, true);
+						SetState(GameState::Intro, false);
+						LockCursor(true);
+						});
+					});
+				});
+
+			AddElement(blank);
+			AddElement(cover);
 		}
 
 		//-- Assets
@@ -141,8 +213,8 @@ namespace game
 		AddAsset<Font>("consolas", "fonts/consolas42");
 
 		//-- Event and game loop functions
-		AddListener(new Listener(EventType::Key | EventType::GLFW, OnKey));
-		AddListener(new Listener(EventType::Click | EventType::GLFW, OnMouse));
+		AddListener(new Listener(EventType::Key, OnKey));
+		AddListener(new Listener(EventType::Click, OnMouse));
 
 		if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
@@ -204,12 +276,13 @@ namespace game
 		//AddObject(axis);
 
 		//ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
-		//ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant/Plant"));
-		ModelObject* tom = new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant.001/Plant.001"));
+		ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant.001/Plant.001"));
+		 
+		//ModelObject* tom = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Snake/Snake"));
+		AddObject(tom);
 		
 		//ModelObject* test = new ModelObject(0, 0, 0, "VertexColor");
 		//AddObject(charles);
-		AddObject(tom);
 		//AddObject(test);
 		//ob->quaternion = {1,0.5,0,0};
 

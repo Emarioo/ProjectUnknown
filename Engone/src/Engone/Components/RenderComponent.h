@@ -19,12 +19,13 @@ namespace engone {
 		ModelAsset* model;
 		void SetModel(ModelAsset* modelAsset);
 		
-		void GetInstanceTransforms(std::vector<glm::mat4>& mats);
+		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
+		void GetParentTransforms(std::vector<glm::mat4>& mats);
 
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		void GetArmatureTransforms(std::vector<glm::mat4>& mats, AssetInstance& instance, ArmatureAsset* asset);
+		void GetArmatureTransforms(std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* asset);
 
 		bool hasError = false;
 

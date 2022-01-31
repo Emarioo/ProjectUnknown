@@ -8,6 +8,61 @@ extern "C" {
 
 namespace engone {
 
+	void Engone::Init() {
+		engone::SetState(GameState::RenderGame, true);
+		engone::SetState(GameState::RenderGui, true);
+
+		InitRenderer();
+
+		AddAsset<Shader>("object", new Shader(objectSource, true));
+		AddAsset<Shader>("armature", new Shader(armatureSource, true));
+		AddAsset<Shader>("outline", new Shader(outlineSource, true));
+		AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
+
+		//DebugInit();
+		InitEvents(GetWindow());
+		InitEvents();
+
+		InitGUI();
+		//ReadOptions();
+
+		//console::Init(120,50);
+
+		AddListener(new Listener(EventType::Move, 9998, FirstPerson));
+		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
+
+		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
+
+		float vMap[]{ 0,0,0,1,0,0,1,0,1,0,0,1 };
+		unsigned int iMap[]{ 0,1,2,2,3,0 };
+
+		temp_.Init(true, vMap, 4 * 3, iMap, 6);
+		temp_.SetAttrib(0, 3, 3, 0);
+
+		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
+		hitbox.SetAttrib(0, 3, 6, 0);
+		hitbox.SetAttrib(1, 3, 6, 3);
+		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
+
+		//UpdateKeyboard(false);
+
+		depthBuffer.Init();
+		float near_plane = 1.f, far_plane = 20.5f;
+		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
+
+		fov = 90.f;
+		zNear = 0.1f;
+		zFar = 400.f;
+		SetProjection((float)Width() / Height());
+	}
+	void Engone::Update(float delta) {
+	
+	}
+	void Engone::Render() {
+	
+	}
+
 	FrameBuffer depthBuffer;
 	glm::mat4 lightProjection;
 	FrameBuffer& GetDepthBuffer()
@@ -57,6 +112,9 @@ namespace engone {
 #include "Shaders/outline.glsl"
 	};
 
+	std::function<void(double)> update=nullptr;
+	std::function<void(double)> render=nullptr;
+
 	static int lastMouseX=-1, lastMouseY=-1;
 	// Move somewhere else
 	static double cameraSensitivity = 0.1;
@@ -72,8 +130,22 @@ namespace engone {
 		lastMouseY = e.my;
 		return EventType::None;
 	}
+	EventType DrawOnResize(Event& e) {
+		//glViewport(0, 0, Width(), Height());
+		//glClearColor(1, 0, 0, 1);
+		//glClear(GL_COLOR_BUFFER_BIT);
 
-	void InitEngone()
+		UpdateEngine(1/40.f);
+		update(1 / 40.f);
+		RenderEngine(0);
+		render(0);
+
+		glfwSwapBuffers(GetWindow());
+
+		return EventType::None;
+	}
+
+	void InitEngine()
 	{
 		engone::SetState(GameState::RenderGame, true);
 		engone::SetState(GameState::RenderGui, true);
@@ -85,16 +157,17 @@ namespace engone {
 		AddAsset<Shader>("outline", new Shader(outlineSource, true));
 		AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
 
-		DebugInit();
+		//DebugInit();
 		InitEvents(GetWindow());
 		InitEvents();
 
 		InitGUI();
-		ReadOptions();
+		//ReadOptions();
 
 		//console::Init(120,50);
 
-		AddListener(new Listener(EventType::Move|EventType::GLFW, FirstPerson));
+		AddListener(new Listener(EventType::Move,9998, FirstPerson));
+		AddListener(new Listener(EventType::Resize, 9999,DrawOnResize));
 
 		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
 
@@ -121,7 +194,7 @@ namespace engone {
 		zFar = 400.f;
 		SetProjection((float)Width() / Height());
 	}
-	void ExitEngone()
+	void ExitEngine()
 	{
 
 	}
@@ -166,7 +239,7 @@ namespace engone {
 	}
 	void UpdateUI(double delta) 
 	{
-		UpdatePanels(delta);
+		UpdateElements(delta);
 	}
 	// If hitbox buffer is too small
 	bool reachedLimit = false;
@@ -195,7 +268,7 @@ namespace engone {
 			*/
 		}
 	}
-#define BLOCK {} if(false)
+#define IFBLOCK {} if(false)
 	void RenderObjects(double lag) 
 	{
 		// Update mesh transformations
@@ -229,7 +302,7 @@ namespace engone {
 					
 					// Get individual transforms
 					std::vector<glm::mat4> mats;
-					o->renderComponent.GetInstanceTransforms(mats);
+					o->renderComponent.GetParentTransforms(mats);
 					
 					// Draw instances
 					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
@@ -243,7 +316,7 @@ namespace engone {
 								{
 									PassMaterial(shader, j, asset->materials[j]);
 								}
-								shader->SetMatrix("uTransform", o->renderComponent.matrix * mats[i]);
+								shader->SetMatrix("uTransform", o->renderComponent.matrix * mats[i] * instance.localMat);
 								asset->buffer.Draw();
 							}
 						}
@@ -266,35 +339,35 @@ namespace engone {
 
 					// Get individual transforms
 					std::vector<glm::mat4> mats;
-					o->renderComponent.GetInstanceTransforms(mats);
+					o->renderComponent.GetParentTransforms(mats);
 
 					//-- Draw instances
 					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
 					{
-						AssetInstance& instance = o->renderComponent.model->instances[i];
+						AssetInstance& mInst= o->renderComponent.model->instances[i];
 
-						if (instance.asset->type == AssetType::Mesh) {
-							MeshAsset* meshAsset = instance.asset->cast<MeshAsset>();
+						if (mInst.asset->type == AssetType::Mesh) {
+							MeshAsset* meshAsset = mInst.asset->cast<MeshAsset>();
 							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
-								if (instance.parent == -1)
+								if (mInst.parent == -1)
 									continue;
 								
-								AssetInstance& armature = o->renderComponent.model->instances[instance.parent];
-								if (armature.asset->type == AssetType::Armature) {
-									ArmatureAsset* armatureAsset = armature.asset->cast<ArmatureAsset>();
-									
+								AssetInstance& aInst = o->renderComponent.model->instances[mInst.parent];
+								if (aInst.asset->type == AssetType::Armature) {
+									ArmatureAsset* armatureAsset = aInst.asset->cast<ArmatureAsset>();
+
 									std::vector<glm::mat4> boneMats;
-									o->renderComponent.GetArmatureTransforms(boneMats, armature, armatureAsset);
+									o->renderComponent.GetArmatureTransforms(boneMats, mats[i], aInst, armatureAsset);
 									for (int j = 0; j < boneMats.size(); j++)
 									{
-										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneMats[j]);
+										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneMats[j] * mInst.localMat);
 									}
 
 									for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
 									{
 										PassMaterial(shader, j, meshAsset->materials[j]);
 									}
-									shader->SetMatrix("uTransform", o->renderComponent.matrix * mats[i]);
+									shader->SetMatrix("uTransform", o->renderComponent.matrix*mats[i]);
 									meshAsset->buffer.Draw();
 								}
 							}
@@ -591,35 +664,34 @@ namespace engone {
 		}*/
 	}
 	void RenderUI(double lag) {
-		RenderPanels();
+		RenderElements();
 	}
-	static std::vector<TimedFunc> functions;
-	void AddTimedFunction(std::function<void()> func, float time)
+	static std::vector<Timer> timers;
+	void AddTimer(float time, std::function<void()> func)
 	{
-		functions.push_back(TimedFunc(func, time));
+		timers.push_back({time,func});
 	}
-	void UpdateTimedFunc(float delta)
+	void UpdateTimers(float delta)
 	{
-		int n = 0;
-		for (TimedFunc& f : functions) { // Will this cause problems? Removing an element in a for loop
-			f.time -= delta;
-			if (f.time < 0) {
-				f.func();
-				functions.erase(functions.begin() + n);
-				n--;
+		for (int i = 0; i < timers.size();i++) { // Will this cause problems? Removing an element in a for loop
+			timers[i].time -= delta;
+			if (timers[i].time < 0) {
+				timers[i].func();
+				timers.erase(timers.begin() + i);
+				i--;
 			}
-			n++;
 		}
 	}
 	void RenderEngine(double lag)
 	{
+		glViewport(0, 0, Width(), Height());
+
 		SwitchBlendDepth(false);
 		if (CheckState(GameState::RenderGame)) {
 			if (HasFocus()) {
 				//move += 0.01f;
 				glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 
-				glViewport(0, 0, Width(), Height());
 				glClearColor(0.05f, 0.08f, 0.08f, 1);
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 				glCullFace(GL_BACK);
@@ -641,7 +713,6 @@ namespace engone {
 				*/
 				Shader* objectShader = GetAsset<Shader>("object");
 				if (objectShader != nullptr) {
-					glViewport(0, 0, Width(), Height());
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					glCullFace(GL_BACK);
 					objectShader->Bind();
@@ -659,7 +730,7 @@ namespace engone {
 					{
 						PassMaterial(objectShader, j, asset->materials[j]);
 					}
-					objectShader->SetMatrix("uTransform", glm::mat4(1));
+					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,-5,0)));
 					asset->buffer.Draw();
 
 					//objectShader->SetMatrix("uTransform", glm::mat4(1));
@@ -680,7 +751,7 @@ namespace engone {
 			}
 		}
 		if (CheckState(GameState::RenderGui)) {
-			RenderUI();
+			RenderUI(0);
 		}
 
 		//RenderDebug(lag);
@@ -704,7 +775,7 @@ namespace engone {
 			UpdateObjects(delta);
 			//}
 		}
-		UpdateTimedFunc(delta);
+		UpdateTimers(delta);
 		if (CheckState(GameState::RenderGui)) {
 			UpdateUI(delta);
 		}
@@ -713,10 +784,187 @@ namespace engone {
 
 		ResetEvents();
 	}
-	void Start(std::function<void(double)> update, std::function<void(double)> render,double fps){
-		if (update == nullptr || render == nullptr) {
-			std::cout << "Engone.cpp - Start: update or render is nullptr" << "\n";
+
+	static std::vector<Light*> lights;
+	void AddLight(Light* l)
+	{
+		lights.push_back(l);
+	}
+	void RemoveLight(Light* l)
+	{
+		for (int i = 0; i < lights.size(); i++) {
+			if (lights[i] == l) {
+				lights.erase(lights.begin() + i);
+				break;
+			}
 		}
+	}
+	/*
+	Binds light to current shader
+	 If one of the four closest light are already bound then don't rebind them [Not added]
+	*/
+	void BindLights(Shader* shader, glm::vec3 objectPos)
+	{
+		if (shader != nullptr) {
+			// List setup
+			const int N_POINTLIGHTS = 4;
+			const int N_SPOTLIGHTS = 2;
+
+			DirLight* dir = nullptr;
+			PointLight* points[N_POINTLIGHTS];
+			float pDist[N_POINTLIGHTS];
+			for (int i = 0; i < N_POINTLIGHTS; i++) {
+				points[i] = nullptr;
+				pDist[i] = 9999;
+			}
+
+			SpotLight* spots[N_SPOTLIGHTS];
+			float sDist[N_SPOTLIGHTS];
+			for (int i = 0; i < N_SPOTLIGHTS; i++) {
+				spots[i] = nullptr;
+				sDist[i] = 9999;
+			}
+			glm::ivec3 lightCount(0);
+
+			// Grab the closest lights to the object
+			for (int i = 0; i < lights.size(); i++) {
+				Light* light = lights[i];
+				if (light->lightType == LightType::Direction) {
+					dir = reinterpret_cast<DirLight*>(light);
+				}
+				else if (light->lightType == LightType::Point) {
+					PointLight* l = reinterpret_cast<PointLight*>(light);
+					float distance = glm::length(l->position - objectPos);
+					for (int i = 0; i < N_POINTLIGHTS; i++) {
+						if (points[i] == nullptr) {
+							points[i] = l;
+							pDist[i] = distance;
+							break;
+						}
+						else {
+							if (distance < pDist[i]) {
+								PointLight* pTemp = points[i];
+								float dTemp = pDist[i];
+								points[i] = l;
+								pDist[i] = distance;
+							}
+						}
+					}
+				}
+				else if (light->lightType == LightType::Spot) {
+					SpotLight* l = reinterpret_cast<SpotLight*>(light);
+					float distance = glm::length(l->position - objectPos);
+					for (int i = 0; i < N_SPOTLIGHTS; i++) {
+						if (spots[i] == nullptr) {
+							spots[i] = l;
+							sDist[i] = distance;
+							break;
+						}
+						else {
+							if (distance < sDist[i]) {
+								SpotLight* lTemp = spots[i];
+								float dTemp = sDist[i];
+								spots[i] = l;
+								sDist[i] = distance;
+							}
+						}
+					}
+				}
+			}
+
+			// Pass light to shader
+			if (dir != nullptr) {
+				PassLight(shader, dir);
+				lightCount.x++;
+			}
+
+			for (int i = 0; i < N_POINTLIGHTS; i++) {
+				if (points[i] != nullptr) {
+					PassLight(shader, i, points[i]);
+					lightCount.y++;
+				}
+				else
+					break;
+			}
+			for (int i = 0; i < N_SPOTLIGHTS; i++) {
+				if (spots[i] != nullptr) {
+					PassLight(shader, i, spots[i]);
+					lightCount.z++;
+				}
+				else
+					break;
+			}
+			shader->SetIVec3("uLightCount", lightCount);
+		}
+	}
+	std::vector<Light*>& GetLights()
+	{
+		return lights;
+	}
+	void PassLight(Shader* shader, DirLight* light)
+	{
+		if (light != nullptr) {
+			shader->SetVec3("uDirLight.ambient", light->ambient);
+			shader->SetVec3("uDirLight.diffuse", light->diffuse);
+			shader->SetVec3("uDirLight.specular", light->specular);
+			shader->SetVec3("uDirLight.direction", light->direction);
+		}
+	}
+	void PassLight(Shader* shader, int index, PointLight* light)
+	{
+		std::string u = "uPointLights[" + index + (std::string)"].";
+		if (light != nullptr) {
+			shader->SetVec3(u + "ambient", light->ambient);
+			shader->SetVec3(u + "diffuse", light->diffuse);
+			shader->SetVec3(u + "specular", light->specular);
+			shader->SetVec3(u + "position", light->position);
+			shader->SetFloat(u + "constant", light->constant);
+			shader->SetFloat(u + "linear", light->linear);
+			shader->SetFloat(u + "quadratic", light->quadratic);
+		}
+	}
+	void PassLight(Shader* shader, int index, SpotLight* light)
+	{
+		std::string u = "uSpotLights[" + index + (std::string)"].";
+		if (light != nullptr) {
+			shader->SetVec3(u + "ambient", light->ambient);
+			shader->SetVec3(u + "diffuse", light->diffuse);
+			shader->SetVec3(u + "specular", light->specular);
+			shader->SetVec3(u + "position", light->position);
+			shader->SetVec3(u + "direction", light->direction);
+			shader->SetFloat(u + "cutOff", light->cutOff);
+			shader->SetFloat(u + "outerCutOff", light->outerCutOff);
+		}
+	}
+	void PassMaterial(Shader* shader, int index, MaterialAsset* material)
+	{
+		if (shader != nullptr && material != nullptr) {
+			if (material->diffuse_map != nullptr) {
+
+				material->diffuse_map->Bind(index + 1);
+				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
+				//std::cout << "PassMaterial - texture not bound!\n";
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
+			}
+			else {
+				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
+			}
+			shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
+			shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
+			shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
+		}
+		else {
+			//std::cout << "shader or material is nullptr in Passmaterial\n";
+		}
+	}
+	void Start(std::function<void(double)> inUpdate, std::function<void(double)> inRender,double fps){
+		if (inUpdate == nullptr || inRender == nullptr) {
+			std::cout << "Engone.cpp:Start() - update or render is nullptr" << "\n";
+			return;
+		}
+		update = inUpdate;
+		render = inRender;
 
 		/*
 		// Loop
@@ -752,14 +1000,14 @@ namespace engone {
 			glfwPollEvents();
 		}*/
 		// Other
-		int FPS = fps; // variable is also used in loop
 
-		double previous = GetPlayTime();
+		double previous = GetAppTime();
 		double lag = 0.0;
-		double MS_PER_UPDATE = 1. / FPS;
+		double MS_PER_UPDATE = 1. / fps;
 		double lastSecond=previous;
+		int FPS = 0;
 		while (RenderRunning()) {
-			double current = GetPlayTime();
+			double current = GetAppTime();
 			double elapsed = current - previous;
 			//std::cout << elapsed << std::endl;
 			previous = current;
@@ -774,7 +1022,7 @@ namespace engone {
 				if (current-lastSecond>1) {
 					//std::cout << (current - lastSecond) << std::endl;
 					lastSecond = current;
-					SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
+					//SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
 					FPS = 0;
 				}
 			}
@@ -785,7 +1033,6 @@ namespace engone {
 			glfwPollEvents();
 		}
 		// remove buffer and stuff or not?
-		RenderTermin();
-
+		glfwTerminate();
 	}
 }

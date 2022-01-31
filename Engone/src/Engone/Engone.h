@@ -9,6 +9,8 @@
 #include "GameState.h"
 #include "Server/NetworkHandler.h"
 
+#include "Module.h"
+
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
 
@@ -16,6 +18,20 @@ Your own update function should include the UpdateObjects, UpdateCamera and Upda
 Your render function should include RenderObjects, RenderUI and RenderRawObjects incase of specialties.
 */
 namespace engone {
+
+	class Engone : public Module {
+	public:
+		Engone() = default;
+		~Engone();
+
+		void Init() override;
+		void Update(float delta) override;
+		void Render() override;
+
+
+
+		std::vector<Module*> modules;
+	};
 	
 	FrameBuffer& GetDepthBuffer();
 	glm::mat4& GetLightProj();
@@ -23,11 +39,10 @@ namespace engone {
 	void UpdateProjection(Shader* shader);
 
 	/*
-	Initialize engine, window, event...
-	 Use GetEventCallbacks if you need to handle mouse and key events
+	Initialize engine, window, glfw event listeners...
 	*/
-	void InitEngone();
-	void ExitEngone();
+	void InitEngine();
+	void ExitEngine();
 
 	/*
 	Update IElements, Timed Functions
@@ -58,15 +73,30 @@ namespace engone {
 	*/
 	void UpdateEngine(double delta);
 
-	struct TimedFunc
+	struct Timer
 	{
-		TimedFunc(std::function<void()> f, float t) : func(f), time(t) {}
+		float time;
 		std::function<void()> func;
-		float time = 0;
 	};
 
-	void AddTimedFunction(std::function<void()> func, float time);
-	void UpdateTimedFunc(float delta);
+	void AddTimer(float time, std::function<void()> func);
+	void UpdateTimers(float delta);
+
+	// Light
+	void AddLight(Light* l);
+	void RemoveLight(Light* l);
+
+	void BindLights(Shader* shader, glm::vec3 objectPos);
+	std::vector<Light*>& GetLights();
+
+	/*
+	Set light[index] uniform to currentShader
+	*/
+	void PassLight(Shader* shader, DirLight* light);
+	void PassLight(Shader* shader, int index, PointLight* light);
+	void PassLight(Shader* shader, int index, SpotLight* light);
+	void PassMaterial(Shader* shader, int index, MaterialAsset* material);
+
 
 	/*
 	Start the game loop and give the engine update and render calls.

@@ -8,17 +8,15 @@ namespace engone {
 	public:
 		unsigned int vertexCount, indexCount;
 
-		/*
-		Class for organizing OpenGL functions
-		*/
 		Buffer() = default;
 		Buffer(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount);
 		~Buffer();
 		/*
 		Manual initialization. Useful if you have a global BufferContainer class
-		which requires a initialization of OpenGL first.
+		which requires an initialization of OpenGL first.
 		*/
 		void Init(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount);
+		void Deinit();
 
 		void SetAttrib(unsigned int location, unsigned int count, unsigned int stride, unsigned int offset);
 		void SetAttribI(unsigned int location, unsigned int count, unsigned int stride, unsigned int offset);

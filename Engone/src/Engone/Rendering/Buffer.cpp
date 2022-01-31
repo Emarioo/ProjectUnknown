@@ -15,9 +15,7 @@ namespace engone {
 		GenBuffers(vertices, indices);
 	}
 	Buffer::~Buffer() {
-		glDeleteBuffers(1, &vertexArray);
-		glDeleteBuffers(1, &vertexBuffer);
-		glDeleteBuffers(1, &indexBuffer);
+		Deinit();
 	}
 	void Buffer::GenBuffers(void* vertices, void* indices) {
 		glGenVertexArrays(1, &vertexArray);
@@ -40,6 +38,11 @@ namespace engone {
 		this->indexCount = indexCount;
 
 		GenBuffers(vertices, indices);
+	}
+	void Buffer::Deinit() {
+		glDeleteBuffers(1, &vertexArray);
+		glDeleteBuffers(1, &vertexBuffer);
+		glDeleteBuffers(1, &indexBuffer);
 	}
 	void Buffer::SetAttrib(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
 		glEnableVertexAttribArray(loc);

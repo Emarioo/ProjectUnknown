@@ -40,7 +40,7 @@ namespace engone {
 	int tick = 0;
 	void Dimension::CleanChunks() {
 		int px = player->position.x / chunkSize, pz = player->position.z / chunkSize;
-		int befTime = engone::GetPlayTime();
+		int befTime = engone::GetAppTime();
 		for (int i = 0; i < loadedChunks.size(); i++) {
 			Chunk* c = &loadedChunks.at(i);
 			float dx = c->x - px;
@@ -63,7 +63,7 @@ namespace engone {
 				c->z -= 2 * dz - abs(dz) / dz;
 				UpdateChunk(c);
 			}
-			if (engone::GetPlayTime()-befTime>40) {
+			if (engone::GetAppTime()-befTime>40) {
 				break;
 			}
 		}

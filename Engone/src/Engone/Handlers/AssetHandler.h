@@ -108,7 +108,7 @@ namespace engone {
 						std::vector<std::string> numbers = SplitString(line, " ");
 
 						for (int i = 0; i < numbers.size(); i++) {
-							//std::cout << "num"<<numbers[i] << "\n";
+							//log::out <<numbers[i];
 							if (numbers[i].length() == 0)
 								continue;
 							if (numbers[i].find('.') == -1) {
@@ -121,6 +121,7 @@ namespace engone {
 							}
 						}
 					}
+					//log::out << "\n";
 				}catch(std::invalid_argument e){
 					throw CorruptedData;
 				}
@@ -504,7 +505,6 @@ namespace engone {
 
 		MeshType meshType = MeshType::Normal;
 		std::vector<MaterialAsset*> materials;
-		std::vector<AnimationAsset*> animations;
 		TriangleBuffer buffer;
 	};
 	class ColliderAsset : public Asset
@@ -580,6 +580,10 @@ namespace engone {
 		*/
 
 	};
+	class Assets : public Module {
+	public:
+
+	};
 	extern std::unordered_map<std::string, MaterialAsset*> engone_materials;
 	extern std::unordered_map<std::string, AnimationAsset*> engone_animations;
 	extern std::unordered_map<std::string, MeshAsset*> engone_meshes;
@@ -592,6 +596,7 @@ namespace engone {
 	template <class T>
 	T* AddAsset(const std::string& name, T* asset)
 	{
+		//if (name.empty()) return;
 		if (asset->error!=None) {
 			log::out << log::RED << log::TIME << toString(asset->error) << ": " << asset->filePath << "\n" << log::SILVER;
 		}
@@ -624,6 +629,7 @@ namespace engone {
 	template <class T>
 	T* AddAsset(const std::string& name,const std::string& path)
 	{
+		//if (name.empty()||path.empty()) return;
 		T* t = new T(path);
 		t->SetBaseName(name);
 		return AddAsset<T>(name, t);
@@ -634,14 +640,17 @@ namespace engone {
 	template <class T>
 	T* AddAsset(const std::string& path)
 	{
+		//if (path.empty()) return;
 		return AddAsset<T>(path, path);
 	}
 	/*
 	@return can be nullptr if the asset is missing. Remember to handle it.
+	@name if asset isn't found it will be used as a path. "assets/"+ name +".format"
 	*/
 	template <class T>
 	T* GetAsset(const std::string& name)
 	{
+		//if (name.empty()) return;
 		//std::cout << name << " " << (int)T::type<<" "<<(int)AssetType::Shader << "\n";
 		if (T::TYPE == AssetType::Texture) {
 			if (engone_textures.count(name) > 0)
@@ -711,6 +720,8 @@ namespace engone {
 	template <class T>
 	void RemoveAsset(const std::string& name)
 	{
+		log::out << __FILE__ << " " << __FUNCTION__ << " is not finished (memory leak)\n";
+		//if (name.empty()) return;
 		if (T::TYPE == AssetType::Texture)
 			if (engone_textures.count(name) > 0) { // needs to be copied to the other ones
 				delete engone_textures[name];

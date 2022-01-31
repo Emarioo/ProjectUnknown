@@ -11,8 +11,9 @@ namespace engone {
 	//std::string Crypt(const std::string& word,const std::string& key, bool encrypt);
 
 	//void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3);
-
-	double GetPlayTime();
+	// The time the program(glfw) has been running in seconds
+	double GetAppTime();
+	//The time since epoch in seconds
 	double GetSystemTime();
 	std::string GetClock();
 	double GetRandom();

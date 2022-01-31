@@ -10,9 +10,10 @@ namespace engone
 		int code;
 		bool down = false;
 		int pressed = false;
+		bool isGlfw = true;
 	};
 	static int mouseX, mouseY;
-	static float scrollX, scrollY;
+	static float scrollX, scrollY, scrollYConsole;
 	static std::unordered_map<short, Keybinding> keybindings;
 	static std::vector<Listener*> listeners;
 	static std::vector<Event> events;
@@ -28,11 +29,7 @@ namespace engone
 	}
 	bool operator==(EventType a, EventType b)
 	{
-		if ( (char(a)&char(EventType::GLFW)) && (char(b)&char(EventType::GLFW))|| 
-			(char(a) & char(EventType::Console)) && (char(b) & char(EventType::Console)) ) {
-			return (char(a) & char(b)) > 0;
-		}
-		return false;
+		return ((char)a & (char)b) > 0;
 	}
 
 	Event::Event(EventType type) : eventType(type) {}
@@ -40,7 +37,7 @@ namespace engone
 		: eventTypes(eventTypes), run(f){}
 	Listener::Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f), priority(priority){}
-	void SetInput(int code, bool down)
+	void SetInput(int code, bool down, bool isGlfw=true)
 	{
 		for (int i = 0; i < inputs.size(); i++) {
 			if (inputs[i].code == code) {
@@ -58,20 +55,20 @@ namespace engone
 			}
 		}
 		if (down)
-			inputs.push_back({ code, down, 1 });
+			inputs.push_back({ code, down, 1, isGlfw});
 	}
 	void ExecuteListeners()
 	{
-		char breaker = 0;
 		for (int j = 0; j < events.size(); j++) {
+			char breaker = 0; // if a flag is simular it will break
 			for (int i = 0; i < listeners.size(); i++) {
 				if ((char)listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
 					continue;
 
 				if ((char)listeners[i]->eventTypes == (char)events[j].eventType) {
 					EventType types = listeners[i]->run(events[j]);
-					if (char(types)!=0)
-						breaker = (char)(breaker | (char(listeners[i]->eventTypes)<<2>>2));// <<2>>2 to ignore console and glfw type
+					if ((char)types!=0)
+						breaker = (char)(breaker | (char)listeners[i]->eventTypes);
 				}
 			}
 		}
@@ -86,7 +83,7 @@ namespace engone
 	void InitEvents(GLFWwindow* window)
 	{
 		glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-			Event e(EventType::Key | EventType::GLFW);
+			Event e(EventType::Key);
 			e.key = key;
 			e.scancode = scancode;
 			e.action = action;
@@ -95,7 +92,7 @@ namespace engone
 			ExecuteListeners();
 			});
 		glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-			Event e(EventType::Click|EventType::GLFW);
+			Event e(EventType::Click);
 			e.button = button;
 			e.action = action;
 			e.mx = mouseX;
@@ -107,14 +104,14 @@ namespace engone
 		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mx, double my) {
 			mouseX = mx;
 			mouseY = my;
-			Event e(EventType::Move | EventType::GLFW);
+			Event e(EventType::Move);
 			e.mx = mx;
 			e.my = my;
 			events.push_back(e);
 			ExecuteListeners();
 			});
 		glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-			Event e(EventType::Scroll | EventType::GLFW);
+			Event e(EventType::Scroll);
 			e.scrollX = xoffset;
 			e.scrollY = yoffset;
 			e.mx = mouseX;
@@ -126,13 +123,13 @@ namespace engone
 			ExecuteListeners();
 			});
 		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus) {
-			Event e(EventType::Focus | EventType::GLFW);
+			Event e(EventType::Focus);
 			e.focused = focus;
 			events.push_back(e);
 			ExecuteListeners();
 			});
 		glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-			Event e(EventType::Resize | EventType::GLFW);
+			Event e(EventType::Resize);
 			e.width = width;
 			e.height = height;
 			events.push_back(e);
@@ -140,7 +137,8 @@ namespace engone
 			});
 	}
 	void AddListener(Listener* listener)
-	{// Prevent duplicates
+	{
+		// Prevent duplicates
 		for (int i = 0; i < listeners.size(); i++) {
 			if (listener == listeners[i]) {
 				return;
@@ -157,30 +155,38 @@ namespace engone
 	}
 	int GetMouseX()	{return mouseX;}
 	int GetMouseY(){return mouseY;}
-	int IsScrolledY()
+	int IsScrolledY(bool isGlfw)
 	{
-		if (scrollY != 0)
-			return scrollY;
+		if (isGlfw) {
+			if (scrollY != 0)
+				return scrollY;
+		}
+		else {
+			if (scrollYConsole != 0)
+				return scrollY;
+		}
 		return 0;
 	}
-	int IsScrolledX()
+	int IsScrolledX(bool isGlfw)
 	{
-		if (scrollX != 0)
-			return scrollX;
+		if (isGlfw) {
+			if (scrollX != 0)
+				return scrollX;
+		}
 		return 0;
 	}
-	bool IsKeyDown(int code)
+	bool IsKeyDown(int code, bool isGlfw)
 	{
 		for (int i = 0; i < inputs.size(); i++) {
-			if (inputs[i].code == code)
+			if (inputs[i].code == code && inputs[i].isGlfw==isGlfw)
 				return inputs[i].down;
 		}
 		return false;
 	}
-	bool IsKeyPressed(int code)
+	bool IsKeyPressed(int code, bool isGlfw)
 	{
 		for (int i = 0; i < inputs.size(); i++) {
-			if (inputs[i].code == code)
+			if (inputs[i].code == code && inputs[i].isGlfw == isGlfw)
 				return inputs[i].pressed > 0;
 		}
 		return false;
@@ -189,6 +195,7 @@ namespace engone
 	{
 		scrollX = 0;
 		scrollY = 0;
+		scrollYConsole = 0;
 		for (int i = 0; i < inputs.size(); i++) {
 			if (inputs[i].pressed > 0)
 				inputs[i].pressed--;
@@ -264,9 +271,12 @@ namespace engone
 
 		return numKeys;
 	}
-	void SaveKeybindings(const std::string& path)
+	bool SaveKeybindings(const std::string& path)
 	{
 		std::ofstream file(path, std::ios::binary);
+		if (!file) {
+			return false;
+		}
 
 		int numKeys = keybindings.size();
 
@@ -291,73 +301,51 @@ namespace engone
 		// Cleanup
 		delete[] sets;
 		file.close();
+		return true;
 	}
 	void ClearKeybindings() { keybindings.clear(); }
 	static bool lastL = false, lastM = false, lastR = false;
 	void RefreshEvents()
 	{
 		if (inHandle != nullptr) {
-			DWORD num;
+			DWORD num; 
 			GetNumberOfConsoleInputEvents(inHandle, &num);
 			if (num > 0) {
 				ReadConsoleInput(inHandle, inRecord, 8, &numRead);
 				for (int i = 0; i < numRead; i++) {
-					Event e;
+					//Event e;
 					switch (inRecord[i].EventType) {
 					case KEY_EVENT:
-						SetInput(inRecord[i].Event.KeyEvent.wVirtualKeyCode, inRecord[i].Event.KeyEvent.bKeyDown);
-						e.eventType = EventType::Key|EventType::Console;
-						
-						e.key = inRecord[i].Event.KeyEvent.wVirtualKeyCode;
-						e.scancode = inRecord[i].Event.KeyEvent.wVirtualScanCode;
-						e.action = inRecord[i].Event.KeyEvent.bKeyDown;
-						events.push_back(e);
+						SetInput(inRecord[i].Event.KeyEvent.wVirtualKeyCode, inRecord[i].Event.KeyEvent.bKeyDown, false);
 						break;
 					case MOUSE_EVENT:
 						bool lb = inRecord[i].Event.MouseEvent.dwButtonState & 1;
 						bool mb = (inRecord[i].Event.MouseEvent.dwButtonState >> 2) & 1;
 						bool rb = (inRecord[i].Event.MouseEvent.dwButtonState >> 1) & 1;
 
-						SetInput(VK_LBUTTON, lb);
-						SetInput(VK_MBUTTON, mb);
-						SetInput(VK_RBUTTON, rb);
+						SetInput(VK_LBUTTON, lb, false);
+						SetInput(VK_MBUTTON, mb, false);
+						SetInput(VK_RBUTTON, rb, false);
 						mouseX = inRecord[i].Event.MouseEvent.dwMousePosition.X;
 						mouseY = inRecord[i].Event.MouseEvent.dwMousePosition.Y;
 
-						e.mx = mouseX;
-						e.my = mouseY;
 						switch (inRecord[i].Event.MouseEvent.dwEventFlags) {
 						case 0:
-							e.eventType = EventType::Click | EventType::Console;
 							if (lastL != lb) {
-								e.action = lb;
-								e.button = VK_LBUTTON;
 								lastL = lb;
-								events.push_back(e);
 							}
 							if (lastM != mb) {
-								e.action = mb;
-								e.button = VK_MBUTTON;
 								lastM = mb;
-								events.push_back(e);
 							}
 							if (lastR != rb) {
-								e.action = rb;
-								e.button = VK_RBUTTON;
 								lastR = rb;
-								events.push_back(e);
 							}
 							break;
 						case MOUSE_MOVED:
-							e.eventType = EventType::Move | EventType::Console;
-							events.push_back(e);
 							break;
 						case MOUSE_WHEELED:
-							e.eventType = EventType::Scroll | EventType::Console;
-							scrollY = inRecord[i].Event.MouseEvent.dwButtonState > 0 ? 1 : -1;
-							e.scrollY = scrollY;
+							scrollYConsole = inRecord[i].Event.MouseEvent.dwButtonState > 0 ? 1 : -1;
 							// what about horisontal scroll?
-							events.push_back(e);
 							break;
 						}
 						break;
@@ -365,6 +353,5 @@ namespace engone
 				}
 			}
 		}
-		ExecuteListeners();
 	}
 }

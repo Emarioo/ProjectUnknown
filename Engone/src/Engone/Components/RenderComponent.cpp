@@ -9,14 +9,14 @@ namespace engone {
 		model = modelAsset;
 		animator.model = modelAsset;
 	}
-	void RenderComponent::GetInstanceTransforms(std::vector<glm::mat4>& mats)
+	void RenderComponent::GetParentTransforms(std::vector<glm::mat4>& mats)
 	{
 		mats.resize(model->instances.size());
 		if (model == nullptr)
 			return;
 
 		std::vector<glm::mat4> modelT(model->instances.size());
-		
+		//log::out << "go "<< "\n";
 		for (int i = 0; i < model->instances.size(); i++) {
 			AssetInstance& instance = model->instances[i];
 			glm::mat4 loc = model->instances[i].localMat;
@@ -39,10 +39,10 @@ namespace engone {
 					
 						if (animation->objects.count(0) > 0) {// the object/instance uses transform object
 							
-							//log::out << "ind " << i << "\n";
+							//log::out << "inst " << i << "\n";
 							animation->objects[0].GetValues(prop.frame, prop.blend,
 								pos, euler, scale, quater, &usedChannels);
-							//log::out << " stof "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+							//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
 						}
 					}
 				}
@@ -54,6 +54,7 @@ namespace engone {
 
 			// Hello again! Current issue here is the local matrix and animation colliding with each other.
 			//  If there is an animation for a channel, then the local matrix should be ignored.
+			
 			/*
 			for (int i = 0; i < 3;i++) {
 				if (!((usedChannels<<i) & 1)) {
@@ -96,15 +97,20 @@ namespace engone {
 				;
 			
 
-			if (model->instances[i].parent == -1)
+			if (model->instances[i].parent == -1) {
 				modelT[i] = (loc*ani);
-			else
+				mats[i] = (ani);
+				//log::out << loc <<" "<<i << "\n";
+			} else {
 				modelT[i] = modelT[model->instances[i].parent] * (loc*ani);
+				mats[i] = (modelT[model->instances[i].parent] * (ani));
+				//log::out << loc << " x " << i << "\n";
+			}
 
-			mats[i] = (modelT[i]);
+			//mats[i] = (modelT[i]);
 		}
 	}
-	void RenderComponent::GetArmatureTransforms(std::vector<glm::mat4>& mats, AssetInstance& instance, ArmatureAsset* armature) {
+	void RenderComponent::GetArmatureTransforms(std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* armature) {
 		mats.resize(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
@@ -130,6 +136,7 @@ namespace engone {
 								
 								animation->objects[i].GetValues(prop.frame,prop.blend,
 									pos, euler, scale, quater, &usedChannels);
+								//log::out << quater<<"\n";
 							}
 						}
 					}
@@ -176,12 +183,15 @@ namespace engone {
 					* glm::scale(scale)
 					;
 
-				if (i == 0)
+				if (i == 0) {
 					modelT[i] = (loc*ani);
-				else
-					modelT[i] = modelT[armature->bones[i].parent] * (loc* ani);
+					//log::out << loc << modelT[i] <<" "<< i << "\n";
+				} else {
+					modelT[i] = modelT[armature->bones[i].parent] * (loc * ani);
+					//log::out << loc <<" x "<<i << "\n";
+				}
 
-				mats[i] = (modelT[i]) * inv;
+				mats[i] = (modelT[i]*inv);
 			}
 		}
 	}

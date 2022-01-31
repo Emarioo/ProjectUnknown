@@ -6,6 +6,7 @@ namespace engone
 {
 	namespace log
 	{
+		// Will change color of out stream
 		enum ConsoleColorCode : char
 		{
 			BLACK,
@@ -63,7 +64,9 @@ namespace engone
 			logger operator<<(void* a);
 			//debug operator<(engine::ShaderType t);
 		};
+		// stream like std::cout but support for glm data types
 		extern logger out;
+		// using this char in out stream will print the time Hour:Min:Sec
 		extern char TIME;
 	}
 
@@ -91,9 +94,12 @@ namespace engone
 		int indent = 0;
 	};
 
+	// Deprecated
 	void Logging(LogHead head, LogStatus status);
-
+	// Deprecated, Add event listener for key/console
 	void DebugInit();
+	// Deprecated
 	void UpdateDebug(double delta);
+	// Deprecated
 	void RenderDebug(double lag);
 }

@@ -237,6 +237,7 @@ namespace engone
 	}
 	void DebugInit()
 	{
+		/*
 		AddListener(new Listener(EventType::Key|EventType::Console, [](Event& e) {
 			if (e.action == 1) {
 				if (e.key == VK_UP) {
@@ -301,6 +302,7 @@ namespace engone
 
 			return EventType::None;
 			}));
+			*/
 	}
 	void UpdateDebug(double delta)
 	{

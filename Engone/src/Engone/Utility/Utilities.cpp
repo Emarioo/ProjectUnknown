@@ -80,7 +80,7 @@ namespace engone {
 		}
 		return out;
 	}*/
-	double GetPlayTime() {
+	double GetAppTime() {
 		return glfwGetTime();
 	}
 	double GetSystemTime() {

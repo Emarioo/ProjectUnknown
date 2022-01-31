@@ -14,6 +14,7 @@ void main()
 {
 	fUV=vPos.zw;
 	gl_Position = vec4((vPos.x*uSize.x+uPos.x)/uWindow.x*2-1, 1-(vPos.y*uSize.y+uPos.y)/uWindow.y*2, 0, 1);
+	//gl_Position = vec4(vPos.x, -vPos.y, 0, 1);
 };
 
 #shader fragment
@@ -25,14 +26,21 @@ in vec2 fUV;
 
 uniform sampler2D uTextures;
 uniform vec4 uColor;
-uniform int uTextured;
+uniform int uColorMode;
 
 void main()
 {
-	if(uTextured==1){
-		oColor = uColor*texture(uTextures, fUV);
-	}else{
+	vec4 tx = texture(uTextures,fUV);
+	if(uColorMode==0){
 		oColor = uColor;
+	}else if(uColorMode==1){
+		oColor = uColor*tx;
+	}else if(uColorMode==2){
+		oColor = vec4(
+			uColor.r*(uColor.a-tx.a)+tx.r*tx.a,
+			uColor.g*(uColor.a-tx.a)+tx.g*tx.a,
+			uColor.b*(uColor.a-tx.a)+tx.b*tx.a,
+			uColor.a);
 	}
 };
 )"

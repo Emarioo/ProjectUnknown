@@ -333,13 +333,9 @@ namespace engone {
 	}
 	void MaterialAsset::Load(const std::string& path)
 	{
-		//std::cout << "load " << path << "\n";
+		// free/reset data? no need though
+
 		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			//std::cout <<" mae error "<<file.error<<"\n";
-			return;
-		}*/
 		try {
 			std::string diffuse_mapName;
 			std::string root = GetRootPath();
@@ -393,7 +389,7 @@ namespace engone {
 		float build[9]{ 0,0,0,0,0,0,1,1,1 };
 		glm::quat q0 = glm::quat(1, 0, 0, 0);
 		glm::quat q1 = glm::quat(1, 0, 0, 0);
-		//bug::out < "curve "< fcurves.size() < bug::end;
+		//log::out << "curve "<< fcurves.size() <<"\n";
 		float slerpT = 0;
 		for (std::pair<ChannelType, FCurve> curve : fcurves) {
 			ChannelType type = curve.first;
@@ -434,7 +430,7 @@ namespace engone {
 					continue;
 				}
 			}
-			//std::cout << a->frame << " " << b->frame << std::endl;
+			//log::out << a->frame << " " << b->frame << "\n";
 			// lerping between to keyframes
 			float lerp = 0;
 			if (a->polation == Constant) {
@@ -476,10 +472,13 @@ namespace engone {
 		//bug::out < matis<"\n";
 		//quater *= glm::slerp(q0, q1, slerpT);
 
+		//log::out << q0 <<" - "<<q1 << "\n";
 
 		//std::cout << slerpT << std::endl;
 
 		//bug::outs < "b " <build[1] < "\n";
+
+		
 
 		if (q0 == q1 || slerpT == 0) {
 			quater *= glm::mat4_cast(glm::slerp(glm::quat(1, 0, 0, 0), q0, blend));
@@ -524,11 +523,11 @@ namespace engone {
 	}
 	void AnimationAsset::Load(const std::string& path)
 	{
+		// clear data
+		// clear data in side channels?
+		objects.clear();
+
 		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			return;
-		}*/
 		try {
 			file.read(&frameStart);
 			file.read(&frameEnd);
@@ -537,11 +536,16 @@ namespace engone {
 			uint8_t objectCount;
 			file.read(&objectCount);
 
+			//log::out << "obs " << objectCount << "\n";
+
 			for (int i = 0; i < objectCount; i++) {
 				uint16_t index,curves;
 				
 				file.read(&index);
 				file.read(&curves);
+				
+				//log::out << "index " << index << "\n";
+				//log::out << "curve " << curves << "\n";
 
 				bool curveB[13]{ 0,0,0,0,0,0,0,0,0,0,0,0,0 };
 				for (int j = 12; j >= 0; j--) {
@@ -590,12 +594,11 @@ namespace engone {
 	}
 	void MeshAsset::Load(const std::string& path)
 	{
-		//std::cout << "Try load "<<path << "\n";
-		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			return;
-		}*/
+		// clear data
+		materials.clear();
+		buffer.Deinit();
+
+		FileReader file(path);		
 		try {
 			uint16_t pointCount;
 			uint16_t textureCount;
@@ -862,11 +865,9 @@ namespace engone {
 	}
 	void ColliderAsset::Load(const std::string& path)
 	{
+		// CLEAR DATA
+
 		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			return;
-		}*/
 		try {
 
 		}
@@ -878,11 +879,9 @@ namespace engone {
 	}
 	void ArmatureAsset::Load(const std::string& path)
 	{
+		bones.clear();
+
 		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			return;
-		}*/
 		try {
 			uint8_t boneCount;
 			file.read(&boneCount);
@@ -910,12 +909,10 @@ namespace engone {
 	}
 	void ModelAsset::Load(const std::string& path)
 	{
+		instances.clear();
+		animations.clear();
+
 		FileReader file(path);
-		/*if (!file) {
-			error = file.error;
-			Logging({ "AssetManager","Model","Missing: " + path }, LogStatus::Error);
-			return;
-		}*/
 		try {
 			std::string root = GetRootPath();
 
