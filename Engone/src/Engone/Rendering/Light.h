@@ -2,6 +2,8 @@
 
 #include "glm/glm.hpp"
 
+#include "../Handlers/AssetHandler.h"
+
 namespace engone {
 	enum class LightType {
 		None,
@@ -26,6 +28,8 @@ namespace engone {
 		glm::vec3 ambient;
 		glm::vec3 diffuse;
 		glm::vec3 specular;
+
+		virtual void Bind(Shader* shader, int index);
 	};
 	class DirLight : public Light {
 	public:
@@ -33,6 +37,8 @@ namespace engone {
 		DirLight(glm::vec3 direction) : Light(LightType::Direction, {0,0,0},direction) {}
 		DirLight(glm::vec3 direction, glm::vec3 ambient, glm::vec3 diffuse, glm::vec3 specular)
 			: Light(LightType::Direction,ambient,diffuse,specular) {}
+
+		void Bind(Shader* shader, int index=0) override;
 	};
 	class PointLight : public Light {
 	public:
@@ -44,6 +50,8 @@ namespace engone {
 		float constant = 1;
 		float linear = 0.09;
 		float quadratic = 0.032;
+		
+		void Bind(Shader* shader, int index) override;
 	};
 	class SpotLight : public Light {
 	public:
@@ -54,5 +62,7 @@ namespace engone {
 
 		float cutOff = glm::cos(glm::radians(30.f));
 		float outerCutOff = glm::cos(glm::radians(35.f));
+		
+		void Bind(Shader* shader, int index) override;
 	};
 }

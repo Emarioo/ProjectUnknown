@@ -1,43 +1,43 @@
 #include "gonpch.h"
 
-#include "Window.h"
-
 #include "Rendering/Renderer.h"
 
+#include "Window.h"
+
 namespace engone {
-	Window::Window() {
 
+	static WindowType windowType=WindowType::Windowed;
+	static GLFWwindow* glfwWindow=nullptr;
+	GLFWwindow* GetWindow() {
+		return glfwWindow;
 	}
-	Window::Window(const std::string& title) {
-		SetTitle(title);
+	static std::string title = "Unnamed";
 
-		Init();
-	}
-	Window::~Window() {
+	// relevant if windowed, stores the coordinates when going from windowed->fullscreen->windowed
+	static int x=0, y=0, w=0, h=0;
 
-	}
-	void Window::Init() {
+	static bool isCursorVisible = true, isCursorLocked = false, hasFocus = true;
+
+	void InitWindow(const std::string& title) {
 		// Temporary, should be loaded from a settings file
-		windowType = WindowType::Windowed;
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		x = mode->width / 6;
-		y = mode->height / 6;
-		w = mode->width / 1.5;
-		h = mode->height / 1.5;
+		{
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			x = mode->width / 6;
+			y = mode->height / 6;
+			w = mode->width / 1.5;
+			h = mode->height / 1.5;
+			windowType = WindowType::Windowed;
+		}
+		MakeWindow(windowType);
 
-		MakeWindow();
+		SetTitle(title);
 	}
-	void Window::Update(float delta) {
-
-	}
-	void Window::Render() {
-
-	}
-	void Window::SetTitle(const std::string& title) {
+	void SetTitle(const std::string& title) {
 		glfwSetWindowTitle(glfwWindow, title.c_str());
 	}
-	void Window::MakeWindow() {
+	void MakeWindow(WindowType type) {
+		windowType = type;
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
@@ -49,17 +49,17 @@ namespace engone {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		if (windowType == WindowType::Windowed) {
+		if (type == WindowType::Windowed) {
 			glfwWindowHint(GLFW_DECORATED, true);
 			glfwWindow = glfwCreateWindow(w, h, "Unnamed", NULL, NULL);
 
 		}
-		else if (windowType == WindowType::Fullscreen) {
+		else if (type == WindowType::Fullscreen) {
 			glfwWindowHint(GLFW_DECORATED, true);
 			glfwWindow = glfwCreateWindow(mode->width, mode->height, "Unnamed", monitor, NULL);
 
 		}
-		else if (windowType == WindowType::BorderlessFullscreen) {
+		else if (type == WindowType::BorderlessFullscreen) {
 			glfwWindowHint(GLFW_DECORATED, false);
 			glfwWindow = glfwCreateWindow(mode->width, mode->height, "Unnamed", NULL, NULL);
 		}
@@ -74,7 +74,7 @@ namespace engone {
 		}
 		glfwMakeContextCurrent(glfwWindow);
 	}
-	void Window::SetType(WindowType type) {
+	void SetType(WindowType type) {
 		if (type == windowType) return;
 
 		if (glfwWindow == nullptr) {
@@ -85,62 +85,57 @@ namespace engone {
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
 		if (windowType == WindowType::Windowed && type == WindowType::Fullscreen) {
-			windowType = type;// do it before so the resize event has the current windowType and not the last one
 			glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 		}
 		else if (windowType == WindowType::Windowed && type == WindowType::BorderlessFullscreen) {
-			windowType = type;
-			MakeWindow();
+			MakeWindow(type);
 		}
 		else if (windowType == WindowType::Fullscreen && type == WindowType::Windowed) {
-			windowType = type;
 			glfwSetWindowMonitor(glfwWindow, NULL, x, y, w, h, mode->refreshRate);
 		}
 		else if (windowType == WindowType::Fullscreen && type == WindowType::BorderlessFullscreen) {
-			windowType = type;
-			MakeWindow();
+			MakeWindow(type);
 		}
 		else if (windowType == WindowType::BorderlessFullscreen && type == WindowType::Windowed) {
-			windowType = type;
-			MakeWindow();
+			MakeWindow(type);
 		}
 		else if (windowType == WindowType::BorderlessFullscreen && type == WindowType::Fullscreen) {
-			windowType = type;
-			MakeWindow();
+			MakeWindow(type);
 		}
+		windowType = type;
 		int wid;
 		int hei;
 		glfwGetWindowSize(glfwWindow, &wid, &hei);
 		glViewport(0, 0, wid, hei);
 	}
-	WindowType Window::GetType() {
+	WindowType GetType() {
 		return windowType;
 	}
-	int Window::GetWidth() {
+	float GetWidth() {
 		int temp;
 		glfwGetWindowSize(glfwWindow, &temp, nullptr);
 		return temp;
 	}
-	int Window::GetHeight() {
+	float GetHeight() {
 		int temp;
 		glfwGetWindowSize(glfwWindow, nullptr, &temp);
 		return temp;
 	}
-	bool Window::HasFocus() {
+	bool HasFocus() {
 		return hasFocus;
 	}
-	bool Window::IsCursorVisible() {
+	bool IsCursorVisible() {
 		return isCursorVisible;
 	}
-	bool Window::IsCursorLocked() {
+	bool IsCursorLocked() {
 		return isCursorLocked;
 	}
-	void Window::SetCursorVisible(bool visible) {
+	void SetCursorVisible(bool visible) {
 		isCursorVisible = visible;
 		if (visible) glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		else glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	}
-	void Window::LockCursor(bool locked) {
+	void LockCursor(bool locked) {
 		isCursorLocked = locked;
 		if (locked) {
 			glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -153,7 +148,7 @@ namespace engone {
 				glfwSetInputMode(glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 	}
-	bool Window::IsOpen() {
+	bool IsOpen() {
 		return !glfwWindowShouldClose(glfwWindow);
 	}
 }

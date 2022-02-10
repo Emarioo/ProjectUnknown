@@ -39,7 +39,7 @@ namespace engone {
 	}
 	int tick = 0;
 	void Dimension::CleanChunks() {
-		int px = player->position.x / chunkSize, pz = player->position.z / chunkSize;
+		int px = player->GetPosition().x / chunkSize, pz = player->GetPosition().z / chunkSize;
 		int befTime = engone::GetAppTime();
 		for (int i = 0; i < loadedChunks.size(); i++) {
 			Chunk* c = &loadedChunks.at(i);
@@ -211,7 +211,7 @@ namespace engone {
 		//bug::outs < v[3] < v[4] < v[5] < bug::end;
 	}
 	float Dimension::TerHeightAtPlayer() {
-		float v[]{ (int)(player->position.x),0,(int)(player->position.z),1,1,1 };
+		float v[]{ (int)(player->GetPosition().x),0,(int)(player->GetPosition().z),1,1,1 };
 		GetBiome(v);
 		return v[1];
 	}

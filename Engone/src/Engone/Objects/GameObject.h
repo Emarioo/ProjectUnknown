@@ -1,53 +1,38 @@
 #pragma once
 
-#include "../Components/MetaComponent.h"
-#include "../Components/CollisionComponent.h"
+#include "../Components/Animator.h"
+#include "../Components/Physics.h"
 #include "../Components/RenderComponent.h"
 
 namespace engone {
 	class GameObject {
+	private:
+		std::string m_name;
+
+		ModelAsset* m_model;
+
 	public:
 		GameObject(const std::string& name);
 		GameObject(const std::string& name, float x,float y,float z);
-		std::string name;
-		void SetName(std::string name);
-		std::string& GetName();
-		glm::vec3 position;// Pointer to meta strip?
-		glm::vec3 velocity;
-		glm::vec3 rotation;
-		glm::quat quaternion;
-		glm::vec3 scale;
-
+		
 		/*
 		This can be altered in the game loop to apply custom transformation, rotation and scaling.
 		*/
-		glm::mat4 matrix=glm::mat4(1);
+		glm::mat4 m_matrix=glm::mat4(1);
 
+		Animator animator;
 		RenderComponent renderComponent;
-		//MetaComponent metaComponent;
-		CollisionComponent collisionComponent;
+		Physics physics;
 
-		int weight = 1;
-
-		float proximity = 40;
-
-		virtual void Update(float delta);
-
-		glm::vec3 GetPos();
-		glm::vec3 GetRot();
-		void SetPosition(float x, float y, float z);
+		void SetName(std::string name);
+		std::string& GetName();
+		
 		void SetPosition(glm::vec3 v);
-		void SetRotation(float x, float y, float z);
-		void SetRotation(glm::vec3 v);
-		/*
-		return this.velocity if no collision
-		*/
-		glm::vec3 WillCollide(GameObject* o1, float delta);
+		glm::vec3 GetPosition();
 
-		void MetaUpdate(float delta);
-		bool renderHitbox = false;
-		bool renderMesh = true;
-
-		bool IsClose(GameObject*);
+		void SetModel(ModelAsset* model);
+		ModelAsset* GetModel();
+		
+		virtual void Update(float delta);
 	};
 }

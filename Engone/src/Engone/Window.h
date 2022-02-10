@@ -11,60 +11,42 @@ namespace engone {
 		Fullscreen,
 		BorderlessFullscreen
 	};
-	class Window : public Module {
-	public:
-		Window();
-		Window(const std::string& title="Unnamed");
-		~Window() override;
-		
-		void Init() override;
-		void Update(float delta) override;
-		void Render() override;
+	GLFWwindow* GetWindow();
 
-		void SetTitle(const std::string& title);
+	void InitWindow(const std::string& title = "Unnamed");
 
-		// Create or recreate window with new settings
-		void MakeWindow();
-		
-		void SetType(WindowType type);
-		WindowType GetType();
+	void SetTitle(const std::string& title);
 
-		// Width of game screen not window!
-		int GetWidth();
-		// Height of game screen not window!
-		int GetHeight();
+	// Create or recreate window with new settings, when none, last or default will be used.
+	void MakeWindow(WindowType type = WindowType::None);
 
-		bool HasFocus();
+	// Set the type of the window. Will recreate window if necessary
+	void SetType(WindowType type);
+	WindowType GetType();
 
-		/*
-		@return: true if the cursor is visible.
-		*/
-		bool IsCursorVisible();
-		/*
-		@visible: if true, the cursor will be made visible.
-		*/
-		void SetCursorVisible(bool visible);
-		/*
-		@return: whether the cursor is locked to the window.
-		*/
-		bool IsCursorLocked();
-		/*
-		@locked: if true, the cursor will be made invisible and locked to the window. Use this when you want the player to lock around.
-		*/
-		void LockCursor(bool locked);
+	// Width of game screen not window!
+	float GetWidth();
+	// Height of game screen not window!
+	float GetHeight();
 
-		bool IsOpen();
+	bool HasFocus();
 
-	private:
-		GLFWwindow* glfwWindow;
-		WindowType windowType;
+	/*
+	@return: true if the cursor is visible.
+	*/
+	bool IsCursorVisible();
+	/*
+	@visible: if true, the cursor will be made visible.
+	*/
+	void SetCursorVisible(bool visible);
+	/*
+	@return: whether the cursor is locked to the window.
+	*/
+	bool IsCursorLocked();
+	/*
+	@locked: if true, the cursor will be made invisible and locked to the window. Use this when you want the player to lock around.
+	*/
+	void LockCursor(bool locked);
 
-		std::string title = "Unnamed";
-
-		// relevant if windowed
-		int x, y, w, h;
-
-		bool isCursorVisible = true, isCursorLocked = false, hasFocus=false;
-
-	};
+	bool IsOpen();
 }

@@ -1,13 +1,12 @@
 #include "gonpch.h"
 
 #include "AssetHandler.h"
+#include "../Components/Animator.h"
 
 #include "../Utility/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
-
-#include "DebugHandler.h"
 
 #include "GL/glew.h"
 
@@ -358,6 +357,25 @@ namespace engone {
 		}
 		file.close();
 		// add diffuse_map as a texture asset
+	}
+	void MaterialAsset::Bind(Shader* shader, int index) {
+			if (shader != nullptr) {
+				if (diffuse_map != nullptr) {
+
+					diffuse_map->Bind(index + 1);
+					//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
+					//std::cout << "PassMaterial - texture not bound!\n";
+					shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+					shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
+				} else {
+					shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
+				}
+				shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", diffuse_color);
+				shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", specular);
+				shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", shininess);
+			} else {
+				//std::cout << "shader or material is nullptr in Passmaterial\n";
+			}
 	}
 	Keyframe::Keyframe(PolationType polation, unsigned short frame, float value)
 		: polation(polation), frame(frame), value(value)
@@ -865,11 +883,39 @@ namespace engone {
 	}
 	void ColliderAsset::Load(const std::string& path)
 	{
-		// CLEAR DATA
+		if (colliderType == Type::Sphere) {
+
+		}else if (colliderType == Type::Cube) {
+
+		}else if (colliderType == Type::Mesh) {
+			mesh.points.clear();
+			mesh.quad.clear();
+			mesh.tri.clear();
+		}
 
 		FileReader file(path);
 		try {
+			uint8_t movable;
+			file.read(&movable);
 
+			//log::out << movable << " move\n";
+
+			file.read(&colliderType);
+
+			//log::out << (int)colliderType << " type\n";
+
+			switch (colliderType) {
+			case Type::Sphere:
+				file.read(&sphere.radius);
+				//log::out << cube.scale << " radius \n";
+				break;
+			case Type::Cube:
+				file.read(&cube.scale);
+				//log::out << cube.scale<<" scale \n";
+				break;
+			case Type::Mesh:
+				break;
+			}
 		}
 		catch (AssetError err) {
 			error = err;
@@ -963,6 +1009,190 @@ namespace engone {
 		}
 		file.close();
 	}
+	void ModelAsset::GetParentTransforms(Animator& animator, std::vector<glm::mat4>& mats) {
+		mats.resize(instances.size());
+
+		std::vector<glm::mat4> modelT(instances.size());
+		//log::out << "go "<< "\n";
+		for (int i = 0; i < instances.size(); i++) {
+			AssetInstance& instance = instances[i];
+			glm::mat4 loc = instances[i].localMat;
+			glm::mat4 inv = instances[i].invModel;
+
+			glm::vec3 pos = { 0,0,0 };
+			glm::vec3 euler = { 0,0,0 };
+			glm::vec3 scale = { 1,1,1 };
+			glm::mat4 quater = glm::mat4(1);
+
+			short usedChannels = 0;
+
+			for (int k = 0; k < animator.enabledAnimations.size(); k++) {
+				AnimationProperty& prop = animator.enabledAnimations[k];
+				for (int j = 0; j < animations.size(); j++) {
+					AnimationAsset* animation = animations[j];
+					//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
+					if (prop.animationName == animation->baseName &&
+						prop.instanceName == instance.name) {
+
+						if (animation->objects.count(0) > 0) {// the object/instance uses transform object
+
+							//log::out << "inst " << i << "\n";
+							animation->objects[0].GetValues(prop.frame, prop.blend,
+								pos, euler, scale, quater, &usedChannels);
+							//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+						}
+					}
+				}
+			}
+
+			// Hello programmer! If you have issues where the matrix of an object is offset,
+			//  you should clear parent inverse in blender. The offset is visible
+			//  when using bpy.context.object.matrix_local. It doesn't show up in the viewport.
+
+			// Hello again! Current issue here is the local matrix and animation colliding with each other.
+			//  If there is an animation for a channel, then the local matrix should be ignored.
+
+			/*
+			for (int i = 0; i < 3;i++) {
+				if (!((usedChannels<<i) & 1)) {
+					pos[i] = loc[3][i];
+				}
+			}
+			// Euler?
+			for (int i = 0; i < 3; i++) {
+				if (!((usedChannels << (6 + i)) & 1)) {
+					scale[i] = glm::length(glm::vec3(loc[i]));
+				}
+			}
+
+			const glm::mat3 rotMtx(
+					glm::vec3(loc[0]) / scale[0],
+					glm::vec3(loc[1]) / scale[1],
+					glm::vec3(loc[2]) / scale[2]);
+			glm::quat locQuat = glm::quat_cast(rotMtx);
+
+			const glm::mat3 rotMtx2(
+				glm::vec3(quater[0]) / scale[0],
+				glm::vec3(quater[1]) / scale[1],
+				glm::vec3(quater[2]) / scale[2]);
+			glm::quat quat = glm::quat_cast(rotMtx2);
+
+			for (int i = 0; i < 4; i++) {
+				if (!((usedChannels << (9 + i)) & 1)) {
+					quat[i] = (locQuat[i]);
+				}
+			}
+
+			glm::mat4 dostuff = quater;//glm::mat4_cast(quat);
+			*/
+			glm::mat4 ani = glm::translate(glm::mat4(1), pos)
+				* quater
+				//* glm::rotate(euler.x, glm::vec3(1, 0, 0))
+				//* glm::rotate(euler.z, glm::vec3(0, 0, 1))
+				//* glm::rotate(euler.y, glm::vec3(0, 1, 0))
+				* glm::scale(scale)
+				;
+
+
+			if (instances[i].parent == -1) {
+				modelT[i] = (loc * ani);
+				mats[i] = (ani);
+				//log::out << loc <<" "<<i << "\n";
+			} else {
+				modelT[i] = modelT[instances[i].parent] * (loc * ani);
+				mats[i] = (modelT[instances[i].parent] * (ani));
+				//log::out << loc << " x " << i << "\n";
+			}
+
+			//mats[i] = (modelT[i]);
+		}
+	}
+	void ModelAsset::GetArmatureTransforms(Animator& animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* armature) {
+		mats.resize(armature->bones.size());
+		if (armature != nullptr) {
+			std::vector<glm::mat4> modelT(armature->bones.size());
+			for (int i = 0; i < armature->bones.size(); i++) {
+				Bone& bone = armature->bones[i];
+				glm::mat4 loc = bone.localMat;
+				glm::mat4 inv = bone.invModel;
+				glm::vec3 pos = { 0,0,0 };
+				glm::vec3 euler = { 0,0,0 };
+				glm::vec3 scale = { 1,1,1 };
+				glm::mat4 quater = glm::mat4(1);
+
+				short usedChannels = 0;
+
+				for (int k = 0; k < animator.enabledAnimations.size(); k++) {
+					AnimationProperty& prop = animator.enabledAnimations[k];
+					for (int j = 0; j < animations.size(); j++) {
+						AnimationAsset* animation = animations[j];
+						if (prop.animationName == animation->baseName &&
+							prop.instanceName == instance.name) {
+
+							if (animation->objects.count(i) > 0) {
+
+								animation->objects[i].GetValues(prop.frame, prop.blend,
+									pos, euler, scale, quater, &usedChannels);
+								//log::out << quater<<"\n";
+							}
+						}
+					}
+				}
+
+				/*
+				for (int i = 0; i < 3; i++) {
+					if (!((usedChannels << i) & 1)) {
+						pos[i] = loc[3][i];
+					}
+				}
+				// Euler?
+				for (int i = 0; i < 3; i++) {
+					if (!((usedChannels << (6 + i)) & 1)) {
+						scale[i] = glm::length(glm::vec3(loc[i]));
+					}
+				}
+
+				const glm::mat3 rotMtx(
+					glm::vec3(loc[0]) / scale[0],
+					glm::vec3(loc[1]) / scale[1],
+					glm::vec3(loc[2]) / scale[2]);
+				glm::quat locQuat = glm::quat_cast(rotMtx);
+
+				const glm::mat3 rotMtx2(
+					glm::vec3(quater[0]) / scale[0],
+					glm::vec3(quater[1]) / scale[1],
+					glm::vec3(quater[2]) / scale[2]);
+				glm::quat quat = glm::quat_cast(rotMtx2);
+
+				for (int i = 0; i < 4; i++) {
+					if (!((usedChannels << (9 + i)) & 1)) {
+						quat[i] = (locQuat[i]);
+					}
+				}*/
+
+				//glm::mat4 dostuff = glm::mat4_cast(quat);
+
+				glm::mat4 ani = glm::translate(glm::mat4(1), pos)
+					* quater
+					//* glm::rotate(euler.x, glm::vec3(1, 0, 0))
+					//* glm::rotate(euler.z, glm::vec3(0, 0, 1))
+					//* glm::rotate(euler.y, glm::vec3(0, 1, 0))
+					* glm::scale(scale)
+					;
+
+				if (i == 0) {
+					modelT[i] = (loc * ani);
+					//log::out << loc << modelT[i] <<" "<< i << "\n";
+				} else {
+					modelT[i] = modelT[armature->bones[i].parent] * (loc * ani);
+					//log::out << loc <<" x "<<i << "\n";
+				}
+
+				mats[i] = (modelT[i] * inv);
+			}
+		}
+	}
+
 	std::unordered_map<std::string, MaterialAsset*> engone_materials;
 	std::unordered_map<std::string, AnimationAsset*> engone_animations;
 	std::unordered_map<std::string, MeshAsset*> engone_meshes;

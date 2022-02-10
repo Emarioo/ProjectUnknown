@@ -117,6 +117,9 @@
     <ClInclude Include="src\Engone\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\Components\Physics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp">
@@ -212,8 +215,14 @@
     <ClCompile Include="src\Engone\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Components\Physics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Engone\Shaders\outline.glsl" />
+    <None Include="src\Engone\Shaders\collision.glsl" />
   </ItemGroup>
 </Project>

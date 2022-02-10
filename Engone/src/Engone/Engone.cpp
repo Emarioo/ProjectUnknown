@@ -8,118 +8,43 @@ extern "C" {
 
 namespace engone {
 
-	void Engone::Init() {
-		engone::SetState(GameState::RenderGame, true);
-		engone::SetState(GameState::RenderGui, true);
-
-		InitRenderer();
-
-		AddAsset<Shader>("object", new Shader(objectSource, true));
-		AddAsset<Shader>("armature", new Shader(armatureSource, true));
-		AddAsset<Shader>("outline", new Shader(outlineSource, true));
-		AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
-
-		//DebugInit();
-		InitEvents(GetWindow());
-		InitEvents();
-
-		InitGUI();
-		//ReadOptions();
-
-		//console::Init(120,50);
-
-		AddListener(new Listener(EventType::Move, 9998, FirstPerson));
-		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
-
-		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
-
-		float vMap[]{ 0,0,0,1,0,0,1,0,1,0,0,1 };
-		unsigned int iMap[]{ 0,1,2,2,3,0 };
-
-		temp_.Init(true, vMap, 4 * 3, iMap, 6);
-		temp_.SetAttrib(0, 3, 3, 0);
-
-		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
-		hitbox.SetAttrib(0, 3, 6, 0);
-		hitbox.SetAttrib(1, 3, 6, 3);
-		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
-
-		//UpdateKeyboard(false);
-
-		depthBuffer.Init();
-		float near_plane = 1.f, far_plane = 20.5f;
-		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
-
-		fov = 90.f;
-		zNear = 0.1f;
-		zFar = 400.f;
-		SetProjection((float)Width() / Height());
-	}
-	void Engone::Update(float delta) {
-	
-	}
-	void Engone::Render() {
-	
-	}
-
-	FrameBuffer depthBuffer;
-	glm::mat4 lightProjection;
-	FrameBuffer& GetDepthBuffer()
-	{
-		return depthBuffer;
-	}
-	glm::mat4& GetLightProj()
-	{
-		return lightProjection;
-	}
-	TriangleBuffer temp_;
-	int vecLimit = 500;
-	int lineLimit = 3000;
-	LineBuffer hitbox;
-	float* hitboxVec;
-	unsigned int* hitboxInd;
-	static glm::mat4 projMatrix;
-	static glm::mat4 viewMatrix;
-	static float fov, zNear, zFar;
-	void SetProjection(float ratio)
-	{
-		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
-	}
-	void UpdateViewMatrix(double lag)
-	{
-		//GetCamera()->rotation.y += 0.001;
-		//std::cout << GetCamera()->rotation.x <<" "<< GetCamera()->rotation.y <<" "<< GetCamera()->rotation.z << "\n";
-		viewMatrix = glm::inverse(
-			glm::translate(glm::mat4(1.0f), GetCamera()->position)*
-			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
-		);
-	}
-	void UpdateProjection(Shader* shader)
-	{
-		if (shader != nullptr)
-			shader->SetMatrix("uProj", projMatrix * viewMatrix);
-	}
-
+	static const std::string guiShaderSource = {
+#include "Shaders/gui.glsl"
+	};
 	static const std::string objectSource = {
 #include "Shaders/object.glsl"
 	};
 	static const std::string armatureSource = {
 #include "Shaders/armature.glsl"
 	};
-	static const std::string outlineSource = {
-#include "Shaders/outline.glsl"
+	static const std::string collisionSource = {
+#include "Shaders/collision.glsl"
 	};
 
-	std::function<void(double)> update=nullptr;
-	std::function<void(double)> render=nullptr;
+	static std::function<void(double)> update = nullptr;
+	static std::function<void(double)> render = nullptr;
 
-	static int lastMouseX=-1, lastMouseY=-1;
-	// Move somewhere else
+	FrameBuffer depthBuffer;
+	glm::mat4 lightProjection;
+	FrameBuffer& GetDepthBuffer() {
+		return depthBuffer;
+	}
+	glm::mat4& GetLightProj() {
+		return lightProjection;
+	}
+	int colliderVertexLimit = 500, colliderIndexLimit=3000;
+	LineBuffer colliderBuffer;
+	float* colliderVertices;
+	unsigned int* colliderIndices;
+
+	static glm::mat4 projMatrix;
+	static glm::mat4 viewMatrix;
+	static float fov, zNear, zFar;
+
+	static int lastMouseX = -1, lastMouseY = -1;
 	static double cameraSensitivity = 0.1;
-	EventType FirstPerson(Event& e)
-	{
+
+	EventType FirstPerson(Event& e) {
 		if (lastMouseX != -1) {
 			if (IsCursorLocked() && GetCamera() != nullptr) {
 				GetCamera()->rotation.y -= (e.mx - lastMouseX) * (3.14159 / 360) * cameraSensitivity;
@@ -135,7 +60,7 @@ namespace engone {
 		//glClearColor(1, 0, 0, 1);
 		//glClear(GL_COLOR_BUFFER_BIT);
 
-		UpdateEngine(1/40.f);
+		UpdateEngine(1 / 40.f);
 		update(1 / 40.f);
 		RenderEngine(0);
 		render(0);
@@ -144,44 +69,61 @@ namespace engone {
 
 		return EventType::None;
 	}
+	bool glfwIsActive = false;
+	void InitEngone() {
+		// There is this bug with glfw where it freezes. This will tell you if it has.
+		std::thread tempThread = std::thread([] {
+			for (int i = 0; i < 20; i++) {
+				std::this_thread::sleep_for((std::chrono::milliseconds)100);
+				if (glfwIsActive) {
+					return;
+				}
+			}
+			std::cout << "GLFW has frozen. :( \n";
+			});
+		if (!glfwInit()) {
+			std::cout << "Glfw Init error!" << std::endl;
+			return;
+		}
+		glfwIsActive = true;
+		tempThread.join();
 
-	void InitEngine()
-	{
+		InitWindow();
+
+		if (glewInit() != GLEW_OK) {
+			std::cout << "Glew Init Error!" << std::endl;
+			return;
+		}
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glDepthFunc(GL_LESS);
+		glEnable(GL_CULL_FACE);
+		//glEnable(GL_FRAMEBUFFER_SRGB);
+
+		// Gui stuff
+		AddAsset<Shader>("gui", new Shader(guiShaderSource, true));
+
 		engone::SetState(GameState::RenderGame, true);
 		engone::SetState(GameState::RenderGui, true);
 
-		InitRenderer();
-
 		AddAsset<Shader>("object", new Shader(objectSource, true));
 		AddAsset<Shader>("armature", new Shader(armatureSource, true));
-		AddAsset<Shader>("outline", new Shader(outlineSource, true));
-		AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
+		AddAsset<Shader>("collision", new Shader(collisionSource, true));
+		//AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
 
-		//DebugInit();
 		InitEvents(GetWindow());
-		InitEvents();
-
-		InitGUI();
+		InitGui();
+		InitRenderer();
 		//ReadOptions();
 
-		//console::Init(120,50);
+		AddListener(new Listener(EventType::Move, 9998, FirstPerson));
+		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
 
-		AddListener(new Listener(EventType::Move,9998, FirstPerson));
-		AddListener(new Listener(EventType::Resize, 9999,DrawOnResize));
-
-		//std::cout << "Using " << glGetString(GL_RENDERER) << std::endl;
-
-		float vMap[]{0,0,0,1,0,0,1,0,1,0,0,1};
-		unsigned int iMap[]{0,1,2,2,3,0};
-
-		temp_.Init(true,vMap,4*3,iMap,6);
-		temp_.SetAttrib(0, 3, 3, 0);
-
-		hitbox.Init(true, nullptr, 6 * vecLimit, nullptr, 2 * lineLimit);
-		hitbox.SetAttrib(0, 3, 6, 0);
-		hitbox.SetAttrib(1, 3, 6, 3);
-		hitboxVec = new float[vecLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		hitboxInd = new unsigned int[lineLimit * 2];// {0, 1, 0, 2, 0, 3};
+		colliderBuffer.Init(true, nullptr, 6 * colliderVertexLimit, nullptr, 2 * colliderIndexLimit);
+		colliderBuffer.SetAttrib(0, 3, 3, 0);
+		colliderVertices = new float[colliderVertexLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		colliderIndices = new unsigned int[colliderIndexLimit * 2];// {0, 1, 0, 2, 0, 3};
 
 		//UpdateKeyboard(false);
 
@@ -192,54 +134,78 @@ namespace engone {
 		fov = 90.f;
 		zNear = 0.1f;
 		zFar = 400.f;
-		SetProjection((float)Width() / Height());
+		SetProjection(GetWidth() / GetHeight());
 	}
-	void ExitEngine()
-	{
-
+	void ExitEngone() {
+		delete[] colliderVertices;
+		delete[] colliderIndices;
+		colliderBuffer.Deinit();
 	}
 
-	void UpdateObjects(double delta) 
+	void SetProjection(float ratio) {
+		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
+	}
+	void UpdateViewMatrix(double lag) {
+		viewMatrix = glm::inverse(
+			glm::translate(glm::mat4(1.0f), GetCamera()->position) *
+			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
+			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
+		);
+	}
+	void UpdateProjection(Shader* shader) {
+		if (shader != nullptr)
+			shader->SetMatrix("uProj", projMatrix * viewMatrix);
+	}
+	void UpdateObjects(float delta) 
 	{
-		// GetPlayer()->doMove = !GetCursorMode();// && !GetChatMode();
+		std::vector<Collider> colliders;
+	
+		// Pre physics
+		for (int i = 0; i < GetObjects().size(); i++) {
+			GameObject* object = GetObjects()[i];
 
-		// Additional Player Movement
-		//engine::GetPlayer()->finalVelocity += GetPlayer()->Movement(delta);
+			if (object->physics.m_isActive) {
+				// reset triggering
+				object->physics.m_isTriggered = false;
 
-		// Sort slowest velocity first
-		for (int i = 0; i < GetObjects().size(); i++) 
-		{
-			GameObject* o0 = GetObjects().at(i);
+				if (object->physics.m_isMovable) {
+					object->physics.velocity.y += object->physics.gravity * delta;
+					object->physics.position += object->physics.velocity * delta;
+					//log::out << object->physics.position << object->physics.velocity<< "\n";
+				}
+				object->Update(delta);
 
-			o0->Update(delta);
-			o0->renderComponent.animator.Update(delta);
-			/*
-			if (o0->collisionComponent.isActive) {
-				for (int j = i + 1; j < GetObjects().size();j++) {
-					GameObject* o1 = GetObjects().at(j);
-					if (o1->collisionComponent.isActive) {
-						if (o0->IsClose(o1)) {
+				if (object->GetModel() != nullptr) {
+					ModelAsset* model = object->GetModel();
 
-							glm::vec3 newVelocity = o0->WillCollide(o1, delta);
-							if (newVelocity != o0->velocity) { // Collision
-								//bug::out < "Collide " < o1->name <bug::end;
-								o0->velocity = newVelocity;
-							}
+					// Get individual transforms
+					std::vector<glm::mat4> mats;
+					model->GetParentTransforms(object->animator,mats);
+
+					for (int j = 0; j < model->instances.size(); j++) {
+						AssetInstance& instance = model->instances[j];
+
+						if (instance.asset->type == AssetType::Collider) {
+							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
+
+							colliders.push_back({ glm::translate(glm::mat4(1),object->physics.position) * mats[j] * instance.localMat, asset, &object->physics });
 						}
 					}
 				}
-			}*/
-			o0->position += o0->velocity * (float)delta;
+			}
 		}
-
-		//if (GetDimension() != nullptr)
-		//	GetDimension()->CleanChunks();
-
-		// Update dimension
-	}
-	void UpdateUI(double delta) 
-	{
-		UpdateElements(delta);
+		while (colliders.size()>0) {
+			Collider& c1 = colliders[0];
+			for (Collider& c2 : colliders) {
+				if ((c1.matrix[3] - c2.matrix[3]).length() < 50) {
+					
+					bool stop = c1.physics->TestCollision(c1,c2);
+					if (stop) break;
+				}
+			}
+			// remove collider when done with calculations
+			colliders.erase(colliders.begin());
+		}
 	}
 	// If hitbox buffer is too small
 	bool reachedLimit = false;
@@ -268,55 +234,41 @@ namespace engone {
 			*/
 		}
 	}
-#define IFBLOCK {} if(false)
-	void RenderObjects(double lag) 
-	{
-		// Update mesh transformations
-		for (GameObject* o : GetObjects()) {
-			if (o->renderMesh) {
-				Location body;
-				body.Translate(o->position+ o->velocity * (float)lag);
-				body.Rotate(o->rotation);
-				body.Matrix(glm::mat4_cast(o->quaternion));
-				o->renderComponent.matrix = body.mat();
-			}
-		}
 
-		//log::out << "render\n";
-		SwitchBlendDepth(false);
+	void RenderObjects(double lag) {
+		// Apply lag transformation on objects?
+
+		EnableDepth();
 		UpdateViewMatrix(lag);
 
 		Shader* shader = GetAsset<Shader>("object");
 
-		if (!shader->error)
-		{
+		if (!shader->error) {
 			shader->Bind();
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-			for (GameObject* o : GetObjects())
-			{
-				if (o->renderComponent.model != nullptr) 
-				{
-					//log::out << o->name << "\n";
-					BindLights(shader,o->position);
-					
+			for (GameObject* o : GetObjects()) {
+				if (o->GetModel() != nullptr) {
+					ModelAsset* model = o->GetModel();
+
+					BindLights(shader, o->GetPosition());
+
 					// Get individual transforms
-					std::vector<glm::mat4> mats;
-					o->renderComponent.GetParentTransforms(mats);
-					
+					std::vector<glm::mat4> transforms;
+					model->GetParentTransforms(o->animator, transforms);
+
 					// Draw instances
-					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
-					{
-						AssetInstance& instance = o->renderComponent.model->instances[i];
+					for (int i = 0; i < o->GetModel()->instances.size(); i++) {
+						AssetInstance& instance = model->instances[i];
 						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
 						if (instance.asset->type == AssetType::Mesh) {
 							MeshAsset* asset = instance.asset->cast<MeshAsset>();
 							if (asset->meshType == MeshAsset::MeshType::Normal) {
 								for (int j = 0; j < asset->materials.size() && j < 4; j++)// Maximum of 4 materials
 								{
-									PassMaterial(shader, j, asset->materials[j]);
+									asset->materials[j]->Bind(shader, j);
 								}
-								shader->SetMatrix("uTransform", o->renderComponent.matrix * mats[i] * instance.localMat);
+								shader->SetMatrix("uTransform", o->m_matrix * transforms[i] * instance.localMat);
 								asset->buffer.Draw();
 							}
 						}
@@ -326,48 +278,44 @@ namespace engone {
 		}
 
 		shader = GetAsset<Shader>("armature");
-		if (!shader->error)
-		{
+		if (!shader->error) {
 			shader->Bind();
 			UpdateProjection(shader);
-			shader->SetVec3("uCamera", GetCamera()->position+GetCamera()->velocity*(float)lag);
-			for (GameObject* o : GetObjects()) 
-			{
-				if (o->renderComponent.model != nullptr)
-				{
-					BindLights(shader,o->position);
+			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
+			for (GameObject* o : GetObjects()) {
+				if (o->GetModel() != nullptr) {
+					ModelAsset* model = o->GetModel();
+					BindLights(shader, o->GetPosition());
 
 					// Get individual transforms
-					std::vector<glm::mat4> mats;
-					o->renderComponent.GetParentTransforms(mats);
+					std::vector<glm::mat4> transforms;
+					model->GetParentTransforms(o->animator, transforms);
 
 					//-- Draw instances
-					for (int i = 0; i < o->renderComponent.model->instances.size(); i++) 
-					{
-						AssetInstance& mInst= o->renderComponent.model->instances[i];
+					for (int i = 0; i < model->instances.size(); i++) {
+						AssetInstance& meshInstance = model->instances[i];
 
-						if (mInst.asset->type == AssetType::Mesh) {
-							MeshAsset* meshAsset = mInst.asset->cast<MeshAsset>();
+						if (meshInstance.asset->type == AssetType::Mesh) {
+							MeshAsset* meshAsset = meshInstance.asset->cast<MeshAsset>();
 							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
-								if (mInst.parent == -1)
+								if (meshInstance.parent == -1)
 									continue;
-								
-								AssetInstance& aInst = o->renderComponent.model->instances[mInst.parent];
-								if (aInst.asset->type == AssetType::Armature) {
-									ArmatureAsset* armatureAsset = aInst.asset->cast<ArmatureAsset>();
 
-									std::vector<glm::mat4> boneMats;
-									o->renderComponent.GetArmatureTransforms(boneMats, mats[i], aInst, armatureAsset);
-									for (int j = 0; j < boneMats.size(); j++)
-									{
-										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneMats[j] * mInst.localMat);
+								AssetInstance& armatureInstance = model->instances[meshInstance.parent];
+								if (armatureInstance.asset->type == AssetType::Armature) {
+									ArmatureAsset* armatureAsset = armatureInstance.asset->cast<ArmatureAsset>();
+
+									std::vector<glm::mat4> boneTransforms;
+									model->GetArmatureTransforms(o->animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
+									for (int j = 0; j < boneTransforms.size(); j++) {
+										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * meshInstance.localMat);
 									}
 
 									for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
 									{
-										PassMaterial(shader, j, meshAsset->materials[j]);
+										meshAsset->materials[j]->Bind(shader, j);
 									}
-									shader->SetMatrix("uTransform", o->renderComponent.matrix*mats[i]);
+									shader->SetMatrix("uTransform", o->renderComponent.matrix * transforms[i]);
 									meshAsset->buffer.Draw();
 								}
 							}
@@ -377,7 +325,7 @@ namespace engone {
 				}
 			}
 		}
-		
+
 		/*
 		if (BindShader(ShaderUV)) {
 			UpdateViewMatrix();
@@ -438,13 +386,62 @@ namespace engone {
 				}
 			}
 		}*/
-		shader = GetAsset<Shader>("outline");
-		if (shader!=nullptr)
-		{
+		shader = GetAsset<Shader>("collision");
+		if (shader != nullptr) {
 			shader->Bind();
 			UpdateProjection(shader);
-			shader->SetMatrix("uTransform",glm::mat4(1));
 			glLineWidth(2.f);
+			shader->SetVec3("uColor", {0.05,0.9,0.1});
+
+			for (GameObject* o : GetObjects()) {
+				if (!o->physics.m_renderCollision)
+					continue;
+
+				if (o->GetModel() != nullptr) {
+					ModelAsset* model = o->GetModel();
+
+					// Get individual transforms
+					std::vector<glm::mat4> transforms;
+					model->GetParentTransforms(o->animator, transforms);
+
+					// Draw instances
+					for (int i = 0; i < o->GetModel()->instances.size(); i++) {
+						AssetInstance& instance = model->instances[i];
+						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+						if (instance.asset->type == AssetType::Collider) {
+							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
+							shader->SetMatrix("uTransform", o->m_matrix * transforms[i] * instance.localMat);
+							if (asset->colliderType == ColliderAsset::Type::Sphere) {
+								//log::out << "draw sphere\n";
+							}else if (asset->colliderType == ColliderAsset::Type::Cube) {
+								//log::out << "draw cube\n";
+								float w = asset->cube.scale.x, h = asset->cube.scale.y, d = asset->cube.scale.z;
+								float v[]{
+									0,0,0,
+									w,0,0,
+									w,0,d,
+									0,0,d,
+
+									0,h,0,
+									w,h,0,
+									w,h,d,
+									0,h,d,
+								};
+								unsigned int ind[]{
+									0,1, 1,2, 2,3, 3,0,
+									0,4, 1,5, 2,6 ,3,7,
+									4,5, 5,6, 6,7, 7,4,
+								};
+								
+								colliderBuffer.ModifyVertices(0, sizeof(v), v);
+								colliderBuffer.ModifyIndices(0, sizeof(ind), ind);
+								colliderBuffer.Draw();
+							}
+						}
+					}
+				}
+			}
+
 			/*
 			GameObject* n = GetObjectByName("Player");
 			if (n != nullptr) {
@@ -495,8 +492,7 @@ namespace engone {
 
 #if gone
 			glm::vec3 hitboxColor = { 0,1,0 };
-			for (GameObject* o : GetObjects())
-			{// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
+			for (GameObject* o : GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
 				if (o->renderHitbox && o->collisionComponent.isActive) {
 					int atVec = 0;
 					int atInd = 0;
@@ -504,14 +500,14 @@ namespace engone {
 					// algorithm for removing line duplicates?
 					// Adding hitboxes together?
 					int startV = atVec;
-					if (atVec + c.points.size()*6 > 6*vecLimit) {
+					if (atVec + c.points.size() * 6 > 6 * vecLimit) {
 						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atVec+c.points.size() * 6)<"/"<(6*vecLimit) < " points" < bug::end;
+							bug::out < bug::RED < "Line limit does not allow " < (atVec + c.points.size() * 6) < "/" < (6 * vecLimit) < " points" < bug::end;
 						reachedLimit = true;
 						continue;
 					} else if (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3 > lineLimit) {
 						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3)<"/"<(lineLimit) < " lines:" < bug::end;
+							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3) < "/" < (lineLimit) < " lines:" < bug::end;
 						reachedLimit = true;
 						continue;
 					}
@@ -545,7 +541,7 @@ namespace engone {
 					}*/
 
 					// Clear the rest - how necessary is this?
-					for (int i = atVec; i < vecLimit*6; i++) {
+					for (int i = atVec; i < vecLimit * 6; i++) {
 						hitboxVec[i] = 0;
 					}
 					for (int i = atInd; i < lineLimit * 2; i++) {
@@ -555,10 +551,8 @@ namespace engone {
 					hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);
 					hitbox.Draw();
 				}
-				if (false&&o->renderComponent.model!=nullptr)
-				{
-					if (o->renderComponent.model->armature != nullptr)
-					{
+				if (false && o->renderComponent.model != nullptr) {
+					if (o->renderComponent.model->armature != nullptr) {
 						if (!o->renderComponent.model->armature->hasError) {
 							//bug::outs < o->renderComponent.animator.enabledAnimations["georgeBoneAction"].frame < "\n";
 							Armature* arm = o->renderComponent.model->armature;
@@ -575,13 +569,12 @@ namespace engone {
 							int startV = atVec;
 
 							// algorithm for removing line duplicates?
-							if (atVec + count*12 > 6*vecLimit) {
+							if (atVec + count * 12 > 6 * vecLimit) {
 								if (!reachedLimit)
 									bug::out < bug::RED < "Line limit does not allow " < (atVec + count * 12) < "/" < (6 * vecLimit) < " points" < bug::end;
 								reachedLimit = true;
 								continue;
-							}
-							else if (atInd + count > lineLimit) {
+							} else if (atInd + count > lineLimit) {
 								if (!reachedLimit)
 									bug::out < bug::RED < "Line limit does not allow " < (atInd + count) < "/" < (lineLimit) < " lines:" < bug::end;
 								reachedLimit = true;
@@ -663,33 +656,15 @@ namespace engone {
 			}
 		}*/
 	}
-	void RenderUI(double lag) {
-		RenderElements();
-	}
-	static std::vector<Timer> timers;
-	void AddTimer(float time, std::function<void()> func)
-	{
-		timers.push_back({time,func});
-	}
-	void UpdateTimers(float delta)
-	{
-		for (int i = 0; i < timers.size();i++) { // Will this cause problems? Removing an element in a for loop
-			timers[i].time -= delta;
-			if (timers[i].time < 0) {
-				timers[i].func();
-				timers.erase(timers.begin() + i);
-				i--;
-			}
-		}
-	}
 	void RenderEngine(double lag)
 	{
-		glViewport(0, 0, Width(), Height());
+		glViewport(0, 0, GetWidth(), GetHeight());
 
-		SwitchBlendDepth(false);
+		EnableDepth();
 		if (CheckState(GameState::RenderGame)) {
 			if (HasFocus()) {
 				//move += 0.01f;
+				
 				glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 
 				glClearColor(0.05f, 0.08f, 0.08f, 1);
@@ -728,7 +703,7 @@ namespace engone {
 
 					for (int j = 0; j < asset->materials.size() && j < 4; j++)// Maximum of 4 materials
 					{
-						PassMaterial(objectShader, j, asset->materials[j]);
+						asset->materials[j]->Bind(objectShader, j);
 					}
 					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,-5,0)));
 					asset->buffer.Draw();
@@ -751,25 +726,20 @@ namespace engone {
 			}
 		}
 		if (CheckState(GameState::RenderGui)) {
-			RenderUI(0);
+			RenderElements();
 		}
 
-		//RenderDebug(lag);
-
-		//console::Render();
-
-		//-- Camera location
+		//-- Debug
+		EnableBlend();
 		Shader* gui = GetAsset<Shader>("gui");
-		gui->Bind();
 		gui->SetVec2("uPos", { 0,0 });
 		gui->SetVec2("uSize", { 1,1 });
 		gui->SetVec4("uColor", 1, 1, 1, 1);
-		gui->SetInt("uTextured", 1);
+		gui->SetInt("uColorMode", 1);
 		DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
 	}
 	void UpdateEngine(double delta)
 	{
-		RefreshEvents();
 		if (CheckState(GameState::RenderGame)) {
 			//if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
@@ -777,12 +747,24 @@ namespace engone {
 		}
 		UpdateTimers(delta);
 		if (CheckState(GameState::RenderGui)) {
-			UpdateUI(delta);
+			UpdateElements(delta);
 		}
 
-		UpdateDebug(delta);
-
 		ResetEvents();
+	}
+	static std::vector<Timer> timers;
+	void AddTimer(float time, std::function<void()> func) {
+		timers.push_back({ time,func });
+	}
+	void UpdateTimers(float delta) {
+		for (int i = 0; i < timers.size(); i++) { // Will this cause problems? Removing an element in a for loop
+			timers[i].time -= delta;
+			if (timers[i].time < 0) {
+				timers[i].func();
+				timers.erase(timers.begin() + i);
+				i--;
+			}
+		}
 	}
 
 	static std::vector<Light*> lights;
@@ -874,13 +856,13 @@ namespace engone {
 
 			// Pass light to shader
 			if (dir != nullptr) {
-				PassLight(shader, dir);
+				dir->Bind(shader);
 				lightCount.x++;
 			}
 
 			for (int i = 0; i < N_POINTLIGHTS; i++) {
 				if (points[i] != nullptr) {
-					PassLight(shader, i, points[i]);
+					points[i]->Bind(shader, i);
 					lightCount.y++;
 				}
 				else
@@ -888,7 +870,7 @@ namespace engone {
 			}
 			for (int i = 0; i < N_SPOTLIGHTS; i++) {
 				if (spots[i] != nullptr) {
-					PassLight(shader, i, spots[i]);
+					spots[i]->Bind(shader, i);
 					lightCount.z++;
 				}
 				else
@@ -901,64 +883,7 @@ namespace engone {
 	{
 		return lights;
 	}
-	void PassLight(Shader* shader, DirLight* light)
-	{
-		if (light != nullptr) {
-			shader->SetVec3("uDirLight.ambient", light->ambient);
-			shader->SetVec3("uDirLight.diffuse", light->diffuse);
-			shader->SetVec3("uDirLight.specular", light->specular);
-			shader->SetVec3("uDirLight.direction", light->direction);
-		}
-	}
-	void PassLight(Shader* shader, int index, PointLight* light)
-	{
-		std::string u = "uPointLights[" + index + (std::string)"].";
-		if (light != nullptr) {
-			shader->SetVec3(u + "ambient", light->ambient);
-			shader->SetVec3(u + "diffuse", light->diffuse);
-			shader->SetVec3(u + "specular", light->specular);
-			shader->SetVec3(u + "position", light->position);
-			shader->SetFloat(u + "constant", light->constant);
-			shader->SetFloat(u + "linear", light->linear);
-			shader->SetFloat(u + "quadratic", light->quadratic);
-		}
-	}
-	void PassLight(Shader* shader, int index, SpotLight* light)
-	{
-		std::string u = "uSpotLights[" + index + (std::string)"].";
-		if (light != nullptr) {
-			shader->SetVec3(u + "ambient", light->ambient);
-			shader->SetVec3(u + "diffuse", light->diffuse);
-			shader->SetVec3(u + "specular", light->specular);
-			shader->SetVec3(u + "position", light->position);
-			shader->SetVec3(u + "direction", light->direction);
-			shader->SetFloat(u + "cutOff", light->cutOff);
-			shader->SetFloat(u + "outerCutOff", light->outerCutOff);
-		}
-	}
-	void PassMaterial(Shader* shader, int index, MaterialAsset* material)
-	{
-		if (shader != nullptr && material != nullptr) {
-			if (material->diffuse_map != nullptr) {
-
-				material->diffuse_map->Bind(index + 1);
-				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
-				//std::cout << "PassMaterial - texture not bound!\n";
-				shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
-				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
-			}
-			else {
-				shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
-			}
-			shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", material->diffuse_color);
-			shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", material->specular);
-			shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", material->shininess);
-		}
-		else {
-			//std::cout << "shader or material is nullptr in Passmaterial\n";
-		}
-	}
-	void Start(std::function<void(double)> inUpdate, std::function<void(double)> inRender,double fps){
+	void Start(std::function<void(double)> inUpdate, std::function<void(double)> inRender, double fps) {
 		if (inUpdate == nullptr || inRender == nullptr) {
 			std::cout << "Engone.cpp:Start() - update or render is nullptr" << "\n";
 			return;
@@ -1004,29 +929,28 @@ namespace engone {
 		double previous = GetAppTime();
 		double lag = 0.0;
 		double MS_PER_UPDATE = 1. / fps;
-		double lastSecond=previous;
+		double lastSecond = previous;
 		int FPS = 0;
-		while (RenderRunning()) {
+		while (IsOpen()) {
 			double current = GetAppTime();
 			double elapsed = current - previous;
 			//std::cout << elapsed << std::endl;
 			previous = current;
 			lag += elapsed;
 
-			while (lag >= MS_PER_UPDATE)
-			{
-				UpdateEngine(MS_PER_UPDATE);
+			while (lag >= MS_PER_UPDATE) {
+				//UpdateEngine(MS_PER_UPDATE);
 				update(MS_PER_UPDATE);
 				lag -= MS_PER_UPDATE;
 				FPS++;
-				if (current-lastSecond>1) {
+				if (current - lastSecond > 1) {
 					//std::cout << (current - lastSecond) << std::endl;
 					lastSecond = current;
 					//SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
 					FPS = 0;
 				}
 			}
-			RenderEngine(lag);
+			//RenderEngine(lag);
 			render(lag);
 
 			glfwSwapBuffers(GetWindow());

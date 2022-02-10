@@ -1,15 +1,19 @@
 #pragma once
 
 #include "Rendering/Renderer.h"
+#include "Window.h"
+
 #include "Handlers/ObjectHandler.h"
 #include "UI/GuiHandler.h"
 #include "Sound/SoundHandler.h"
-#include "DebugHandler.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
 #include "Server/NetworkHandler.h"
 
-#include "Module.h"
+#include "Rendering/FrameBuffer.h"
+#include "Rendering/Light.h"
+
+#include "Window.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
@@ -19,40 +23,42 @@ Your render function should include RenderObjects, RenderUI and RenderRawObjects
 */
 namespace engone {
 
-	class Engone : public Module {
-	public:
-		Engone() = default;
-		~Engone();
+	// Init glfw, glew, guiShader. has ui functions
+	void InitEngone();
+	void ExitEngone();
 
-		void Init() override;
-		void Update(float delta) override;
-		void Render() override;
+	/*
+	Start the game loop and give the engine update and render calls.
+	The argument is delta for update and lag for render
+	*/
+	void Start(std::function<void(double)> update, std::function<void(double)> render, double fps);
 
+	/*
+	Window window;
+	std::vector<Module*> modules;
+	// Module needs a unique id
+	void AddModule(Module* module);
+	template<class T>
+	T* GetModule() {
+		for (int i = 0; i < modules.size();i++) {
+			if (modules[i].id == T::ID) {
+				return reinterpret_cast<T*>(modules[i]);
+			}
+		}
+		return nullptr;
+	}
+	*/
 
-
-		std::vector<Module*> modules;
-	};
-	
 	FrameBuffer& GetDepthBuffer();
 	glm::mat4& GetLightProj();
 	void SetProjection(float ratio);
 	void UpdateProjection(Shader* shader);
 
 	/*
-	Initialize engine, window, glfw event listeners...
-	*/
-	void InitEngine();
-	void ExitEngine();
-
-	/*
-	Update IElements, Timed Functions
-	*/
-	void UpdateUI(double delta);
-	/*
 	Update objects and camera (viewMatrix)
 	 also dimensions but they should be moved somewhere else.
 	*/
-	void UpdateObjects(double delta);
+	void UpdateObjects(float delta);
 
 	//void RenderUI(double lag);
 	/*
@@ -73,8 +79,7 @@ namespace engone {
 	*/
 	void UpdateEngine(double delta);
 
-	struct Timer
-	{
+	struct Timer {
 		float time;
 		std::function<void()> func;
 	};
@@ -88,19 +93,4 @@ namespace engone {
 
 	void BindLights(Shader* shader, glm::vec3 objectPos);
 	std::vector<Light*>& GetLights();
-
-	/*
-	Set light[index] uniform to currentShader
-	*/
-	void PassLight(Shader* shader, DirLight* light);
-	void PassLight(Shader* shader, int index, PointLight* light);
-	void PassLight(Shader* shader, int index, SpotLight* light);
-	void PassMaterial(Shader* shader, int index, MaterialAsset* material);
-
-
-	/*
-	Start the game loop and give the engine update and render calls.
-	The argument is delta for update and lag for render
-	*/
-	void Start(std::function<void(double)> update,std::function<void(double)> render, double fps);
 }

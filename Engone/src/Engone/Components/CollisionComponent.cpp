@@ -3,37 +3,35 @@
 #include "CollisionComponent.h"
 
 namespace engone {
-	Location::Location()
-		: loc(1) {}
-	void Location::Rotate(glm::vec3 v) {
-		if (v.z != 0)
-			loc *= glm::rotate(v.z, glm::vec3(0, 0, 1));
-		if (v.y != 0)
-			loc *= glm::rotate(v.y, glm::vec3(0, 1, 0));
-		if (v.x != 0)
-			loc *= glm::rotate(v.x, glm::vec3(1, 0, 0));
+
+	bool CollisionComponent::IsTriggered() {
+		return m_isTriggered;
 	}
-	void Location::Translate(glm::vec3 v) {
-		loc *= glm::translate(v);
+	bool CollisionComponent::TestCollision(Collider& c1, Collider& c2) {
+		bool colliding = false;
+		if (c1.asset->colliderType == ColliderAsset::Type::Sphere &&
+			c2.asset->colliderType == ColliderAsset::Type::Sphere) {
+			float dist = (c1.asset->sphere.position - c2.asset->sphere.position).length();
+			if (dist < c1.asset->sphere.radius + c2.asset->sphere.radius) {
+				colliding = true;
+			}
+
+		} else if (c1.asset->colliderType == ColliderAsset::Type::Cube &&
+			c2.asset->colliderType == ColliderAsset::Type::Cube) {
+
+		}
+		if (colliding) {
+			if (m_isTrigger) {
+				m_isTriggered = true;
+				return false;
+			}
+		}
+		return true;
 	}
-	void Location::Translate(float x, float y, float z) {
-		loc *= glm::translate(glm::vec3(x, y, z));
-	}
-	void Location::Scale(glm::vec3 v) {
-		loc *= glm::scale(v);
-	}
-	void Location::Matrix(glm::mat4 m) {
-		loc *= m;
-	}
-	glm::mat4 Location::mat() {
-		return loc;
-	}
-	glm::vec3 Location::vec() {
-		return loc[3];
-	}
+
+#if gone
 	void CollisionComponent::UpdatePoints() {
 		points.clear();
-#if gone
 		if (coll != nullptr) {
 			for (glm::vec3 p : coll->points) {
 				Location loc;
@@ -42,7 +40,6 @@ namespace engone {
 				points.push_back(loc.vec());
 			}
 		}
-#endif
 	}
 
 	bool CollisionComponent::IsClose(CollisionComponent* c2) {
@@ -61,6 +58,7 @@ namespace engone {
 		matrix = mat;
 		UpdatePoints();
 	}
+#endif
 	/*
 	Run collider.SetColl("a_name_which_is_not_used")
 	before calling MakeCube(...)

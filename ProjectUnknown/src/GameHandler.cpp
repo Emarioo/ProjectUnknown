@@ -14,7 +14,6 @@ static const std::string depthGLSL = {
 #include "Shaders/depth.glsl"
 };
 
-// Temporary includes
 #include "Objects/Goblin.h"
 #include "Objects/Gnorg.h"
 #include "Objects/Tutorial.h"
@@ -25,17 +24,13 @@ static const std::string depthGLSL = {
 
 namespace game
 {
-	static Player* _player;
-	void SetPlayer(Player* player)
-	{
-		_player = player;
+	static Player* player=nullptr;
+	Player* GetPlayer() {
+		return player;
 	}
-	Player* GetPlayer()
-	{
-		return _player;
+	void SetPlayer(Player* _player) {
+		player = _player;
 	}
-	void TestScene();
-	
 	engone::EventType OnKey(engone::Event& e)
 	{
 		if (engone::CheckState(GameState::RenderGame)) {
@@ -100,80 +95,21 @@ namespace game
 		//light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
 		//light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 
-		//UpdateEngine(delta);
+		UpdateEngine(delta);
 
 	}
-	float rot = 0;
-	float frame = 0;
-	void Render(double lag) {
-		using namespace engone;
 
-
-		ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
-		Shader* shader = GetAsset<Shader>("armature");
-		shader->Bind();
-
-		glm::mat4 fin = glm::mat4(1);
-
-		glm::mat4 axis = glm::mat4(1);
-
-		axis[1][1] = 0;
-		axis[2][1] = 1;
-		axis[1][2] = -1;
-		axis[2][2] = 0;
-
-		glm::vec3 pos = glm::vec3(1), euler, scale;
-		glm::mat4 quater = glm::mat4(1);
-
-
-		AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
-		frame += anim->defaultSpeed * 1.f / 60;
-
-		if (frame > 60) {
-			frame = 0;
-		}
-
-		short usedChannels = 0;
-		anim->objects[0].GetValues(frame, 1,
-			pos, euler, scale, quater, &usedChannels);
-
-		
-
-		glm::mat4 gameObject = glm::mat4(1);
-
-		AssetInstance& aInst = model->instances[0];
-		AssetInstance& mInst = model->instances[1];
-		ArmatureAsset* armature = aInst.asset->cast<ArmatureAsset>();
-		MeshAsset* mesh = mInst.asset->cast<MeshAsset>();
-		
-		glm::mat4 inve = glm::inverse((mInst.localMat));
-		
-		glm::mat4 bone = armature->bones[0].localMat*quater*armature->bones[0].invModel*mInst.localMat;// *(armature->bones[0].localMat * quater);
-
-		//shader->SetMatrix("uBoneTransforms[0]", bone);
-		//shader->SetMatrix("uTransform",gameObject* axis*aInst.localMat);
-
-		//PassMaterial(shader, 0, mesh->materials[0]);
-		//mesh->buffer.Draw();
-		
-
-		//RenderEngine(lag);
-
-		// Render custom things like items dragged by the mouse
-		ui::Render(lag);
-	}
 	static bool initGameAssets = false;
-	void InitGame()
-	{
+	void InitGame() {
 		using namespace engone;
+
 		LockCursor(true);
 		if (!initGameAssets) {
 			InitItemHandler();
 			//interfaceManager.SetupGameUI();
 			initGameAssets = true;
 		}
-		//SetCursorVisible(true);
-		
+
 		if (false) {
 			SetState(GameState::RenderGame, false);
 			SetState(GameState::Intro, true);
@@ -222,10 +158,64 @@ namespace game
 
 		TestScene();
 	}
+	static float rot = 0;
+	static float frame = 0;
+	void Render(double lag) {
+		using namespace engone;
 
+		ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
+		Shader* shader = GetAsset<Shader>("armature");
+		shader->Bind();
+
+		glm::mat4 fin = glm::mat4(1);
+
+		glm::mat4 axis = glm::mat4(1);
+
+		axis[1][1] = 0;
+		axis[2][1] = 1;
+		axis[1][2] = -1;
+		axis[2][2] = 0;
+
+		glm::vec3 pos = glm::vec3(1), euler, scale;
+		glm::mat4 quater = glm::mat4(1);
+
+
+		AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
+		frame += anim->defaultSpeed * 1.f / 60;
+
+		if (frame > 60) {
+			frame = 0;
+		}
+
+		short usedChannels = 0;
+		anim->objects[0].GetValues(frame, 1,
+			pos, euler, scale, quater, &usedChannels);
+
+		glm::mat4 gameObject = glm::mat4(1);
+
+		AssetInstance& aInst = model->instances[0];
+		AssetInstance& mInst = model->instances[1];
+		ArmatureAsset* armature = aInst.asset->cast<ArmatureAsset>();
+		MeshAsset* mesh = mInst.asset->cast<MeshAsset>();
+		
+		glm::mat4 inve = glm::inverse((mInst.localMat));
+		
+		glm::mat4 bone = armature->bones[0].localMat*quater*armature->bones[0].invModel*mInst.localMat;// *(armature->bones[0].localMat * quater);
+
+		//shader->SetMatrix("uBoneTransforms[0]", bone);
+		//shader->SetMatrix("uTransform",gameObject* axis*aInst.localMat);
+
+		//PassMaterial(shader, 0, mesh->materials[0]);
+		//mesh->buffer.Draw();
+		RenderEngine(lag);
+
+		// Render custom things like items dragged by the mouse
+		ui::Render(2);
+	}
 	void TestScene()
 	{
 		using namespace engone;
+
 		//bug::out < a->Get(0)->Get(0)->frames[1].value < bug::end;
 		//engine::AddAnimationAsset("ArmatureAction");
 		//engine::GetModelAsset("Player")->AddAnimation("ArmatureAction");
@@ -276,7 +266,7 @@ namespace game
 		//AddObject(axis);
 
 		//ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
-		ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Plant.001/Plant.001"));
+		ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Ground/Ground"));
 		 
 		//ModelObject* tom = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Snake/Snake"));
 		AddObject(tom);
@@ -287,8 +277,8 @@ namespace game
 		//ob->quaternion = {1,0.5,0,0};
 
 		game::SetPlayer(new Player(0, 0, -5));
-		GetCamera()->position.x = 0;
-		GetCamera()->position.z = 5;
+		//GetCamera()->position.x = 0;
+		//GetCamera()->position.z = 5;
 		game::GetPlayer()->flight = true;
 		AddObject(game::GetPlayer());
 		SetState(GameState::CameraToPlayer, false);

@@ -4,13 +4,13 @@
 #include "GameHandler.h"
 
 void runApp(bool debug) {
-	engone::InitEngine();
+	engone::InitEngone();
 	
 	game::InitGame();
 
 	engone::Start(game::Update, game::Render, 60);
 
-	engone::ExitEngine();
+	engone::ExitEngone();
 }
 // Runs the game without a console
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {

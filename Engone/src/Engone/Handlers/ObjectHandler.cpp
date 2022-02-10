@@ -48,7 +48,7 @@ namespace engone {
 	}
 	GameObject* GetObjectByName(const std::string& name) {
 		for (GameObject* n : gameObjects) {
-			if (n->name == name) {
+			if (n->GetName() == name) {
 				return n;
 			}
 		}

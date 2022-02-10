@@ -14,7 +14,7 @@ namespace engone {
 		frame(frame), loop(loop), blend(blend), speed(speed) {
 
 	}
-	void Animator::Update(float delta) {
+	void Animator::Update(float delta, ModelAsset* model) {
 
 		if (model != nullptr) {
 			std::vector<std::string> disable;
@@ -74,7 +74,7 @@ namespace engone {
 	If animation doesn't exist in the model by default. It will try to find the asset and if it does.
 	The animation will be added to the model. This is mainly used for debug purposes.
 	*/
-	void Animator::Enable(const std::string& instanceName, const std::string& animationName, AnimationProperty prop) {
+	void Animator::Enable(ModelAsset* model, const std::string& instanceName, const std::string& animationName, AnimationProperty prop) {
 		if (model != nullptr) {
 			bool found = false;
 			for (AnimationAsset* a : model->animations) {

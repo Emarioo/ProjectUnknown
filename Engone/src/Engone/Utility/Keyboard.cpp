@@ -6,7 +6,7 @@
 
 #include "../Handlers/FileHandler.h"
 
-#include "GLFW/glfw3.h"
+#include "Engone/Window.h"
 
 namespace engone {
 

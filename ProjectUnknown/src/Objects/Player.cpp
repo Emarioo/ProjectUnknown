@@ -12,12 +12,11 @@
 #include "GLFW/glfw3.h"
 
 Player::Player(float x,float y,float z) : GameObject("Player",x,y,z) {
-	weight = 1;
 	/*
-	renderComponent.SetModel("Player");
-	collisionComponent.SetCollider(renderComponent.model->colliderName);
-	renderComponent.animator.Enable("goblin_idle", { 0,true,1,1 });
-	renderComponent.animator.Enable("goblin_run", { 0,true,0,1 });
+	SetModel("Player");
+
+	animator.Enable("goblin_idle", { 0,true,1,1 });
+	animator.Enable("goblin_run", { 0,true,0,1 });
 	*/
 }
 void Player::Update(float delta) {
@@ -30,17 +29,17 @@ void Player::Update(float delta) {
 	}
 	/*
 	if (engone::IsKeybindingDown(KeyCrouch)) {
-		renderComponent.animator.Speed("goblin_run", 
+		animator.Speed("goblin_run", 
 			flight|| !engone::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
 		);
 	} else {
-		renderComponent.animator.Speed("goblin_run", 1);
+		animator.Speed("goblin_run", 1);
 	}
 
-	renderComponent.animator.Blend("goblin_idle", animBlending);
-	renderComponent.animator.Blend("goblin_run", 1 - animBlending);
+	animator.Blend("goblin_idle", animBlending);
+	animator.Blend("goblin_run", 1 - animBlending);
 
-	renderComponent.animator.Update(delta);
+	animator.Update(delta);
 	*/
 	Movement(delta);
 }
@@ -91,15 +90,15 @@ glm::vec3 Player::Movement(float delta) {
 				move.y -= speed;
 			}
 			if(flight)
-				velocity.y = 0;
+				physics.velocity.y = 0;
 		} else {
-			velocity.y += gravity;
+			physics.velocity.y += gravity;
 			if (IsKeybindingDown(KeySprint))
 				speed = sprintSpeed;
 
 			if (IsKeybindingDown(KeyJump)) {
 				if (onGround) {
-					velocity.y = 5;
+					physics.velocity.y = 5;
 					onGround = false;
 				}
 			}
@@ -117,6 +116,7 @@ glm::vec3 Player::Movement(float delta) {
 		if (IsKeybindingDown(KeyLeft)) {
 			move.x -= speed;
 		}
+
 		/*
 		if (GetKeyState(VK_CONTROL) < 0) { // TODO: better crouch method
 			crouchMode = true;
@@ -146,31 +146,13 @@ glm::vec3 Player::Movement(float delta) {
 
 	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
 	
-	velocity = nmove;
-	camera->velocity = nmove;
+	//physics.velocity = nmove;
 
 	//camera->position.z += 8*0.016f;
-	camera->position += nmove* delta;
+	//camera->position += nmove* delta;
+	camera->position += nmove*delta;
 	
-	if (!CheckState(GameState::CameraToPlayer)) {
-			camera->velocity = nmove;
-			camera->position += nmove * delta;
-	} else {
-		velocity = nmove;
-		position += nmove * delta;
-		
-		SetRotation(0, camera->rotation.y + glm::pi<float>(), 0);
-
-		Location camPos; // Camera offset
-		camPos.Translate(position + glm::vec3(0, 0.5f, 0));
-		if (thirdPerson) {
-			camPos.Rotate(camera->rotation);
-			camPos.Translate(0.5, 0, 3);
-		}
-		camera->velocity = velocity;
-		camera->position = camPos.vec();
-		
-	}
+	
 	return nmove;
 	/*
 	if (GetDimension() != nullptr) {

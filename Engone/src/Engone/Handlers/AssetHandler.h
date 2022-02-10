@@ -5,7 +5,13 @@
 
 #include "Engone/Utility/Utilities.h"
 
+#include "../DebugHandler.h"
+
 namespace engone {
+
+	// used in ModelAsset, not great but it works
+	class Animator;
+
 	enum AssetError
 	{
 		None = 0,
@@ -407,6 +413,8 @@ namespace engone {
 		glm::vec3 specular = { .5f,.5,.5f };
 		float shininess = .5;
 
+		void Bind(Shader* shader, int index);
+
 	};
 	enum PolationType : unsigned char
 	{
@@ -515,11 +523,29 @@ namespace engone {
 		ColliderAsset(const std::string& path) : Asset(path+".collider") { type = AssetType::Collider; Load(filePath); };
 		virtual void Load(const std::string& path) override;
 
-		std::vector<AnimationAsset*> animations;
+		enum class Type : char {
+			Sphere,
+			Cube,
+			Mesh
+		};
+
 		float furthestPoint = 0;
-		std::vector<std::uint16_t> quad; // 4 = quad
-		std::vector<std::uint16_t> tri; // 3 = tri - not supported at the moment
-		std::vector<glm::vec3> points;
+
+		Type colliderType = Type::Sphere;
+		union {
+			struct {// cube
+				glm::vec3 position, scale, rotation;
+			} cube;
+			struct {// sphere
+				glm::vec3 position;
+				float radius;
+			} sphere;
+			struct {// mesh
+				std::vector<std::uint16_t> quad; // 4 = quad
+				std::vector<std::uint16_t> tri; // 3 = tri - not supported at the moment
+				std::vector<glm::vec3> points;
+			} mesh;
+		};
 	};
 	class Bone
 	{
@@ -556,14 +582,13 @@ namespace engone {
 
 		Asset* asset;
 	};
-	class ModelAsset : public Asset
-	{
+	class ModelAsset : public Asset {
 	public:
 		static const AssetType TYPE = AssetType::Model;
 		ModelAsset() { type = AssetType::Model; };
-		ModelAsset(const std::string& path) : Asset(path+".model") { type = AssetType::Model; Load(filePath); };
+		ModelAsset(const std::string& path) : Asset(path + ".model") { type = AssetType::Model; Load(filePath); };
 		virtual void Load(const std::string& path) override;
-		
+
 		/*
 		List of mesh, collider and armature transforms.
 		transforms[meshes.size()+colliders.size()+1] to get the second armature transform
@@ -571,17 +596,14 @@ namespace engone {
 		//std::vector<glm::mat4> transforms;
 		std::vector<AssetInstance> instances;
 		std::vector<AnimationAsset*> animations;
+		
+		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
+		void GetParentTransforms(Animator& animator, std::vector<glm::mat4>& mats);
 
 		/*
-		// Instances of the assets
-		std::vector<MeshAsset*> meshes;
-		std::vector<ColliderAsset*> colliders;
-		std::vector<ArmatureAsset*> armatures;
+		@instance: The armature instance. Not the mesh instance
 		*/
-
-	};
-	class Assets : public Module {
-	public:
+		void GetArmatureTransforms(Animator& animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* asset);
 
 	};
 	extern std::unordered_map<std::string, MaterialAsset*> engone_materials;
@@ -593,14 +615,30 @@ namespace engone {
 	extern std::unordered_map<std::string, Texture*> engone_textures;
 	extern std::unordered_map<std::string, Font*> engone_fonts;
 	extern std::unordered_map<std::string, Shader*> engone_shaders;
+
+	template<class T>
+	std::unordered_map<std::string, T*>* GetList() {
+		switch (T::TYPE) {
+		case AssetType::Texture: return (std::unordered_map<std::string, T*>*)&engone_textures;
+		case AssetType::Font: return (std::unordered_map<std::string, T*>*) &engone_fonts;
+		case AssetType::Shader: return (std::unordered_map<std::string, T*>*) &engone_shaders;
+		case AssetType::Material: return (std::unordered_map<std::string, T*>*) &engone_materials;
+		case AssetType::Animation: return (std::unordered_map<std::string, T*>*) &engone_animations;
+		case AssetType::Mesh: return (std::unordered_map<std::string, T*>*) &engone_meshes;
+		case AssetType::Collider: return (std::unordered_map<std::string, T*>*) &engone_colliders;
+		case AssetType::Armature: return (std::unordered_map<std::string, T*>*) &engone_armatures;
+		case AssetType::Model: return (std::unordered_map<std::string, T*>*) &engone_models;
+		}
+		return nullptr;// this shouldn't happen.
+	}
 	template <class T>
-	T* AddAsset(const std::string& name, T* asset)
-	{
+	T* AddAsset(const std::string& name, T* asset) {
 		//if (name.empty()) return;
-		if (asset->error!=None) {
+		if (asset->error != None) {
 			log::out << log::RED << log::TIME << toString(asset->error) << ": " << asset->filePath << "\n" << log::SILVER;
 		}
-		//std::cout << name <<" "<<(int)T::type<< "\n";
+		(*GetList<T>())[name] = asset->cast<T>();
+		/*
 		if (T::TYPE == AssetType::Texture)
 			engone_textures[name] = asset->cast<Texture>();
 		else if (T::TYPE == AssetType::Font)
@@ -609,9 +647,7 @@ namespace engone {
 			engone_shaders[name] = asset->cast<Shader>();
 		else if (T::TYPE == AssetType::Material) {
 			engone_materials[name] = asset->cast<MaterialAsset>();
-			//std::cout << "added\n";
-		}
-		else if (T::TYPE == AssetType::Animation)
+		} else if (T::TYPE == AssetType::Animation)
 			engone_animations[name] = asset->cast<AnimationAsset>();
 		else if (T::TYPE == AssetType::Mesh)
 			engone_meshes[name] = asset->cast<MeshAsset>();
@@ -621,14 +657,14 @@ namespace engone {
 			engone_armatures[name] = asset->cast<ArmatureAsset>();
 		else if (T::TYPE == AssetType::Model)
 			engone_models[name] = asset->cast<ModelAsset>();
+		*/
 		return asset;
 	}
 	/*
 	@path is based in the assets directory
 	*/
 	template <class T>
-	T* AddAsset(const std::string& name,const std::string& path)
-	{
+	T* AddAsset(const std::string& name, const std::string& path) {
 		//if (name.empty()||path.empty()) return;
 		T* t = new T(path);
 		t->SetBaseName(name);
@@ -638,8 +674,7 @@ namespace engone {
 	@path is based in the assets directory
 	*/
 	template <class T>
-	T* AddAsset(const std::string& path)
-	{
+	T* AddAsset(const std::string& path) {
 		//if (path.empty()) return;
 		return AddAsset<T>(path, path);
 	}
@@ -648,101 +683,101 @@ namespace engone {
 	@name if asset isn't found it will be used as a path. "assets/"+ name +".format"
 	*/
 	template <class T>
-	T* GetAsset(const std::string& name)
-	{
+	T* GetAsset(const std::string& name) {
 		//if (name.empty()) return;
 		//std::cout << name << " " << (int)T::type<<" "<<(int)AssetType::Shader << "\n";
-		if (T::TYPE == AssetType::Texture) {
-			if (engone_textures.count(name) > 0)
+		switch (T::TYPE) {
+		case AssetType::Texture:
+			if (engone_textures.count(name) > 0) {
 				return engone_textures[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<Texture>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Font) {
-			if (engone_fonts.count(name) > 0)
+			break;
+		case AssetType::Font:
+			if (engone_fonts.count(name) > 0) {
 				return engone_fonts[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<Font>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Shader) {
-			if (engone_shaders.count(name) > 0)
+			break;
+		case AssetType::Shader:
+			if (engone_shaders.count(name) > 0) {
 				return engone_shaders[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<Shader>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Material) {
-			if (engone_materials.count(name) > 0)
+			break;
+		case AssetType::Material:
+			if (engone_materials.count(name) > 0) {
 				return engone_materials[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<MaterialAsset>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Animation) {
-			if (engone_animations.count(name) > 0)
+			break;
+		case AssetType::Animation:
+			if (engone_animations.count(name) > 0) {
 				return engone_animations[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<AnimationAsset>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Mesh) {
-			if (engone_meshes.count(name) > 0)
+			break;
+		case AssetType::Mesh:
+			if (engone_meshes.count(name) > 0) {
 				return engone_meshes[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<MeshAsset>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Collider) {
-			if (engone_colliders.count(name) > 0)
+			break;
+		case AssetType::Collider:
+			if (engone_colliders.count(name) > 0) {
 				return engone_colliders[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<ColliderAsset>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Armature) {
-			if (engone_armatures.count(name) > 0)
+			break;
+		case AssetType::Armature:
+			if (engone_armatures.count(name) > 0) {
 				return engone_armatures[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<ArmatureAsset>(name)->cast<T>();
 			}
-		}
-		else if (T::TYPE == AssetType::Model) {
-			if (engone_models.count(name) > 0)
+			break;
+		case AssetType::Model:
+			if (engone_models.count(name) > 0) {
 				return engone_models[name]->cast<T>();
-			else {
+			} else {
 				return AddAsset<ModelAsset>(name)->cast<T>();
 			}
+			break;
 		}
 		return nullptr;
 	}
 	template <class T>
-	void RemoveAsset(const std::string& name)
-	{
+	void RemoveAsset(const std::string& name) {
 		log::out << __FILE__ << " " << __FUNCTION__ << " is not finished (memory leak)\n";
 		//if (name.empty()) return;
-		if (T::TYPE == AssetType::Texture)
+		if (T::TYPE == AssetType::Texture) {
 			if (engone_textures.count(name) > 0) { // needs to be copied to the other ones
 				delete engone_textures[name];
 				engone_textures.erase(name);
 			}
-		else if (T::TYPE == AssetType::Font)
+		} else if (T::TYPE == AssetType::Font) {
 			engone_fonts.erase(name);
-		else if (T::TYPE == AssetType::Shader)
+		} else if (T::TYPE == AssetType::Shader) {
 			engone_shaders.erase(name);
-		else if (T::TYPE == AssetType::Material)
+		} else if (T::TYPE == AssetType::Material) {
 			engone_materials.erase(name);
-		else if (T::TYPE == AssetType::Animation)
+		} else if (T::TYPE == AssetType::Animation) {
 			engone_animations.erase(name);
-		else if (T::TYPE == AssetType::Mesh)
+		} else if (T::TYPE == AssetType::Mesh) {
 			engone_meshes.erase(name);
-		else if (T::TYPE == AssetType::Collider)
+		} else if (T::TYPE == AssetType::Collider) {
 			engone_colliders.erase(name);
-		else if (T::TYPE == AssetType::Armature)
+		} else if (T::TYPE == AssetType::Armature) {
 			engone_armatures.erase(name);
-		else if (T::TYPE == AssetType::Model)
+		} else if (T::TYPE == AssetType::Model) {
 			engone_models.erase(name);
-		
+		}
 	}
 }

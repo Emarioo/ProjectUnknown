@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../Utility/Utilities.h"
-#include "../DebugHandler.h"
 
 namespace engone {
 	enum class FileReport {

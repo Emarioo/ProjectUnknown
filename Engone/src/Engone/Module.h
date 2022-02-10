@@ -3,7 +3,9 @@
 namespace engone {
 	class Module {
 	public:
-		Module(int priority=0) : priority(priority) {}
+		int id;
+
+		Module(int id,int priority=0) : id(id), priority(priority) {}
 		virtual ~Module();
 
 		virtual void Init();
@@ -11,5 +13,12 @@ namespace engone {
 		virtual void Render();
 
 		int priority = 0;
+
+		Module* parent=nullptr;
+		
+		template<class T>
+		T* cast() {
+			return reinterpret_cast<T*>(this);
+		}
 	};
 }

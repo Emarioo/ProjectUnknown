@@ -8,10 +8,6 @@ namespace engone {
 	Init usage of glfw events. Setup glfw callbacks
 	*/
 	void InitEvents(GLFWwindow* window);
-	/*
-	Init usage of windows console.
-	*/
-	void InitEvents();
 
 	enum class EventType : char
 	{
@@ -80,8 +76,6 @@ namespace engone {
 
 	void AddListener(Listener* listener);
 
-	// Called absolute first of update loop, if using windows console events
-	void RefreshEvents();
 	// Called absolute last of update loop, always necessary
 	void ResetEvents();
 

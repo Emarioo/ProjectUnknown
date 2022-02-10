@@ -2,6 +2,8 @@
 
 #include "GuiHandler.h"
 
+#include "../Window.h"
+
 namespace engone
 {
 	static Shader* guiShader;
@@ -35,15 +37,15 @@ namespace engone
 	{
 		float move = raw;
 		if (!pixelSpace) {
-			move *= Width();
+			move *= GetWidth();
 		}
 
 		if (side == 0) {
-			if (parent == nullptr) return move - element->renderW / 2 + Width() / 2;
+			if (parent == nullptr) return move - element->renderW / 2 + GetWidth() / 2;
 			else return parent->renderX + move;
 		}
 		else if (side == 1) {
-			if (parent == nullptr) return Width() - move - element->renderW;
+			if (parent == nullptr) return GetWidth() - move - element->renderW;
 			else return parent->renderX - move - element->renderW;
 		}
 		else {
@@ -81,11 +83,11 @@ namespace engone
 	{
 		float move = raw;
 		if (!pixelSpace) {
-			move *= Height();
+			move *= GetHeight();
 		}
 
 		if (side == 0) {
-			if (parent == nullptr) return move - element->renderH / 2 + Height() / 2;
+			if (parent == nullptr) return move - element->renderH / 2 + GetHeight() / 2;
 			else return parent->renderY + move;
 		}
 		else if (side == 1) {
@@ -93,7 +95,7 @@ namespace engone
 			else return parent->renderY + move + parent->renderH;
 		}
 		else {
-			if (parent == nullptr) return Height() - move - element->renderH;
+			if (parent == nullptr) return GetHeight() - move - element->renderH;
 			else return parent->renderY - element->renderH - move;
 		}
 	}
@@ -110,7 +112,7 @@ namespace engone
 	{
 		float move = raw;
 		if (!pixelSpace) {
-			move *= Width();
+			move *= GetWidth();
 		}
 
 		if (parent == nullptr) return move;
@@ -129,7 +131,7 @@ namespace engone
 	{
 		float move = raw;
 		if (!pixelSpace) {
-			move *= Height();
+			move *= GetHeight();
 		}
 
 		if (parent == nullptr) return move;
@@ -811,8 +813,18 @@ namespace engone
 			}
 		}
 	}
-
 	static std::vector<IElement*> elements;
+	void InitGui() {
+		guiShader = GetAsset<Shader>("gui");
+		AddListener(new Listener(EventType::Click | EventType::Move | EventType::Key | EventType::Scroll, [=](Event& e) {
+			for (int i = 0; i < elements.size(); i++) {
+				EventType ret = elements[i]->OnEvent(e);
+				if (ret != EventType::None)
+					return ret;
+			}
+			return EventType::None;
+			}));
+	}
 	void AddElement(IElement* element)
 	{
 		int insertIndex = -1;
@@ -855,24 +867,11 @@ namespace engone
 		}
 		return nullptr;
 	}
-	void InitGUI()
-	{
-		guiShader = GetAsset<Shader>("gui");
-		
-		AddListener(new Listener(EventType::Click | EventType::Move | EventType::Key | EventType::Scroll, [](Event& e) {
-			for (int i = 0; i < elements.size(); i++) {
-				EventType ret = elements[i]->OnEvent(e);
-				if (ret!=EventType::None)
-					return ret;
-			}
-			return EventType::None;
-			}));
-	}
 	void RenderElements()
 	{
-		SwitchBlendDepth(true);
+		EnableBlend();
 		guiShader->Bind();
-		guiShader->SetVec2("uWindow", { Width(),Height() });
+		guiShader->SetVec2("uWindow", { GetWidth(),GetHeight() });
 		//log::out << "win " << Width() << "\n";
 		for (int i = elements.size()-1; i > -1; i--) {
 			elements[i]->OnRender();

@@ -786,14 +786,16 @@ namespace engone
 		void OnRender() override;
 	};
 
-	void AddElement(IElement* element);
-	void RemoveElement(const std::string& name);
-	void RemoveElement(IElement* element);
-	IElement* GetElement(const std::string& name);
-	// Set guiShader, add listener for elements
-	void InitGUI();
-	// Set uWindow uniform, switch blend, render elements
-	void RenderElements();
-	// Updates elements
-	void UpdateElements(float delta);
+		// Set guiShader, add listener for elements
+		void InitGui();
+
+		void AddElement(IElement* element);
+		void RemoveElement(const std::string& name);
+		void RemoveElement(IElement* element);
+		IElement* GetElement(const std::string& name);
+		// Set uWindow uniform, switch blend, render elements
+		void RenderElements();
+		// Updates elements
+		void UpdateElements(float delta);
+
 }

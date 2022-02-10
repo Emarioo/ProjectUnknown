@@ -15,4 +15,7 @@ namespace game
 	void InitGame();
 	void Update(double delta);
 	void Render(double lag);
+
+	void TestScene();
+
 }

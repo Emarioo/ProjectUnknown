@@ -126,7 +126,7 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 			gui->SetVec2("uPos", {x+w/6,y+h/4});
 			gui->SetVec2("uSize", { 0.75,0.75 });
 			gui->SetVec4("uColor", r, g, b, a);
-			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6,w,h);
+			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6,w,h,-1);
 		}
 	}
 }

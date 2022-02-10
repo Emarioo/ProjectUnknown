@@ -14,7 +14,7 @@ void main()
 {
 	fUV=vPos.zw;
 	gl_Position = vec4((vPos.x*uSize.x+uPos.x)/uWindow.x*2-1, 1-(vPos.y*uSize.y+uPos.y)/uWindow.y*2, 0, 1);
-	//gl_Position = vec4(vPos.x, -vPos.y, 0, 1);
+	//gl_Position = vec4(vPos.x, vPos.y, 0, 1);
 };
 
 #shader fragment
