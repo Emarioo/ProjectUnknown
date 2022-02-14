@@ -25,7 +25,7 @@ namespace engone {
 
 	// Init glfw, glew, guiShader. has ui functions
 	void InitEngone();
-	void ExitEngone();
+	void UninitEngone();
 
 	/*
 	Start the game loop and give the engine update and render calls.

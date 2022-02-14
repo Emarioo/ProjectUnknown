@@ -12,6 +12,7 @@ namespace engone {
 
 	// Create buffers/meshes for drawing rectangles. Gui shader should be added before. 
 	void InitRenderer();
+	void UninitRenderer();
 	void EnableBlend();
 	void EnableDepth();
 
@@ -23,6 +24,11 @@ namespace engone {
 	void DrawRect();
 	// set guiShader uniforms
 	void DrawUVRect(float u, float v, float uw, float vh);	
+
+	// Bind shader, set uTransform/uColor, see shader uniforms for more info
+	void DrawCube(float w,float h,float d);
+	// Bind shader, set uTransform/uColor, see shader uniforms for more info
+	void DrawSphere(float radius);
 
 	void UpdateViewMatrix(double lag);
 }

@@ -249,46 +249,13 @@ namespace game
 			//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 		}
 
-		//-- Game World setup - debug purpose at the moment
-		//engine::AddObject(new Tutorial(0, 0, 0));
-		//engine::AddObject(new Goblin(0, -3, 0));
-		//engine::AddObject(new Gnorg(5, 0,5));
-
-		//gameHandler.player = new Player(0, 15, 0);
-		//gameHandler.player->flight = true;
-		//player->renderHitbox = true;
-		//engine::AddObject(gameHandler.player);
-		//Tutorial* tutorial = new Tutorial(0, 0, 0);
-		//tutorial->renderHitbox = true;
-		//engine::AddObject(tutorial);
-
-		//ModelObject* axis = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Axis/Axis"));
-		//AddObject(axis);
-
-		//ModelObject* charles=new ModelObject(3, 0, 0, "Charles");
 		ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Ground/Ground"));
-		 
-		//ModelObject* tom = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Snake/Snake"));
 		AddObject(tom);
 		
-		//ModelObject* test = new ModelObject(0, 0, 0, "VertexColor");
-		//AddObject(charles);
-		//AddObject(test);
-		//ob->quaternion = {1,0.5,0,0};
-
 		game::SetPlayer(new Player(0, 0, -5));
-		//GetCamera()->position.x = 0;
-		//GetCamera()->position.z = 5;
-		game::GetPlayer()->flight = true;
 		AddObject(game::GetPlayer());
-		SetState(GameState::CameraToPlayer, false);
-		//engine::GetCamera()->SetPosition(0,0,-5);
 
 		DirLight* l = new DirLight({ 2,-4,1 });
-
-		//l->linear = 0.25;
-		//l->quadratic = 0.059;
 		AddLight(l);
-		//engine::AddLight(new engine::DirLight({ -1,-1,-1 }));
 	}
 }

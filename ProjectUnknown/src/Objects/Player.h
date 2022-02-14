@@ -14,27 +14,19 @@ public:
 	glm::vec3 Movement(float delta);
 
 	// Movement and camera
-	//bool freeCam = false; // use GameState CameraToPlayer
 	bool thirdPerson = false;
-	bool flight = false;
+	bool flight = true;
 
 	bool sprintMode = false;
 	bool crouchMode = false;
 
-	bool freeCamT = false;
-	bool thirdPersonT = false;
-	bool flightT = false;
-
-	bool crouchT = false;
-
 	float walkSpeed = 4.0f;
 	float sprintSpeed = 7.0f;
-	float camSpeed = 2.0f*5;
-	float camFastSpeed = 13.0f*10;
+	float flySpeed = 2.0f*5;
+	float flyFastSpeed = 13.0f*10;
 	float jumpForce = 10.0f;
 
 	bool onGround = false;
-	float gravity = -0.3f;
 
 	// Stats
 	float health = 20;

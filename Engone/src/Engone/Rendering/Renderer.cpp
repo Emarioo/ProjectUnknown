@@ -10,6 +10,10 @@ namespace engone {
 	static float verts[4 * 4 * TEXT_BATCH];
 	static TriangleBuffer textBuffer, rectBuffer;
 
+	int colliderVertexLimit = 500, colliderIndexLimit = 3000;
+	LineBuffer colliderBuffer;
+	float* colliderVertices;
+	unsigned int* colliderIndices;
 
 	void InitRenderer() {
 		guiShader = GetAsset<Shader>("gui");
@@ -37,6 +41,20 @@ namespace engone {
 		};
 		rectBuffer.Init(true, temp, 16, temp2, 6);
 		rectBuffer.SetAttrib(0, 4, 4, 0);
+
+		colliderVertices = new float[colliderVertexLimit * 3];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		colliderIndices = new unsigned int[colliderIndexLimit * 2];// {0, 1, 0, 2, 0, 3};
+		
+		memset(colliderVertices,0,colliderVertexLimit*3);
+		memset(colliderIndices,0,colliderIndexLimit*2);
+		
+		colliderBuffer.Init(true, colliderVertices, 3 * colliderVertexLimit, colliderIndices, 2 * colliderIndexLimit);
+		colliderBuffer.SetAttrib(0, 3, 3, 0);
+	}
+	void UninitRenderer() {
+		delete[] colliderVertices;
+		delete[] colliderIndices;
+		colliderBuffer.Uninit();
 	}
 	void EnableBlend() {
 		glEnable(GL_BLEND);
@@ -305,5 +323,74 @@ namespace engone {
 		};
 		rectBuffer.ModifyVertices(0, 16, vertices);
 		rectBuffer.Draw();
+	}
+
+	void DrawCube(float w,float h,float d) {
+		w /= 2;
+		h /= 2;
+		d /= 2;
+
+		float v[]{
+			-w,-h,-d,
+			w,-h,-d,
+			w,-h,d,
+			-w,-h,d,
+
+			-w,h,-d,
+			w,h,-d,
+			w,h,d,
+			-w,h,d,
+		};
+		unsigned int ind[]{
+			0,1, 1,2, 2,3, 3,0,
+			0,4, 1,5, 2,6, 3,7,
+			4,5, 5,6, 6,7, 7,4,
+		};
+		colliderBuffer.ModifyVertices(0, sizeof(v)/sizeof(float), v);
+		colliderBuffer.ModifyIndices(0, sizeof(ind)/sizeof(unsigned int), ind);
+		colliderBuffer.Draw();
+	}
+	struct line {
+		int a, b;
+	};
+	struct tri {
+		int a, b, c;
+	};
+	void DrawSphere(float radius) {
+		std::vector<glm::vec3> points;
+		std::vector<tri> tris;
+		std::vector<line> lines;
+		
+		float pi = glm::pi<float>();
+		points.push_back({0,1,0});
+		points.push_back({0,-1,0});
+		for (int i = 0; i < 5;i++) {
+			points.push_back({ cosf(2*pi*(i/5.f)),.5,sinf(2*pi*(i/5.f)) });
+			points.push_back({ cosf(2 * pi * (1/10.f+ i / 5.f)),-.5,sinf(2 * pi * (1/10.f+i / 5.f)) });
+			
+			lines.push_back({ 2 + i * 2,2 + i * 2 + 1 });
+			lines.push_back({ 2 + ((i+1)%5) * 2,2 + i * 2 + 1 });
+			
+			lines.push_back({ 2+i*2, 2+((i+1)%5) * 2 });
+			lines.push_back({ 2+i*2+1, 2+((i+1)%5) * 2+1 });
+
+			lines.push_back({0,2+i*2});
+			lines.push_back({ 1,2+i*2+1 });
+		}
+
+		for (glm::vec3& p : points)
+			p *= radius;
+
+		{
+			//std::vector<glm::vec3> oldPoints=points;
+			//std::vector<line> oldLines=lines;
+			//std::vector<tri> oldTris=tris;
+
+			
+		}
+
+		colliderBuffer.ModifyVertices(0, points.size()*3, points.data());
+		colliderBuffer.ModifyIndices(0, lines.size()*2, lines.data());
+		colliderBuffer.Draw();
 	}
 }

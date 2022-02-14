@@ -9,25 +9,39 @@ namespace engone {
 	}
 	bool Physics::TestCollision(Collider& c1, Collider& c2) {
 		bool colliding = false;
+		float time = 0;
 		if (c1.asset->colliderType == ColliderAsset::Type::Sphere &&
 			c2.asset->colliderType == ColliderAsset::Type::Sphere) {
 
-			float dist = (c1.asset->sphere.position - c2.asset->sphere.position).length();
+			float dist = glm::length(c1.asset->sphere.position - c2.asset->sphere.position);
 			if (dist < c1.asset->sphere.radius + c2.asset->sphere.radius) {
 				colliding = true;
+				time = 1;
 			}
 
 		} else if (c1.asset->colliderType == ColliderAsset::Type::Cube &&
 			c2.asset->colliderType == ColliderAsset::Type::Cube) {
 			
+			if (c1.asset->cube.rotation == glm::vec3(0)&& c2.asset->cube.rotation == glm::vec3(0)){
+				if (c1.physics->position.x+c1.asset->cube.scale.x < c2.physics->position.x&&
+					c1.physics->position.x > c2.physics->position.x+c2.asset->cube.scale.x&&
+					c1.physics->position.y + c1.asset->cube.scale.y < c2.physics->position.y &&
+					c1.physics->position.y > c2.physics->position.y + c2.asset->cube.scale.y&&
+					c1.physics->position.z + c1.asset->cube.scale.z < c2.physics->position.z &&
+					c1.physics->position.z > c2.physics->position.z + c2.asset->cube.scale.z) {
 
+					colliding = true;
+					time = 1;
+				}
+			}
 		}
 		if (colliding) {
 			if (m_isTrigger) {
 				m_isTriggered = true;
 				return false;
 			} else if(m_isMovable) {
-				
+				c1.physics->position -= c1.physics->velocity * time;
+				c1.physics->velocity = {0,0,0};
 				return true;
 			}
 		}

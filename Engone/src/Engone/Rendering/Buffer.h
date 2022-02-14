@@ -16,7 +16,7 @@ namespace engone {
 		which requires an initialization of OpenGL first.
 		*/
 		void Init(bool dynamic, void* vertices, unsigned int vertexCount, void* indices, unsigned int indexCount);
-		void Deinit();
+		void Uninit();
 
 		void SetAttrib(unsigned int location, unsigned int count, unsigned int stride, unsigned int offset);
 		void SetAttribI(unsigned int location, unsigned int count, unsigned int stride, unsigned int offset);

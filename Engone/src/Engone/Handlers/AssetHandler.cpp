@@ -614,7 +614,7 @@ namespace engone {
 	{
 		// clear data
 		materials.clear();
-		buffer.Deinit();
+		buffer.Uninit();
 
 		FileReader file(path);		
 		try {

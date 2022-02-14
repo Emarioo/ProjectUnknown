@@ -52,36 +52,18 @@ glm::vec3 Player::Movement(float delta) {
 	glm::vec3 move = glm::vec3(0, 0, 0);
 	
 	if (true) { // Disable movement - useless?
-		if (engone::IsKeyDown(GLFW_KEY_N)) {
-			if (!freeCamT) {
-				SetState(GameState::CameraToPlayer, !CheckState(GameState::CameraToPlayer));
-			}
-			freeCamT = true;
-		} else {
-			freeCamT = false;
-		}
-		if (IsKeyDown(GLFW_KEY_F)) {
-			if (!flightT) {
-				flight =! flight;
-			}
-			flightT = true;
-		} else {
-			flightT = false;
+		if (IsKeyPressed(GLFW_KEY_F)) {
+			flight =! flight;
 		}
 		if (IsKeyDown(GLFW_KEY_H)) {
-			if (!thirdPersonT) {
-				thirdPerson = !thirdPerson;
-			}
-			thirdPersonT = true;
-		} else {
-			thirdPersonT = false;
+			thirdPerson = !thirdPerson;
 		}
 
 		float speed = walkSpeed;
-		if (!CheckState(GameState::CameraToPlayer) ||flight) {
-			speed = camSpeed;
+		if (flight) {
+			speed = flySpeed;
 			if (IsKeybindingDown(KeySprint))
-				speed = camFastSpeed;
+				speed = flyFastSpeed;
 
 			if (IsKeybindingDown(KeyJump)) {
 				move.y += speed;
@@ -89,10 +71,10 @@ glm::vec3 Player::Movement(float delta) {
 			if (IsKeybindingDown(KeyCrouch)) {
 				move.y -= speed;
 			}
-			if(flight)
-				physics.velocity.y = 0;
+			physics.gravity = 0;
 		} else {
-			physics.velocity.y += gravity;
+			physics.gravity = 9.81;
+			physics.velocity.y -= physics.gravity * delta;
 			if (IsKeybindingDown(KeySprint))
 				speed = sprintSpeed;
 
@@ -116,43 +98,18 @@ glm::vec3 Player::Movement(float delta) {
 		if (IsKeybindingDown(KeyLeft)) {
 			move.x -= speed;
 		}
-
-		/*
-		if (GetKeyState(VK_CONTROL) < 0) { // TODO: better crouch method
-			crouchMode = true;
-			//collision.h = 1;
-			if (!crouchToggle) {
-
-			}
-			crouchToggle = true;
-		} else {
-			crouchMode = false;
-			if (crouchToggle) {
-				if (onGround) {
-					float t = 0.1*60.f;
-					*velY += 0.5 / t - t * gravity;// Crouch bounce
-				}
-			}
-			if (*velY <= gravity * -1) {
-				//collision.h = 2;
-			}
-			crouchToggle = false;
-		}
-		*/
 	}
 	// Rough way of calculation look vector and movement
 	glm::vec3 nmove(move.z * glm::sin(camera->rotation.y) + move.x * glm::sin(camera->rotation.y + glm::half_pi<float>()), move.y,
 		move.z * glm::cos(camera->rotation.y) + move.x * glm::cos(camera->rotation.y + glm::half_pi<float>()));
 
-	// Collision detection TODO: Improve collision detection to only use one loop through and Detect multiple collision at once with help from velocities
-	
-	//physics.velocity = nmove;
+	physics.position += nmove*delta;
+	if (thirdPerson) {
+		camera->position = physics.position+(glm::vec3)(glm::rotate(camera->rotation.x,glm::vec3(1,0,0))*glm::rotate(camera->rotation.y,glm::vec3(0,1,0))*glm::translate(glm::vec3(0,0,-5))[3]);
+	} else {
+		camera->position = physics.position + glm::vec3(0, 0.5f, 0);
+	}
 
-	//camera->position.z += 8*0.016f;
-	//camera->position += nmove* delta;
-	camera->position += nmove*delta;
-	
-	
 	return nmove;
 	/*
 	if (GetDimension() != nullptr) {

@@ -1,7 +1,5 @@
 #include "gonpch.h"
 
-//#if ENGONE_GLFW
-
 #include "Buffer.h"
 #include <GL/glew.h>
 
@@ -15,7 +13,7 @@ namespace engone {
 		GenBuffers(vertices, indices);
 	}
 	Buffer::~Buffer() {
-		Deinit();
+		Uninit();
 	}
 	void Buffer::GenBuffers(void* vertices, void* indices) {
 		glGenVertexArrays(1, &vertexArray);
@@ -39,7 +37,7 @@ namespace engone {
 
 		GenBuffers(vertices, indices);
 	}
-	void Buffer::Deinit() {
+	void Buffer::Uninit() {
 		glDeleteBuffers(1, &vertexArray);
 		glDeleteBuffers(1, &vertexBuffer);
 		glDeleteBuffers(1, &indexBuffer);
@@ -85,4 +83,3 @@ namespace engone {
 		glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
 }
-//#endif

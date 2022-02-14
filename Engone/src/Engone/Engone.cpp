@@ -32,10 +32,6 @@ namespace engone {
 	glm::mat4& GetLightProj() {
 		return lightProjection;
 	}
-	int colliderVertexLimit = 500, colliderIndexLimit=3000;
-	LineBuffer colliderBuffer;
-	float* colliderVertices;
-	unsigned int* colliderIndices;
 
 	static glm::mat4 projMatrix;
 	static glm::mat4 viewMatrix;
@@ -120,11 +116,6 @@ namespace engone {
 		AddListener(new Listener(EventType::Move, 9998, FirstPerson));
 		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
 
-		colliderBuffer.Init(true, nullptr, 6 * colliderVertexLimit, nullptr, 2 * colliderIndexLimit);
-		colliderBuffer.SetAttrib(0, 3, 3, 0);
-		colliderVertices = new float[colliderVertexLimit * 6];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		colliderIndices = new unsigned int[colliderIndexLimit * 2];// {0, 1, 0, 2, 0, 3};
-
 		//UpdateKeyboard(false);
 
 		depthBuffer.Init();
@@ -136,10 +127,8 @@ namespace engone {
 		zFar = 400.f;
 		SetProjection(GetWidth() / GetHeight());
 	}
-	void ExitEngone() {
-		delete[] colliderVertices;
-		delete[] colliderIndices;
-		colliderBuffer.Deinit();
+	void UninitEngone() {
+
 	}
 
 	void SetProjection(float ratio) {
@@ -156,10 +145,15 @@ namespace engone {
 		if (shader != nullptr)
 			shader->SetMatrix("uProj", projMatrix * viewMatrix);
 	}
+	void GenSphere() {
+		
+	}
 	void UpdateObjects(float delta) 
 	{
 		std::vector<Collider> colliders;
 	
+		// Space partitioning?
+
 		// Pre physics
 		for (int i = 0; i < GetObjects().size(); i++) {
 			GameObject* object = GetObjects()[i];
@@ -325,73 +319,15 @@ namespace engone {
 				}
 			}
 		}
-
-		/*
-		if (BindShader(ShaderUV)) {
-			UpdateViewMatrix();
-			for (GameObject* o : GetObjects()) {
-				for (int i = 0; i < o->renderComponent.meshes.size(); i++) {
-					MeshData* mesh = o->renderComponent.meshes[i];
-					if (mesh != nullptr) {
-						if (mesh->shaderType == ShaderUV) {
-							//BindTexture(mesh->texture);
-							PassTransform(o->renderComponent.matrices[i]);
-							mesh->Draw();
-						}
-					}
-				}
-			}
-		}
-		if (BindShader(ShaderColorBone)) {
-			UpdateViewMatrix();
-			for (GameObject* o : GetObjects()) {
-				if (o->renderComponent.bone.enabled) {
-					int count = o->renderComponent.bone.bone->bones.size();
-					std::vector<glm::mat4> mats(count);
-					o->renderComponent.bone.GetBoneTransforms(mats);
-					for (int i = 0; i < count; i++) {
-						GetShader(ShaderColorBone)->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
-					}
-				}
-				for (int i = 0; i < o->renderComponent.meshes.size(); i++) {
-					MeshData* mesh = o->renderComponent.meshes[i];
-					if (mesh != nullptr) {
-						if (mesh->shaderType == ShaderColorBone) {
-							PassTransform(o->renderComponent.matrices[i]);
-							mesh->Draw();
-						}
-					}
-				}
-			}
-		}
-		if (BindShader(ShaderUVBone)) {
-			UpdateViewMatrix();
-			for (GameObject* o : GetObjects()) {
-				if (o->renderComponent.bone.enabled) {
-					int count = o->renderComponent.bone.bone->bones.size();
-					std::vector<glm::mat4> mats(count);
-					o->renderComponent.bone.GetBoneTransforms(mats);
-					for (int i = 0; i < count; i++) {
-						GetShader(ShaderCurrent)->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
-					}
-				}
-				for (int i = 0; i < o->renderComponent.meshes.size(); i++) {
-					MeshData* mesh = o->renderComponent.meshes[i];
-					if (mesh != nullptr) {
-						if (mesh->shaderType == ShaderUVBone) {
-							PassTransform(o->renderComponent.matrices[i]);
-							mesh->Draw();
-						}
-					}
-				}
-			}
-		}*/
 		shader = GetAsset<Shader>("collision");
 		if (shader != nullptr) {
 			shader->Bind();
 			UpdateProjection(shader);
 			glLineWidth(2.f);
 			shader->SetVec3("uColor", {0.05,0.9,0.1});
+
+			//shader->SetMatrix("uTransform", glm::mat4(1));
+			//DrawSphere(2);
 
 			for (GameObject* o : GetObjects()) {
 				if (!o->physics.m_renderCollision)
@@ -412,30 +348,12 @@ namespace engone {
 							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
 							shader->SetMatrix("uTransform", o->m_matrix * transforms[i] * instance.localMat);
 							if (asset->colliderType == ColliderAsset::Type::Sphere) {
-								//log::out << "draw sphere\n";
-							}else if (asset->colliderType == ColliderAsset::Type::Cube) {
-								//log::out << "draw cube\n";
-								float w = asset->cube.scale.x, h = asset->cube.scale.y, d = asset->cube.scale.z;
-								float v[]{
-									0,0,0,
-									w,0,0,
-									w,0,d,
-									0,0,d,
-
-									0,h,0,
-									w,h,0,
-									w,h,d,
-									0,h,d,
-								};
-								unsigned int ind[]{
-									0,1, 1,2, 2,3, 3,0,
-									0,4, 1,5, 2,6 ,3,7,
-									4,5, 5,6, 6,7, 7,4,
-								};
+								DrawSphere(asset->sphere.radius);
 								
-								colliderBuffer.ModifyVertices(0, sizeof(v), v);
-								colliderBuffer.ModifyIndices(0, sizeof(ind), ind);
-								colliderBuffer.Draw();
+							}else if (asset->colliderType == ColliderAsset::Type::Cube) {
+								DrawCube(asset->cube.scale.x, asset->cube.scale.y, asset->cube.scale.z);
+							} else if (asset->colliderType == ColliderAsset::Type::Mesh) {
+
 							}
 						}
 					}
