@@ -2,6 +2,8 @@
 
 #include "Engone.h"
 
+#include "glm/gtx/matrix_decompose.hpp"
+
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
@@ -162,19 +164,21 @@ namespace engone {
 				// reset triggering
 				object->physics.m_isTriggered = false;
 
+				object->physics.lastPosition = object->physics.position;
+				
+				object->Update(delta);
 				if (object->physics.m_isMovable) {
 					object->physics.velocity.y += object->physics.gravity * delta;
 					object->physics.position += object->physics.velocity * delta;
 					//log::out << object->physics.position << object->physics.velocity<< "\n";
 				}
-				object->Update(delta);
 
 				if (object->GetModel() != nullptr) {
 					ModelAsset* model = object->GetModel();
 
 					// Get individual transforms
-					std::vector<glm::mat4> mats;
-					model->GetParentTransforms(object->animator,mats);
+					std::vector<glm::mat4> transforms;
+					model->GetParentTransforms(object->animator, transforms);
 
 					for (int j = 0; j < model->instances.size(); j++) {
 						AssetInstance& instance = model->instances[j];
@@ -182,19 +186,35 @@ namespace engone {
 						if (instance.asset->type == AssetType::Collider) {
 							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
 
-							colliders.push_back({ glm::translate(glm::mat4(1),object->physics.position) * mats[j] * instance.localMat, asset, &object->physics });
+							glm::mat4 matrix = glm::translate(object->physics.position) * transforms[j] * instance.localMat;
+							
+							matrix = glm::scale(matrix, asset->cube.scale);
+							
+							colliders.push_back({ asset, &object->physics });
+							glm::vec3 skew;
+							glm::vec4 persp;
+							glm::decompose(matrix,colliders.back().scale,colliders.back().rotation,colliders.back().position,skew,persp);
+							
+							if (asset->colliderType == ColliderAsset::Type::Sphere) {
+								colliders.back().position += asset->sphere.position;
+							} else if (asset->colliderType == ColliderAsset::Type::Cube) {
+								colliders.back().position += asset->cube.position;
+							}
 						}
 					}
 				}
 			}
 		}
-		while (colliders.size()>0) {
+		//log::out << "col\n";
+		while (colliders.size()>1) {
 			Collider& c1 = colliders[0];
-			for (Collider& c2 : colliders) {
-				if ((c1.matrix[3] - c2.matrix[3]).length() < 50) {
+			for (int i = 1; i < colliders.size();i++) {
+				Collider& c2 = colliders[i];
+				//log::out << c1.asset->baseName << " " << c2.asset->baseName << "\n";
+				if ((c1.position - c2.position).length() < 50) {
 					
-					bool stop = c1.physics->TestCollision(c1,c2);
-					if (stop) break;
+					bool stop = c1.physics->TestCollision(&c1,&c2);
+					//if (stop) break;
 				}
 			}
 			// remove collider when done with calculations
@@ -241,18 +261,18 @@ namespace engone {
 			shader->Bind();
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-			for (GameObject* o : GetObjects()) {
-				if (o->GetModel() != nullptr) {
-					ModelAsset* model = o->GetModel();
+			for (GameObject* object : GetObjects()) {
+				if (object->GetModel() != nullptr) {
+					ModelAsset* model = object->GetModel();
 
-					BindLights(shader, o->GetPosition());
+					BindLights(shader, object->GetPosition());
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
-					model->GetParentTransforms(o->animator, transforms);
+					model->GetParentTransforms(object->animator, transforms);
 
 					// Draw instances
-					for (int i = 0; i < o->GetModel()->instances.size(); i++) {
+					for (int i = 0; i < object->GetModel()->instances.size(); i++) {
 						AssetInstance& instance = model->instances[i];
 						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
 						if (instance.asset->type == AssetType::Mesh) {
@@ -262,7 +282,7 @@ namespace engone {
 								{
 									asset->materials[j]->Bind(shader, j);
 								}
-								shader->SetMatrix("uTransform", o->m_matrix * transforms[i] * instance.localMat);
+								shader->SetMatrix("uTransform", glm::translate(object->physics.position) * transforms[i] * instance.localMat);
 								asset->buffer.Draw();
 							}
 						}
@@ -276,14 +296,14 @@ namespace engone {
 			shader->Bind();
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-			for (GameObject* o : GetObjects()) {
-				if (o->GetModel() != nullptr) {
-					ModelAsset* model = o->GetModel();
-					BindLights(shader, o->GetPosition());
+			for (GameObject* object : GetObjects()) {
+				if (object->GetModel() != nullptr) {
+					ModelAsset* model = object->GetModel();
+					BindLights(shader, object->GetPosition());
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
-					model->GetParentTransforms(o->animator, transforms);
+					model->GetParentTransforms(object->animator, transforms);
 
 					//-- Draw instances
 					for (int i = 0; i < model->instances.size(); i++) {
@@ -300,7 +320,7 @@ namespace engone {
 									ArmatureAsset* armatureAsset = armatureInstance.asset->cast<ArmatureAsset>();
 
 									std::vector<glm::mat4> boneTransforms;
-									model->GetArmatureTransforms(o->animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
+									model->GetArmatureTransforms(object->animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
 									for (int j = 0; j < boneTransforms.size(); j++) {
 										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * meshInstance.localMat);
 									}
@@ -309,12 +329,11 @@ namespace engone {
 									{
 										meshAsset->materials[j]->Bind(shader, j);
 									}
-									shader->SetMatrix("uTransform", o->renderComponent.matrix * transforms[i]);
+									shader->SetMatrix("uTransform", glm::translate(object->physics.position) * transforms[i]);
 									meshAsset->buffer.Draw();
 								}
 							}
 						}
-
 					}
 				}
 			}
@@ -325,9 +344,6 @@ namespace engone {
 			UpdateProjection(shader);
 			glLineWidth(2.f);
 			shader->SetVec3("uColor", {0.05,0.9,0.1});
-
-			//shader->SetMatrix("uTransform", glm::mat4(1));
-			//DrawSphere(2);
 
 			for (GameObject* o : GetObjects()) {
 				if (!o->physics.m_renderCollision)
@@ -346,7 +362,13 @@ namespace engone {
 						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
 						if (instance.asset->type == AssetType::Collider) {
 							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
-							shader->SetMatrix("uTransform", o->m_matrix * transforms[i] * instance.localMat);
+							glm::vec3 offset=glm::vec3(0);
+							if (asset->colliderType == ColliderAsset::Type::Sphere) {
+								offset = asset->sphere.position;
+							} else if (asset->colliderType == ColliderAsset::Type::Cube) {
+								offset = asset->cube.position;
+							}
+							shader->SetMatrix("uTransform", glm::translate(o->physics.position+offset) * transforms[i] * instance.localMat);
 							if (asset->colliderType == ColliderAsset::Type::Sphere) {
 								DrawSphere(asset->sphere.radius);
 								
@@ -623,7 +645,7 @@ namespace engone {
 					{
 						asset->materials[j]->Bind(objectShader, j);
 					}
-					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,-5,0)));
+					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,0,0)));
 					asset->buffer.Draw();
 
 					//objectShader->SetMatrix("uTransform", glm::mat4(1));

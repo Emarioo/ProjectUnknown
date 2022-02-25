@@ -4,6 +4,7 @@
 #include "GameHandler.h"
 
 void runApp(bool debug) {
+
 	engone::InitEngone();
 	
 	game::InitGame();

@@ -12,35 +12,10 @@
 #include "GLFW/glfw3.h"
 
 Player::Player(float x,float y,float z) : GameObject("Player",x,y,z) {
-	/*
-	SetModel("Player");
-
-	animator.Enable("goblin_idle", { 0,true,1,1 });
-	animator.Enable("goblin_run", { 0,true,0,1 });
-	*/
+	
+	SetModel(engone::GetAsset<engone::ModelAsset>("Player/Player"));
 }
 void Player::Update(float delta) {
-	if (engone::IsKeybindingDown(KeyForward)) {
-		if (animBlending < 1 && animSpeed>0)
-			animBlending += animSpeed * delta;
-	} else {
-		if (animBlending > 0)
-			animBlending -= animSpeed * delta;
-	}
-	/*
-	if (engone::IsKeybindingDown(KeyCrouch)) {
-		animator.Speed("goblin_run", 
-			flight|| !engone::CheckState(GameState::CameraToPlayer) ? camFastSpeed/camSpeed : sprintSpeed/walkSpeed
-		);
-	} else {
-		animator.Speed("goblin_run", 1);
-	}
-
-	animator.Blend("goblin_idle", animBlending);
-	animator.Blend("goblin_run", 1 - animBlending);
-
-	animator.Update(delta);
-	*/
 	Movement(delta);
 }
 glm::vec3 Player::Movement(float delta) {
@@ -48,67 +23,67 @@ glm::vec3 Player::Movement(float delta) {
 	Camera* camera = GetCamera();
 	if (camera == nullptr)
 		return glm::vec3(0);
-	
+
 	glm::vec3 move = glm::vec3(0, 0, 0);
-	
-	if (true) { // Disable movement - useless?
-		if (IsKeyPressed(GLFW_KEY_F)) {
-			flight =! flight;
-		}
-		if (IsKeyDown(GLFW_KEY_H)) {
-			thirdPerson = !thirdPerson;
-		}
 
-		float speed = walkSpeed;
-		if (flight) {
-			speed = flySpeed;
-			if (IsKeybindingDown(KeySprint))
-				speed = flyFastSpeed;
+	if (IsKeyPressed(GLFW_KEY_F)) {
+		flight = !flight;
+	}
+	if (IsKeyPressed(GLFW_KEY_H)) {
+		thirdPerson = !thirdPerson;
+	}
 
-			if (IsKeybindingDown(KeyJump)) {
-				move.y += speed;
+	if (physics.velocity.y>lastVelocity) {
+		onGround = true;
+	}
+	lastVelocity = physics.velocity.y;
+
+	float speed = walkSpeed;
+	if (flight) {
+		speed = flySpeed;
+		if (IsKeybindingDown(KeySprint))
+			speed = flyFastSpeed;
+
+		if (IsKeybindingDown(KeyJump)) {
+			move.y += speed;
+		}
+		if (IsKeybindingDown(KeyCrouch)) {
+			move.y -= speed;
+		}
+		physics.gravity = 0;
+		physics.velocity = { 0,0,0 };
+	} else {
+		physics.gravity = -9.81;
+		if (IsKeybindingDown(KeySprint))
+			speed = sprintSpeed;
+
+		if (IsKeybindingDown(KeyJump)) {
+			if (onGround) {
+				physics.velocity.y = 5;
+				onGround = false;
 			}
-			if (IsKeybindingDown(KeyCrouch)) {
-				move.y -= speed;
-			}
-			physics.gravity = 0;
-		} else {
-			physics.gravity = 9.81;
-			physics.velocity.y -= physics.gravity * delta;
-			if (IsKeybindingDown(KeySprint))
-				speed = sprintSpeed;
-
-			if (IsKeybindingDown(KeyJump)) {
-				if (onGround) {
-					physics.velocity.y = 5;
-					onGround = false;
-				}
-			}
-		}
-
-		if (IsKeybindingDown(KeyForward)) {
-			move.z -= speed;
-		}
-		if (IsKeybindingDown(KeyBack)) {
-			move.z += speed;
-		}
-		if (IsKeybindingDown(KeyRight)) {
-			move.x += speed;
-		}
-		if (IsKeybindingDown(KeyLeft)) {
-			move.x -= speed;
 		}
 	}
+
+	if (IsKeybindingDown(KeyForward)) {
+		move.z -= speed;
+	}
+	if (IsKeybindingDown(KeyBack)) {
+		move.z += speed;
+	}
+	if (IsKeybindingDown(KeyRight)) {
+		move.x += speed;
+	}
+	if (IsKeybindingDown(KeyLeft)) {
+		move.x -= speed;
+	}
+
 	// Rough way of calculation look vector and movement
 	glm::vec3 nmove(move.z * glm::sin(camera->rotation.y) + move.x * glm::sin(camera->rotation.y + glm::half_pi<float>()), move.y,
 		move.z * glm::cos(camera->rotation.y) + move.x * glm::cos(camera->rotation.y + glm::half_pi<float>()));
 
-	physics.position += nmove*delta;
-	if (thirdPerson) {
-		camera->position = physics.position+(glm::vec3)(glm::rotate(camera->rotation.x,glm::vec3(1,0,0))*glm::rotate(camera->rotation.y,glm::vec3(0,1,0))*glm::translate(glm::vec3(0,0,-5))[3]);
-	} else {
-		camera->position = physics.position + glm::vec3(0, 0.5f, 0);
-	}
+	physics.position += nmove * delta;
+	//camera->position += physics.velocity*delta;
 
 	return nmove;
 	/*

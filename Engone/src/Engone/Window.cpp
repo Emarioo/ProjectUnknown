@@ -74,6 +74,9 @@ namespace engone {
 		}
 		glfwMakeContextCurrent(glfwWindow);
 	}
+	void SetActiveContext() {
+		glfwMakeContextCurrent(glfwWindow);
+	}
 	void SetType(WindowType type) {
 		if (type == windowType) return;
 

@@ -204,7 +204,7 @@ namespace engone
 	{
 		for (int i = 1; i < 6;i++) {
 			if (head.strings[i].empty()) {
-				std::cout << head.strings[i-1] << "\n";
+				//std::cout << head.strings[i-1] << "\n";
 				break;
 			}
 		}

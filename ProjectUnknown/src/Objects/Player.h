@@ -26,6 +26,7 @@ public:
 	float flyFastSpeed = 13.0f*10;
 	float jumpForce = 10.0f;
 
+	float lastVelocity = 0;
 	bool onGround = false;
 
 	// Stats

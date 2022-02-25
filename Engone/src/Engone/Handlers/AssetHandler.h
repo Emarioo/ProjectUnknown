@@ -106,6 +106,11 @@ namespace engone {
 
 					while (index < size) {
 						std::getline(file, line);
+						
+						if (file.eof())
+							throw CorruptedData;
+						if (line.empty())
+							continue;
 						if (line[0] == '#')
 							continue;
 						if (line.back() == '\r')
@@ -154,6 +159,11 @@ namespace engone {
 
 					while (index < size*3) {
 						std::getline(file, line);
+
+						if (file.eof())
+							throw CorruptedData;
+						if (line.empty())
+							continue;
 						if (line[0] == '#')
 							continue;
 						if (line.back() == '\r')
@@ -206,6 +216,11 @@ namespace engone {
 
 					while (index < size * 16) {
 						std::getline(file, line);
+
+						if (file.eof())
+							throw CorruptedData;
+						if (line.empty())
+							continue;
 						if (line[0] == '#')
 							continue;
 						if (line.back() == '\r')
@@ -277,6 +292,11 @@ namespace engone {
 
 				while (index < 1) {
 					std::getline(file, line);
+
+					if (file.eof())
+						throw CorruptedData;
+					if (line.empty())
+						continue;
 					if (line[0] == '#')
 						continue;
 					if (line.back() == '\r')
@@ -635,7 +655,7 @@ namespace engone {
 	T* AddAsset(const std::string& name, T* asset) {
 		//if (name.empty()) return;
 		if (asset->error != None) {
-			log::out << log::RED << log::TIME << toString(asset->error) << ": " << asset->filePath << "\n" << log::SILVER;
+			log::out << log::RED << log::TIME << " " << toString(asset->error) << ": " << asset->filePath << "\n" << log::SILVER;
 		}
 		(*GetList<T>())[name] = asset->cast<T>();
 		/*

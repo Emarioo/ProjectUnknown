@@ -97,6 +97,14 @@ namespace game
 
 		UpdateEngine(delta);
 
+		Player* player = GetPlayer();
+		if (player->thirdPerson) {
+			glm::mat4 mat = glm::translate(player->physics.position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
+			GetCamera()->position = mat[3];
+		} else {
+			GetCamera()->position = player->physics.position+glm::vec3(0,3.f,0);
+		}
+
 	}
 
 	static bool initGameAssets = false;
@@ -249,10 +257,14 @@ namespace game
 			//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 		}
 
-		ModelObject* tom=new ModelObject(0, 4, 0, engone::GetAsset<ModelAsset>("Ground/Ground"));
-		AddObject(tom);
+		ModelObject* tree = new ModelObject(9, 0, 0, engone::GetAsset<ModelAsset>("Oak/Oak"));
+		AddObject(tree);
+		
+		ModelObject* terrain = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Terrain/Terrain"));
+		AddObject(terrain);
 		
 		game::SetPlayer(new Player(0, 0, -5));
+		game::GetPlayer()->physics.m_isMovable = true;
 		AddObject(game::GetPlayer());
 
 		DirLight* l = new DirLight({ 2,-4,1 });

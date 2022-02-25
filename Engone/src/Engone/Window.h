@@ -20,6 +20,8 @@ namespace engone {
 	// Create or recreate window with new settings, when none, last or default will be used.
 	void MakeWindow(WindowType type = WindowType::None);
 
+	void SetActiveContext();
+
 	// Set the type of the window. Will recreate window if necessary
 	void SetType(WindowType type);
 	WindowType GetType();

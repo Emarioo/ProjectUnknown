@@ -895,10 +895,8 @@ namespace engone {
 
 		FileReader file(path);
 		try {
-			uint8_t movable;
-			file.read(&movable);
-
-			//log::out << movable << " move\n";
+			//uint8_t movable;
+			//file.read(&movable);
 
 			file.read(&colliderType);
 
@@ -907,10 +905,12 @@ namespace engone {
 			switch (colliderType) {
 			case Type::Sphere:
 				file.read(&sphere.radius);
+				file.read(&sphere.position);
 				//log::out << cube.scale << " radius \n";
 				break;
 			case Type::Cube:
 				file.read(&cube.scale);
+				file.read(&cube.position);
 				//log::out << cube.scale<<" scale \n";
 				break;
 			case Type::Mesh:
@@ -919,7 +919,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
