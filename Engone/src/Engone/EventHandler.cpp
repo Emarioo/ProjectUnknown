@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
 #include "EventHandler.h"
-#include "DebugHandler.h"
+#include "Logger.h"
 
 namespace engone
 {

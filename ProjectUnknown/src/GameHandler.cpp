@@ -19,6 +19,7 @@ static const std::string depthGLSL = {
 #include "Objects/Tutorial.h"
 #include "Objects/Player.h"
 #include "Objects/ModelObject.h"
+#include "Objects/Tree.h"
 
 #include "Engone/Handlers/ObjectHandler.h"
 
@@ -36,9 +37,9 @@ namespace game
 		if (engone::CheckState(GameState::RenderGame)) {
 			if (e.action == 1) {
 				if (e.key == GLFW_KEY_O) {
-					engone::ReadOptions();
+					/*engone::ReadOptions();
 					if (engone::GetDimension() != nullptr)
-						engone::GetDimension()->UpdateAllChunks();
+						engone::GetDimension()->UpdateAllChunks();*/
 				}
 				if (e.key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
 					/*IElement* el = GetElement("editor_script");
@@ -98,11 +99,12 @@ namespace game
 		UpdateEngine(delta);
 
 		Player* player = GetPlayer();
+		Transform* t = player->getComponent<Transform>();
 		if (player->thirdPerson) {
-			glm::mat4 mat = glm::translate(player->physics.position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
+			glm::mat4 mat = glm::translate(t->position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
 			GetCamera()->position = mat[3];
 		} else {
-			GetCamera()->position = player->physics.position+glm::vec3(0,3.f,0);
+			GetCamera()->position = t->position+glm::vec3(0,3.f,0);
 		}
 
 	}
@@ -171,54 +173,55 @@ namespace game
 	void Render(double lag) {
 		using namespace engone;
 
-		ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
-		Shader* shader = GetAsset<Shader>("armature");
-		shader->Bind();
+		//ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
+		//Shader* shader = GetAsset<Shader>("armature");
+		//shader->Bind();
 
-		glm::mat4 fin = glm::mat4(1);
+		//glm::mat4 fin = glm::mat4(1);
 
-		glm::mat4 axis = glm::mat4(1);
+		//glm::mat4 axis = glm::mat4(1);
 
-		axis[1][1] = 0;
-		axis[2][1] = 1;
-		axis[1][2] = -1;
-		axis[2][2] = 0;
+		//axis[1][1] = 0;
+		//axis[2][1] = 1;
+		//axis[1][2] = -1;
+		//axis[2][2] = 0;
 
-		glm::vec3 pos = glm::vec3(1), euler, scale;
-		glm::mat4 quater = glm::mat4(1);
+		//glm::vec3 pos = glm::vec3(1), euler, scale;
+		//glm::mat4 quater = glm::mat4(1);
 
 
-		AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
-		frame += anim->defaultSpeed * 1.f / 60;
+		//AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
+		//frame += anim->defaultSpeed * 1.f / 60;
 
-		if (frame > 60) {
-			frame = 0;
-		}
+		//if (frame > 60) {
+		//	frame = 0;
+		//}
 
-		short usedChannels = 0;
-		anim->objects[0].GetValues(frame, 1,
-			pos, euler, scale, quater, &usedChannels);
+		//short usedChannels = 0;
+		//anim->objects[0].GetValues(frame, 1,
+		//	pos, euler, scale, quater, &usedChannels);
 
-		glm::mat4 gameObject = glm::mat4(1);
+		//glm::mat4 gameObject = glm::mat4(1);
 
-		AssetInstance& aInst = model->instances[0];
-		AssetInstance& mInst = model->instances[1];
-		ArmatureAsset* armature = aInst.asset->cast<ArmatureAsset>();
-		MeshAsset* mesh = mInst.asset->cast<MeshAsset>();
-		
-		glm::mat4 inve = glm::inverse((mInst.localMat));
-		
-		glm::mat4 bone = armature->bones[0].localMat*quater*armature->bones[0].invModel*mInst.localMat;// *(armature->bones[0].localMat * quater);
+		//AssetInstance& aInst = model->instances[0];
+		//AssetInstance& mInst = model->instances[1];
+		//ArmatureAsset* armature = aInst.asset->cast<ArmatureAsset>();
+		//MeshAsset* mesh = mInst.asset->cast<MeshAsset>();
+		//
+		//glm::mat4 inve = glm::inverse((mInst.localMat));
+		//
+		//glm::mat4 bone = armature->bones[0].localMat*quater*armature->bones[0].invModel*mInst.localMat;// *(armature->bones[0].localMat * quater);
 
 		//shader->SetMatrix("uBoneTransforms[0]", bone);
 		//shader->SetMatrix("uTransform",gameObject* axis*aInst.localMat);
 
 		//PassMaterial(shader, 0, mesh->materials[0]);
 		//mesh->buffer.Draw();
+
 		RenderEngine(lag);
 
 		// Render custom things like items dragged by the mouse
-		ui::Render(2);
+		//ui::Render(2);
 	}
 	void TestScene()
 	{
@@ -257,17 +260,41 @@ namespace game
 			//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 		}
 
+		Tree* tree = new Tree();
+		AddEntity(tree);
+
+		EntityIterator iter = GetEntityIterator(ComponentEnum::Model);
+		while (iter) {
+			Animator* t = iter.get<Animator>();
+			//log::out << t << "\n";
+		}
+
+		/*for (int i = 0; i < entities.size(); i++) {
+			Transform* t = entities.getEntityComponent<Transform>(i);
+			log::out << t->position << "\n";
+		}*/
+		/*
+		foreach(entity, entities) {
+			log::out << entity->entityId <<" "<<entity->entityClass << "\n";
+			log::out << entity->getComponent<Transform>()->position << "\n";
+		}*/
+
+		/*
 		ModelObject* tree = new ModelObject(9, 0, 0, engone::GetAsset<ModelAsset>("Oak/Oak"));
 		AddObject(tree);
+		*/
 		
-		ModelObject* terrain = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Terrain/Terrain"));
+	/*	ModelObject* terrain = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Terrain/Terrain"));
 		AddObject(terrain);
+		*/
+		Player* player = new Player();
+		AddEntity(player);
 		
-		game::SetPlayer(new Player(0, 0, -5));
-		game::GetPlayer()->physics.m_isMovable = true;
-		AddObject(game::GetPlayer());
+		game::SetPlayer(player);
+		
+		//AddObject(game::GetPlayer());
 
-		DirLight* l = new DirLight({ 2,-4,1 });
-		AddLight(l);
+		//DirLight* l = new DirLight({ 2,-4,1 });
+		//AddLight(l);
 	}
 }

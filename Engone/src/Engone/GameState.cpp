@@ -2,7 +2,7 @@
 
 #include "GameState.h"
 
-#include "DebugHandler.h"
+#include "Logger.h"
 
 namespace engone {
 	

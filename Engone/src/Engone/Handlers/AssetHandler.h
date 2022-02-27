@@ -5,7 +5,7 @@
 
 #include "Engone/Utility/Utilities.h"
 
-#include "../DebugHandler.h"
+#include "../Logger.h"
 
 namespace engone {
 
@@ -618,12 +618,12 @@ namespace engone {
 		std::vector<AnimationAsset*> animations;
 		
 		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
-		void GetParentTransforms(Animator& animator, std::vector<glm::mat4>& mats);
+		void GetParentTransforms(Animator* animator, std::vector<glm::mat4>& mats);
 
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		void GetArmatureTransforms(Animator& animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* asset);
+		void GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* asset);
 
 	};
 	extern std::unordered_map<std::string, MaterialAsset*> engone_materials;

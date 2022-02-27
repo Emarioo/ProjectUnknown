@@ -12,6 +12,6 @@ private:
 
 public:
 	ModelObject(float x, float y, float z, engone::ModelAsset* name);
-	void Update(float delta) override;
+	//void Update(float delta) override;
 
 };

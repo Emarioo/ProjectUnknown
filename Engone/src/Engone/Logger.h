@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ConsoleHandler.h"
-
 namespace engone
 {
 	namespace log
@@ -49,6 +47,8 @@ namespace engone
 			logger operator<<(const std::string& s);
 			logger operator<<(char c);
 			logger operator<<(int i);
+			logger operator<<(int64_t i);
+			logger operator<<(uint64_t i);
 			logger operator<<(float f);
 			logger operator<<(double d);
 			logger operator<<(char* a);
@@ -64,42 +64,9 @@ namespace engone
 			logger operator<<(void* a);
 			//debug operator<(engine::ShaderType t);
 		};
-		// stream like std::cout but support for glm data types
+		// stream like std::cout but support for glm data types and color
 		extern logger out;
 		// using this char in out stream will print the time Hour:Min:Sec
 		extern char TIME;
 	}
-
-	enum class LogStatus
-	{
-		Info, Error, Header
-	};
-	struct LogHead
-	{
-		std::string strings[6];
-	};
-	class LogLine
-	{
-	public:
-		LogLine()=default;
-		LogLine(const std::string& msg, int indent, LogStatus status);
-		
-		bool opened = false;
-
-		LogStatus status;
-
-		std::string message;
-		int errorCount=0;
-		int infoCount=0;
-		int indent = 0;
-	};
-
-	// Deprecated
-	void Logging(LogHead head, LogStatus status);
-	// Deprecated, Add event listener for key/console
-	void DebugInit();
-	// Deprecated
-	void UpdateDebug(double delta);
-	// Deprecated
-	void RenderDebug(double lag);
 }

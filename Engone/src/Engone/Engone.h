@@ -10,6 +10,8 @@
 #include "GameState.h"
 #include "Server/NetworkHandler.h"
 
+#include "Components/EntitySystem.h"
+
 #include "Rendering/FrameBuffer.h"
 #include "Rendering/Light.h"
 
@@ -32,22 +34,6 @@ namespace engone {
 	The argument is delta for update and lag for render
 	*/
 	void Start(std::function<void(double)> update, std::function<void(double)> render, double fps);
-
-	/*
-	Window window;
-	std::vector<Module*> modules;
-	// Module needs a unique id
-	void AddModule(Module* module);
-	template<class T>
-	T* GetModule() {
-		for (int i = 0; i < modules.size();i++) {
-			if (modules[i].id == T::ID) {
-				return reinterpret_cast<T*>(modules[i]);
-			}
-		}
-		return nullptr;
-	}
-	*/
 
 	FrameBuffer& GetDepthBuffer();
 	glm::mat4& GetLightProj();

@@ -5,6 +5,6 @@
 class Gnorg : public engone::GameObject {
 public:
 	Gnorg(float x, float y, float z);
-	void Update(float delta) override;
+	//void Update(float delta) override;
 
 };

@@ -4,10 +4,10 @@
 
 namespace engone {
 
-	bool Physics::IsTriggered() {
+	bool PhysicsG::IsTriggered() {
 		return m_isTriggered;
 	}
-	bool Physics::TestCollision(Collider* c1, Collider* c2) {
+	bool PhysicsG::TestCollision(Collider* c1, Collider* c2) {
 		bool colliding = false;
 		float time = 0;
 		if (c1->asset->colliderType == ColliderAsset::Type::Sphere &&
@@ -58,7 +58,6 @@ namespace engone {
 				p1.y + s1.y > p2.y && p1.y < p2.y + s2.y &&
 				p1.z + s1.z > p2.z && p1.z < p2.z + s2.z) {
 
-				//log::out << " a\n";
 				if (abs(tx) < abs(ty) && abs(tx) < abs(tz)) {
 					c1->physics->position.x += tx * move.x;
 					c1->physics->velocity.x = 0;

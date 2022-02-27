@@ -5,6 +5,6 @@
 class Tutorial : public engone::GameObject {
 public:
 	Tutorial(float x, float y, float z);
-	void Update(float delta) override;
+	//void Update(float delta) override;
 
 };

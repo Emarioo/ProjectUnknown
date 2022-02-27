@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../World/Dimension.h"
+//#include "../World/Dimension.h"
 #include "../Objects/GameObject.h"
 
 #include "../Objects/Camera.h"
@@ -8,9 +8,9 @@
 namespace engone {
 
 	// Move this to ProjectUnknown?
-	void AddDimension(const std::string& s, Dimension dim);
+	/*void AddDimension(const std::string& s, Dimension dim);
 	Dimension* GetDimension();
-	void SetDimension(const std::string&);
+	void SetDimension(const std::string&);*/
 
 	Camera* GetCamera();
 

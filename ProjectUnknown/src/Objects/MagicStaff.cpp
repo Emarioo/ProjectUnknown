@@ -9,6 +9,6 @@ MagicStaff::MagicStaff(float x,float y,float z) : GameObject("MagicStaff",x,y,z)
 
 }
 
-void MagicStaff::Update(float delta) {
-	
-}
+//void MagicStaff::Update(float delta) {
+//	
+//}

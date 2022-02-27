@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
 #include "AssetHandler.h"
-#include "../Components/Animator.h"
+#include "../Components/Component.h"
 
 #include "../Utility/Utilities.h"
 
@@ -119,7 +119,7 @@ namespace engone {
 		std::ifstream file(path);
 		if (!file) {
 			error = MissingFile;
-			Logging({ "AssetManager","Shader",toString(error) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Shader",toString(error) + ": " + path }, LogStatus::Error);
 			return;
 		}
 
@@ -326,7 +326,7 @@ namespace engone {
 			error = MissingFile;
 		}
 		if (error) {
-			Logging({ "AssetManager","Font",toString(error) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Font",toString(error) + ": " + path }, LogStatus::Error);
 		}
 			
 	}
@@ -353,7 +353,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			Logging({ "AssetManager","Material",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Material",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 		// add diffuse_map as a texture asset
@@ -606,7 +606,7 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			Logging({ "AssetManager","Animation",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Animation",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
@@ -877,7 +877,7 @@ namespace engone {
 			}
 			std::cout <<path<<" error "<<err<<"\n";*/
 			error = err;
-			Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
@@ -1005,11 +1005,11 @@ namespace engone {
 		}
 		catch (AssetError err) {
 			error = err;
-			Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
+			//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		file.close();
 	}
-	void ModelAsset::GetParentTransforms(Animator& animator, std::vector<glm::mat4>& mats) {
+	void ModelAsset::GetParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
 		mats.resize(instances.size());
 
 		std::vector<glm::mat4> modelT(instances.size());
@@ -1026,8 +1026,8 @@ namespace engone {
 
 			short usedChannels = 0;
 
-			for (int k = 0; k < animator.enabledAnimations.size(); k++) {
-				AnimationProperty& prop = animator.enabledAnimations[k];
+			for (int k = 0; k < animator->enabledAnimations.size(); k++) {
+				AnimationProperty& prop = animator->enabledAnimations[k];
 				for (int j = 0; j < animations.size(); j++) {
 					AnimationAsset* animation = animations[j];
 					//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
@@ -1107,7 +1107,7 @@ namespace engone {
 			//mats[i] = (modelT[i]);
 		}
 	}
-	void ModelAsset::GetArmatureTransforms(Animator& animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* armature) {
+	void ModelAsset::GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* armature) {
 		mats.resize(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
@@ -1122,8 +1122,8 @@ namespace engone {
 
 				short usedChannels = 0;
 
-				for (int k = 0; k < animator.enabledAnimations.size(); k++) {
-					AnimationProperty& prop = animator.enabledAnimations[k];
+				for (int k = 0; k < animator->enabledAnimations.size(); k++) {
+					AnimationProperty& prop = animator->enabledAnimations[k];
 					for (int j = 0; j < animations.size(); j++) {
 						AnimationAsset* animation = animations[j];
 						if (prop.animationName == animation->baseName &&

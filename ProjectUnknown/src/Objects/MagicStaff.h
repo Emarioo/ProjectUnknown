@@ -5,7 +5,7 @@
 class MagicStaff : public engone::GameObject {
 public:
 	MagicStaff(float x,float y,float z);
-	void Update(float delta) override;
+	//void Update(float delta) override;
 
 	//RenderComponent mesh;
 

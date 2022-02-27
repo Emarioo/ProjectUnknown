@@ -20,15 +20,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engone\Components\CollisionComponent.h" />
+    <ClInclude Include="src\Engone\Components\Component.h" />
     <ClInclude Include="src\Engone\Components\MetaComponent.h" />
-    <ClInclude Include="src\Engone\Components\Physics.h" />
     <ClInclude Include="src\Engone\Components\RenderComponent.h" />
-    <ClInclude Include="src\Engone\Components\Animator.h" />
     <ClInclude Include="src\Engone\ConsoleHandler.h" />
-    <ClInclude Include="src\Engone\DebugHandler.h" />
+    <ClInclude Include="src\Engone\Logger.h" />
     <ClInclude Include="src\Engone\EventHandler.h" />
     <ClInclude Include="src\Engone\GameState.h" />
+    <ClInclude Include="src\Engone\Components\EntitySystem.h" />
     <ClInclude Include="src\Engone\Module.h" />
+    <ClInclude Include="src\Engone\Components\Entity.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\Engone\Server\NetworkHandler.h" />
     <ClInclude Include="src\Engone\UI\GuiHandler.h" />
@@ -52,27 +53,26 @@
     <ClInclude Include="src\Engone\Window.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\vendor\Libaudio.h" />
-    <ClInclude Include="src\Engone\World\Biome.h" />
-    <ClInclude Include="src\Engone\World\Dimension.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Components\CollisionComponent.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Engone\Components\Component.cpp" />
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
-    <ClCompile Include="src\Engone\Components\Physics.cpp" />
     <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
     <ClCompile Include="src\Engone\ConsoleHandler.cpp" />
-    <ClCompile Include="src\Engone\DebugHandler.cpp" />
+    <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\EventHandler.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
     <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
+    <ClCompile Include="src\Engone\Components\EntitySystem.cpp" />
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
     <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
+    <ClCompile Include="src\Engone\Components\Entity.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
-    <ClCompile Include="src\Engone\Components\Animator.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Server\NetworkHandler.cpp" />
@@ -98,7 +98,6 @@
     <ClCompile Include="src\Engone\Utility\Keyboard.cpp" />
     <ClCompile Include="src\Engone\Utility\Languages.cpp" />
     <ClCompile Include="src\vendor\Libaudio.cpp" />
-    <ClCompile Include="src\Engone\World\Dimension.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Engone\Shaders\collision.glsl" />

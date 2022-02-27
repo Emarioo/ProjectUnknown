@@ -668,11 +668,11 @@ namespace engone
 	}
 #endif
 
-	class Component
+	class Panel
 	{
 	public:
-		Component() = default;
-		virtual ~Component() {}
+		Panel() = default;
+		virtual ~Panel() {}
 
 		virtual void OnRender() {}
 		virtual void OnUpdate() {}
@@ -722,7 +722,7 @@ namespace engone
 		// @ratio Width/Height if you are using a texture
 		IElement* Fixed(float ratio);
 
-		void add(Component* component);
+		void add(Panel* component);
 		Transition& add(const std::string& name);
 		void add(IElement* element);
 
@@ -735,10 +735,10 @@ namespace engone
 
 	protected:
 		std::vector<IElement*> children;
-		std::vector<Component*> components;
+		std::vector<Panel*> panels;
 		std::vector<Transition> transitions;
 	};
-	class Button : public Component
+	class Button : public Panel
 	{
 	public:
 		Button();
@@ -749,7 +749,7 @@ namespace engone
 	protected:
 		std::function<EventType(Event& e)> run;
 	};
-	class Text : public Component
+	class Text : public Panel
 	{
 	public:
 		Text();
@@ -771,7 +771,7 @@ namespace engone
 		bool isEditable, isEditing;
 	};
 	// Grid class is incomplete
-	class Grid : public Component
+	class Grid : public Panel
 	{
 	public:
 		Grid(int column, int row);

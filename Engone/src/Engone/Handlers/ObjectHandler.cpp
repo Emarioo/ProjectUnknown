@@ -4,7 +4,7 @@
 
 namespace engone {
 
-	std::unordered_map<std::string, Dimension> dimensions;
+	/*std::unordered_map<std::string, Dimension> dimensions;
 	Dimension* loadedDim = nullptr;
 	void AddDimension(const std::string& s, Dimension dim) {
 		dimensions[s] = dim;
@@ -14,7 +14,7 @@ namespace engone {
 	}
 	void SetDimension(const std::string& s) {
 		loadedDim = &dimensions[s];
-	}
+	}*/
 	
 	Camera* engine_camera=new Camera();
 	Camera* GetCamera() {

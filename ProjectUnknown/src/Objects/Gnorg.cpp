@@ -22,17 +22,17 @@ Gnorg::Gnorg(float x, float y, float z) : GameObject("Gnorg",x,y,z) {
 }
 //float blending = 0;
 //float speed = 1.7;
-void Gnorg::Update(float delta) {
-	/*if (engine::IsKey(GLFW_KEY_W)) {
-		if (blending < 1 && speed>0)
-			blending += speed * delta;
-	} else {
-		if (blending > 0)
-			blending -= speed * delta;
-	}*/
-
-	//renderComponent.animator.Blend("goblin_idle", blending);
-	//renderComponent.animator.Blend("goblin_run", 1 - blending);
-
-	//renderComponent.animator.Update(delta);
-}
+//void Gnorg::Update(float delta) {
+//	/*if (engine::IsKey(GLFW_KEY_W)) {
+//		if (blending < 1 && speed>0)
+//			blending += speed * delta;
+//	} else {
+//		if (blending > 0)
+//			blending -= speed * delta;
+//	}*/
+//
+//	//renderComponent.animator.Blend("goblin_idle", blending);
+//	//renderComponent.animator.Blend("goblin_run", 1 - blending);
+//
+//	//renderComponent.animator.Update(delta);
+//}

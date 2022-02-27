@@ -3,19 +3,22 @@
 #include "../Handlers/AssetHandler.h"
 
 namespace engone {
-	class Physics;
+	class PhysicsG;
+	class GameObject;
 	struct Collider {
 		ColliderAsset* asset;
-		Physics* physics;
+		PhysicsG* physics;
+		GameObject* object;
+		
 		glm::vec3 position;
 		glm::quat rotation;
 		glm::vec3 scale;
 	};
-	class Physics {
+	class PhysicsG {
 	private:
 
 	public:
-		Physics() = default;
+		PhysicsG() = default;
 		
 		glm::vec3 position;
 		glm::vec3 lastPosition;
@@ -35,7 +38,7 @@ namespace engone {
 		bool m_isMovable = false;
 
 		// @c1 is the owner of the physics
-		// @return as false should allow further calculations on other colliders
+		// @return true is a collision
 		bool TestCollision(Collider* c1, Collider* c2);
 
 	};

@@ -9,6 +9,6 @@ private:
 
 public:
 	Goblin(float x, float y, float z);
-	void Update(float delta) override;
+	//void Update(float delta) override;
 
 };

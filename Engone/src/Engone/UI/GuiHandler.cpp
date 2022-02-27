@@ -244,8 +244,8 @@ namespace engone
 		for (int i = 0; i < children.size(); i++) {
 			delete children[i];
 		}
-		for (int i = 0; i < components.size(); i++) {
-			delete components[i];
+		for (int i = 0; i < panels.size(); i++) {
+			delete panels[i];
 		}
 	}
 	IElement* IElement::CenterX(int pos, IElement* stick) {
@@ -324,9 +324,9 @@ namespace engone
 		aspectRatio = ratio;
 		return this;
 	}
-	void IElement::add(Component* component) {
+	void IElement::add(Panel* component) {
 		component->element = this;
-		components.push_back(component);
+		panels.push_back(component);
 	}
 	Transition& IElement::add(const std::string& name) {
 		transitions.push_back({ name });
@@ -359,8 +359,8 @@ namespace engone
 			}
 			DrawRect();
 		}
-		for (int i = 0; i < components.size(); i++) {
-			components[i]->OnRender();
+		for (int i = 0; i < panels.size(); i++) {
+			panels[i]->OnRender();
 		}
 		for (int i = 0; i < children.size(); i++) {
 			children[i]->OnRender();
@@ -434,8 +434,8 @@ namespace engone
 			}
 		}
 
-		for (int i = 0; i < components.size(); i++) {
-			components[i]->OnUpdate();
+		for (int i = 0; i < panels.size(); i++) {
+			panels[i]->OnUpdate();
 		}
 		for (int i = 0; i < children.size(); i++) {
 			children[i]->OnUpdate(delta);
@@ -453,16 +453,16 @@ namespace engone
 				}
 			}
 		}
-		for (int i = 0; i < components.size(); i++) {
-			EventType ret = components[i]->OnEvent(e);
+		for (int i = 0; i < panels.size(); i++) {
+			EventType ret = panels[i]->OnEvent(e);
 			if (ret != EventType::None)
 				return ret;
 		}
 		return EventType::None;
 	}
 
-	Button::Button() : Component() {}
-	Button::Button(std::function<EventType(Event& e)> func) : Component(), run(func) {}
+	Button::Button() : Panel() {}
+	Button::Button(std::function<EventType(Event& e)> func) : Panel(), run(func) {}
 	EventType Button::OnEvent(Event& e) {
 		if (e.eventType == (EventType::Click)) {
 			if (element->Inside(e.mx, e.my) && run != nullptr) {

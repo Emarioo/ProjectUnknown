@@ -1,15 +1,17 @@
 #pragma once
 
-#include "../Components/Animator.h"
-#include "../Components/Physics.h"
-#include "../Components/RenderComponent.h"
+//#include "../Components/Animator.h"
+//#include "../Components/Physics.h"
+//#include "../Components/RenderComponent.h"
+
+#include "../Handlers/AssetHandler.h"
 
 namespace engone {
 	class GameObject {
 	private:
 		std::string m_name;
 
-		ModelAsset* m_model;
+		//ModelAsset* m_model;
 
 	public:
 		GameObject(const std::string& name);
@@ -20,19 +22,20 @@ namespace engone {
 		*/
 		glm::mat4 m_matrix=glm::mat4(1);
 
-		Animator animator;
-		RenderComponent renderComponent;
-		Physics physics;
+		//Animator animator;
+		//RenderComponent renderComponent;
+		//PhysicsG physics;
 
 		void SetName(std::string name);
 		std::string& GetName();
 		
-		void SetPosition(glm::vec3 v);
-		glm::vec3 GetPosition();
+		//void SetPosition(glm::vec3 v);
+		//glm::vec3 GetPosition();
 
-		void SetModel(ModelAsset* model);
-		ModelAsset* GetModel();
+		//void SetModel(ModelAsset* model);
+		//ModelAsset* GetModel();
 		
-		virtual void Update(float delta);
+		//virtual void Update(float delta);
+		//virtual void OnCollision(Collider& my, Collider& their);
 	};
 }

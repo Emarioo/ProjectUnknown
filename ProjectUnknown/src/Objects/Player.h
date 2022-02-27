@@ -1,16 +1,18 @@
 #pragma once
 
-#include "Engone/Objects/GameObject.h"
+#include "Engone/Components/Entity.h"
 
-class Player : public engone::GameObject {
+class Player : public engone::Entity {
 private:
 	float animBlending = 0;
 	float animSpeed = 1.7;
 
 public:
-	Player(float x,float y,float z);
+	Player();
 
+	void Init() override;
 	void Update(float delta) override;
+	//void OnCollision(engone::Collider& my, engone::Collider& their) override;
 	glm::vec3 Movement(float delta);
 
 	// Movement and camera
