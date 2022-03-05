@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Logger.h"
+
 namespace engone {
 	std::vector<std::string> SplitString(std::string text, std::string delim);
 	std::string SanitizeString(std::string s);
@@ -15,6 +17,22 @@ namespace engone {
 	double GetAppTime();
 	//The time since epoch in seconds
 	double GetSystemTime();
+
+	class Timer {
+	private:
+		double time;
+		std::string name;
+		int id=0;
+	public:
+		Timer();
+		Timer(const std::string& str);
+		Timer(const std::string& str, int id);
+		~Timer();
+		void end();
+	};
+
+	#define TIMER(str) Timer str = Timer(#str,__LINE__*strlen(__FILE__))
+	
 	std::string GetClock();
 	double GetRandom();
 

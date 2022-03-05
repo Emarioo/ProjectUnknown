@@ -16,14 +16,17 @@ Player::Player() : engone::Entity(engone::ComponentEnum::Transform|engone::Compo
 	
 }
 void Player::Init() {
-	getComponent<engone::Model>()->modelAsset = engone::GetAsset<engone::ModelAsset>("Player/Player");
-	getComponent<engone::Physics>()->movable = true;
+	engone::Model* m = getComponent<engone::Model>();
+	m->modelAsset = engone::GetAsset<engone::ModelAsset>("Player/Player");
+	engone::Physics* p = getComponent<engone::Physics>();
+	p->movable = true;
+	p->renderCollision = true;
 }
 void Player::Update(float delta) {
 	Movement(delta);
 
 	if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-		engone::log::out << "ding\n";
+		//engone::log::out << "ding\n";
 		// do animation
 		// activate collider
 		

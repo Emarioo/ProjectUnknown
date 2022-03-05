@@ -30,5 +30,14 @@ namespace engone {
 	// Bind shader, set uTransform/uColor, see shader uniforms for more info
 	void DrawSphere(float radius);
 
+	void DrawBegin();
+	void AddVertex(float x,float y,float z);
+	void AddIndex(unsigned int a,unsigned int b);
+	void DrawBuffer();
+
+	void ClearLines();
+	void AddLine(glm::vec3 a, glm::vec3 b);
+	void DrawLines();
+
 	void UpdateViewMatrix(double lag);
 }

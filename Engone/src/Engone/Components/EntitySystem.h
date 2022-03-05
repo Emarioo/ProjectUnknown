@@ -9,18 +9,20 @@ namespace engone {
 	private:
 		ComponentMask operator|(ComponentEnum b) {};
 	public:
-		EntityStack() = default;
-		EntityStack(ComponentMask me) : ComponentMask(me) {}
+		//EntityStack() = default;
+		EntityStack(ComponentMask me) : ComponentMask(me) {
+			//memset((char*)componentSizes,0,32*sizeof(int));
+		}
 		~EntityStack() {
 			entityMax = 0;
 			entitySize = 0;
 			entityCount = 0;
 			free(data);
 		}
-		int componentCount = 0;
 		int componentSizes[32];
 		int entityCount = 0, entityMax=0;
 		int entitySize = 0;
+		std::vector<Entity*> entities;
 		char* data=nullptr;// not an array of components. it is an array of specific components in a specific order
 		// example: transform, physics | transform, physics...
 		

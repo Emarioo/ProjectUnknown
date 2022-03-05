@@ -4,6 +4,55 @@
 
 namespace engone {
 
+	class VertexBuffer {
+	private:
+		unsigned int id=0;
+		uint32_t floatCount=0;
+	public:
+		VertexBuffer() = default;
+		VertexBuffer(int floatCount, float* data);
+		~VertexBuffer();
+
+		void setData(int floatCount, float* data, int offset = 0);
+
+		void bind(bool unbind = false);
+	};
+	class IndexBuffer {
+	private:
+		unsigned int id=0;
+		uint32_t intCount=0;
+
+		friend class VertexArray;
+	public:
+		IndexBuffer()=default;
+		IndexBuffer(int intCount, uint32_t* data);
+		~IndexBuffer();
+
+		void setData(int intCount, uint32_t* data, int offset = 0);
+
+		void bind(bool unbind = false);
+	};
+	class VertexArray {
+	private:
+		unsigned int id=0;
+		uint8_t location=0, attribLocation=0, stride=0;
+		uint8_t attribSizes[8];
+	public:
+		VertexArray() = default;
+		~VertexArray();
+
+		void addAttribute(int floatSize, VertexBuffer* buffer =nullptr);
+		void addAttribute(int floatSize, int divisor, VertexBuffer* buffer = nullptr);
+
+		void selectBuffer(int location, VertexBuffer* buffer);
+
+		void bind(bool unbind=false);
+
+		void draw(IndexBuffer* indexBuffer=nullptr);
+		void draw(IndexBuffer* indexBuffer, int instanceAmount);
+
+	};
+	
 	class Buffer {
 	public:
 		unsigned int vertexCount, indexCount;

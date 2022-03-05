@@ -45,8 +45,15 @@ namespace engone {
 	EventType FirstPerson(Event& e) {
 		if (lastMouseX != -1) {
 			if (IsCursorLocked() && GetCamera() != nullptr) {
-				GetCamera()->rotation.y -= (e.mx - lastMouseX) * (3.14159 / 360) * cameraSensitivity;
-				GetCamera()->rotation.x -= (e.my - lastMouseY) * (3.14159 / 360) * cameraSensitivity;
+				float pi = glm::pi<float>();
+				GetCamera()->rotation.y -= (e.mx - lastMouseX) * (pi / 360) * cameraSensitivity;
+				GetCamera()->rotation.x -= (e.my - lastMouseY) * (pi / 360) * cameraSensitivity;
+				if (GetCamera()->rotation.x > pi /2) {
+					GetCamera()->rotation.x = pi/2;
+				}
+				if (GetCamera()->rotation.x < -pi /2) {
+					GetCamera()->rotation.x = -pi /2;
+				}
 			}
 		}
 		lastMouseX = e.mx;
@@ -67,7 +74,7 @@ namespace engone {
 
 		return EventType::None;
 	}
-	bool glfwIsActive = false;
+	static bool glfwIsActive = false;
 	void InitEngone() {
 		// There is this bug with glfw where it freezes. This will tell you if it has.
 		std::thread tempThread = std::thread([] {
@@ -96,7 +103,7 @@ namespace engone {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE);
 		//glEnable(GL_FRAMEBUFFER_SRGB);
 
 		// Gui stuff
@@ -147,7 +154,28 @@ namespace engone {
 		if (shader != nullptr)
 			shader->SetMatrix("uProj", projMatrix * viewMatrix);
 	}
-
+	static float insideLine(glm::vec3& a, glm::vec3& b, glm::vec3& p) {
+		glm::vec3 norm = { -(b.z - a.z), 0, (b.x - a.x) };
+		return norm.x * (p.x - a.x) + norm.z * (p.z - a.z);
+	}
+	static float leng2(glm::vec3 v) {
+		return sqrtf(v.x * v.x + v.z * v.z);
+	}
+	static float closestLength(glm::vec3 a, glm::vec3 b, glm::vec3 p) {
+		glm::vec3 r = b - a;
+		/*
+			o = a + t*r
+			(o-p) dot r = 0
+		*/
+		// (p.x-a.x-t*r.x)*r.x+(p.z-a.z-t*r.z)*r.z = 0
+		// (p.x-a.x)*r.x+(p.z-a.z)*r.z = t*r.x*r.x+t*r.z*r.z
+		// ((p.x-a.x)*r.x+(p.z-a.z)*r.z)/(r.x*r.x+r.z*r.z) = t
+		float t = ((p.x - a.x) * r.x + (p.z - a.z) * r.z) / (r.x * r.x + r.z * r.z);
+		
+		glm::vec3 o = a + t * r;
+		
+		return leng2(p - o);
+	}
 	bool TestCollision(Collider* c1, Collider* c2) {
 		bool colliding = false;
 		float time = 0;
@@ -160,7 +188,6 @@ namespace engone {
 		if (c1->asset->colliderType == ColliderAsset::Type::Sphere &&
 			c2->asset->colliderType == ColliderAsset::Type::Sphere) {
 
-			glm::vec3& rot1 = c1->asset->sphere.position;
 			float dist = glm::length(c1->asset->sphere.position - c2->asset->sphere.position);
 			if (dist < c1->asset->sphere.radius + c2->asset->sphere.radius) {
 				colliding = true;
@@ -177,8 +204,14 @@ namespace engone {
 				if (move.x == 0 && move.y == 0 && move.z == 0)
 					return false;
 				Collider* temp = c1;
+				Transform* tempT = t1;
+				Physics* tempP = p1;
 				c1 = c2;
+				t1 = t2;
+				p1 = p2;
 				c2 = temp;
+				t2 = tempT;
+				p2 = tempP;
 			}
 
 			glm::vec3 diff = p1->lastPosition - p2->lastPosition;
@@ -219,6 +252,72 @@ namespace engone {
 					return true;
 				}
 			}
+		} else if ((c1->asset->colliderType == ColliderAsset::Type::Mesh &&
+			c2->asset->colliderType == ColliderAsset::Type::Cube)||
+			(c1->asset->colliderType == ColliderAsset::Type::Cube &&
+				c2->asset->colliderType == ColliderAsset::Type::Mesh)) {
+
+			if (c2->asset->colliderType==ColliderAsset::Type::Mesh) {
+				Collider* tmp = c1;
+				c1 = c2;
+				c2 = tmp;
+				Transform* tmpt = t1;
+				t1 = t2;
+				t2 = tmpt;
+				Physics* tmpp = p1;
+				p1 = p2;
+				p2 = tmpp;
+
+			}
+
+			glm::vec3 p = c2->position;
+			p.y-=c2->scale.y / 2.f;
+
+			std::vector<uint16_t>& tris = c1->asset->tris;
+			std::vector<glm::vec3>& points = c1->asset->points;
+
+			for (int i = 0; i < tris.size()/3;i++) {
+				glm::vec3 a = points[tris[3*i]]+ c1->position;
+				glm::vec3 b = points[tris[3*i+1]]+ c1->position;
+				glm::vec3 c = points[tris[3*i+2]]+ c1->position;
+
+				//AddLine(a,p);
+				//AddLine(b,p);
+				//AddLine(c,p);
+
+				float inA = insideLine(a,b,p);
+				if (inA>0) continue;
+				float inB = insideLine(b,c,p);
+				if (inB>0) continue;
+				float inC = insideLine(c,a,p);
+				if (inC>0) continue;
+
+				//log::out << inA <<" "<< inB <<" "<< inC << "\n";
+
+				
+				float p_bc = closestLength(b, c, p);
+				float a_bc = closestLength(b, c, a);
+				float p_ac = closestLength(a, c, p);
+				float b_ac = closestLength(a, c, b);
+				float p_ab = closestLength(a, b, p);
+				float c_ab = closestLength(a, b, c);
+
+				float la = p_bc/a_bc;
+				float lb = p_ac/b_ac;
+				float lc = p_ab/c_ab;
+
+				//log::out << (la) <<" "<< (lb) <<" "<< (lc) << "\n";
+				
+				float y = a.y*(la)+b.y*(lb)+c.y*(lc);
+				
+				if (p.y < y&&p.y+c2->scale.y>y) {
+					t2->position.y = y;
+					p2->velocity.y = 0;
+					return true;
+				} else {
+					return false;
+				}
+			}
 		}
 		return false;
 	}
@@ -228,13 +327,7 @@ namespace engone {
 		std::vector<Collider> colliders;
 	
 		// Space partitioning?
-
-		//-- Update scriptables
-		/*EntityIterator scriptables = GetEntityIterator(ComponentEnum::Scriptable);
-		while(scriptables) {
-			scriptables.get<Scriptable>()->entity->Update(delta);
-		}*/
-
+		
 		//-- Movement and physics
 		EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform|ComponentEnum::Physics|ComponentEnum::Model);
 		while (iterator) {
@@ -252,14 +345,13 @@ namespace engone {
 				physics->velocity.y += physics->gravity * delta;
 				transform->position += physics->velocity * delta;
 			}
-
 			if (modelC->modelAsset != nullptr) {
 				ModelAsset* model = modelC->modelAsset;
 
 				// Get individual transforms
 				std::vector<glm::mat4> transforms;
 				Animator* animator = iterator.get<Animator>();
-				if(animator!=nullptr)
+				if(animator)
 					model->GetParentTransforms(animator, transforms);
 
 				for (int j = 0; j < model->instances.size(); j++) {
@@ -269,13 +361,14 @@ namespace engone {
 						ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
 
 						glm::mat4 matrix;
-						if(animator!=nullptr)
+						if(animator)
 							matrix = glm::translate(transform->position) * transforms[j] * instance.localMat;
 						else
 							matrix = glm::translate(transform->position) * instance.localMat;
 
-
-						matrix = glm::scale(matrix, asset->cube.scale);
+						if (asset->colliderType==ColliderAsset::Type::Cube) {
+							matrix = glm::scale(matrix, asset->cube.scale);
+						}
 
 						colliders.push_back({ asset, iterator.getEntity() });
 						glm::vec3 skew;
@@ -293,65 +386,11 @@ namespace engone {
 		}
 
 		//-- Collision
-
-
-		// Pre physics
-		//for (int i = 0; i < GetObjects().size(); i++) {
-		//	GameObject* object = GetObjects()[i];
-
-		//	if (object->physics.m_isActive) {
-		//		// reset triggering
-		//		object->physics.m_isTriggered = false;
-
-		//		object->physics.lastPosition = object->physics.position;
-		//		
-		//		object->Update(delta);
-		//		if (object->physics.m_isMovable) {
-		//			object->physics.velocity.y += object->physics.gravity * delta;
-		//			object->physics.position += object->physics.velocity * delta;
-		//			//log::out << object->physics.position << object->physics.velocity<< "\n";
-		//		}
-
-		//		if (object->GetModel() != nullptr) {
-		//			ModelAsset* model = object->GetModel();
-
-		//			// Get individual transforms
-		//			std::vector<glm::mat4> transforms;
-		//			model->GetParentTransforms(object->animator, transforms);
-
-		//			for (int j = 0; j < model->instances.size(); j++) {
-		//				AssetInstance& instance = model->instances[j];
-
-		//				if (instance.asset->type == AssetType::Collider) {
-		//					ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
-
-		//					glm::mat4 matrix = glm::translate(object->physics.position) * transforms[j] * instance.localMat;
-		//					
-		//					matrix = glm::scale(matrix, asset->cube.scale);
-		//					
-		//					colliders.push_back({ asset, &object->physics, object });
-		//					glm::vec3 skew;
-		//					glm::vec4 persp;
-		//					glm::decompose(matrix,colliders.back().scale,colliders.back().rotation,colliders.back().position,skew,persp);
-		//					
-		//					if (asset->colliderType == ColliderAsset::Type::Sphere) {
-		//						colliders.back().position += asset->sphere.position;
-		//					} else if (asset->colliderType == ColliderAsset::Type::Cube) {
-		//						colliders.back().position += asset->cube.position;
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-
-		//log::out << "col\n";
 		while (colliders.size()>1) {
 			Collider& c1 = colliders[0];
 			for (int i = 1; i < colliders.size();i++) {
 				Collider& c2 = colliders[i];
-				//log::out << c1.asset->baseName << " " << c2.asset->baseName << "\n";
-				if ((c1.position - c2.position).length() < 50) {
+				if (glm::length(c1.position - c2.position) < c1.asset->furthest+c2.asset->furthest) {
 					
 					bool yes = TestCollision(&c1,&c2);
 					if (yes) {
@@ -368,8 +407,6 @@ namespace engone {
 			colliders.erase(colliders.begin());
 		}
 	}
-	// If hitbox buffer is too small
-	bool reachedLimit = false;
 	void RenderRawObjects(Shader* shader, double lag) {
 		for (GameObject* o : GetObjects()) {
 			/*
@@ -395,7 +432,6 @@ namespace engone {
 			*/
 		}
 	}
-
 	void RenderObjects(double lag) {
 		// Apply lag transformation on objects?
 
@@ -408,24 +444,32 @@ namespace engone {
 			shader->Bind();
 			UpdateProjection(shader);
 			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-
+			glm::vec3 camPos = GetCamera()->position;
 			EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform|ComponentEnum::Model);
 			while (iterator) {
-				Transform* transform = iterator.get<Transform>();
 				Model* modelC = iterator.get<Model>();
-				Animator* animator = iterator.get<Animator>();
-
-				if (modelC->modelAsset) {
+				
+				if (modelC->modelAsset&&modelC->renderMesh) {
 					ModelAsset* model = modelC->modelAsset;
-					log::out << model->baseName << "\n";
-					log::out << animator << "\n";
-					//BindLights(shader, transform->position);
+					
+					Transform* transform = iterator.get<Transform>();
+					Animator* animator = iterator.get<Animator>();
+					
+					BindLights(shader, transform->position);
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
 					if (animator)
 						model->GetParentTransforms(animator, transforms);
 					
+					/*
+					if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+						+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+						(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+						continue;
+					}
+					*/
+
 					// Draw instances
 					for (int i = 0; i < model->instances.size(); i++) {
 						AssetInstance& instance = model->instances[i];
@@ -457,13 +501,16 @@ namespace engone {
 
 			EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::Model);
 			while (iterator.next()) {
-				Transform* transform = iterator.get<Transform>();
 				Model* modelC = iterator.get<Model>();
-				Animator* animator = iterator.get<Animator>();
-				if (modelC->modelAsset) {
-					ModelAsset* model = modelC->modelAsset;
 
-					//BindLights(shader, transform->position);
+				if (modelC->modelAsset && modelC->renderMesh) {
+					ModelAsset* model = modelC->modelAsset;
+				
+					Transform* transform = iterator.get<Transform>();
+					Animator* animator = iterator.get<Animator>();
+
+
+					BindLights(shader, transform->position);
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
@@ -513,21 +560,19 @@ namespace engone {
 		if (shader != nullptr) {
 			shader->Bind();
 			UpdateProjection(shader);
-			glLineWidth(2.f);
+			glLineWidth(1.f);
 			shader->SetVec3("uColor", {0.05,0.9,0.1});
 
 			EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::Model|ComponentEnum::Physics);
 			while (iterator.next()) {
-				Transform* transform = iterator.get<Transform>();
 				Model* modelC = iterator.get<Model>();
-				Animator* animator = iterator.get<Animator>();
 				Physics* physics = iterator.get<Physics>();
 
-				if (!physics->renderCollision)
-					continue;
-
-				if (modelC->modelAsset) {
+				if (modelC->modelAsset&& physics->renderCollision) {
 					ModelAsset* model = modelC->modelAsset;
+
+					Transform* transform = iterator.get<Transform>();
+					Animator* animator = iterator.get<Animator>();
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
@@ -557,194 +602,27 @@ namespace engone {
 							}else if (asset->colliderType == ColliderAsset::Type::Cube) {
 								DrawCube(asset->cube.scale.x, asset->cube.scale.y, asset->cube.scale.z);
 							} else if (asset->colliderType == ColliderAsset::Type::Mesh) {
-
+								DrawBegin();
+								for (int i = 0; i < asset->points.size();i++) {
+									AddVertex(asset->points[i].x,asset->points[i].y,asset->points[i].z);
+								}
+								auto& tris = asset->tris;
+								for (int i = 0; i < asset->tris.size()/3; i++) {
+									AddIndex(tris[i*3], tris[i * 3 + 1]);
+									AddIndex(tris[i*3+1], tris[i * 3 + 2]);
+									AddIndex(tris[i*3+2], tris[i * 3]);
+								}
+								DrawBuffer();
 							}
 						}
 					}
 				}
 			}
-
-			/*
-			GameObject* n = GetObjectByName("Player");
-			if (n != nullptr) {
-				CollisionComponent& c = n->collisionComponent;
-
-				int atVec = 0;
-				int atInd = 0;
-				int startV = 0;
-
-				bug::out < c.points.size() <" "< c.coll->quad.size() < bug::end;
-				for (int i = 0; i < c.points.size(); i++) {
-					glm::vec3 v = c.points[i];
-					hitboxVec[atVec++] = v.x;
-					hitboxVec[atVec++] = v.y;
-					hitboxVec[atVec++] = v.z;
-				}
-				for (int i = 0; i < c.coll->quad.size() / 4; i++) {
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-					hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-				}
-				/*
-				for (int i = 0; i < c.coll->tri.size() / 3; i++) {
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-					hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-				}
-				// Clear the rest
-				for (int i = atVec; i < vecLimit * 3; i++) {
-					hitboxVec[i] = 0;
-				}
-				for (int i = atInd; i < lineLimit * 2; i++) {
-					hitboxVec[i] = 0;
-				}
-
-				hitbox.SubVB(0, vecLimit * 3, hitboxVec);
-				hitbox.SubIB(0, lineLimit * 2, hitboxInd);
-				hitbox.Draw();
-			}*/
-
-#if gone
-			glm::vec3 hitboxColor = { 0,1,0 };
-			for (GameObject* o : GetObjects()) {// Draws a hitbox for every object by thowing all the lines from colliders into a vertex buffer
-				if (o->renderHitbox && o->collisionComponent.isActive) {
-					int atVec = 0;
-					int atInd = 0;
-					CollisionComponent& c = o->collisionComponent;
-					// algorithm for removing line duplicates?
-					// Adding hitboxes together?
-					int startV = atVec;
-					if (atVec + c.points.size() * 6 > 6 * vecLimit) {
-						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atVec + c.points.size() * 6) < "/" < (6 * vecLimit) < " points" < bug::end;
-						reachedLimit = true;
-						continue;
-					} else if (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3 > lineLimit) {
-						if (!reachedLimit)
-							bug::out < bug::RED < "Line limit does not allow " < (atInd + c.coll->quad.size() * 4 + c.coll->tri.size() * 3) < "/" < (lineLimit) < " lines:" < bug::end;
-						reachedLimit = true;
-						continue;
-					}
-					for (int i = 0; i < c.points.size(); i++) {
-						glm::vec3 v = c.points[i];
-						hitboxVec[atVec++] = v.x;
-						hitboxVec[atVec++] = v.y;
-						hitboxVec[atVec++] = v.z;
-						hitboxVec[atVec++] = hitboxColor.x;
-						hitboxVec[atVec++] = hitboxColor.y;
-						hitboxVec[atVec++] = hitboxColor.z;
-					}
-					for (int i = 0; i < c.coll->quad.size() / 4; i++) {
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-						hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-					}
-					/*
-					for (int i = 0; i < c.coll->tri.size() / 3; i++) {
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-						hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-					}*/
-
-					// Clear the rest - how necessary is this?
-					for (int i = atVec; i < vecLimit * 6; i++) {
-						hitboxVec[i] = 0;
-					}
-					for (int i = atInd; i < lineLimit * 2; i++) {
-						hitboxVec[i] = 0;
-					}
-					hitbox.ModifyVertices(0, vecLimit * 6, hitboxVec);
-					hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);
-					hitbox.Draw();
-				}
-				if (false && o->renderComponent.model != nullptr) {
-					if (o->renderComponent.model->armature != nullptr) {
-						if (!o->renderComponent.model->armature->hasError) {
-							//bug::outs < o->renderComponent.animator.enabledAnimations["georgeBoneAction"].frame < "\n";
-							Armature* arm = o->renderComponent.model->armature;
-							int count = arm->bones.size();
-							std::vector<glm::mat4> mats(count);
-							o->renderComponent.GetArmatureTransforms(mats);
-							for (int i = 0; i < count; i++) {
-								//bug::outs < mats[i] < "\n";
-								shader->SetMatrix("uBoneTransforms[" + std::to_string(i) + "]", mats[i]);
-							}
-
-							int atVec = 0;
-							int atInd = 0;
-							int startV = atVec;
-
-							// algorithm for removing line duplicates?
-							if (atVec + count * 12 > 6 * vecLimit) {
-								if (!reachedLimit)
-									bug::out < bug::RED < "Line limit does not allow " < (atVec + count * 12) < "/" < (6 * vecLimit) < " points" < bug::end;
-								reachedLimit = true;
-								continue;
-							} else if (atInd + count > lineLimit) {
-								if (!reachedLimit)
-									bug::out < bug::RED < "Line limit does not allow " < (atInd + count) < "/" < (lineLimit) < " lines:" < bug::end;
-								reachedLimit = true;
-								continue;
-							}
-							for (int i = 0; i < arm->bones.size(); i++) {
-								glm::vec3 v = mats[i][3];
-								hitboxVec[atVec++] = v.x;
-								hitboxVec[atVec++] = v.y;
-								hitboxVec[atVec++] = v.z;
-								hitboxVec[atVec++] = hitboxColor.x;
-								hitboxVec[atVec++] = hitboxColor.y;
-								hitboxVec[atVec++] = hitboxColor.z;
-							}
-							/*
-							for (int i = 0; i < c.coll->quad.size() / 4; i++) {
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 1];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 2];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 3];
-								hitboxInd[atInd++] = startV + c.coll->quad[i * 4 + 0];
-							}
-							for (int i = 0; i < c.coll->tri.size() / 3; i++) {
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 1];
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 2];
-								hitboxInd[atInd++] = atVec + c.coll->tri[i * 3 + 0];
-							}*/
-							// Clear the rest - how necessary is this?
-							for (int i = atVec; i < vecLimit * 6; i++) {
-								hitboxVec[i] = 0;
-							}
-							for (int i = atInd; i < lineLimit * 2; i++) {
-								hitboxVec[i] = 0;
-							}
-							hitbox.ModifyVertices(0, vecLimit * 6, hitboxVec);
-							hitbox.ModifyIndices(0, lineLimit * 2, hitboxInd);
-							hitbox.Draw();
-						}
-					}
-				}
-			}
-#endif
+			//debug
+			shader->SetVec3("uColor", { 0.7,0.1,0.1 });
+			
+			DrawLines();
+			ClearLines();
 		}
 		/*
 		Mesh* lightCube = GetMeshAsset("LightCube");
@@ -818,8 +696,6 @@ namespace engone {
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 
-					RenderObjects(lag);
-
 					objectShader->Bind();
 					MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
 
@@ -829,6 +705,8 @@ namespace engone {
 					}
 					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,0,0)));
 					asset->buffer.Draw();
+
+					RenderObjects(lag);
 
 					//objectShader->SetMatrix("uTransform", glm::mat4(1));
 					//testBuffer.Draw();
@@ -847,6 +725,7 @@ namespace engone {
 				}*/
 			}
 		}
+		
 		if (CheckState(GameState::RenderGui)) {
 			RenderElements();
 		}
@@ -874,7 +753,7 @@ namespace engone {
 
 		ResetEvents();
 	}
-	static std::vector<Timer> timers;
+	static std::vector<Delayed> timers;
 	void AddTimer(float time, std::function<void()> func) {
 		timers.push_back({ time,func });
 	}
@@ -1060,18 +939,18 @@ namespace engone {
 			previous = current;
 			lag += elapsed;
 
-			while (lag >= MS_PER_UPDATE) {
+			//while (lag >= MS_PER_UPDATE) {
 				//UpdateEngine(MS_PER_UPDATE);
 				update(MS_PER_UPDATE);
-				lag -= MS_PER_UPDATE;
-				FPS++;
-				if (current - lastSecond > 1) {
-					//std::cout << (current - lastSecond) << std::endl;
-					lastSecond = current;
-					//SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
-					FPS = 0;
-				}
-			}
+			//	lag -= MS_PER_UPDATE;
+			//	FPS++;
+			//	if (current - lastSecond > 1) {
+			//		//std::cout << (current - lastSecond) << std::endl;
+			//		lastSecond = current;
+			//		//SetWindowTitle(("Project Unknown  " + std::to_string(FPS) + " fps").c_str());
+			//		FPS = 0;
+			//	}
+			//}
 			//RenderEngine(lag);
 			render(lag);
 

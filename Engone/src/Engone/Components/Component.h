@@ -12,6 +12,7 @@ namespace engone {
 		Scriptable,
 		Model,
 		Animator,
+		MeshRenderer
 	};
 	class  ComponentMask {
 	protected:
@@ -80,20 +81,20 @@ namespace engone {
 		static const ComponentEnum MASK = ComponentEnum::Transform;
 		Transform() = default;
 
-		glm::vec3 position = { 0,0,0 };
-		glm::quat rotation = { 1,0,0,0 };
-		glm::vec3 scale = { 1,1,1 };
+		glm::vec3 position;
+		glm::quat rotation;
+		glm::vec3 scale;
 	};
 	class Physics : public Component {
 	public:
 		static const ComponentEnum MASK = ComponentEnum::Physics;
 		Physics() = default;
 
-		glm::vec3 lastPosition = {0,0,0};
-		glm::vec3 velocity = { 0,0,0 };
-		float gravity = -9.81;
-		bool renderCollision = true;
-		bool movable = false;
+		glm::vec3 lastPosition;
+		glm::vec3 velocity;
+		float gravity;
+		bool renderCollision;
+		bool movable;
 	};
 	class Entity;
 	class Scriptable : public Component {
@@ -108,7 +109,8 @@ namespace engone {
 		static const ComponentEnum MASK = ComponentEnum::Model;
 		Model() = default;
 
-		ModelAsset* modelAsset = nullptr;
+		ModelAsset* modelAsset;
+		bool renderMesh;
 	};
 	class AnimationProperty {
 	public:
@@ -142,5 +144,12 @@ namespace engone {
 		*/
 		void Enable(ModelAsset* model, const std::string& instanceName, const std::string& animationName, AnimationProperty prop);
 		void Disable(const std::string& name);
+	};
+	class MeshRenderer : public Component {
+	public:
+		static const ComponentEnum MASK = ComponentEnum::Model;
+		MeshRenderer() = default;
+
+		MeshAsset* asset;
 	};
 }

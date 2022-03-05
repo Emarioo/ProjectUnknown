@@ -5,16 +5,17 @@
 namespace engone {
 
 	struct Collider;
+	class EntityStack;
 	class Entity : public ComponentMask {
 	private:
 		ComponentMask operator|(ComponentEnum b) {};
 
+		friend class EntityStack;
+
+	public:
 		int* componentSizes = nullptr;// pointing to an array in entityStack;
 		char* stackPtr = nullptr;// pointing to component memory in EntityStack
 
-		friend void AddEntity(Entity* entity);
-
-	public:
 		uint64_t entityId=0;
 		//uint64_t entityClass=0u-1;
 

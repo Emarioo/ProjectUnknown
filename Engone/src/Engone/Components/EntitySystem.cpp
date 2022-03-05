@@ -7,9 +7,9 @@
 namespace engone {
 
 	//-- Data
-	static std::vector<EntityStack> entityStacks; // a list of all components data
+	static std::vector<EntityStack*> entityStacks; // a list of all components data
 	// previously gathered stacks which can be reused unless a new entity or component has entered the system
-	static std::vector<StackCollection> stackCollections;
+	static std::vector<StackCollection*> stackCollections;
 	// entities that exist
 	static std::vector<Entity*> allEntities;
 	static uint64_t entityCount;
@@ -30,20 +30,55 @@ namespace engone {
 
 			entityMax = 5;
 			data = (char*)malloc(entitySize*entityMax);
+			//log::out << "malloc " << (void*)data<< "\n";
+			
+			if (!data) {
+				log::out << log::RED << "Error with entity stack memory\n";
+				return false;
+			}
 			ZeroMemory(data, entitySize * entityMax);
 
-			//log::out <<"data size "<< entitySize << "\n";
+			//log::out <<"data ptr "<<(void*)data << "\n";
 		}
+		
 		// increase size if needed
 		if (entityCount == entityMax) {
 			entityMax *= 2;
-			char* ptr  = (char*)realloc(data, entitySize * entityMax);
-			if (!ptr)
-				return false;
+			
+			char* ptr  = (char*)realloc(data, entitySize*entityMax);
 
+			log::out << (void*)ptr << "\n";
+			if (!ptr) {
+				log::out << log::RED << "Error with entity stack memory\n";
+				return false;
+			}
 			data = ptr;
 			ZeroMemory(data + entitySize * entityMax/2, entitySize * entityMax / 2);
+
+			for (int i = 0; i < entities.size(); i++) {
+				Entity* ent = entities[i];
+				ent->stackPtr = data + i * entitySize;
+			}
 		}
+		
+		entities.push_back(entity);
+
+		entity->componentSizes = componentSizes;
+		entity->stackPtr = data + (entityCount) * entitySize;
+		
+		//-- Component specific
+		if (entity->has(ComponentEnum::Scriptable)) {
+			entity->getComponent<Scriptable>()->entity = entity;
+		}
+		if (entity->has(ComponentEnum::Model)) {
+			entity->getComponent<Model>()->renderMesh = true;
+		}
+		if (entity->has(ComponentEnum::Physics)) {
+			entity->getComponent<Physics>()->gravity = -9.81;
+		}
+		
+
+		entity->Init();
 
 		entityCount++;
 		return true;
@@ -59,66 +94,54 @@ namespace engone {
 		entity->entityId = ++entityCount;
 		allEntities.push_back(entity);
 
-		//log::out << "new entity " << entityCount << "\n";
-
 		// find entity stack
 		EntityStack* stack=nullptr;
 		for (int i = 0; i < entityStacks.size();i++) {
-			if (entityStacks[i].same(entity)) {
-				stack = &entityStacks[i];
+			if (entityStacks[i]->same(entity)) {
+				stack = entityStacks[i];
 				break;
 			}
 		}
-
+		// create stack
 		if (stack==nullptr) {
-			entityStacks.push_back(EntityStack(entity));
+			stack = new EntityStack(entity);
+			entityStacks.push_back(stack);
 			//log::out << "new stack "<<entity->componentMask << " " << entityStacks.back().componentMask << "\n";
-			stack = &entityStacks.back();
+			//log::out <<"new stack ptr "<< (void*)stack << "\n";
 			
+			/*
 			for (int i = 0; i < stackCollections.size(); i++) {
 				if (stackCollections[i].has(entity)) {
 					stackCollections[i].push(stack);
 				}
-			}
+			}*/
 		}
 
-		bool yes = stack->add(entity);
-		if (yes) {
-			entity->componentSizes = stack->componentSizes;
-			entity->stackPtr = stack->data + (stack->entityCount - 1)* stack->entitySize;
-
-			//-- Component specific
-			if (entity->has(ComponentEnum::Scriptable)) {
-				log::out << "id " << entity->entityId << "\n";
-				entity->getComponent<Scriptable>()->entity = entity;
-			}
-
-			entity->Init();
-		} else {
-			log::out << log::RED << "Error with entity stack memory\n";
-		}
+		//log::out << "data ptr " << (void*)stack->data << "\n";
+		//if (stack->data)
+			//stack->data=(char*)realloc(stack->data,100);
+		stack->add(entity);
+		
 
 	}
 	EntityIterator GetEntityIterator(ComponentMask mask){
-		int index=-1;
-
 		// If collection exists
 		for (int i = 0; i < stackCollections.size(); i++) {
-			if (stackCollections[i].same(mask)) {
-				return &stackCollections[i];
+			if (stackCollections[i]->same(mask)) {
+				return stackCollections[i];
 			}
 		}
 		// Make new collection
 		
-		stackCollections.push_back(StackCollection(mask));
+		stackCollections.push_back(new StackCollection(mask));
 
 		// Fill collection
 		for (int i = 0; i < entityStacks.size(); i++) {
-			EntityStack* stack = &entityStacks[i];
+			EntityStack* stack = entityStacks[i];
 			if (stack->has(mask)) {
-				stackCollections.back().push(stack);
+				stackCollections.back()->push(stack);
 			}
 		}
-		return &stackCollections.back();
+		return stackCollections.back();
 	}
 }

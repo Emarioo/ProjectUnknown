@@ -194,7 +194,7 @@ void main()
 
 	vec3 result = vec3(0);
 	if(uLightCount.x==1)
-		result += CalcDirLight(uDirLight, normal, viewDir,shadow);
+		result += CalcDirLight(uDirLight, normal, viewDir, 0);
 	for (int i = 0; i < uLightCount.y;i++) {
 		result += CalcPointLight(uPointLights[i], normal, fPos, viewDir, 0);
 	}
@@ -204,7 +204,7 @@ void main()
 
 	//texture(uMaterials[fMat].diffuse_map, fUV).rgb * 
 	
-	result = uMaterials[fMat].diffuse_color;
+	result *= uMaterials[fMat].diffuse_color;
 	if(uMaterials[fMat].useMap==1){
 		result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb;
 	}

@@ -21,6 +21,8 @@ static const std::string depthGLSL = {
 #include "Objects/ModelObject.h"
 #include "Objects/Tree.h"
 
+#include "Engone/Rendering/Buffer.h"
+
 #include "Engone/Handlers/ObjectHandler.h"
 
 namespace game
@@ -168,8 +170,16 @@ namespace game
 
 		TestScene();
 	}
+	engone::VertexBuffer VBO;
+	engone::VertexBuffer VBO2;
+	engone::IndexBuffer IBO;
+	engone::VertexArray VAO;
+
+	engone::TriangleBuffer* TBO;
+
 	static float rot = 0;
 	static float frame = 0;
+	static float move = 0;
 	void Render(double lag) {
 		using namespace engone;
 
@@ -220,6 +230,24 @@ namespace game
 
 		RenderEngine(lag);
 
+		Shader* shad = GetAsset<Shader>("experiment");
+		shad->Bind();
+
+		//VAO.draw(&IBO);
+		move += 1/60.f/20.f;
+		float fa[]{
+			-move/2+0.f,0,
+			-move/6 + 0.15f,move,
+			move*2 + 0.1f,0.25
+		};
+		VBO2.setData(6, fa);
+		
+		VAO.draw(&IBO,3);
+
+		//shad->SetVec4("uColor", 1, 1, 0, 1);
+
+		//TBO->Draw();
+
 		// Render custom things like items dragged by the mouse
 		//ui::Render(2);
 	}
@@ -260,14 +288,18 @@ namespace game
 			//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 		}
 
-		Tree* tree = new Tree();
-		AddEntity(tree);
+		//Tree* tree = new Tree();
+		//AddEntity(tree);
 
-		EntityIterator iter = GetEntityIterator(ComponentEnum::Model);
-		while (iter) {
-			Animator* t = iter.get<Animator>();
-			//log::out << t << "\n";
-		}
+		//Tree* tree = new Tree();
+		//AddEntity(tree);
+		//for (int i = 0; i < 10000;i++) {
+
+		//	//log::out << i <<" "<<(void*)tree->stackPtr<< "\n";
+		//	
+		//	
+		//	tree->getComponent<Transform>()->position = {GetRandom()*1000.f,GetRandom()*2,GetRandom()*1000};
+		//}
 
 		/*for (int i = 0; i < entities.size(); i++) {
 			Transform* t = entities.getEntityComponent<Transform>(i);
@@ -287,14 +319,51 @@ namespace game
 	/*	ModelObject* terrain = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Terrain/Terrain"));
 		AddObject(terrain);
 		*/
+		//log::out << "tree ptr " << (void*)tree->getComponent<Model>() << "\n";
 		Player* player = new Player();
 		AddEntity(player);
-		
-		game::SetPlayer(player);
-		
-		//AddObject(game::GetPlayer());
+		player->getComponent<Model>()->renderMesh = false;
 
-		//DirLight* l = new DirLight({ 2,-4,1 });
-		//AddLight(l);
+		/*ColliderAsset* as = new ColliderAsset("Terrain/Plane.003");
+		as->Load(as->filePath);*/
+		
+		//as->Load("assets/Terrain/Terrain.collider");
+		
+		Entity* terrain = new Entity(ComponentEnum::Transform|ComponentEnum::Model|ComponentEnum::Physics);
+		AddEntity(terrain);
+		terrain->getComponent<Model>()->modelAsset = GetAsset<ModelAsset>("Terrain/Terrain");
+		terrain->getComponent<Model>()->renderMesh = false;
+		terrain->getComponent<Physics>()->renderCollision = true;
+
+		//log::out << "tree ptr " << (void*)tree->getComponent<Model>() << "\n";
+		
+		//EntityIterator iterator = GetEntityIterator(ComponentEnum::Model);
+		//while (iterator) {
+		//	//Transform* transform = iterator.get<Transform>();
+		//	//Physics* physics = iterator.get<Physics>();
+		//	Model* modelC = iterator.get<Model>();
+
+		//	log::out << modelC->modelAsset->baseName << "\n";
+		//}
+
+		game::SetPlayer(player);
+
+		DirLight* l = new DirLight({ 2,-4,1 });
+		AddLight(l);
+
+		float fArray[]{
+			0,0,
+			.1,0,
+			.1,.1,
+		};
+		uint32_t iArray[]{
+			0,1,2
+		};
+		
+		VBO.setData(6,fArray);
+		IBO.setData(3,iArray);
+
+		VAO.addAttribute(2, &VBO);
+		VAO.addAttribute(2, 1, &VBO2);
 	}
 }

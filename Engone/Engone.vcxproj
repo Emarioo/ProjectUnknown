@@ -19,16 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engone\Components\CollisionComponent.h" />
     <ClInclude Include="src\Engone\Components\Component.h" />
     <ClInclude Include="src\Engone\Components\MetaComponent.h" />
-    <ClInclude Include="src\Engone\Components\RenderComponent.h" />
-    <ClInclude Include="src\Engone\ConsoleHandler.h" />
     <ClInclude Include="src\Engone\Logger.h" />
     <ClInclude Include="src\Engone\EventHandler.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Components\EntitySystem.h" />
-    <ClInclude Include="src\Engone\Module.h" />
     <ClInclude Include="src\Engone\Components\Entity.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
     <ClInclude Include="src\Engone\Server\NetworkHandler.h" />
@@ -55,14 +51,8 @@
     <ClInclude Include="src\vendor\Libaudio.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engone\Components\CollisionComponent.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\Engone\Components\Component.cpp" />
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
-    <ClCompile Include="src\Engone\Components\RenderComponent.cpp" />
-    <ClCompile Include="src\Engone\ConsoleHandler.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\EventHandler.cpp" />

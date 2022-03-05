@@ -87,10 +87,14 @@ namespace engone {
 		return std::chrono::system_clock::now().time_since_epoch().count() / 10000000.0;
 	}
 	// how do this
-	std::mt19937 utility_mt19937_random;
-	std::uniform_real_distribution utility_uniform_distrubtion;
+	static std::mt19937 utility_mt19937_random;
+	static std::uniform_real_distribution utility_uniform_distrubtion;
+	static bool once = false;
 	double GetRandom() {
-		utility_mt19937_random.seed(GetSystemTime());
+		if (!once) {
+			utility_mt19937_random.seed(GetSystemTime());
+			once = true;
+		}
 		return utility_uniform_distrubtion(utility_mt19937_random);
 	}
 	std::string GetClock() {
@@ -98,7 +102,7 @@ namespace engone {
 		time(&t);
 		tm tm;
 		localtime_s(&tm, &t);
-		std::string str= std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
+		std::string str = std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
 		return str;
 	}
 	/*
@@ -117,4 +121,36 @@ namespace engone {
 		}
 		std::cout << "Time: " << (aft - bef) << std::endl;
 	}*/
+	static std::unordered_map<int, int> timerCounting;
+	Timer::Timer() : time(GetAppTime()) {
+
+	}
+	Timer::Timer(const std::string& str) : time(GetAppTime()), name(str) {
+
+	}
+	Timer::Timer(const std::string& str, int id) : time(GetAppTime()), name(str), id(id) {
+
+	}
+	Timer::~Timer() {
+		if (time != 0)
+			end();
+	}
+	void Timer::end() {
+		if (id != 0) {
+			if (timerCounting.count(id)>0) {
+				timerCounting[id]++;
+				if (timerCounting[id] < 60) {
+					return;
+				}else{
+					timerCounting[id] = 0;
+				}
+			} else {
+				timerCounting[id] = 0;
+				return;
+			}
+		}
+
+		log::out << name << " : " << (GetAppTime() - time) << "\n";
+		time = 0;
+	}
 }

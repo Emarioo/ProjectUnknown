@@ -215,7 +215,7 @@ void main()
 		result += CalcSpotLight(uSpotLights[i], normal, fPos, viewDir, 0);
 	}
 
-	result = uMaterials[fMat].diffuse_color;
+	result *= uMaterials[fMat].diffuse_color;
 	if(uMaterials[fMat].useMap==1){
 		result *= texture(uMaterials[fMat].diffuse_map, fUV).rgb;
 	}

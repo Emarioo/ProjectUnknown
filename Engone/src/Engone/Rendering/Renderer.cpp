@@ -10,10 +10,15 @@ namespace engone {
 	static float verts[4 * 4 * TEXT_BATCH];
 	static TriangleBuffer textBuffer, rectBuffer;
 
-	int colliderVertexLimit = 500, colliderIndexLimit = 3000;
+	int colliderVertexLimit = 400*3, colliderIndexLimit = 600*2;
 	LineBuffer colliderBuffer;
 	float* colliderVertices;
 	unsigned int* colliderIndices;
+
+	int lineBufferLimit = 100;
+	LineBuffer lineBuffer;
+	float* lineVertices;
+	unsigned int* lineIndices;
 
 	void InitRenderer() {
 		guiShader = GetAsset<Shader>("gui");
@@ -42,19 +47,31 @@ namespace engone {
 		rectBuffer.Init(true, temp, 16, temp2, 6);
 		rectBuffer.SetAttrib(0, 4, 4, 0);
 
-		colliderVertices = new float[colliderVertexLimit * 3];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		colliderIndices = new unsigned int[colliderIndexLimit * 2];// {0, 1, 0, 2, 0, 3};
+		colliderVertices = new float[colliderVertexLimit];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+		colliderIndices = new unsigned int[colliderIndexLimit];// {0, 1, 0, 2, 0, 3};
 		
-		memset(colliderVertices,0,colliderVertexLimit*3);
-		memset(colliderIndices,0,colliderIndexLimit*2);
+		ZeroMemory(colliderVertices,colliderVertexLimit*sizeof(float));
+		ZeroMemory(colliderIndices,colliderIndexLimit*sizeof(unsigned int));
 		
-		colliderBuffer.Init(true, colliderVertices, 3 * colliderVertexLimit, colliderIndices, 2 * colliderIndexLimit);
+		colliderBuffer.Init(true, colliderVertices, colliderVertexLimit, colliderIndices, colliderIndexLimit);
 		colliderBuffer.SetAttrib(0, 3, 3, 0);
+
+		lineVertices = new float[lineBufferLimit*6];
+		lineIndices = new unsigned int[lineBufferLimit * 2];
+
+		ZeroMemory(lineVertices, sizeof(float)*lineBufferLimit * 6);
+		for (int i = 0; i < lineBufferLimit * 2;i++) {
+			lineIndices[i] = i;
+		}
+		lineBuffer.Init(true,nullptr,lineBufferLimit*6,lineIndices,lineBufferLimit*2);
+		lineBuffer.SetAttrib(0, 3, 3, 0);
 	}
 	void UninitRenderer() {
 		delete[] colliderVertices;
 		delete[] colliderIndices;
 		colliderBuffer.Uninit();
+		delete[] lineVertices;
+		lineBuffer.Uninit();
 	}
 	void EnableBlend() {
 		glEnable(GL_BLEND);
@@ -324,12 +341,14 @@ namespace engone {
 		rectBuffer.ModifyVertices(0, 16, vertices);
 		rectBuffer.Draw();
 	}
-
+	
 	void DrawCube(float w,float h,float d) {
 		w /= 2;
 		h /= 2;
 		d /= 2;
 
+		// this function needs some work, creating arrays on stack and copying it to a heap array is a little strange.
+		// it's fine since it's mostly a debug function but improvement wouldn't be bad.
 		float v[]{
 			-w,-h,-d,
 			w,-h,-d,
@@ -339,15 +358,51 @@ namespace engone {
 			-w,h,-d,
 			w,h,-d,
 			w,h,d,
-			-w,h,d,
+			-w,h,d
 		};
+		int lenv = sizeof(v) / sizeof(float);
+		memcpy(colliderVertices, v, sizeof(v));
+
 		unsigned int ind[]{
 			0,1, 1,2, 2,3, 3,0,
 			0,4, 1,5, 2,6, 3,7,
-			4,5, 5,6, 6,7, 7,4,
+			4,5, 5,6, 6,7, 7,4
 		};
-		colliderBuffer.ModifyVertices(0, sizeof(v)/sizeof(float), v);
-		colliderBuffer.ModifyIndices(0, sizeof(ind)/sizeof(unsigned int), ind);
+		int leni = sizeof(ind) / sizeof(unsigned int);
+		memcpy(colliderIndices, ind, sizeof(ind));
+		
+		ZeroMemory(colliderVertices+lenv,sizeof(float)*(colliderVertexLimit-lenv));
+		ZeroMemory(colliderIndices+leni,sizeof(unsigned int)*(colliderIndexLimit-leni));
+
+		colliderBuffer.ModifyVertices(0, colliderVertexLimit,colliderVertices);
+		colliderBuffer.ModifyIndices(0, colliderIndexLimit,colliderIndices);
+		colliderBuffer.Draw();
+	}
+	static int writtenVertexPos=0;
+	static int writtenIndexPos=0;
+	void DrawBegin() {
+		writtenVertexPos = 0;
+		writtenIndexPos = 0;
+	}
+	void AddVertex(float x,float y,float z) {
+		if (writtenVertexPos + 3 >= colliderVertexLimit|| writtenIndexPos + 2 >= colliderIndexLimit)
+			return;
+		colliderVertices[writtenVertexPos++] = x;
+		colliderVertices[writtenVertexPos++] = y;
+		colliderVertices[writtenVertexPos++] = z;
+	}
+	void AddIndex(unsigned int a,unsigned int b) {
+		if (writtenVertexPos + 3 >= colliderVertexLimit || writtenIndexPos + 2 >= colliderIndexLimit)
+			return;
+		colliderIndices[writtenIndexPos++] = a;
+		colliderIndices[writtenIndexPos++] = b;
+	}
+	void DrawBuffer() {
+		ZeroMemory(colliderVertices+writtenVertexPos,sizeof(float)*(colliderVertexLimit-writtenVertexPos-1));
+		ZeroMemory(colliderIndices+writtenIndexPos,sizeof(unsigned int)*(colliderIndexLimit-writtenIndexPos-1));
+		// variable in buffer to keep track of which area of the data are zeros
+		colliderBuffer.ModifyVertices(0, colliderVertexLimit, colliderVertices);
+		colliderBuffer.ModifyIndices(0, colliderIndexLimit, colliderIndices);
 		colliderBuffer.Draw();
 	}
 	struct line {
@@ -392,5 +447,26 @@ namespace engone {
 		colliderBuffer.ModifyVertices(0, points.size()*3, points.data());
 		colliderBuffer.ModifyIndices(0, lines.size()*2, lines.data());
 		colliderBuffer.Draw();
+	}
+	static int lines = 0;
+	void ClearLines() {
+		lines = 0;
+	}
+	void AddLine(glm::vec3 a, glm::vec3 b) {
+		if (lines >= lineBufferLimit)
+			return;
+		lineVertices[lines *6]=a.x;
+		lineVertices[lines *6+1]=a.y;
+		lineVertices[lines *6+2]=a.z;
+		lineVertices[lines *6+3]=b.x;
+		lineVertices[lines *6+4]=b.y;
+		lineVertices[lines *6+5]=b.z;
+
+		lines++;
+	}
+	void DrawLines() {
+		ZeroMemory(lineVertices+lines*6, sizeof(float)*(lineBufferLimit-lines-1) * 6);
+		lineBuffer.ModifyVertices(0, lineBufferLimit*6,lineVertices);
+		lineBuffer.Draw();
 	}
 }

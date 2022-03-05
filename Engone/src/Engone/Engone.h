@@ -65,7 +65,7 @@ namespace engone {
 	*/
 	void UpdateEngine(double delta);
 
-	struct Timer {
+	struct Delayed {
 		float time;
 		std::function<void()> func;
 	};

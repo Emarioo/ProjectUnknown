@@ -15,8 +15,13 @@ namespace engone
 		char TIME = 24;
 		logger logger::operator<<(const std::string& s)
 		{
-			
 			std::cout << s;
+
+			if (!s.empty()) {
+				if (s.back() == '\n' && hConsole != NULL)
+					SetConsoleTextAttribute(hConsole, ConsoleColorCode::SILVER);
+			}
+
 			return *this;
 		}
 		logger logger::operator<<(float f)
@@ -41,6 +46,10 @@ namespace engone
 				std::cout << "[" << buffer<<"]";
 			}else
 				std::cout << c;
+
+			if(c=='\n'&& hConsole != NULL)
+				SetConsoleTextAttribute(hConsole, ConsoleColorCode::SILVER);
+
 			return *this;
 		}
 		logger logger::operator<<(int i)
