@@ -5,6 +5,10 @@ R"(
 layout(location = 0) in vec3 vPos;
 layout(location = 1) in vec3 vNormal;
 layout(location = 2) in vec3 vTexture;// first two is uv second is material index
+layout(location = 3) in vec4 iPos1;
+layout(location = 4) in vec4 iPos2;
+layout(location = 5) in vec4 iPos3;
+layout(location = 6) in vec4 iPos4;
 
 out vec3 fPos;
 flat out vec3 fNormal;
@@ -19,15 +23,30 @@ uniform mat4 uLightSpaceMatrix;
 
 void main()
 {
-	fPos = vec3(uTransform * vec4(vPos,1));
-	fNormal = fPos-vec3(uTransform * vec4(vPos-vNormal, 1));
+	mat4 iMat = mat4(iPos1,iPos2,iPos3,iPos4);
+	
+	if(iMat[0][0]==0){// if instances aren't used
+		fPos = vec3(uTransform * vec4(vPos,1));
+	}else{
+		fPos = vec3(uTransform * iMat * vec4(vPos,1));
+	}
+
+
+	//fNormal = fPos-vec3(uTransform * vec4(vPos-vNormal, 1)); <- this is somewhat redundant? cause the code below works too
+	if(iMat[0][0]==0){// if instances aren't used
+		fNormal = vec3(uTransform * vec4(vNormal,1));
+	}else{
+		//fNormal = vec3(uTransform* iMat * vec4(vNormal,1));
+		fNormal = fPos-vec3(uTransform * iMat * vec4(vPos-vNormal, 1));
+	}
+
 	fUV = vTexture.xy;
 	fMat = int(vTexture.z);
 	fPosLightSpace = uLightSpaceMatrix * vec4(fPos, 1);
 
 	//fNormal = mat3(transpose(inverse(uTransform)))*vNormal; // Do this on the cpu and pass into the shader via uniform
 	
-	gl_Position = uProj * uTransform * vec4(vPos,1);
+	gl_Position = uProj * vec4(fPos,1);
 };
 
 #shader fragment

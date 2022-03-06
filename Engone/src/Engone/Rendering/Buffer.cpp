@@ -10,7 +10,8 @@ namespace engone {
 		setData(_floatCount, data);
 	}
 	VertexBuffer::~VertexBuffer() {
-		glDeleteBuffers(1,&id);
+		if (id != 0)
+			glDeleteBuffers(1,&id);
 	}
 	void VertexBuffer::setData(int _floatCount, float* data, int offset) {
 		if(id==0)
@@ -21,7 +22,7 @@ namespace engone {
 			glBufferData(GL_ARRAY_BUFFER, _floatCount *sizeof(float), data, GL_DYNAMIC_DRAW);
 			floatCount = _floatCount;
 		} else if(floatCount >= _floatCount) {
-			glBufferSubData(GL_ARRAY_BUFFER, 0, _floatCount*sizeof(float), data);
+			glBufferSubData(GL_ARRAY_BUFFER, offset, _floatCount*sizeof(float), data);
 		} else {
 			log::out <<log::RED<< "VertexBuffer: byteSize is limited to "<< _floatCount <<"\n";
 		}
@@ -40,7 +41,8 @@ namespace engone {
 		setData(_intCount, data);
 	}
 	IndexBuffer::~IndexBuffer() {
-		glDeleteBuffers(1, &id);
+		if (id != 0)
+			glDeleteBuffers(1, &id);
 	}
 	void IndexBuffer::setData(int _intCount, uint32_t* data, int offset) {
 		if (id == 0)
@@ -51,7 +53,7 @@ namespace engone {
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _intCount*sizeof(uint32_t), data, GL_DYNAMIC_DRAW);
 			intCount = _intCount;
 		} else if (intCount >= _intCount) {
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _intCount * sizeof(uint32_t), data);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, _intCount * sizeof(uint32_t), data);
 		} else {
 			log::out << log::RED << "IndexBuffer: byteSize is limited to " << _intCount << "\n";
 		}
@@ -67,41 +69,55 @@ namespace engone {
 	}
 
 	VertexArray::~VertexArray() {
-		glDeleteVertexArrays(1,&id);
+		if(id!=0)
+			glDeleteVertexArrays(1,&id);
 	}
-	void VertexArray::addAttribute(int floatSize, int divisor, VertexBuffer* buffer) {
+	void VertexArray::addAttribute(int floatSize, int divisor) {
 		if (id == 0)
 			glGenVertexArrays(1, &id);
-
-		attribSizes[attribLocation++] = floatSize + (divisor << 4);
-		stride += floatSize;
-		if (buffer){
-			buffer->bind();
-			glBindVertexArray(id);
-
-			int offset = 0;
-			for (int i = 0; i < attribLocation; i++) {
-				glEnableVertexAttribArray(location);
-				
-				uint8_t size = attribSizes[i] << 4;
-				size = size >> 4;
-				uint8_t div = attribSizes[i] >> 4;
-				
-				//log::out << location << " " << size << " " << div << " " << stride << " " << offset << "\n";
-
-				glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, stride*sizeof(float), (void*)(offset * sizeof(float)));
-				if(div!=0)
-					glVertexAttribDivisor(location, div);
-				
-				offset += attribSizes[i];
-				location++;
-			}
-			attribLocation = 0;
-			stride = 0;
-			
-			buffer->bind(0);
-			glBindVertexArray(0);
+		
+		if (location == 8) {
+			log::out << log::RED << "VertexArray: Limit of 8 locations!\n";
+			return;
 		}
+		
+		locationSizes[totalLocation++] = floatSize + (divisor << 4);
+		strides[bufferSection] += floatSize;
+	}
+	void VertexArray::addAttribute(int floatSize, int divisor, VertexBuffer* buffer) {
+
+		addAttribute(floatSize, divisor);
+		if (location == 8)
+			return;
+
+		if (buffer) buffer->bind();
+		glBindVertexArray(id);
+
+		int offset = 0;
+		startLocations[bufferSection] = location;
+		while (totalLocation > location) {
+			glEnableVertexAttribArray(location);
+
+			uint8_t size = locationSizes[location] << 4;
+			size = size >> 4;
+			uint8_t div = locationSizes[location] >> 4;
+
+			//log::out << location << " " << size << " " << div << " " << strides[bufferSection] << " " << offset << "\n";
+
+			glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, strides[bufferSection] * sizeof(float), (void*)(offset * sizeof(float)));
+			if (div != 0)
+				glVertexAttribDivisor(location, div);
+
+			offset += locationSizes[location];
+			location++;
+		}
+		bufferSection++;
+
+		if (buffer) buffer->bind(0);
+		glBindVertexArray(0);
+	}
+	void VertexArray::addAttribute(int floatSize) {
+		addAttribute(floatSize, 0);
 	}
 	void VertexArray::addAttribute(int floatSize, VertexBuffer* buffer) {
 		addAttribute(floatSize, 0, buffer);
@@ -109,7 +125,29 @@ namespace engone {
 	void VertexArray::selectBuffer(int location, VertexBuffer* buffer) {
 		buffer->bind();
 		glBindVertexArray(id);
-		glEnableVertexAttribArray(location);
+		int offset = 0;
+		int section = 0;
+		while (section < VAO_MAX_BUFFERS) {
+			if (startLocations[section] >= location)
+				break;
+			section++;
+		}
+		int index = startLocations[section];
+		while(offset==strides[section]-locationSizes[startLocations[section]]){
+			offset += locationSizes[index];
+			index++;
+		}
+		while(offset<strides[section]) {
+			uint8_t size = locationSizes[location] << 4;
+			size = size >> 4;
+			uint8_t div = locationSizes[location] >> 4;
+
+			//log::out << location << " " << size << " " << strides[section] << " " << offset << "\n";
+			glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, strides[section] * sizeof(float), (void*)(offset * sizeof(float)));
+			offset += size;
+			location++;
+		}
+
 		buffer->bind(0);
 		glBindVertexArray(0);
 	}

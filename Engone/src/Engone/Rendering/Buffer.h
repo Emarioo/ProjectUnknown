@@ -1,7 +1,5 @@
 #pragma once
 
-//#if ENGONE_GLFW
-
 namespace engone {
 
 	class VertexBuffer {
@@ -32,23 +30,33 @@ namespace engone {
 
 		void bind(bool unbind = false);
 	};
+#define VAO_MAX_LOCATIONS 8
+#define VAO_MAX_BUFFERS 2
 	class VertexArray {
 	private:
 		unsigned int id=0;
-		uint8_t location=0, attribLocation=0, stride=0;
-		uint8_t attribSizes[8];
+
+		uint8_t totalLocation = 0, location=0, bufferSection=0;
+		// max locations
+		uint8_t locationSizes[VAO_MAX_LOCATIONS];
+		// Buffer section
+		uint8_t strides[VAO_MAX_BUFFERS];
+		uint8_t startLocations[VAO_MAX_BUFFERS];
+
 	public:
 		VertexArray() = default;
 		~VertexArray();
 
-		void addAttribute(int floatSize, VertexBuffer* buffer =nullptr);
-		void addAttribute(int floatSize, int divisor, VertexBuffer* buffer = nullptr);
+		void addAttribute(int floatSize);
+		void addAttribute(int floatSize, VertexBuffer* buffer);
+		void addAttribute(int floatSize, int divisor);
+		void addAttribute(int floatSize, int divisor, VertexBuffer* buffer);
 
 		void selectBuffer(int location, VertexBuffer* buffer);
 
 		void bind(bool unbind=false);
 
-		void draw(IndexBuffer* indexBuffer=nullptr);
+		void draw(IndexBuffer* indexBuffer = nullptr);
 		void draw(IndexBuffer* indexBuffer, int instanceAmount);
 
 	};
@@ -104,4 +112,3 @@ namespace engone {
 		void Draw() override;
 	};
 }
-//#endif

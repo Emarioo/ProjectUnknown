@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
 #include "Entity.h"
-#include "EntitySystem.h"
+//#include "EntitySystem.h"
 
 namespace engone {
 	Entity::Entity(ComponentMask mask) : ComponentMask(mask) {

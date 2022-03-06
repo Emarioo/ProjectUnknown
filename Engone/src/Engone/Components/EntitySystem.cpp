@@ -13,9 +13,13 @@ namespace engone {
 	// entities that exist
 	static std::vector<Entity*> allEntities;
 	static uint64_t entityCount;
+	
+	//-- Components
+	static int sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer) };
+	static int componentEnumCount=32;
 
-	int sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics),sizeof(Scriptable), sizeof(Model), sizeof(Animator) };
-	int componentEnumCount=32;
+	//-- System
+	static std::vector<System*> systems;
 	
 	//-- Methods
 	bool EntityStack::add(Entity* entity) {
@@ -67,11 +71,11 @@ namespace engone {
 		entity->stackPtr = data + (entityCount) * entitySize;
 		
 		//-- Component specific
-		if (entity->has(ComponentEnum::Scriptable)) {
-			entity->getComponent<Scriptable>()->entity = entity;
+		if (entity->has(ComponentEnum::ModelRenderer)) {
+			entity->getComponent<ModelRenderer>()->visible = true;
 		}
-		if (entity->has(ComponentEnum::Model)) {
-			entity->getComponent<Model>()->renderMesh = true;
+		if (entity->has(ComponentEnum::MeshRenderer)) {
+			entity->getComponent<MeshRenderer>()->visible = true;
 		}
 		if (entity->has(ComponentEnum::Physics)) {
 			entity->getComponent<Physics>()->gravity = -9.81;
@@ -121,8 +125,19 @@ namespace engone {
 		//if (stack->data)
 			//stack->data=(char*)realloc(stack->data,100);
 		stack->add(entity);
-		
-
+	}
+	void AddSystem(System* system) {
+		systems.push_back(system);
+	}
+	void RunUpdateSystems(float delta) {
+		for (System* system : systems) {
+			system->OnUpdate(delta);
+		}
+	}
+	void RunCollisionSystems(Collider& c1, Collider& c2) {
+		for (System* system : systems) {
+			system->OnCollision(c1,c2);
+		}
 	}
 	EntityIterator GetEntityIterator(ComponentMask mask){
 		// If collection exists

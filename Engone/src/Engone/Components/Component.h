@@ -9,8 +9,7 @@ namespace engone {
 		None = 0,
 		Transform,
 		Physics,
-		Scriptable,
-		Model,
+		ModelRenderer,
 		Animator,
 		MeshRenderer
 	};
@@ -69,7 +68,7 @@ namespace engone {
 
 	class Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::None;
+		static const ComponentEnum ID = ComponentEnum::None;
 		template<class T>
 		T* cast() {
 			return reinterpret_cast<T>(this);
@@ -78,7 +77,7 @@ namespace engone {
 
 	class Transform : public Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::Transform;
+		static const ComponentEnum ID = ComponentEnum::Transform;
 		Transform() = default;
 
 		glm::vec3 position;
@@ -87,7 +86,7 @@ namespace engone {
 	};
 	class Physics : public Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::Physics;
+		static const ComponentEnum ID = ComponentEnum::Physics;
 		Physics() = default;
 
 		glm::vec3 lastPosition;
@@ -96,21 +95,13 @@ namespace engone {
 		bool renderCollision;
 		bool movable;
 	};
-	class Entity;
-	class Scriptable : public Component {
+	class ModelRenderer : public Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::Scriptable;
-		Scriptable() = default;
+		static const ComponentEnum ID = ComponentEnum::ModelRenderer;
+		ModelRenderer() = default;
 
-		Entity* entity=nullptr;
-	};
-	class Model : public Component {
-	public:
-		static const ComponentEnum MASK = ComponentEnum::Model;
-		Model() = default;
-
-		ModelAsset* modelAsset;
-		bool renderMesh;
+		ModelAsset* asset;
+		bool visible;
 	};
 	class AnimationProperty {
 	public:
@@ -127,7 +118,7 @@ namespace engone {
 	};
 	class Animator : public Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::Animator;
+		static const ComponentEnum ID = ComponentEnum::Animator;
 		Animator() = default;
 
 		/*
@@ -147,9 +138,10 @@ namespace engone {
 	};
 	class MeshRenderer : public Component {
 	public:
-		static const ComponentEnum MASK = ComponentEnum::Model;
+		static const ComponentEnum ID = ComponentEnum::MeshRenderer;
 		MeshRenderer() = default;
 
 		MeshAsset* asset;
+		bool visible;
 	};
 }

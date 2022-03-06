@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Engone/Components/Entity.h"
+#include "Engone/Components/System.h"
 
-class Player : public engone::Entity {
+class Player : public engone::Entity, public engone::System {
 private:
 	float animBlending = 0;
 	float animSpeed = 1.7;
@@ -11,7 +12,7 @@ public:
 	Player();
 
 	void Init() override;
-	void Update(float delta) override;
+	void OnUpdate(float delta) override;
 	//void OnCollision(engone::Collider& my, engone::Collider& their) override;
 	glm::vec3 Movement(float delta);
 

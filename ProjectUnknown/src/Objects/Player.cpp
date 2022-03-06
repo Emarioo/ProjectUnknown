@@ -12,17 +12,17 @@
 #include "GLFW/glfw3.h"
 
 Player::Player() : engone::Entity(engone::ComponentEnum::Transform|engone::ComponentEnum::Physics|
-	engone::ComponentEnum::Model|engone::ComponentEnum::Scriptable) {
+	engone::ComponentEnum::MeshRenderer) {
 	
 }
 void Player::Init() {
-	engone::Model* m = getComponent<engone::Model>();
-	m->modelAsset = engone::GetAsset<engone::ModelAsset>("Player/Player");
+	engone::MeshRenderer* r = getComponent<engone::MeshRenderer>();
+	r->asset = engone::GetAsset<engone::MeshAsset>("Player/Stick-N");
 	engone::Physics* p = getComponent<engone::Physics>();
 	p->movable = true;
 	p->renderCollision = true;
 }
-void Player::Update(float delta) {
+void Player::OnUpdate(float delta) {
 	Movement(delta);
 
 	if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {

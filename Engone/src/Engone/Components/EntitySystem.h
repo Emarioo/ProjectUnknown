@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include "System.h"
 
 namespace engone {
 
@@ -31,8 +32,8 @@ namespace engone {
 		template <class T>
 		T* getComponent(int index) {
 			//log::out << componentMask << " - " << (1<<((int)T::MASK-1)) << "\n";
-			if (has(T::MASK)) {
-				int typeIndex = ((int)T::MASK) - 1;
+			if (has(T::ID)) {
+				int typeIndex = ((int)T::ID) - 1;
 				return (T*)(data + index * entitySize + componentSizes[typeIndex]);
 			}
 			return nullptr;
@@ -55,6 +56,9 @@ namespace engone {
 		}
 		
 	};
+	/*
+		Iterator can be reused if the iteration wasn't interrupted.
+	*/
 	class EntityIterator {
 	public:
 		EntityIterator(StackCollection* stack) : collection(stack) {};
@@ -71,8 +75,11 @@ namespace engone {
 				index = 0;
 				stackIndex++;
 			}
-			if (stackIndex == collection->stacks.size())
+			if (stackIndex == collection->stacks.size()) {
+				index = -1; // Reset values for reusability
+				stackIndex = 0;
 				return false;
+			}
 			return true;
 		}
 		operator bool() {
@@ -92,7 +99,13 @@ namespace engone {
 
 	// Adds the entity to the entity component system, also allocates memory for entity
 	void AddEntity(Entity* entity);
-	
+	// Adds the system to entity component system.
+	void AddSystem(System* system);
+		
+	void RunUpdateSystems(float delta);
+	void RunCollisionSystems(Collider& c1, Collider& c2);
+
 	// Get a collection of component stacks which have the specified components
 	EntityIterator GetEntityIterator(ComponentMask mask);
+
 }

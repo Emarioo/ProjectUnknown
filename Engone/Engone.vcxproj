@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Engone\Components\Collision.h" />
     <ClInclude Include="src\Engone\Components\Component.h" />
     <ClInclude Include="src\Engone\Components\MetaComponent.h" />
+    <ClInclude Include="src\Engone\Components\System.h" />
     <ClInclude Include="src\Engone\Logger.h" />
     <ClInclude Include="src\Engone\EventHandler.h" />
     <ClInclude Include="src\Engone\GameState.h" />
@@ -51,8 +53,10 @@
     <ClInclude Include="src\vendor\Libaudio.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engone\Components\Collision.cpp" />
     <ClCompile Include="src\Engone\Components\Component.cpp" />
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
+    <ClCompile Include="src\Engone\Components\System.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\EventHandler.cpp" />

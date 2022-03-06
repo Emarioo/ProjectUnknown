@@ -616,7 +616,7 @@ namespace engone {
 	{
 		// clear data
 		materials.clear();
-		buffer.Uninit();
+		//buffer.Uninit();
 
 		FileReader file(path);		
 		try {
@@ -851,15 +851,32 @@ namespace engone {
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					std::cout << std::endl;
 			}*/
-
-			buffer.Init(false, vertexOut, (uniqueVertex.size() / uvStride) * vStride, triangleOut, triangleCount * 3);
-			buffer.SetAttrib(0, 3, vStride, 0);// Position
-			buffer.SetAttrib(1, 3, vStride, 3);// Normal
-			buffer.SetAttrib(2, 3, vStride, 3 + 3);// Color
+			
+			vertexBuffer.setData((uniqueVertex.size() / uvStride)* vStride, vertexOut);
+			indexBuffer.setData(triangleCount * 3, triangleOut);
+			
+			vertexArray.addAttribute(3);// Position
+			vertexArray.addAttribute(3);// Normal
 			if (meshType == MeshType::Boned) {
-				buffer.SetAttrib(3, 3, vStride, 3 + 3 + 3);// Bone Index
-				buffer.SetAttrib(4, 3, vStride, 3 + 3 + 3 + 3);// Weight
+				vertexArray.addAttribute(3);// Color
+				vertexArray.addAttribute(3);// Bone Index
+				vertexArray.addAttribute(3,&vertexBuffer);// Weight
+			} else {
+				vertexArray.addAttribute(3, &vertexBuffer);// Color
 			}
+			vertexArray.addAttribute(4, 1);
+			vertexArray.addAttribute(4, 1);
+			vertexArray.addAttribute(4, 1);
+			vertexArray.addAttribute(4, 1, nullptr);// empty instance buffer			
+
+			//buffer.Init(false, vertexOut, (uniqueVertex.size() / uvStride) * vStride, triangleOut, triangleCount * 3);
+			//buffer.SetAttrib(0, 3, vStride, 0);// Position
+			//buffer.SetAttrib(1, 3, vStride, 3);// Normal
+			//buffer.SetAttrib(2, 3, vStride, 3 + 3);// Color
+			//if (meshType == MeshType::Boned) {
+			//	buffer.SetAttrib(3, 3, vStride, 3 + 3 + 3);// Bone Index
+			//	buffer.SetAttrib(4, 3, vStride, 3 + 3 + 3 + 3);// Weight
+			//}
 
 			// Cleanup
 			delete[] uPoint;

@@ -540,7 +540,10 @@ namespace engone {
 
 		MeshType meshType = MeshType::Normal;
 		std::vector<MaterialAsset*> materials;
-		TriangleBuffer buffer;
+		VertexBuffer vertexBuffer;
+		IndexBuffer indexBuffer;
+		VertexArray vertexArray;
+		//TriangleBuffer buffer;
 	};
 	class ColliderAsset : public Asset
 	{
@@ -658,6 +661,7 @@ namespace engone {
 	*/
 	template <class T>
 	T* AddAsset(const std::string& path) {
+		//log::out << path << "\n";
 		//if (path.empty()) return;
 		return AddAsset<T>(path, path);
 	}
@@ -667,6 +671,7 @@ namespace engone {
 	*/
 	template <class T>
 	T* GetAsset(const std::string& name) {
+		//log::out << name<<"\n";
 		//if (name.empty()) return;
 		auto& list = engone_assets[(char)T::TYPE - 1];
 		if (list.count(name)) {

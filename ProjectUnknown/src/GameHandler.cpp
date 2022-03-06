@@ -175,7 +175,7 @@ namespace game
 	engone::IndexBuffer IBO;
 	engone::VertexArray VAO;
 
-	engone::TriangleBuffer* TBO;
+	//engone::TriangleBuffer* TBO;
 
 	static float rot = 0;
 	static float frame = 0;
@@ -230,19 +230,28 @@ namespace game
 
 		RenderEngine(lag);
 
-		Shader* shad = GetAsset<Shader>("experiment");
+		Shader* shad = GetAsset<Shader>("object");
 		shad->Bind();
 
-		//VAO.draw(&IBO);
+		//MeshAsset* as = GetAsset<MeshAsset>("Player/Stick-N");
 		move += 1/60.f/20.f;
+
+		float fi[]{
+			move / 4,-move/2, 0,
+			-move / 4,-move, 0,
+		};
+		//as->instanceBuffer.setData(6, fi);
+		////as->vertexArray->selectBuffer(1, as->instanceBuffer);
+		//as->vertexArray.draw(&as->indexBuffer, 2);
+
 		float fa[]{
 			-move/2+0.f,0,
 			-move/6 + 0.15f,move,
 			move*2 + 0.1f,0.25
 		};
-		VBO2.setData(6, fa);
-		
-		VAO.draw(&IBO,3);
+		//VBO2.setData(6, fa);
+		//VAO.selectBuffer(1, &VBO2);
+		//VAO.draw(&IBO,3);
 
 		//shad->SetVec4("uColor", 1, 1, 0, 1);
 
@@ -322,18 +331,19 @@ namespace game
 		//log::out << "tree ptr " << (void*)tree->getComponent<Model>() << "\n";
 		Player* player = new Player();
 		AddEntity(player);
-		player->getComponent<Model>()->renderMesh = false;
+		AddSystem(player);
+		//player->getComponent<MeshRenderer>()->renderMesh = false;
 
 		/*ColliderAsset* as = new ColliderAsset("Terrain/Plane.003");
 		as->Load(as->filePath);*/
 		
 		//as->Load("assets/Terrain/Terrain.collider");
 		
-		Entity* terrain = new Entity(ComponentEnum::Transform|ComponentEnum::Model|ComponentEnum::Physics);
+		/*Entity* terrain = new Entity(ComponentEnum::Transform|ComponentEnum::Model|ComponentEnum::Physics);
 		AddEntity(terrain);
 		terrain->getComponent<Model>()->modelAsset = GetAsset<ModelAsset>("Terrain/Terrain");
 		terrain->getComponent<Model>()->renderMesh = false;
-		terrain->getComponent<Physics>()->renderCollision = true;
+		terrain->getComponent<Physics>()->renderCollision = true;*/
 
 		//log::out << "tree ptr " << (void*)tree->getComponent<Model>() << "\n";
 		
@@ -352,18 +362,19 @@ namespace game
 		AddLight(l);
 
 		float fArray[]{
-			0,0,
-			.1,0,
-			.1,.1,
+			0,0,1,0,1,1,
+			.1,0,0,1,1,1,
+			.1,.1,1,1,0,1
 		};
 		uint32_t iArray[]{
 			0,1,2
 		};
 		
-		VBO.setData(6,fArray);
+		VBO.setData(sizeof(fArray)/sizeof(float),fArray);
 		IBO.setData(3,iArray);
 
-		VAO.addAttribute(2, &VBO);
+		VAO.addAttribute(2);
+		VAO.addAttribute(4, &VBO);
 		VAO.addAttribute(2, 1, &VBO2);
 	}
 }
