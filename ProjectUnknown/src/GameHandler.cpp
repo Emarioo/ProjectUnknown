@@ -7,10 +7,10 @@
 #include "UI/InterfaceManager.h"
 #include "Keybindings.h"
 
-static const std::string experimentGLSL = {
+static const char* experimentGLSL = {
 #include "Shaders/experiment.glsl"
 };
-static const std::string depthGLSL = {
+static const char* depthGLSL = {
 #include "Shaders/depth.glsl"
 };
 
@@ -24,6 +24,8 @@ static const std::string depthGLSL = {
 #include "Engone/Rendering/Buffer.h"
 
 #include "Engone/Handlers/ObjectHandler.h"
+
+#include "Engone/UI/UIPipeline.h"
 
 namespace game
 {
@@ -156,8 +158,8 @@ namespace game
 		}
 
 		//-- Assets
-		AddAsset<Shader>("depth", new Shader(depthGLSL, true));
-		AddAsset<Shader>("experiment", new Shader(experimentGLSL, true));
+		AddAsset<Shader>("depth", new Shader(depthGLSL));
+		AddAsset<Shader>("experiment", new Shader(experimentGLSL));
 		AddAsset<Font>("consolas", "fonts/consolas42");
 
 		//-- Event and game loop functions
@@ -176,6 +178,21 @@ namespace game
 	engone::VertexArray VAO;
 
 	//engone::TriangleBuffer* TBO;
+
+	void uitest() {
+		using namespace engone;
+		//Box box = {100,100,400,200, 1, 0.2f, 1, 1};
+		//Box* box2 = ui::Rect({ 150.f, 150.f, 100.f, 100.f, 0.5f, 0.f, 0.f, 1.f });
+
+		/*for (int i = 0; i < 10000;i++) {
+			ui::Rect({ 10 + 5.f*(i%100),10+5.f*(i/100),4.f,4.f ,1.f,1.f,1.f,1.f});
+		}*/
+		Box* box = ui::Rect({ 100.f, 100.f, 100.f, 100.f, 1.f, 0.f, 0.f, 1.f });
+
+		if (ui::Clicked(*box)) {
+			log::out << "Yay\n";
+		}
+	}
 
 	static float rot = 0;
 	static float frame = 0;
@@ -227,11 +244,13 @@ namespace game
 
 		//PassMaterial(shader, 0, mesh->materials[0]);
 		//mesh->buffer.Draw();
+	
+		uitest();
 
 		RenderEngine(lag);
 
 		Shader* shad = GetAsset<Shader>("object");
-		shad->Bind();
+		shad->bind();
 
 		//MeshAsset* as = GetAsset<MeshAsset>("Player/Stick-N");
 		move += 1/60.f/20.f;

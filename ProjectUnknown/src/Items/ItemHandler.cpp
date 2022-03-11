@@ -117,15 +117,15 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 		engone::Shader* gui = engone::GetAsset<engone::Shader>("gui");
 
-		gui->SetVec4("uColor", 1, 1, 1, 1);
-		gui->SetVec2("uPos", {x,y});
-		gui->SetVec2("uSize", {w,h});
+		gui->setVec4("uColor", 1, 1, 1, 1);
+		gui->setVec2("uPos", {x,y});
+		gui->setVec2("uSize", {w,h});
 		engone::DrawUVRect(u, v, size, size);
 
 		if (!text.empty()) {
-			gui->SetVec2("uPos", {x+w/6,y+h/4});
-			gui->SetVec2("uSize", { 0.75,0.75 });
-			gui->SetVec4("uColor", r, g, b, a);
+			gui->setVec2("uPos", {x+w/6,y+h/4});
+			gui->setVec2("uSize", { 0.75,0.75 });
+			gui->setVec4("uColor", r, g, b, a);
 			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6,w,h,-1);
 		}
 	}

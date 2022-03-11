@@ -11,7 +11,8 @@ namespace engone {
 		Physics,
 		ModelRenderer,
 		Animator,
-		MeshRenderer
+		MeshRenderer,
+		Collision,
 	};
 	class  ComponentMask {
 	protected:
@@ -142,6 +143,14 @@ namespace engone {
 		MeshRenderer() = default;
 
 		MeshAsset* asset;
+		bool visible;
+	};
+	class Collision : public Component {
+	public:
+		static const ComponentEnum ID = ComponentEnum::Collision;
+		Collision() = default;
+
+		ColliderAsset* asset;
 		bool visible;
 	};
 }

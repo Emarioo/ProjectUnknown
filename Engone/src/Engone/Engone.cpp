@@ -4,22 +4,24 @@
 
 #include "glm/gtx/matrix_decompose.hpp"
 
+#include <assert.h>
+
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 }
 
 namespace engone {
 
-	static const std::string guiShaderSource = {
+	static const char* guiShaderSource = {
 #include "Shaders/gui.glsl"
 	};
-	static const std::string objectSource = {
+	static const char* objectSource = {
 #include "Shaders/object.glsl"
 	};
-	static const std::string armatureSource = {
+	static const char* armatureSource = {
 #include "Shaders/armature.glsl"
 	};
-	static const std::string collisionSource = {
+	static const char* collisionSource = {
 #include "Shaders/collision.glsl"
 	};
 
@@ -77,8 +79,11 @@ namespace engone {
 
 		return EventType::None;
 	}
+
 	static bool glfwIsActive = false;
+	static double glfwFreezeTime = 0;
 	void InitEngone() {
+
 		// There is this bug with glfw where it freezes. This will tell you if it has.
 		std::thread tempThread = std::thread([] {
 			for (int i = 0; i < 20; i++) {
@@ -87,12 +92,15 @@ namespace engone {
 					return;
 				}
 			}
-			std::cout << "GLFW has frozen. :( \n";
+			std::cerr << "GLFW has frozen... ";
+			glfwFreezeTime = GetSystemTime();
 			});
 		if (!glfwInit()) {
 			std::cout << "Glfw Init error!" << std::endl;
 			return;
 		}
+		if(glfwFreezeTime !=0)
+			std::cout << "it took "<<(GetSystemTime() - glfwFreezeTime) << " seconds\n";
 		glfwIsActive = true;
 		tempThread.join();
 
@@ -110,20 +118,21 @@ namespace engone {
 		//glEnable(GL_FRAMEBUFFER_SRGB);
 
 		// Gui stuff
-		AddAsset<Shader>("gui", new Shader(guiShaderSource, true));
+		AddAsset<Shader>("gui", new Shader(guiShaderSource));
 
 		engone::SetState(GameState::RenderGame, true);
 		engone::SetState(GameState::RenderGui, true);
 
-		AddAsset<Shader>("object", new Shader(objectSource, true));
-		AddAsset<Shader>("armature", new Shader(armatureSource, true));
-		AddAsset<Shader>("collision", new Shader(collisionSource, true));
+		AddAsset<Shader>("object", new Shader(objectSource));
+		AddAsset<Shader>("armature", new Shader(armatureSource));
+		AddAsset<Shader>("collision", new Shader(collisionSource));
 		//AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
 
 		instanceBuffer.setData(100 * 16, nullptr);
 
 		InitEvents(GetWindow());
 		InitGui();
+		InitUIPipeline();
 		InitRenderer();
 		//ReadOptions();
 
@@ -157,7 +166,7 @@ namespace engone {
 	}
 	void UpdateProjection(Shader* shader) {
 		if (shader != nullptr)
-			shader->SetMatrix("uProj", projMatrix * viewMatrix);
+			shader->setMat4("uProj", projMatrix * viewMatrix);
 	}
 	static float insideLine(glm::vec3& a, glm::vec3& b, glm::vec3& p) {
 		glm::vec3 norm = { -(b.z - a.z), 0, (b.x - a.x) };
@@ -333,7 +342,7 @@ namespace engone {
 	
 		// Space partitioning?
 		
-		EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::Physics);
+		EntityIterator iterator = GetEntityIterator(Transform::ID | Physics::ID);
 		while (iterator) {
 			Transform* transform = iterator.get<Transform>();
 			Physics* physics = iterator.get<Physics>();
@@ -357,45 +366,77 @@ namespace engone {
 				physics->velocity.y += physics->gravity * delta;
 				transform->position += physics->velocity * delta;
 			}
+		}
+		iterator = GetEntityIterator(Transform::ID | Physics::ID | Collision::ID);
+		while (iterator) {
+			Transform* transform = iterator.get<Transform>();
+			Physics* physics = iterator.get<Physics>();
+			Collision* collision = iterator.get<Collision>();
 
-			//if (renderer->asset) {
-			//	ModelAsset* model = renderer->asset;
+			ColliderAsset* asset = collision->asset;
 
-			//	// Get individual transforms
-			//	std::vector<glm::mat4> transforms;
-			//	Animator* animator = iterator.get<Animator>();
-			//	if(animator)
-			//		model->GetParentTransforms(animator, transforms);
+			glm::mat4 matrix = glm::translate(transform->position);
 
-			//	for (int j = 0; j < model->instances.size(); j++) {
-			//		AssetInstance& instance = model->instances[j];
+			if (asset->colliderType == ColliderAsset::Type::Cube) {
+				matrix = glm::scale(matrix, asset->cube.scale);
+			}
 
-			//		if (instance.asset->type == AssetType::Collider) {
-			//			ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
+			colliders.push_back({ asset, iterator.getEntity() });
+			glm::vec3 skew;
+			glm::vec4 persp;
+			glm::decompose(matrix, colliders.back().scale, colliders.back().rotation, colliders.back().position, skew, persp);
 
-			//			glm::mat4 matrix;
-			//			if(animator)
-			//				matrix = glm::translate(transform->position) * transforms[j] * instance.localMat;
-			//			else
-			//				matrix = glm::translate(transform->position) * instance.localMat;
+			if (asset->colliderType == ColliderAsset::Type::Sphere) {
+				colliders.back().position += asset->sphere.position;
+			} else if (asset->colliderType == ColliderAsset::Type::Cube) {
+				colliders.back().position += asset->cube.position;
+			}
+		}
+		iterator = GetEntityIterator(Transform::ID | Physics::ID | ModelRenderer::ID);
+		while(iterator){
+			Transform* transform = iterator.get<Transform>();
+			Physics* physics = iterator.get<Physics>();
+			ModelRenderer* renderer = iterator.get<ModelRenderer>();
 
-			//			if (asset->colliderType==ColliderAsset::Type::Cube) {
-			//				matrix = glm::scale(matrix, asset->cube.scale);
-			//			}
+			if (renderer->asset) {
+				ModelAsset* model = renderer->asset;
 
-			//			colliders.push_back({ asset, iterator.getEntity() });
-			//			glm::vec3 skew;
-			//			glm::vec4 persp;
-			//			glm::decompose(matrix, colliders.back().scale, colliders.back().rotation, colliders.back().position, skew, persp);
+				// Get individual transforms
+				std::vector<glm::mat4> transforms;
+				Animator* animator = iterator.get<Animator>();
+				if(animator)
+					model->GetParentTransforms(animator, transforms);
 
-			//			if (asset->colliderType == ColliderAsset::Type::Sphere) {
-			//				colliders.back().position += asset->sphere.position;
-			//			} else if (asset->colliderType == ColliderAsset::Type::Cube) {
-			//				colliders.back().position += asset->cube.position;
-			//			}
-			//		}
-			//	}
-			//}
+				for (int j = 0; j < model->instances.size(); j++) {
+					AssetInstance& instance = model->instances[j];
+
+					if (instance.asset->type == AssetType::Collider) {
+						ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
+
+						glm::mat4 matrix;
+						if(animator)
+							matrix = glm::translate(transform->position) * transforms[j] * instance.localMat;
+						else
+							matrix = glm::translate(transform->position) * instance.localMat;
+
+						if (asset->colliderType==ColliderAsset::Type::Cube) {
+							matrix = glm::scale(matrix, asset->cube.scale);
+						}
+
+						colliders.push_back({ asset, iterator.getEntity() });
+						glm::vec3 skew;
+						glm::vec4 persp;
+						glm::decompose(matrix, colliders.back().scale, colliders.back().rotation, colliders.back().position, skew, persp);
+
+						if (asset->colliderType == ColliderAsset::Type::Sphere) {
+							colliders.back().position += asset->sphere.position;
+						} else if (asset->colliderType == ColliderAsset::Type::Cube) {
+							colliders.back().position += asset->cube.position;
+						}
+					}
+				}
+			}
+
 		}
 
 		//-- Collision
@@ -407,15 +448,7 @@ namespace engone {
 					
 					bool yes = TestCollision(&c1,&c2);
 					if (yes) {
-						//Scriptable* s1 = c1.entity.getComponent<Scriptable>();
-						//Scriptable* s2 = c2.entity.getComponent<Scriptable>();
 						RunCollisionSystems(c1, c2);
-						/*
-						if (s1)
-							s1->entity->OnCollision(c1, c2);
-						if(s2)
-							s2->entity->OnCollision(c2, c1);
-						*/
 					}
 				}
 			}
@@ -454,38 +487,101 @@ namespace engone {
 		EnableDepth();
 		UpdateViewMatrix(lag);
 
-		Shader* shader = GetAsset<Shader>("object");
-		if (!shader->error) {
-			shader->Bind();
-			UpdateProjection(shader);
-			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
-			glm::vec3 camPos = GetCamera()->position;
+		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
+		//std::unordered_map<MeshAsset*, std::vector<glm::mat4>> bonedObjects; Not supported
 
-			std::unordered_map<MeshAsset*, std::vector<glm::mat4>> instances;
-			EntityIterator meshIterator = GetEntityIterator(Transform::ID|MeshRenderer::ID);
-			while (meshIterator) {
-				MeshRenderer* renderer = meshIterator.get<MeshRenderer>();
-				if (renderer->asset && renderer->visible) {
-					Transform* transform = meshIterator.get<Transform>();
+		EntityIterator meshIterator = GetEntityIterator(Transform::ID | MeshRenderer::ID);
+		while (meshIterator) {
+			MeshRenderer* renderer = meshIterator.get<MeshRenderer>();
+			if (renderer->asset && renderer->visible) {
+				Transform* transform = meshIterator.get<Transform>();
 
-					MeshAsset* asset = renderer->asset;
+				MeshAsset* asset = renderer->asset;
 
-					if (instances.count(asset)>0) {
-						instances[asset].push_back(glm::translate(transform->position));
+				glm::mat4 out = glm::translate(transform->position);
+
+				if (asset->meshType == MeshAsset::MeshType::Normal) {
+					if (normalObjects.count(asset) > 0) {
+						normalObjects[asset].push_back(out);
 					} else {
-						instances[asset]=std::vector<glm::mat4>();
-						instances[asset].push_back(glm::translate(transform->position));
+						normalObjects[asset] = std::vector<glm::mat4>();
+						normalObjects[asset].push_back(out);
+					}
+				}/* else if (asset->meshType == MeshAsset::MeshType::Boned) {
+					if (bonedObjects.count(asset) > 0) {
+						bonedObjects[asset].push_back(out);
+					} else {
+						bonedObjects[asset] = std::vector<glm::mat4>();
+						bonedObjects[asset].push_back(out);
+					}
+				}*/
+			}
+		}
+		EntityIterator modelIterator = GetEntityIterator(Transform::ID | ModelRenderer::ID);
+		while (modelIterator) {
+			ModelRenderer* renderer = modelIterator.get<ModelRenderer>();
+
+			if (renderer->asset && renderer->visible) {
+				ModelAsset* model = renderer->asset;
+
+				Transform* transform = modelIterator.get<Transform>();
+				Animator* animator = modelIterator.get<Animator>();
+
+				// Get individual transforms
+				std::vector<glm::mat4> transforms;
+				if (animator)
+					model->GetParentTransforms(animator, transforms);
+
+				/*
+				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+					+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+					(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+					continue;
+				}
+				*/
+
+				// Draw instances
+				for (int i = 0; i < model->instances.size(); i++) {
+					AssetInstance& instance = model->instances[i];
+					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+					if (instance.asset->type == AssetType::Mesh) {
+						MeshAsset* asset = instance.asset->cast<MeshAsset>();
+
+						if (asset->meshType == MeshAsset::MeshType::Normal) {
+							glm::mat4 out;
+
+							if (animator)
+								out = glm::translate(transform->position) * transforms[i] * instance.localMat;
+							else
+								out = glm::translate(transform->position) * instance.localMat;
+
+							if (normalObjects.count(asset) > 0) {
+								normalObjects[asset].push_back(out);
+							} else {
+								normalObjects[asset] = std::vector<glm::mat4>();
+								normalObjects[asset].push_back(out);
+							}
+						}
 					}
 				}
 			}
+		}
+
+		Shader* shader = GetAsset<Shader>("object");
+		if (!shader->error) {
+			shader->bind();
+			UpdateProjection(shader);
+			shader->setVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
+			glm::vec3 camPos = GetCamera()->position;
+
 			BindLights(shader, { 0,0,0 });
-			shader->SetMatrix("uTransform", glm::mat4(1));
-			for (auto [asset, vector] : instances) {
-				if (asset->meshType == MeshAsset::MeshType::Normal) {
+			shader->setMat4("uTransform", glm::mat4(1));
+			for (auto [asset, vector] : normalObjects) {
+				//if (asset->meshType == MeshAsset::MeshType::Normal) {
 					for (int j = 0; j < asset->materials.size() && j < 4; j++) {// Maximum of 4 materials
 						asset->materials[j]->Bind(shader, j);
 					}
-				}
+				//}
 				int renderAmount = 0;
 				while (renderAmount<vector.size()) {
 					int amount = vector.size()-renderAmount;
@@ -493,16 +589,14 @@ namespace engone {
 						amount = INSTANCE_LIMIT;
 					}
 					instanceBuffer.setData(amount * 16, (float*)(vector.data()+renderAmount));
-					if (asset->meshType == MeshAsset::MeshType::Normal)
-						asset->vertexArray.selectBuffer(3, &instanceBuffer);
-					else
-						asset->vertexArray.selectBuffer(5, &instanceBuffer);
+					
+					asset->vertexArray.selectBuffer(3, &instanceBuffer);
 
 					asset->vertexArray.draw(&asset->indexBuffer, amount);
 					renderAmount += amount;
 				}
 			}
-
+			/*
 			EntityIterator iterator = GetEntityIterator(Transform::ID |ModelRenderer::ID);
 			while (false) {
 				ModelRenderer* renderer = iterator.get<ModelRenderer>();
@@ -520,13 +614,11 @@ namespace engone {
 					if (animator)
 						model->GetParentTransforms(animator, transforms);
 					
-					/*
 					if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
 						+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
 						(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
 						continue;
 					}
-					*/
 
 					// Draw instances
 					for (int i = 0; i < model->instances.size(); i++) {
@@ -549,24 +641,24 @@ namespace engone {
 					}
 				}
 			}
+			*/
 		}
 
 		shader = GetAsset<Shader>("armature");
 		if (!shader->error) {
-			shader->Bind();
+			shader->bind();
 			UpdateProjection(shader);
-			shader->SetVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
+			shader->setVec3("uCamera", GetCamera()->position + GetCamera()->velocity * (float)lag);
 
-			EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer);
-			while (false) {
-				ModelRenderer* renderer = iterator.get<ModelRenderer>();
+			//EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer);
+			while (modelIterator) {
+				ModelRenderer* renderer = modelIterator.get<ModelRenderer>();
 
 				if (renderer->asset && renderer->visible) {
 					ModelAsset* model = renderer->asset;
 				
-					Transform* transform = iterator.get<Transform>();
-					Animator* animator = iterator.get<Animator>();
-
+					Transform* transform = modelIterator.get<Transform>();
+					Animator* animator = modelIterator.get<Animator>();
 
 					BindLights(shader, transform->position);
 
@@ -576,38 +668,41 @@ namespace engone {
 						model->GetParentTransforms(animator, transforms);
 
 					//-- Draw instances
+					AssetInstance* armatureInstance=nullptr;
+					ArmatureAsset* armatureAsset=nullptr;
 					for (int i = 0; i < model->instances.size(); i++) {
-						AssetInstance& meshInstance = model->instances[i];
+						AssetInstance& instance = model->instances[i];
 
-						if (meshInstance.asset->type == AssetType::Mesh) {
-							MeshAsset* meshAsset = meshInstance.asset->cast<MeshAsset>();
+						if (instance.asset->type == AssetType::Armature) {
+							armatureInstance = &instance;
+							armatureAsset = instance.asset->cast<ArmatureAsset>();
+						} else if (instance.asset->type == AssetType::Mesh) {
+							if (!armatureInstance)
+								continue;
+
+							MeshAsset* meshAsset = instance.asset->cast<MeshAsset>();
 							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
-								if (meshInstance.parent == -1)
+								if (instance.parent == -1)
 									continue;
 
-								AssetInstance& armatureInstance = model->instances[meshInstance.parent];
-								if (armatureInstance.asset->type == AssetType::Armature) {
-									ArmatureAsset* armatureAsset = armatureInstance.asset->cast<ArmatureAsset>();
+								std::vector<glm::mat4> boneTransforms;
+								if (animator)
+									model->GetArmatureTransforms(animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
 
-									std::vector<glm::mat4> boneTransforms;
-									if (animator)
-										model->GetArmatureTransforms(animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
-
-									for (int j = 0; j < boneTransforms.size(); j++) {
-										shader->SetMatrix("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * meshInstance.localMat);
-									}
-
-									for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
-									{
-										meshAsset->materials[j]->Bind(shader, j);
-									}
-									if (animator) {
-										shader->SetMatrix("uTransform", glm::translate(transform->position) * transforms[i]);
-									} else {
-										shader->SetMatrix("uTransform", glm::translate(transform->position));
-									}
-									meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
+								for (int j = 0; j < boneTransforms.size(); j++) {
+									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
 								}
+
+								for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
+								{
+									meshAsset->materials[j]->Bind(shader, j);
+								}
+								if (animator) {
+									shader->setMat4("uTransform", glm::translate(transform->position) * transforms[i]);
+								} else {
+									shader->setMat4("uTransform", glm::translate(transform->position));
+								}
+								meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
 							}
 						}
 					}
@@ -616,21 +711,21 @@ namespace engone {
 		}
 		shader = GetAsset<Shader>("collision");
 		if (shader != nullptr) {
-			shader->Bind();
+			shader->bind();
 			UpdateProjection(shader);
 			glLineWidth(1.f);
-			shader->SetVec3("uColor", {0.05,0.9,0.1});
+			shader->setVec3("uColor", {0.05,0.9,0.1});
 
-			EntityIterator iterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer|ComponentEnum::Physics);
-			while (false) {
-				ModelRenderer* renderer = iterator.get<ModelRenderer>();
-				Physics* physics = iterator.get<Physics>();
+			EntityIterator modelIterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer|ComponentEnum::Physics);
+			while (modelIterator) {
+				ModelRenderer* renderer = modelIterator.get<ModelRenderer>();
+				Physics* physics = modelIterator.get<Physics>();
 
 				if (renderer->asset&& physics->renderCollision) {
 					ModelAsset* model = renderer->asset;
 
-					Transform* transform = iterator.get<Transform>();
-					Animator* animator = iterator.get<Animator>();
+					Transform* transform = modelIterator.get<Transform>();
+					Animator* animator = modelIterator.get<Animator>();
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
@@ -650,9 +745,9 @@ namespace engone {
 								offset = asset->cube.position;
 							}
 							if(animator)
-								shader->SetMatrix("uTransform", glm::translate(transform->position+offset) * transforms[i] * instance.localMat);
+								shader->setMat4("uTransform", glm::translate(transform->position+offset) * transforms[i] * instance.localMat);
 							else
-								shader->SetMatrix("uTransform", glm::translate(transform->position+offset) * instance.localMat);
+								shader->setMat4("uTransform", glm::translate(transform->position+offset) * instance.localMat);
 
 							if (asset->colliderType == ColliderAsset::Type::Sphere) {
 								DrawSphere(asset->sphere.radius);
@@ -677,7 +772,7 @@ namespace engone {
 				}
 			}
 			//debug
-			shader->SetVec3("uColor", { 0.7,0.1,0.1 });
+			shader->setVec3("uColor", { 0.7,0.1,0.1 });
 			
 			DrawLines();
 			ClearLines();
@@ -748,20 +843,20 @@ namespace engone {
 				if (objectShader != nullptr) {
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 					glCullFace(GL_BACK);
-					objectShader->Bind();
-					objectShader->SetInt("shadow_map", 0);
-					objectShader->SetMatrix("uLightSpaceMatrix", GetLightProj() * lightView);
+					objectShader->bind();
+					objectShader->setInt("shadow_map", 0);
+					objectShader->setMat4("uLightSpaceMatrix", GetLightProj() * lightView);
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
 
-					objectShader->Bind();
+					objectShader->bind();
 					MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
 
 					for (int j = 0; j < asset->materials.size() && j < 4; j++)// Maximum of 4 materials
 					{
 						asset->materials[j]->Bind(objectShader, j);
 					}
-					objectShader->SetMatrix("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,0,0)));
+					objectShader->setMat4("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,0,0)));
 					//asset->buffer.Draw();
 
 					RenderObjects(lag);
@@ -788,13 +883,16 @@ namespace engone {
 			RenderElements();
 		}
 
+		RenderUIPipeline();
+
 		//-- Debug
 		EnableBlend();
 		Shader* gui = GetAsset<Shader>("gui");
-		gui->SetVec2("uPos", { 0,0 });
-		gui->SetVec2("uSize", { 1,1 });
-		gui->SetVec4("uColor", 1, 1, 1, 1);
-		gui->SetInt("uColorMode", 1);
+		gui->bind();
+		gui->setVec2("uPos", { 0,0 });
+		gui->setVec2("uSize", { 1,1 });
+		gui->setVec4("uColor", 1, 1, 1, 1);
+		gui->setInt("uColorMode", 1);
 		DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
 	}
 	void UpdateEngine(double delta)
@@ -808,8 +906,6 @@ namespace engone {
 		if (CheckState(GameState::RenderGui)) {
 			UpdateElements(delta);
 		}
-
-		ResetEvents();
 	}
 	static std::vector<Delayed> timers;
 	void AddTimer(float time, std::function<void()> func) {
@@ -840,10 +936,7 @@ namespace engone {
 			}
 		}
 	}
-	/*
-	Binds light to current shader
-	 If one of the four closest light are already bound then don't rebind them [Not added]
-	*/
+	
 	void BindLights(Shader* shader, glm::vec3 objectPos)
 	{
 		if (shader != nullptr) {
@@ -935,7 +1028,7 @@ namespace engone {
 				else
 					break;
 			}
-			shader->SetIVec3("uLightCount", lightCount);
+			shader->setIVec3("uLightCount", lightCount);
 		}
 	}
 	std::vector<Light*>& GetLights()
@@ -999,7 +1092,7 @@ namespace engone {
 
 			//while (lag >= MS_PER_UPDATE) {
 				//UpdateEngine(MS_PER_UPDATE);
-				update(MS_PER_UPDATE);
+			update(MS_PER_UPDATE);
 			//	lag -= MS_PER_UPDATE;
 			//	FPS++;
 			//	if (current - lastSecond > 1) {
@@ -1011,6 +1104,8 @@ namespace engone {
 			//}
 			//RenderEngine(lag);
 			render(lag);
+
+			ResetEvents();
 
 			glfwSwapBuffers(GetWindow());
 			glfwPollEvents();

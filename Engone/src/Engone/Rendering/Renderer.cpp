@@ -101,7 +101,7 @@ namespace engone {
 		}
 		else {
 			if(guiShader!=nullptr)
-				guiShader->SetInt("uColorMode", 1);
+				guiShader->setInt("uColorMode", 1);
 			font->texture.Bind();
 		}
 

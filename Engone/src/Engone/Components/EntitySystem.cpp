@@ -15,7 +15,7 @@ namespace engone {
 	static uint64_t entityCount;
 	
 	//-- Components
-	static int sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer) };
+	static int sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer), sizeof(Collision) };
 	static int componentEnumCount=32;
 
 	//-- System

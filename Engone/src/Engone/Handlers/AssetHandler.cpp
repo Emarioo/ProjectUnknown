@@ -155,7 +155,7 @@ namespace engone {
 
 		int vertPos = source.find("#shader vertex\n");
 		int fragPos = source.find("#shader fragment\n");
-
+		
 		section[0] = 1;
 		section[1] = 1;
 		section[2] = 0;
@@ -176,7 +176,7 @@ namespace engone {
 		}
 
 		if (vertex.size() == 0 || fragment.size() == 0) {
-			std::cout << "Is this shader source correct?\n" << source << "\n";
+			std::cout << "Is this shader source correct?:\n" << source << "\n";
 		}
 
 		id = CreateShader(vertex, fragment);
@@ -245,39 +245,39 @@ namespace engone {
 
 		return id;
 	}
-	void Shader::Bind()
+	void Shader::bind()
 	{
 		glUseProgram(id);
 	}
-	void Shader::SetFloat(const std::string& name, float f)
+	void Shader::setFloat(const std::string& name, float f)
 	{
 		glUniform1f(GetUniformLocation(name), f);
 	}
-	void Shader::SetVec2(const std::string& name, glm::vec2 v)
+	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
 		glUniform2f(GetUniformLocation(name), v.x, v.y);
 	}
-	void Shader::SetIVec2(const std::string& name, glm::ivec2 v)
+	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
 	{
 		glUniform2i(GetUniformLocation(name), v.x, v.y);
 	}
-	void Shader::SetVec3(const std::string& name, glm::vec3 v)
+	void Shader::setVec3(const std::string& name, glm::vec3 v)
 	{
 		glUniform3f(GetUniformLocation(name), v.x, v.y, v.z);
 	}
-	void Shader::SetIVec3(const std::string& name, glm::ivec3 v)
+	void Shader::setIVec3(const std::string& name, glm::ivec3 v)
 	{
 		glUniform3i(GetUniformLocation(name), v.x, v.y, v.z);
 	}
-	void Shader::SetVec4(const std::string& name, float f0, float f1, float f2, float f3)
+	void Shader::setVec4(const std::string& name, float f0, float f1, float f2, float f3)
 	{
 		glUniform4f(GetUniformLocation(name), f0, f1, f2, f3);
 	}
-	void Shader::SetInt(const std::string& name, int v)
+	void Shader::setInt(const std::string& name, int v)
 	{
 		glUniform1i(GetUniformLocation(name), v);
 	}
-	void Shader::SetMatrix(const std::string& name, glm::mat4 mat)
+	void Shader::setMat4(const std::string& name, glm::mat4 mat)
 	{
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
 	}
@@ -367,14 +367,14 @@ namespace engone {
 					diffuse_map->Bind(index + 1);
 					//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
 					//std::cout << "PassMaterial - texture not bound!\n";
-					shader->SetInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
-					shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
+					shader->setInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+					shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
 				} else {
-					shader->SetInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
+					shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
 				}
-				shader->SetVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", diffuse_color);
-				shader->SetVec3("uMaterials[" + std::to_string(index) + "].specular", specular);
-				shader->SetFloat("uMaterials[" + std::to_string(index) + "].shininess", shininess);
+				shader->setVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", diffuse_color);
+				shader->setVec3("uMaterials[" + std::to_string(index) + "].specular", specular);
+				shader->setFloat("uMaterials[" + std::to_string(index) + "].shininess", shininess);
 			} else {
 				//std::cout << "shader or material is nullptr in Passmaterial\n";
 			}
@@ -863,11 +863,11 @@ namespace engone {
 				vertexArray.addAttribute(3,&vertexBuffer);// Weight
 			} else {
 				vertexArray.addAttribute(3, &vertexBuffer);// Color
-			}
-			vertexArray.addAttribute(4, 1);
-			vertexArray.addAttribute(4, 1);
-			vertexArray.addAttribute(4, 1);
-			vertexArray.addAttribute(4, 1, nullptr);// empty instance buffer			
+				vertexArray.addAttribute(4, 1);
+				vertexArray.addAttribute(4, 1);
+				vertexArray.addAttribute(4, 1);
+				vertexArray.addAttribute(4, 1, nullptr);// empty instance buffer	
+			}		
 
 			//buffer.Init(false, vertexOut, (uniqueVertex.size() / uvStride) * vStride, triangleOut, triangleCount * 3);
 			//buffer.SetAttrib(0, 3, vStride, 0);// Position
@@ -1148,7 +1148,7 @@ namespace engone {
 			//mats[i] = (modelT[i]);
 		}
 	}
-	void ModelAsset::GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* armature) {
+	void ModelAsset::GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
 		mats.resize(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
@@ -1168,7 +1168,7 @@ namespace engone {
 					for (int j = 0; j < animations.size(); j++) {
 						AnimationAsset* animation = animations[j];
 						if (prop.animationName == animation->baseName &&
-							prop.instanceName == instance.name) {
+							prop.instanceName == instance->name) {
 
 							if (animation->objects.count(i) > 0) {
 

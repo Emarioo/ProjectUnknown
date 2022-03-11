@@ -387,20 +387,21 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Shader;
 		Shader() { type = AssetType::Shader; }
+		Shader(const char* source) { Init(source); type = AssetType::Shader; }
 		Shader(const std::string& path) : Asset(path + ".glsl") { Load(filePath); type = AssetType::Shader; }
-		Shader(const std::string& source, bool isSource) { Init(source); type = AssetType::Shader; }
+		
 		void Load(const std::string& path) override;
 		void Init(const std::string& source);
 
-		void Bind();
-		void SetInt(const std::string& name, int i);
-		void SetFloat(const std::string& name, float f);
-		void SetVec2(const std::string& name, glm::vec2);
-		void SetIVec2(const std::string& name, glm::ivec2);
-		void SetVec3(const std::string& name, glm::vec3);
-		void SetIVec3(const std::string& name, glm::ivec3);
-		void SetVec4(const std::string& name, float f0, float f1, float f2, float f3);
-		void SetMatrix(const std::string& name, glm::mat4 v);
+		void bind();
+		void setInt(const std::string& name, int i);
+		void setFloat(const std::string& name, float f);
+		void setVec2(const std::string& name, glm::vec2);
+		void setIVec2(const std::string& name, glm::ivec2);
+		void setVec3(const std::string& name, glm::vec3);
+		void setIVec3(const std::string& name, glm::ivec3);
+		void setVec4(const std::string& name, float f0, float f1, float f2, float f3);
+		void setMat4(const std::string& name, glm::mat4 v);
 
 	private:
 		unsigned int id;
@@ -631,7 +632,7 @@ namespace engone {
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		void GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance& instance, ArmatureAsset* asset);
+		void GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
 
 	};
 

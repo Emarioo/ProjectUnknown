@@ -111,6 +111,9 @@
     <ClInclude Include="src\Engone\Components\Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engone\UI\UIPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Objects\GameObject.cpp">
@@ -209,8 +212,8 @@
     <ClCompile Include="src\Engone\Components\Collision.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Engone\Shaders\collision.glsl" />
+    <ClCompile Include="src\Engone\UI\UIPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

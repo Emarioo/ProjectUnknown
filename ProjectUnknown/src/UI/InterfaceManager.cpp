@@ -6,7 +6,7 @@
 
 #include "Items/ItemHandler.h"
 
-namespace ui
+namespace UI
 {
 	static Item* heldItem;
 	void SetHeldItem(Item* item)

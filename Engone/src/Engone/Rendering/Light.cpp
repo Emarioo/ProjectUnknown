@@ -7,29 +7,29 @@ namespace engone {
 
 	}
 	void DirLight::Bind(Shader* shader, int index) {
-		shader->SetVec3("uDirLight.ambient", ambient);
-		shader->SetVec3("uDirLight.diffuse", diffuse);
-		shader->SetVec3("uDirLight.specular", specular);
-		shader->SetVec3("uDirLight.direction", direction);
+		shader->setVec3("uDirLight.ambient", ambient);
+		shader->setVec3("uDirLight.diffuse", diffuse);
+		shader->setVec3("uDirLight.specular", specular);
+		shader->setVec3("uDirLight.direction", direction);
 	}
 	void PointLight::Bind(Shader* shader, int index) {
 		std::string u = "uPointLights[" + index + (std::string)"].";
-		shader->SetVec3(u + "ambient", ambient);
-		shader->SetVec3(u + "diffuse", diffuse);
-		shader->SetVec3(u + "specular", specular);
-		shader->SetVec3(u + "position", position);
-		shader->SetFloat(u + "constant", constant);
-		shader->SetFloat(u + "linear", linear);
-		shader->SetFloat(u + "quadratic", quadratic);
+		shader->setVec3(u + "ambient", ambient);
+		shader->setVec3(u + "diffuse", diffuse);
+		shader->setVec3(u + "specular", specular);
+		shader->setVec3(u + "position", position);
+		shader->setFloat(u + "constant", constant);
+		shader->setFloat(u + "linear", linear);
+		shader->setFloat(u + "quadratic", quadratic);
 	}
 	void SpotLight::Bind(Shader* shader, int index) {
 		std::string u = "uSpotLights[" + index + (std::string)"].";
-		shader->SetVec3(u + "ambient", ambient);
-		shader->SetVec3(u + "diffuse", diffuse);
-		shader->SetVec3(u + "specular", specular);
-		shader->SetVec3(u + "position", position);
-		shader->SetVec3(u + "direction", direction);
-		shader->SetFloat(u + "cutOff", cutOff);
-		shader->SetFloat(u + "outerCutOff", outerCutOff);
+		shader->setVec3(u + "ambient", ambient);
+		shader->setVec3(u + "diffuse", diffuse);
+		shader->setVec3(u + "specular", specular);
+		shader->setVec3(u + "position", position);
+		shader->setVec3(u + "direction", direction);
+		shader->setFloat(u + "cutOff", cutOff);
+		shader->setFloat(u + "outerCutOff", outerCutOff);
 	}
 }

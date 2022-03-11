@@ -5,12 +5,14 @@
 
 #include "Handlers/ObjectHandler.h"
 #include "UI/GuiHandler.h"
+#include "UI/UIPipeline.h"
 #include "Sound/SoundHandler.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
 #include "Server/NetworkHandler.h"
 
 #include "Components/EntitySystem.h"
+
 
 #include "Rendering/FrameBuffer.h"
 #include "Rendering/Light.h"
@@ -77,6 +79,10 @@ namespace engone {
 	void AddLight(Light* l);
 	void RemoveLight(Light* l);
 
+	/*
+	Binds light to current shader
+	 If one of the four closest light are already bound then don't rebind them [Not added]
+	*/
 	void BindLights(Shader* shader, glm::vec3 objectPos);
 	std::vector<Light*>& GetLights();
 }

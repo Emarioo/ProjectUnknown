@@ -44,6 +44,7 @@
     <ClInclude Include="src\Engone\Sound\SoundHandler.h" />
     <ClInclude Include="src\Engone\Sound\SoundSource.h" />
     <ClInclude Include="src\Engone\Sound\SoundStream.h" />
+    <ClInclude Include="src\Engone\UI\UIPipeline.h" />
     <ClInclude Include="src\Engone\Utility\Utilities.h" />
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
     <ClInclude Include="src\Engone\Keyboard.h" />
@@ -71,6 +72,7 @@
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Server\NetworkHandler.cpp" />
     <ClCompile Include="src\Engone\UI\GuiHandler.cpp" />
+    <ClCompile Include="src\Engone\UI\UIPipeline.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -92,9 +94,6 @@
     <ClCompile Include="src\Engone\Utility\Keyboard.cpp" />
     <ClCompile Include="src\Engone\Utility\Languages.cpp" />
     <ClCompile Include="src\vendor\Libaudio.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Engone\Shaders\collision.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

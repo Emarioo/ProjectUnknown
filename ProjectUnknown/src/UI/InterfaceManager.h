@@ -12,7 +12,7 @@
 
 #include "GameStateEnum.h"
 
-namespace ui
+namespace UI
 {
 	void SetHeldItem(Item* item);
 	Item* GetHeldItem();

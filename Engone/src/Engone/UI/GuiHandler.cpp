@@ -346,16 +346,16 @@ namespace engone
 		if (ra != 0) { // element is transparent
 			Shader* gui = GetAsset<Shader>("gui");
 			//log::out << " " << renderW << "\n";
-			gui->SetVec2("uSize", { renderW, renderH });
-			gui->SetVec2("uPos", { renderX, renderY });
-			gui->SetVec4("uColor", rr, rg, rb, ra);
+			gui->setVec2("uSize", { renderW, renderH });
+			gui->setVec2("uPos", { renderX, renderY });
+			gui->setVec4("uColor", rr, rg, rb, ra);
 
 			if (texture != nullptr) {
 				texture->Bind();
-				gui->SetInt("uColorMode", 2);
+				gui->setInt("uColorMode", 2);
 			}
 			else {
-				gui->SetInt("uColorMode", 0);
+				gui->setInt("uColorMode", 0);
 			}
 			DrawRect();
 		}
@@ -729,11 +729,11 @@ namespace engone
 		return EventType::None;
 	}
 	void Text::OnRender() {
-		guiShader->Bind();
-		guiShader->SetVec2("uPos", { element->renderX,element->renderY });
-		guiShader->SetVec2("uSize", { 1,1 });
-		guiShader->SetVec4("uColor", 0.5, 1, .2, 1);
-		guiShader->SetInt("uColorMode", 1);
+		guiShader->bind();
+		guiShader->setVec2("uPos", { element->renderX,element->renderY });
+		guiShader->setVec2("uSize", { 1,1 });
+		guiShader->setVec4("uColor", 0.5, 1, .2, 1);
+		guiShader->setInt("uColorMode", 1);
 
 		int hej = -1;
 		if (isEditing)
@@ -788,26 +788,26 @@ namespace engone
 	}
 	void Grid::OnRender() {
 		Shader* shad = GetAsset<Shader>("gui");
-		shad->SetInt("uColorMode", 2);
+		shad->setInt("uColorMode", 2);
 		int size;
 		if (column != 0) {
 			size = element->renderW / column;
-			shad->SetVec2("uSize", { size,size });
+			shad->setVec2("uSize", { size,size });
 			for (int i = 0; i < items.size(); i++) {
 				int x = element->renderX + (i % column) * size;
 				int y = element->renderY + (i / column) * size;
-				shad->SetVec2("uPos", { x, y });
+				shad->setVec2("uPos", { x, y });
 				items[i]->Bind();
 				DrawRect();
 			}
 		}
 		else {
 			size = element->renderH / row;
-			shad->SetVec2("uSize", { size,size });
+			shad->setVec2("uSize", { size,size });
 			for (int i = 0; i < items.size(); i++) {
 				int x = element->renderX + (i / row) * size;
 				int y = element->renderY + (i % row) * size;
-				shad->SetVec2("uPos", { x, y });
+				shad->setVec2("uPos", { x, y });
 				items[i]->Bind();
 				DrawRect();
 			}
@@ -870,8 +870,8 @@ namespace engone
 	void RenderElements()
 	{
 		EnableBlend();
-		guiShader->Bind();
-		guiShader->SetVec2("uWindow", { GetWidth(),GetHeight() });
+		guiShader->bind();
+		guiShader->setVec2("uWindow", { GetWidth(),GetHeight() });
 		//log::out << "win " << Width() << "\n";
 		for (int i = elements.size()-1; i > -1; i--) {
 			elements[i]->OnRender();
