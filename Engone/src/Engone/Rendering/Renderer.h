@@ -8,10 +8,13 @@
 
 #include "Handlers/AssetHandler.h"
 
+
+#include "../GameState.h"
+
 namespace engone {
 
 	// Create buffers/meshes for drawing rectangles. Gui shader should be added before. 
-	void InitRenderer();
+	void InitRenderer(EngoneHint hints);
 	void UninitRenderer();
 	void EnableBlend();
 	void EnableDepth();
@@ -38,6 +41,4 @@ namespace engone {
 	void ClearLines();
 	void AddLine(glm::vec3 a, glm::vec3 b);
 	void DrawLines();
-
-	void UpdateViewMatrix(double lag);
 }

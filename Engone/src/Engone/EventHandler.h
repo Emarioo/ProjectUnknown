@@ -79,6 +79,8 @@ namespace engone {
 	// Called absolute last of update loop, always necessary
 	void ResetEvents();
 
+	uint32_t PollChar();
+
 	int GetMouseX();
 	int GetMouseY();
 	/*

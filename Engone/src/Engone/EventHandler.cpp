@@ -3,6 +3,8 @@
 #include "EventHandler.h"
 #include "Logger.h"
 
+#include "Window.h"
+
 namespace engone
 {
 	struct Input
@@ -70,48 +72,115 @@ namespace engone
 		while (events.size() > 0)
 			events.pop_back();
 	}
-	void InitEvents(GLFWwindow* window)
-	{
-		glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-			Event e(EventType::Key);
-			e.key = key;
-			e.scancode = scancode;
-			e.action = action;
-			events.push_back(e);
-			SetInput(key, action != 0);
-			ExecuteListeners();
-			});
-		glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
-			Event e(EventType::Click);
-			e.button = button;
-			e.action = action;
-			e.mx = mouseX;
-			e.my = mouseY;
-			events.push_back(e);
-			SetInput(button, action == 1);
-			ExecuteListeners();
-			});
-		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double mx, double my) {
-			mouseX = mx;
-			mouseY = my;
-			Event e(EventType::Move);
-			e.mx = mx;
-			e.my = my;
-			events.push_back(e);
-			ExecuteListeners();
-			});
-		glfwSetScrollCallback(window, [](GLFWwindow* window, double xoffset, double yoffset) {
-			Event e(EventType::Scroll);
-			e.scrollX = xoffset;
-			e.scrollY = yoffset;
-			e.mx = mouseX;
-			e.my = mouseY;
-			events.push_back(e);
-			//std::cout << xoffset << " " << yoffset << "\n";
-			scrollX = xoffset;
-			scrollY = yoffset;
-			ExecuteListeners();
-			});
+	static int charCount = 0;
+	static int readIndex = 0;
+	static const int ARRAY_SIZE = 20;
+	static uint32_t charArray[ARRAY_SIZE];
+	void CharCallback(GLFWwindow* window, uint32_t chr) {
+		//log::out << (char)chr << "\n";
+		if (readIndex != 0) {
+			for (int i = readIndex; i < charCount; i++)
+				charArray[i - readIndex] = charArray[readIndex];
+			charCount = charCount - readIndex;
+			readIndex = 0;
+			ZeroMemory(charArray + charCount, ARRAY_SIZE - charCount);
+		}
+		if (charCount < ARRAY_SIZE) {
+			charArray[charCount++] = chr;
+		}
+	}
+	uint32_t PollChar() {
+		if (readIndex < ARRAY_SIZE) {
+			if (charArray[readIndex] != 0) {
+				return charArray[readIndex++];
+			}
+		}
+		return 0;
+	}
+	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		if (!win->hasFocus()) return;
+
+		Event e(EventType::Key);
+		e.key = key;
+		e.scancode = scancode;
+		e.action = action;
+		events.push_back(e);
+
+		SetInput(key, action != 0);
+
+		if (action!=0 && (key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_DELETE || key == GLFW_KEY_ENTER||key==GLFW_KEY_LEFT||key==GLFW_KEY_RIGHT)) {
+			CharCallback(window,key);
+		}
+
+		ExecuteListeners();
+	}
+	void MouseCallback(GLFWwindow* window, int button, int action, int mods) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		if (!win->hasFocus()) return;
+
+		Event e(EventType::Click);
+		e.button = button;
+		e.action = action;
+		e.mx = mouseX;
+		e.my = mouseY;
+		events.push_back(e);
+		SetInput(button, action == 1);
+		ExecuteListeners();
+	}
+	void CursorPosCallback(GLFWwindow* window, double mx, double my) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		if (!win->hasFocus()) return;
+
+		mouseX = mx;
+		mouseY = my;
+		Event e(EventType::Move);
+		e.mx = mx;
+		e.my = my;
+		events.push_back(e);
+		ExecuteListeners();
+	}
+	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		if (!win->hasFocus()) return;
+
+		Event e(EventType::Scroll);
+		e.scrollX = xoffset;
+		e.scrollY = yoffset;
+		e.mx = mouseX;
+		e.my = mouseY;
+		events.push_back(e);
+		//std::cout << xoffset << " " << yoffset << "\n";
+		scrollX = xoffset;
+		scrollY = yoffset;
+		ExecuteListeners();
+	}
+	void InitEvents(GLFWwindow* window) {
+		glfwSetKeyCallback(window, KeyCallback);
+		glfwSetMouseButtonCallback(window,	MouseCallback);
+		glfwSetCursorPosCallback(window, CursorPosCallback);
+		glfwSetScrollCallback(window, ScrollCallback);
+		glfwSetCharCallback(window, CharCallback);
+
+		ZeroMemory(charArray, sizeof(charArray));
+
+		/*
 		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus) {
 			Event e(EventType::Focus);
 			e.focused = focus;
@@ -125,6 +194,7 @@ namespace engone
 			events.push_back(e);
 			ExecuteListeners();
 			});
+		*/
 	}
 	void AddListener(Listener* listener)
 	{

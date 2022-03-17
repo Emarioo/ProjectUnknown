@@ -108,7 +108,7 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 	if (textureGroups.size() > type.textureGroup) {
 		short index = type.textureIndex;
-		engone::GetAsset<engone::Texture>(textureGroups[type.textureGroup])->Bind();
+		engone::GetAsset<engone::Texture>(textureGroups[type.textureGroup])->bind();
 
 		float u = (index % itemWidth) * size;
 		float v = ((int)((itemWidth - 1) - index / itemWidth)) * size;

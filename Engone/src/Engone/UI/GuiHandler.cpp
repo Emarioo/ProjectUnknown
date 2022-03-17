@@ -351,7 +351,7 @@ namespace engone
 			gui->setVec4("uColor", rr, rg, rb, ra);
 
 			if (texture != nullptr) {
-				texture->Bind();
+				texture->bind();
 				gui->setInt("uColorMode", 2);
 			}
 			else {
@@ -797,7 +797,7 @@ namespace engone
 				int x = element->renderX + (i % column) * size;
 				int y = element->renderY + (i / column) * size;
 				shad->setVec2("uPos", { x, y });
-				items[i]->Bind();
+				items[i]->bind();
 				DrawRect();
 			}
 		}
@@ -808,7 +808,7 @@ namespace engone
 				int x = element->renderX + (i / row) * size;
 				int y = element->renderY + (i % row) * size;
 				shad->setVec2("uPos", { x, y });
-				items[i]->Bind();
+				items[i]->bind();
 				DrawRect();
 			}
 		}

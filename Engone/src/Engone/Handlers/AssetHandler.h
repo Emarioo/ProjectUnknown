@@ -371,11 +371,11 @@ namespace engone {
 		void Load(const std::string& path) override;
 		void Init(int w, int h, void* data);
 
-		void SubData(int x, int y, int w, int h, void* data);
-		void Bind(unsigned int slot=0);
+		void subData(int x, int y, int w, int h, void* data);
+		void bind(unsigned int slot=0);
 
-		int GetWidth();
-		int GetHeight();
+		int getWidth();
+		int getHeight();
 	
 	private:
 		unsigned int id;
@@ -420,6 +420,8 @@ namespace engone {
 		Font(const std::string& path) : Asset(path) { type = AssetType::Font; Load(filePath); };
 		void Load(const std::string& path) override;
 
+		float GetWidth(const std::string& str, float height);
+
 		Texture texture;
 		int charWid[256];
 
@@ -441,7 +443,7 @@ namespace engone {
 		glm::vec3 specular = { .5f,.5,.5f };
 		float shininess = .5;
 
-		void Bind(Shader* shader, int index);
+		void bind(Shader* shader, int index);
 
 	};
 	enum PolationType : unsigned char

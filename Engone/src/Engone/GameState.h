@@ -16,6 +16,18 @@ namespace GameState
 	};
 }
 namespace engone {
+	enum class EngoneHint : uint32_t {
+		None = 0,
+		UI = 1,
+		Game3D = 2,
+	};
+
+	EngoneHint operator|(EngoneHint a, EngoneHint b);
+	bool operator==(EngoneHint a, EngoneHint b);
+
+	EngoneHint GetEngoneHints();
+	void SetEngoneHints(EngoneHint hints);
+
 	void SetState(unsigned char state,bool f);
 	bool CheckState(unsigned char state);
 }

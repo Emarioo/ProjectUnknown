@@ -38,7 +38,7 @@ namespace game
 	}
 	engone::EventType OnKey(engone::Event& e)
 	{
-		if (engone::CheckState(GameState::RenderGame)) {
+		//if (engone::CheckState(GameState::RenderGame)) {
 			if (e.action == 1) {
 				if (e.key == GLFW_KEY_O) {
 					/*engone::ReadOptions();
@@ -67,15 +67,15 @@ namespace game
 				if (engone::IsKeybindingDown(KeyPause)) {
 					if (engone::CheckState(GameState::Paused)) {
 						engone::SetState(GameState::Paused, false);
-						engone::LockCursor(true);
+						engone::GetWindow()->lockCursor(true);
 					}
 					else {
 						engone::SetState(GameState::Paused, true);
-						engone::LockCursor(false);
+						engone::GetWindow()->lockCursor(false);
 					}
 				}
 			}
-		}
+		//}
 		return engone::EventType::None;
 	}
 
@@ -117,7 +117,9 @@ namespace game
 	void InitGame() {
 		using namespace engone;
 
-		LockCursor(true);
+		SetState(GameState::Paused, true);
+		//GetWindow()->lockCursor(true);
+
 		if (!initGameAssets) {
 			InitItemHandler();
 			//interfaceManager.SetupGameUI();
@@ -125,7 +127,7 @@ namespace game
 		}
 
 		if (false) {
-			SetState(GameState::RenderGame, false);
+			//SetState(GameState::RenderGame, false);
 			SetState(GameState::Intro, true);
 			//ui::SetupIntro();
 
@@ -148,7 +150,7 @@ namespace game
 						cover->setTransition("fade", true);
 						SetState(GameState::RenderGame, true);
 						SetState(GameState::Intro, false);
-						LockCursor(true);
+						GetWindow()->lockCursor(true);
 						});
 					});
 				});
@@ -172,26 +174,49 @@ namespace game
 
 		TestScene();
 	}
-	engone::VertexBuffer VBO;
-	engone::VertexBuffer VBO2;
-	engone::IndexBuffer IBO;
-	engone::VertexArray VAO;
+	//engone::VertexBuffer VBO;
+	//engone::VertexBuffer VBO2;
+	//engone::IndexBuffer IBO;
+	//engone::VertexArray VAO;
 
-	//engone::TriangleBuffer* TBO;
-
+	engone::ui::TextBox editText = { "012345",50,100,50 };
 	void uitest() {
 		using namespace engone;
-		//Box box = {100,100,400,200, 1, 0.2f, 1, 1};
-		//Box* box2 = ui::Rect({ 150.f, 150.f, 100.f, 100.f, 0.5f, 0.f, 0.f, 1.f });
-
-		/*for (int i = 0; i < 10000;i++) {
-			ui::Rect({ 10 + 5.f*(i%100),10+5.f*(i/100),4.f,4.f ,1.f,1.f,1.f,1.f});
-		}*/
-		Box* box = ui::Rect({ 100.f, 100.f, 100.f, 100.f, 1.f, 0.f, 0.f, 1.f });
-
-		if (ui::Clicked(*box)) {
-			log::out << "Yay\n";
+		editText.y += 0.05;
+		
+		if (editText.font == nullptr) {
+			editText.font = GetAsset<Font>("consolas");
 		}
+		//ui::Draw({ "Hejsan", 100, 100, 30, 0.5f, 0.5f, 0.5f});
+		/*ui::Draw({50,100,100,100,1,0,0});
+		ui::Draw({GetAsset<Texture>("textures/wall"), 500, 100, 400, 400});*/
+ 
+		/*ui::Box fullscreen = {100+2,100,100,100,1.f,1.f,0};
+		ui::Box windowed = {100,400,100,100,1.f,0,0};
+		ui::Box borderless = {100,600,100,100,1.f,0,1.f};*/
+
+		float w = editText.font->GetWidth(editText.text, editText.h);
+		ui::Draw({editText.x,editText.y,w,editText.h,1.f,0,0});
+
+		//ui::Draw(fullscreen);
+		/*ui::Draw(windowed);
+		ui::Draw(borderless);*/
+		if (ui::Hover(editText)) {
+			ui::Edit(editText);
+		}
+
+		ui::Draw(editText);
+
+		/*if (ui::Clicked(fullscreen)) {
+			GetWindow()->setMode(WindowMode::Fullscreen);
+		}
+		if (ui::Clicked(windowed)) {
+			GetWindow()->setMode(WindowMode::Windowed);
+		}
+		if (ui::Clicked(borderless)) {
+			GetWindow()->setMode(WindowMode::BorderlessFullscreen);
+		}*/
+
 	}
 
 	static float rot = 0;
@@ -249,25 +274,25 @@ namespace game
 
 		RenderEngine(lag);
 
-		Shader* shad = GetAsset<Shader>("object");
-		shad->bind();
+		/*Shader* shad = GetAsset<Shader>("object");
+		shad->bind();*/
 
 		//MeshAsset* as = GetAsset<MeshAsset>("Player/Stick-N");
-		move += 1/60.f/20.f;
+		//move += 1/60.f/20.f;
 
-		float fi[]{
-			move / 4,-move/2, 0,
-			-move / 4,-move, 0,
-		};
+		//float fi[]{
+		//	move / 4,-move/2, 0,
+		//	-move / 4,-move, 0,
+		//};
 		//as->instanceBuffer.setData(6, fi);
-		////as->vertexArray->selectBuffer(1, as->instanceBuffer);
+		//as->vertexArray->selectBuffer(1, as->instanceBuffer);
 		//as->vertexArray.draw(&as->indexBuffer, 2);
 
-		float fa[]{
-			-move/2+0.f,0,
-			-move/6 + 0.15f,move,
-			move*2 + 0.1f,0.25
-		};
+		//float fa[]{
+		//	-move/2+0.f,0,
+		//	-move/6 + 0.15f,move,
+		//	move*2 + 0.1f,0.25
+		//};
 		//VBO2.setData(6, fa);
 		//VAO.selectBuffer(1, &VBO2);
 		//VAO.draw(&IBO,3);
@@ -333,11 +358,6 @@ namespace game
 			Transform* t = entities.getEntityComponent<Transform>(i);
 			log::out << t->position << "\n";
 		}*/
-		/*
-		foreach(entity, entities) {
-			log::out << entity->entityId <<" "<<entity->entityClass << "\n";
-			log::out << entity->getComponent<Transform>()->position << "\n";
-		}*/
 
 		/*
 		ModelObject* tree = new ModelObject(9, 0, 0, engone::GetAsset<ModelAsset>("Oak/Oak"));
@@ -380,7 +400,7 @@ namespace game
 		DirLight* l = new DirLight({ 2,-4,1 });
 		AddLight(l);
 
-		float fArray[]{
+		/*float fArray[]{
 			0,0,1,0,1,1,
 			.1,0,0,1,1,1,
 			.1,.1,1,1,0,1
@@ -394,6 +414,6 @@ namespace game
 
 		VAO.addAttribute(2);
 		VAO.addAttribute(4, &VBO);
-		VAO.addAttribute(2, 1, &VBO2);
+		VAO.addAttribute(2, 1, &VBO2);*/
 	}
 }

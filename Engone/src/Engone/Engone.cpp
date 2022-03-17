@@ -49,7 +49,7 @@ namespace engone {
 
 	EventType FirstPerson(Event& e) {
 		if (lastMouseX != -1) {
-			if (IsCursorLocked() && GetCamera() != nullptr) {
+			if (GetWindow()->isCursorLocked() && GetCamera() != nullptr) {
 				float pi = glm::pi<float>();
 				GetCamera()->rotation.y -= (e.mx - lastMouseX) * (pi / 360) * cameraSensitivity;
 				GetCamera()->rotation.x -= (e.my - lastMouseY) * (pi / 360) * cameraSensitivity;
@@ -70,85 +70,48 @@ namespace engone {
 		//glClearColor(1, 0, 0, 1);
 		//glClear(GL_COLOR_BUFFER_BIT);
 
-		UpdateEngine(1 / 40.f);
+		//UpdateEngine(1 / 40.f);
 		update(1 / 40.f);
-		RenderEngine(0);
+		//RenderEngine(0);
 		render(0);
 
-		glfwSwapBuffers(GetWindow());
+		glfwSwapBuffers(GetWindow()->glfw());
 
 		return EventType::None;
 	}
 
-	static bool glfwIsActive = false;
-	static double glfwFreezeTime = 0;
-	void InitEngone() {
-
-		// There is this bug with glfw where it freezes. This will tell you if it has.
-		std::thread tempThread = std::thread([] {
-			for (int i = 0; i < 20; i++) {
-				std::this_thread::sleep_for((std::chrono::milliseconds)100);
-				if (glfwIsActive) {
-					return;
-				}
-			}
-			std::cerr << "GLFW has frozen... ";
-			glfwFreezeTime = GetSystemTime();
-			});
-		if (!glfwInit()) {
-			std::cout << "Glfw Init error!" << std::endl;
-			return;
-		}
-		if(glfwFreezeTime !=0)
-			std::cout << "it took "<<(GetSystemTime() - glfwFreezeTime) << " seconds\n";
-		glfwIsActive = true;
-		tempThread.join();
-
-		InitWindow();
-
-		if (glewInit() != GLEW_OK) {
-			std::cout << "Glew Init Error!" << std::endl;
-			return;
-		}
-
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	void InitEngone(EngoneHint hints) {
+		SetEngoneHints(hints);
+		// gl functions in game loop function
+		/*glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);*/
 		//glEnable(GL_FRAMEBUFFER_SRGB);
 
-		// Gui stuff
-		AddAsset<Shader>("gui", new Shader(guiShaderSource));
+		if (GetEngoneHints()==EngoneHint::UI){
+			AddAsset<Shader>("gui", new Shader(guiShaderSource));
+			InitGui();
+			InitUIPipeline();
+			InitRenderer(EngoneHint::UI);
+		}
+		if (GetEngoneHints()==EngoneHint::Game3D) {
+			AddAsset<Shader>("object", new Shader(objectSource));
+			AddAsset<Shader>("armature", new Shader(armatureSource));
+			AddAsset<Shader>("collision", new Shader(collisionSource));
+			instanceBuffer.setData(100 * 16, nullptr);
+			InitRenderer(EngoneHint::Game3D);
+			AddListener(new Listener(EventType::Move, 9998, FirstPerson));
+			depthBuffer.Init();
+			float near_plane = 1.f, far_plane = 20.5f;
+			lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
 
-		engone::SetState(GameState::RenderGame, true);
-		engone::SetState(GameState::RenderGui, true);
+			fov = 90.f;
+			zNear = 0.1f;
+			zFar = 400.f;
+			SetProjection(GetWidth() / GetHeight());
+		}
 
-		AddAsset<Shader>("object", new Shader(objectSource));
-		AddAsset<Shader>("armature", new Shader(armatureSource));
-		AddAsset<Shader>("collision", new Shader(collisionSource));
-		//AddAsset<MaterialAsset>("defaultMaterial", new MaterialAsset());
-
-		instanceBuffer.setData(100 * 16, nullptr);
-
-		InitEvents(GetWindow());
-		InitGui();
-		InitUIPipeline();
-		InitRenderer();
-		//ReadOptions();
-
-		AddListener(new Listener(EventType::Move, 9998, FirstPerson));
 		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
-
-		//UpdateKeyboard(false);
-
-		depthBuffer.Init();
-		float near_plane = 1.f, far_plane = 20.5f;
-		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
-
-		fov = 90.f;
-		zNear = 0.1f;
-		zFar = 400.f;
-		SetProjection(GetWidth() / GetHeight());
 	}
 	void UninitEngone() {
 
@@ -579,7 +542,7 @@ namespace engone {
 			for (auto [asset, vector] : normalObjects) {
 				//if (asset->meshType == MeshAsset::MeshType::Normal) {
 					for (int j = 0; j < asset->materials.size() && j < 4; j++) {// Maximum of 4 materials
-						asset->materials[j]->Bind(shader, j);
+						asset->materials[j]->bind(shader, j);
 					}
 				//}
 				int renderAmount = 0;
@@ -693,9 +656,8 @@ namespace engone {
 									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
 								}
 
-								for (int j = 0; j < meshAsset->materials.size() && j < 4; j++)// Maximum of 4 materials
-								{
-									meshAsset->materials[j]->Bind(shader, j);
+								for (int j = 0; j < meshAsset->materials.size() && j < 4; j++){// Maximum of 4 materials
+									meshAsset->materials[j]->bind(shader, j);
 								}
 								if (animator) {
 									shader->setMat4("uTransform", glm::translate(transform->position) * transforms[i]);
@@ -809,80 +771,72 @@ namespace engone {
 			}
 		}*/
 	}
-	void RenderEngine(double lag)
-	{
+	void RenderEngine(double lag) {
 		glViewport(0, 0, GetWidth(), GetHeight());
 
 		EnableDepth();
-		if (CheckState(GameState::RenderGame)) {
-			if (HasFocus()) {
-				//move += 0.01f;
-				
-				glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 
-				glClearColor(0.05f, 0.08f, 0.08f, 1);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (GetWindow()->hasFocus()) {
+			glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
+
+			//glClearColor(0.05f, 0.08f, 0.08f, 1);
+			glClearColor(0.15f, 0.18f, 0.18f, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glCullFace(GL_BACK);
+
+			// All this should be automated and customizable in the engine.
+			// Shadow stuff
+			/*
+			Shader* depth = GetAsset<Shader>("depth");
+			if (depth != nullptr) {
+				depth->Bind();
 				glCullFace(GL_BACK);
-
-				// All this should be automated and customizable in the engine.
-				// Shadow stuff
-				/*
-				Shader* depth = GetAsset<Shader>("depth");
-				if (depth != nullptr) {
-					depth->Bind();
-					glCullFace(GL_BACK);
-					depth->SetMatrix("uLightMatrix", GetLightProj() * lightView);
-					glViewport(0, 0, 1024, 1024);
-					GetDepthBuffer().Bind();
-					glClear(GL_DEPTH_BUFFER_BIT);
-					RenderRawObjects(depth, lag);
-					GetDepthBuffer().Unbind();
-				}
-				*/
-				Shader* objectShader = GetAsset<Shader>("object");
-				if (objectShader != nullptr) {
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					glCullFace(GL_BACK);
-					objectShader->bind();
-					objectShader->setInt("shadow_map", 0);
-					objectShader->setMat4("uLightSpaceMatrix", GetLightProj() * lightView);
-					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-
-					objectShader->bind();
-					MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
-
-					for (int j = 0; j < asset->materials.size() && j < 4; j++)// Maximum of 4 materials
-					{
-						asset->materials[j]->Bind(objectShader, j);
-					}
-					objectShader->setMat4("uTransform", glm::translate(glm::mat4(1),glm::vec3(0,0,0)));
-					//asset->buffer.Draw();
-
-					RenderObjects(lag);
-
-					//objectShader->SetMatrix("uTransform", glm::mat4(1));
-					//testBuffer.Draw();
-				}/*
-				if (IsKeyDown(GLFW_KEY_K)) {
-					//std::cout << "yes\n";
-					SwitchBlendDepth(true);
-					Shader* experiment = GetAsset<Shader>("experiment");
-					if (experiment != nullptr) {
-						experiment->Bind();
-						experiment->SetInt("uTexture", 0);
-						glActiveTexture(GL_TEXTURE1);
-						glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-						cont.Draw();
-					}
-				}*/
+				depth->SetMatrix("uLightMatrix", GetLightProj() * lightView);
+				glViewport(0, 0, 1024, 1024);
+				GetDepthBuffer().Bind();
+				glClear(GL_DEPTH_BUFFER_BIT);
+				RenderRawObjects(depth, lag);
+				GetDepthBuffer().Unbind();
 			}
-		}
-		
-		if (CheckState(GameState::RenderGui)) {
-			RenderElements();
+			*/
+			Shader* objectShader = GetAsset<Shader>("object");
+			if (objectShader != nullptr) {
+				objectShader->bind();
+
+				objectShader->setInt("shadow_map", 0);
+				objectShader->setMat4("uLightSpaceMatrix", GetLightProj() * lightView);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
+
+				MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
+
+				for (int j = 0; j < asset->materials.size() && j < 4; j++){// Maximum of 4 materials
+				
+					asset->materials[j]->bind(objectShader, j);
+				}
+				objectShader->setMat4("uTransform", glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)));
+				//asset->buffer.Draw();
+
+				RenderObjects(lag);
+
+				//objectShader->SetMatrix("uTransform", glm::mat4(1));
+				//testBuffer.Draw();
+			}/*
+			if (IsKeyDown(GLFW_KEY_K)) {
+				//std::cout << "yes\n";
+				SwitchBlendDepth(true);
+				Shader* experiment = GetAsset<Shader>("experiment");
+				if (experiment != nullptr) {
+					experiment->Bind();
+					experiment->SetInt("uTexture", 0);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
+					cont.Draw();
+				}
+			}*/
 		}
 
+		RenderElements();
 		RenderUIPipeline();
 
 		//-- Debug
@@ -897,15 +851,15 @@ namespace engone {
 	}
 	void UpdateEngine(double delta)
 	{
-		if (CheckState(GameState::RenderGame)) {
+		//if (CheckState(GameState::RenderGame)) {
 			//if (HasFocus() && !CheckState(GameState::Paused)) {
 			UpdateObjects(delta);
 			//}
-		}
+		//}
 		UpdateTimers(delta);
-		if (CheckState(GameState::RenderGui)) {
+		//if (CheckState(GameState::RenderGui)) {
 			UpdateElements(delta);
-		}
+		//}
 	}
 	static std::vector<Delayed> timers;
 	void AddTimer(float time, std::function<void()> func) {
@@ -1072,23 +1026,29 @@ namespace engone {
 				render();
 			}
 
-
 			glfwSwapBuffers(GetWindow());
 			glfwPollEvents();
 		}*/
-		// Other
 
 		double previous = GetAppTime();
 		double lag = 0.0;
 		double MS_PER_UPDATE = 1. / fps;
 		double lastSecond = previous;
 		int FPS = 0;
-		while (IsOpen()) {
+		while (GetWindow()->isRunning()) {
 			double current = GetAppTime();
 			double elapsed = current - previous;
 			//std::cout << elapsed << std::endl;
 			previous = current;
 			lag += elapsed;
+
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glDepthFunc(GL_LESS);
+			glEnable(GL_CULL_FACE);
+
+			/*glClearColor(1, 0, 1, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);*/
 
 			//while (lag >= MS_PER_UPDATE) {
 				//UpdateEngine(MS_PER_UPDATE);
@@ -1102,14 +1062,17 @@ namespace engone {
 			//		FPS = 0;
 			//	}
 			//}
-			//RenderEngine(lag);
+
 			render(lag);
 
+			// reset
+			while (PollChar());
 			ResetEvents();
 
-			glfwSwapBuffers(GetWindow());
+			glfwSwapBuffers(GetWindow()->glfw());
 			glfwPollEvents();
 		}
+
 		// remove buffer and stuff or not?
 		glfwTerminate();
 	}

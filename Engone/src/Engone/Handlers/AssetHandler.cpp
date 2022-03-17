@@ -94,21 +94,21 @@ namespace engone {
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
-	void Texture::SubData(int x, int y, int w, int h, void* data)
+	void Texture::subData(int x, int y, int w, int h, void* data)
 	{
 		glBindTexture(GL_TEXTURE_2D, id);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	}
-	void Texture::Bind(unsigned int slot)
+	void Texture::bind(unsigned int slot)
 	{
 		glActiveTexture(GL_TEXTURE0 + slot);
 		glBindTexture(GL_TEXTURE_2D, id);
 	}
-	int Texture::GetWidth()
+	int Texture::getWidth()
 	{
 		return width;
 	}
-	int Texture::GetHeight()
+	int Texture::getHeight()
 	{
 		return height;
 	}
@@ -210,11 +210,43 @@ namespace engone {
 			error = CorruptedData;
 			int length;
 			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-			char* message = (char*)alloca(length * sizeof(char));
-			glGetShaderInfoLog(id, length, &length, message);
-			std::cout << "Compile error with " << filePath << " (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << ")\n";
+			//char* message = (char*)alloca(length * sizeof(char));
+			std::string message(length, ' ');
 
-			std::string number;
+			glGetShaderInfoLog(id, length, &length, message.data());
+			//std::cout << "Compile error with " << filePath << " (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << ")\n";
+
+			std::cout << message << "\n";
+
+			//int same = 0;
+			//std::string stuff = "ERROR: 0:";
+			//for (int i = 0; i < 0;i++) {
+			//	/*if (stuff[same] == message[i])
+			//		same++;
+			//	else
+			//		same = 0;
+
+			//	if (same == stuff.length()) {
+			//		same = 0;
+			//		// read line number
+			//		std::string line = "";
+			//		while (message[i] != ' ') {
+			//			line += message[i];
+			//		}
+			//		std::cout << "["<<line<<"]";
+			//	} else {
+			//	}
+			//	*/
+			//		std::cout << message[i];
+			//}
+
+			/*int at = -1;
+			while (at=message.find("ERROR: 0:")) {
+				std::cout << std::string_view(message.c_str(),at) << "\n";
+
+			}*/
+
+			/*std::string number;
 			for (int i = 0; i < length; i++) {
 				if (i == 0 || message[i] == '\n' && i != length - 1) {
 					if (message[i] == '\n') {
@@ -237,9 +269,10 @@ namespace engone {
 
 				std::cout << message[i];
 			}
-			std::cout << "\n";
+			std::cout << "\n";*/
 
 			glDeleteShader(id);
+
 			return 0;
 		}
 
@@ -247,7 +280,10 @@ namespace engone {
 	}
 	void Shader::bind()
 	{
+		//glLinkProgram(id);
+		//glValidateProgram(id);
 		glUseProgram(id);
+
 	}
 	void Shader::setFloat(const std::string& name, float f)
 	{
@@ -328,6 +364,15 @@ namespace engone {
 		}
 			
 	}
+	float Font::GetWidth(const std::string& str, float height) {
+		float out=0;
+		for (int i = 0; i < str.length(); i++) {
+			unsigned char chr = str[i];
+			
+			out +=  height*(charWid[chr] / (float)charSize);
+		}
+		return out;
+	}
 	void MaterialAsset::Load(const std::string& path)
 	{
 		// free/reset data? no need though
@@ -357,14 +402,14 @@ namespace engone {
 		// add diffuse_map as a texture asset
 	}
 	static MaterialAsset* loaded[4];
-	void MaterialAsset::Bind(Shader* shader, int index) {
+	void MaterialAsset::bind(Shader* shader, int index) {
 			if (shader != nullptr) {
 				if (this == loaded[index])
 					return;
 				loaded[index] = this;
 
 				if (diffuse_map != nullptr) {
-					diffuse_map->Bind(index + 1);
+					diffuse_map->bind(index + 1);
 					//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
 					//std::cout << "PassMaterial - texture not bound!\n";
 					shader->setInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);

@@ -13,7 +13,6 @@
 
 #include "Components/EntitySystem.h"
 
-
 #include "Rendering/FrameBuffer.h"
 #include "Rendering/Light.h"
 
@@ -28,7 +27,7 @@ Your render function should include RenderObjects, RenderUI and RenderRawObjects
 namespace engone {
 
 	// Init glfw, glew, guiShader. has ui functions
-	void InitEngone();
+	void InitEngone(EngoneHint hints=EngoneHint::None);
 	void UninitEngone();
 
 	/*

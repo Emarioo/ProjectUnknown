@@ -1,76 +1,77 @@
 #include "gonpch.h"
 
 #include "Renderer.h"
-#include "../Handlers//AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 namespace engone {
 
-	static Shader* guiShader=nullptr;
 	static const int TEXT_BATCH = 40;
 	static float verts[4 * 4 * TEXT_BATCH];
 	static TriangleBuffer textBuffer, rectBuffer;
 
-	int colliderVertexLimit = 400*3, colliderIndexLimit = 600*2;
-	LineBuffer colliderBuffer;
-	float* colliderVertices;
-	unsigned int* colliderIndices;
+	static const int colliderVertexLimit = 400*3, colliderIndexLimit = 600*2;
+	static LineBuffer colliderBuffer;
+	static float colliderVertices[colliderVertexLimit];
+	static uint32_t colliderIndices[colliderIndexLimit];
 
-	int lineBufferLimit = 100;
-	LineBuffer lineBuffer;
-	float* lineVertices;
-	unsigned int* lineIndices;
+	static const int lineBufferLimit = 100;
+	static LineBuffer lineBuffer;
+	static float lineVertices[lineBufferLimit*6];
+	static uint32_t lineIndices[lineBufferLimit*2];
 
-	void InitRenderer() {
-		guiShader = GetAsset<Shader>("gui");
-
-		std::uint32_t indes[TEXT_BATCH * 6];
-		for (int i = 0; i < TEXT_BATCH; i++) {
-			indes[0 + 6 * i] = 0 + 4 * i;
-			indes[1 + 6 * i] = 1 + 4 * i;
-			indes[2 + 6 * i] = 2 + 4 * i;
-			indes[3 + 6 * i] = 2 + 4 * i;
-			indes[4 + 6 * i] = 3 + 4 * i;
-			indes[5 + 6 * i] = 0 + 4 * i;
+	void InitRenderer(EngoneHint hints) {
+		if (hints==EngoneHint::UI) {
+			std::uint32_t indes[TEXT_BATCH * 6];
+			for (int i = 0; i < TEXT_BATCH; i++) {
+				indes[0 + 6 * i] = 0 + 4 * i;
+				indes[1 + 6 * i] = 1 + 4 * i;
+				indes[2 + 6 * i] = 2 + 4 * i;
+				indes[3 + 6 * i] = 2 + 4 * i;
+				indes[4 + 6 * i] = 3 + 4 * i;
+				indes[5 + 6 * i] = 0 + 4 * i;
+			}
+			textBuffer.Init(true, nullptr, 4 * 4 * TEXT_BATCH, indes, 6 * TEXT_BATCH);
+			textBuffer.SetAttrib(0, 4, 4, 0);
+			float temp[]{ // This will be updated in when using DrawRect or DrawUVRect
+				0, 0, 0, 0,
+				0, 1, 0, 1,
+				1, 1, 1, 1,
+				1, 0, 1, 0,
+			};
+			unsigned int temp2[]{
+				0,1,2,
+				2,3,0
+			};
+			rectBuffer.Init(true, temp, 16, temp2, 6);
+			rectBuffer.SetAttrib(0, 4, 4, 0);
 		}
-		textBuffer.Init(true, nullptr, 4 * 4 * TEXT_BATCH, indes, 6 * TEXT_BATCH);
-		textBuffer.SetAttrib(0, 4, 4, 0);
-		float temp[]{ // This will be updated in when using DrawRect or DrawUVRect
-			0, 0, 0, 0,
-			0, 1, 0, 1,
-			1, 1, 1, 1,
-			1, 0, 1, 0,
-		};
-		unsigned int temp2[]{
-			0,1,2,
-			2,3,0
-		};
-		rectBuffer.Init(true, temp, 16, temp2, 6);
-		rectBuffer.SetAttrib(0, 4, 4, 0);
+		if (hints==EngoneHint::Game3D) {
+			//colliderVertices = new float[colliderVertexLimit];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
+			//colliderIndices = new unsigned int[colliderIndexLimit];// {0, 1, 0, 2, 0, 3};
 
-		colliderVertices = new float[colliderVertexLimit];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
-		colliderIndices = new unsigned int[colliderIndexLimit];// {0, 1, 0, 2, 0, 3};
-		
-		ZeroMemory(colliderVertices,colliderVertexLimit*sizeof(float));
-		ZeroMemory(colliderIndices,colliderIndexLimit*sizeof(unsigned int));
-		
-		colliderBuffer.Init(true, colliderVertices, colliderVertexLimit, colliderIndices, colliderIndexLimit);
-		colliderBuffer.SetAttrib(0, 3, 3, 0);
+			ZeroMemory(colliderVertices, colliderVertexLimit * sizeof(float));
+			ZeroMemory(colliderIndices, colliderIndexLimit * sizeof(unsigned int));
 
-		lineVertices = new float[lineBufferLimit*6];
-		lineIndices = new unsigned int[lineBufferLimit * 2];
+			colliderBuffer.Init(true, colliderVertices, colliderVertexLimit, colliderIndices, colliderIndexLimit);
+			colliderBuffer.SetAttrib(0, 3, 3, 0);
 
-		ZeroMemory(lineVertices, sizeof(float)*lineBufferLimit * 6);
-		for (int i = 0; i < lineBufferLimit * 2;i++) {
-			lineIndices[i] = i;
+			/*lineVertices = new float[lineBufferLimit * 6];
+			lineIndices = new unsigned int[lineBufferLimit * 2];*/
+
+			ZeroMemory(lineVertices, sizeof(float) * lineBufferLimit * 6);
+			for (int i = 0; i < lineBufferLimit * 2; i++) {
+				lineIndices[i] = i;
+			}
+			lineBuffer.Init(true, nullptr, lineBufferLimit * 6, lineIndices, lineBufferLimit * 2);
+			lineBuffer.SetAttrib(0, 3, 3, 0);
 		}
-		lineBuffer.Init(true,nullptr,lineBufferLimit*6,lineIndices,lineBufferLimit*2);
-		lineBuffer.SetAttrib(0, 3, 3, 0);
 	}
 	void UninitRenderer() {
-		delete[] colliderVertices;
-		delete[] colliderIndices;
+		//delete[] colliderVertices;
+		//delete[] colliderIndices;
+		//delete[] lineVertices;
+		//delete[] lineIndices;
 		colliderBuffer.Uninit();
-		delete[] lineVertices;
 		lineBuffer.Uninit();
 	}
 	void EnableBlend() {
@@ -100,9 +101,10 @@ namespace engone {
 			return;
 		}
 		else {
+			Shader* guiShader = GetAsset<Shader>("gui");
 			if(guiShader!=nullptr)
 				guiShader->setInt("uColorMode", 1);
-			font->texture.Bind();
+			font->texture.bind();
 		}
 
 		std::vector<std::string> lines;
@@ -440,8 +442,6 @@ namespace engone {
 			//std::vector<glm::vec3> oldPoints=points;
 			//std::vector<line> oldLines=lines;
 			//std::vector<tri> oldTris=tris;
-
-			
 		}
 
 		colliderBuffer.ModifyVertices(0, points.size()*3, points.data());

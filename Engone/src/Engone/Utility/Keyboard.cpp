@@ -145,7 +145,7 @@ namespace engone {
 		return 0;
 	}
 	bool IsKey(int key) {
-		return glfwGetKey(GetWindow(),key)==GLFW_PRESS;
+		return glfwGetKey(GetWindow()->glfw(),key)==GLFW_PRESS;
 	}
 	/*
 	std::unordered_map<unsigned short, int> keyboard_keyActionMap;

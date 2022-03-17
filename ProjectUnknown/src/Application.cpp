@@ -5,13 +5,14 @@
 
 void runApp(bool debug) {
 
-	engone::InitEngone();
-	
+	engone::Window window(engone::WindowMode::Windowed);
+	window.setTitle("ProjectUnknown");
+
+	engone::InitEngone(engone::EngoneHint::Game3D|engone::EngoneHint::UI);
+
 	game::InitGame();
 
 	engone::Start(game::Update, game::Render, 60);
-
-	engone::UninitEngone();
 }
 // Runs the game without a console
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
