@@ -1,5 +1,7 @@
 #pragma once
 
+#define LOG_CODEDUMP __FILE__<<__LINE
+
 namespace engone
 {
 	namespace log

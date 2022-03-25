@@ -26,8 +26,8 @@ namespace engone {
 		//RenderComponent renderComponent;
 		//PhysicsG physics;
 
-		void SetName(std::string name);
-		std::string& GetName();
+		void setName(std::string name);
+		std::string& getName();
 		
 		//void SetPosition(glm::vec3 v);
 		//glm::vec3 GetPosition();

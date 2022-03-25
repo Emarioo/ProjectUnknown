@@ -3,9 +3,8 @@
 #include "Rendering/Renderer.h"
 #include "Window.h"
 
-#include "Handlers/ObjectHandler.h"
 #include "UI/GuiHandler.h"
-#include "UI/UIPipeline.h"
+//#include "UI/UIPipeline.h"
 #include "Sound/SoundHandler.h"
 #include "Utility/Utilities.h"
 #include "GameState.h"
@@ -17,6 +16,8 @@
 #include "Rendering/Light.h"
 
 #include "Window.h"
+
+#include "Objects/Camera.h"
 
 /*
 Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
@@ -37,9 +38,8 @@ namespace engone {
 	void Start(std::function<void(double)> update, std::function<void(double)> render, double fps);
 
 	FrameBuffer& GetDepthBuffer();
-	glm::mat4& GetLightProj();
-	void SetProjection(float ratio);
-	void UpdateProjection(Shader* shader);
+
+	//Camera* GetCamera();
 
 	/*
 	Update objects and camera (viewMatrix)

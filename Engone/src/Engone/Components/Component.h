@@ -114,27 +114,27 @@ namespace engone {
 		float speed;// multiplier to the default speed
 		bool loop;
 		float blend;
-		std::string instanceName;
-		std::string animationName;
+		char instanceName[20];
+		AnimationAsset* asset;
 	};
 	class Animator : public Component {
 	public:
 		static const ComponentEnum ID = ComponentEnum::Animator;
 		Animator() = default;
 
-		/*
-		Temporary active animations
-		*/
-		std::vector<AnimationProperty> enabledAnimations;
+		ModelAsset* asset; // animations are stored in here
 
-		void Update(float delta, ModelAsset* model);
+		static const int maxAnimations = 4;
+		AnimationProperty enabledAnimations[maxAnimations];
+
+		void Update(float delta);
 
 		void Blend(const std::string& name, float blend);
 		void Speed(const std::string& name, float speed);
 		/*
 		Second argument can be done like this: {frame, loop, blend, speed}
 		*/
-		void Enable(ModelAsset* model, const std::string& instanceName, const std::string& animationName, AnimationProperty prop);
+		void Enable(const std::string& instanceName, const std::string& animationName, AnimationProperty prop);
 		void Disable(const std::string& name);
 	};
 	class MeshRenderer : public Component {

@@ -28,71 +28,87 @@ namespace engone {
 				componentSizes[i] = entitySize;
 				if (has((ComponentEnum)(i+1))) {
 					entitySize += sizeOfComponents[i];
-					//log::out << "csize "<<i<<" "<<componentSizes[i] << "\n";
 				}
 			}
 
 			entityMax = 5;
 			data = (char*)malloc(entitySize*entityMax);
-			//log::out << "malloc " << (void*)data<< "\n";
 			
 			if (!data) {
-				log::out << log::RED << "Error with entity stack memory\n";
+				log::out << log::RED << "Error with entity allocation\n";
 				return false;
 			}
 			ZeroMemory(data, entitySize * entityMax);
-
-			//log::out <<"data ptr "<<(void*)data << "\n";
 		}
 		
-		// increase size if needed
-		if (entityCount == entityMax) {
-			entityMax *= 2;
-			
-			char* ptr  = (char*)realloc(data, entitySize*entityMax);
+		if (deletedSpots.size() > 0) {
+			int index = deletedSpots.back();
+			//log::out << "filled spot " << index << "\n";
+			deletedSpots.pop_back();
 
-			log::out << (void*)ptr << "\n";
-			if (!ptr) {
-				log::out << log::RED << "Error with entity stack memory\n";
-				return false;
-			}
-			data = ptr;
-			ZeroMemory(data + entitySize * entityMax/2, entitySize * entityMax / 2);
+			entities[index] = entity;
+			entity->stackPtr = data + (index)*entitySize;
+			ZeroMemory(entity->stackPtr, entitySize);
+		} else {
+			// increase size if needed
+			if (entityCount == entityMax) {
+				entityMax *= 2;
+				char* ptr = (char*)realloc(data, entitySize * entityMax);
 
-			for (int i = 0; i < entities.size(); i++) {
-				Entity* ent = entities[i];
-				ent->stackPtr = data + i * entitySize;
+				if (!ptr) {
+					log::out << log::RED << "Error with entity allocation\n";
+					return false;
+				}
+				data = ptr;
+				ZeroMemory(data + entitySize * entityMax / 2, entitySize * entityMax / 2);
+
+				for (int i = 0; i < entities.size(); i++) {
+					Entity* ent = entities[i];
+					ent->stackPtr = data + i * entitySize;
+				}
 			}
+
+			entities.push_back(entity);
+			entity->stackPtr = data + (entityCount)*entitySize;
+			entityCount++;
 		}
-		
-		entities.push_back(entity);
 
 		entity->componentSizes = componentSizes;
-		entity->stackPtr = data + (entityCount) * entitySize;
 		
 		//-- Component specific
-		if (entity->has(ComponentEnum::ModelRenderer)) {
+		if (entity->has(Transform::ID)) {
+			entity->getComponent<Transform>()->scale = {1,1,1};
+		}
+		if (entity->has(ModelRenderer::ID)) {
 			entity->getComponent<ModelRenderer>()->visible = true;
 		}
-		if (entity->has(ComponentEnum::MeshRenderer)) {
+		if (entity->has(MeshRenderer::ID)) {
 			entity->getComponent<MeshRenderer>()->visible = true;
 		}
-		if (entity->has(ComponentEnum::Physics)) {
+		if (entity->has(Physics::ID)) {
 			entity->getComponent<Physics>()->gravity = -9.81;
 		}
 		
-
 		entity->Init();
+		return true;
+	}
+	bool EntityStack::remove(Entity* entity) {
+		
+		int index = (int)(entity->stackPtr-data) / entitySize;
+		//log::out << "deleted entity index: " << index << "\n";
 
-		entityCount++;
+		deletedSpots.push_back(index);
+		entities[index] = nullptr;
+
+		delete entity;
 		return true;
 	}
 
 	//-- Functions
-	void AddEntity(Entity* entity) {
+	bool AddEntity(Entity* entity) {
 		if (entity->entityId != 0) {
 			log::out << log::RED << "Cannot add existing entity\n";
-			return;
+			return false;
 		}
 
 		entity->entityId = ++entityCount;
@@ -110,24 +126,43 @@ namespace engone {
 		if (stack==nullptr) {
 			stack = new EntityStack(entity);
 			entityStacks.push_back(stack);
-			//log::out << "new stack "<<entity->componentMask << " " << entityStacks.back().componentMask << "\n";
-			//log::out <<"new stack ptr "<< (void*)stack << "\n";
 			
-			/*
 			for (int i = 0; i < stackCollections.size(); i++) {
-				if (stackCollections[i].has(entity)) {
-					stackCollections[i].push(stack);
+				if (stackCollections[i]->has(stack)) {
+					stackCollections[i]->push(stack);
 				}
-			}*/
+			}
 		}
 
-		//log::out << "data ptr " << (void*)stack->data << "\n";
-		//if (stack->data)
-			//stack->data=(char*)realloc(stack->data,100);
-		stack->add(entity);
+		return stack->add(entity);
+	}
+	bool RemoveEntity(Entity* entity) {
+		EntityStack* stack = nullptr;
+		for (int i = 0; i < entityStacks.size(); i++) {
+			if (entityStacks[i]->same(entity)) {
+				stack = entityStacks[i];
+				break;
+			}
+		}
+		if (stack != nullptr) {
+			if (stack->remove(entity)) {
+				return true;
+			}
+		}
+		log::out << log::RED << "Cannot delete entity\n";
+		return false;
 	}
 	void AddSystem(System* system) {
 		systems.push_back(system);
+	}
+	bool RemoveSystem(System* system) {
+		for (int i = 0; i < systems.size(); i++) {
+			if (systems[i] == system) 				{
+				systems.erase(systems.begin()+i);
+				return true;
+			}
+		}
+		return false;
 	}
 	void RunUpdateSystems(float delta) {
 		for (System* system : systems) {

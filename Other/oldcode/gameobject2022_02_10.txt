@@ -92,7 +92,7 @@ namespace engone {
 						// Line's intersection point to quad plane
 						glm::vec3 P = IntersectPlane(A, up, M, N);
 
-						// Values for wether P is outside of quad plane. (negative inside, positive outside)
+						// Values for whether P is outside of quad plane. (negative inside, positive outside)
 						float a = glm::dot(AB, P - B);
 						float b = glm::dot(BC, P - C);
 						float c = glm::dot(CD, P - D);

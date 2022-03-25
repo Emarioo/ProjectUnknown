@@ -51,7 +51,7 @@ namespace engone {
 			return log;
 		}
 	}
-	void Texture::Load(const std::string& path)
+	void Texture::load(const std::string& path)
 	{
 		//Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
 
@@ -83,7 +83,7 @@ namespace engone {
 				stbi_image_free(buffer);
 		//}
 	}
-	void Texture::Init(int w, int h, void* data)
+	void Texture::init(int w, int h, void* data)
 	{
 		width = w;
 		height = h;
@@ -112,7 +112,7 @@ namespace engone {
 	{
 		return height;
 	}
-	void Shader::Load(const std::string& path)
+	void Shader::load(const std::string& path)
 	{
 		std::ifstream file(path);
 		if (!file) {
@@ -147,9 +147,9 @@ namespace engone {
 			}
 		}
 
-		id = CreateShader(ss[0].str(), ss[1].str());
+		id = createShader(ss[0].str(), ss[1].str());
 	}
-	void Shader::Init(const std::string& source)
+	void Shader::init(const std::string& source)
 	{
 		std::string vertex, fragment;
 
@@ -179,13 +179,13 @@ namespace engone {
 			std::cout << "Is this shader source correct?:\n" << source << "\n";
 		}
 
-		id = CreateShader(vertex, fragment);
+		id = createShader(vertex, fragment);
 	}
-	unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
+	unsigned int Shader::createShader(const std::string& vertexShader, const std::string& fragmentShader)
 	{
 		unsigned int program = glCreateProgram();
-		unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
-		unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+		unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexShader);
+		unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
 
 		glAttachShader(program, vs);
 		glAttachShader(program, fs);
@@ -197,7 +197,7 @@ namespace engone {
 
 		return program;
 	}
-	unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
+	unsigned int Shader::compileShader(unsigned int type, const std::string& source)
 	{
 		unsigned int id = glCreateShader(type);
 		const char* src = source.c_str();
@@ -287,37 +287,37 @@ namespace engone {
 	}
 	void Shader::setFloat(const std::string& name, float f)
 	{
-		glUniform1f(GetUniformLocation(name), f);
+		glUniform1f(getUniformLocation(name), f);
 	}
 	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
-		glUniform2f(GetUniformLocation(name), v.x, v.y);
+		glUniform2f(getUniformLocation(name), v.x, v.y);
 	}
 	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
 	{
-		glUniform2i(GetUniformLocation(name), v.x, v.y);
+		glUniform2i(getUniformLocation(name), v.x, v.y);
 	}
 	void Shader::setVec3(const std::string& name, glm::vec3 v)
 	{
-		glUniform3f(GetUniformLocation(name), v.x, v.y, v.z);
+		glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
 	}
 	void Shader::setIVec3(const std::string& name, glm::ivec3 v)
 	{
-		glUniform3i(GetUniformLocation(name), v.x, v.y, v.z);
+		glUniform3i(getUniformLocation(name), v.x, v.y, v.z);
 	}
 	void Shader::setVec4(const std::string& name, float f0, float f1, float f2, float f3)
 	{
-		glUniform4f(GetUniformLocation(name), f0, f1, f2, f3);
+		glUniform4f(getUniformLocation(name), f0, f1, f2, f3);
 	}
 	void Shader::setInt(const std::string& name, int v)
 	{
-		glUniform1i(GetUniformLocation(name), v);
+		glUniform1i(getUniformLocation(name), v);
 	}
 	void Shader::setMat4(const std::string& name, glm::mat4 mat)
 	{
-		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
+		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
 	}
-	unsigned int Shader::GetUniformLocation(const std::string& name)
+	unsigned int Shader::getUniformLocation(const std::string& name)
 	{
 		if (uniLocations.find(name) != uniLocations.end()) {
 			return uniLocations[name];
@@ -327,7 +327,7 @@ namespace engone {
 		return loc;
 	}
 
-	void Font::Load(const std::string& path)
+	void Font::load(const std::string& path)
 	{
 		std::vector<std::string> list;
 		
@@ -351,7 +351,7 @@ namespace engone {
 					}
 				}
 			}
-			texture.Load(path+".png");
+			texture.load(path+".png");
 			if (!texture) {
 				error = texture.error;
 			}
@@ -364,7 +364,7 @@ namespace engone {
 		}
 			
 	}
-	float Font::GetWidth(const std::string& str, float height) {
+	float Font::getWidth(const std::string& str, float height) {
 		float out=0;
 		for (int i = 0; i < str.length(); i++) {
 			unsigned char chr = str[i];
@@ -373,14 +373,14 @@ namespace engone {
 		}
 		return out;
 	}
-	void MaterialAsset::Load(const std::string& path)
+	void MaterialAsset::load(const std::string& path)
 	{
 		// free/reset data? no need though
 
 		FileReader file(path);
 		try {
 			std::string diffuse_mapName;
-			std::string root = GetRootPath();
+			std::string root = getRootPath();
 			file.read(&diffuse_mapName);
 			//std::cout << "Path: "<< root << diffuse_mapName << "\n";
 			if(diffuse_mapName.length()!=0)
@@ -403,64 +403,61 @@ namespace engone {
 	}
 	static MaterialAsset* loaded[4];
 	void MaterialAsset::bind(Shader* shader, int index) {
-			if (shader != nullptr) {
-				if (this == loaded[index])
-					return;
-				loaded[index] = this;
+		if (shader != nullptr) {
 
-				if (diffuse_map != nullptr) {
-					diffuse_map->bind(index + 1);
-					//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
-					//std::cout << "PassMaterial - texture not bound!\n";
-					shader->setInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
-					shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
-				} else {
-					shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
-				}
-				shader->setVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", diffuse_color);
-				shader->setVec3("uMaterials[" + std::to_string(index) + "].specular", specular);
-				shader->setFloat("uMaterials[" + std::to_string(index) + "].shininess", shininess);
+			//if (this == loaded[index]) return;
+			loaded[index] = this;
+
+			if (diffuse_map != nullptr) {
+				diffuse_map->bind(index + 1);
+				//BindTexture(index + 1, material->diffuse_map);// + 1 because of shadow_map on 0
+				//std::cout << "PassMaterial - texture not bound!\n";
+				shader->setInt("uMaterials[" + std::to_string(index) + "].diffuse_map", index + 1);
+				shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 1);
 			} else {
-				//std::cout << "shader or material is nullptr in Passmaterial\n";
+				shader->setInt("uMaterials[" + std::to_string(index) + "].useMap", 0);
 			}
+			shader->setVec3("uMaterials[" + std::to_string(index) + "].diffuse_color", diffuse_color);
+			shader->setVec3("uMaterials[" + std::to_string(index) + "].specular", specular);
+			shader->setFloat("uMaterials[" + std::to_string(index) + "].shininess", shininess);
+		} else {
+			//std::cout << "shader or material is nullptr in Passmaterial\n";
+		}
 	}
 	Keyframe::Keyframe(PolationType polation, unsigned short frame, float value)
 		: polation(polation), frame(frame), value(value)
 	{
 	}
 	FCurve::FCurve() {}
-	Keyframe& FCurve::Get(int index)
+	Keyframe& FCurve::get(int index)
 	{
 		return frames.at(index);
 	}
-	void FCurve::Add(Keyframe keyframe)
+	void FCurve::add(Keyframe keyframe)
 	{
 		frames.push_back(keyframe);
 	}
-	FCurve& Channels::Get(ChannelType channel)
+	FCurve& Channels::get(ChannelType channel)
 	{
 		return fcurves[channel];
 	}
-	/*
-	"channel" is what type of value the keyframes will be changing. Example PosX.
-	Create a "FCurve" object and see the "Add" function for more details.
-	*/
-	void Channels::Add(ChannelType channel, FCurve fcurve)
+	void Channels::add(ChannelType channel, FCurve fcurve)
 	{
 		fcurves[channel] = fcurve;
 	}
-	void Channels::GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannels)
+	void Channels::getValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannels)
 	{
 		float build[9]{ 0,0,0,0,0,0,1,1,1 };
 		glm::quat q0 = glm::quat(1, 0, 0, 0);
 		glm::quat q1 = glm::quat(1, 0, 0, 0);
-		//log::out << "curve "<< fcurves.size() <<"\n";
+
+		// q0[3] == q0[].w == 1
+
 		float slerpT = 0;
-		for (std::pair<ChannelType, FCurve> curve : fcurves) {
-			ChannelType type = curve.first;
+		for (auto [type, curve] : fcurves) {
 			Keyframe* a = nullptr;
 			Keyframe* b = nullptr;
-			for (Keyframe& k : curve.second.frames) {
+			for (Keyframe& k : curve.frames) {
 				if (k.frame == frame) { // the keyframe is at the current time frame.
 					a = &k;
 					break;
@@ -485,13 +482,13 @@ namespace engone {
 				//std::cout << "one frame "<<a->frame << std::endl;
 				if (type > ScaZ) {
 					slerpT = 0;
-					q0[curve.first - QuaX] = a->value;
-					*usedChannels = *usedChannels | (1 << curve.first);
+					q0[type - QuaX] = a->value;
+					*usedChannels = *usedChannels | (1 << type);
 					continue;
 				}
 				else {
-					build[curve.first] = a->value;
-					*usedChannels = *usedChannels | (1 << curve.first);
+					build[type] = a->value;
+					*usedChannels = *usedChannels | (1 << type);
 					continue;
 				}
 			}
@@ -510,13 +507,13 @@ namespace engone {
 
 			if (type > ScaZ) {
 				slerpT = lerp;
-				q0[curve.first - QuaX] = a->value;
-				q1[curve.first - QuaX] = b->value;
-				*usedChannels = *usedChannels | (1 << curve.first);
+				q0[type - QuaX] = a->value;
+				q1[type - QuaX] = b->value;
+				*usedChannels = *usedChannels | (1 << type);
 			}
 			else {
-				build[curve.first] = a->value * (1 - lerp) + b->value * lerp;
-				*usedChannels = *usedChannels | (1 << curve.first);
+				build[type] = a->value * (1 - lerp) + b->value * lerp;
+				*usedChannels = *usedChannels | (1 << type);
 			}
 		}
 
@@ -543,50 +540,39 @@ namespace engone {
 
 		//bug::outs < "b " <build[1] < "\n";
 
-		
+		//log::out << slerpT << "\n";
+
+		//quater *= glm::toMat4(q0);
 
 		if (q0 == q1 || slerpT == 0) {
-			quater *= glm::mat4_cast(glm::slerp(glm::quat(1, 0, 0, 0), q0, blend));
+			quater *= glm::mat4_cast(glm::normalize(glm::slerp(glm::quat(1, 0, 0, 0), q0, blend)));
 		}
 		else if (slerpT == 1) {
-			quater *= glm::mat4_cast(glm::slerp(glm::quat(1, 0, 0, 0), q1, blend));
+			quater *= glm::mat4_cast(glm::normalize(glm::slerp(glm::quat(1, 0, 0, 0), q1, blend)));
 		}
 		else // Expensive. Is it possible to optimize?
-			quater *= glm::mat4_cast(glm::slerp(glm::quat(1, 0, 0, 0), glm::slerp(q0, q1, slerpT), blend));
+			quater *= glm::mat4_cast(glm::normalize(glm::slerp(glm::quat(1, 0, 0, 0), glm::slerp(q0, q1, slerpT), blend)));
 	}
-	Channels& AnimationAsset::Get(unsigned short i)
+	Channels& AnimationAsset::get(unsigned short i)
 	{
 		return objects[i];
 	}
-	/*
-	objectIndex is the index of the bone. Also known as the vertex group in blender.
-	Create a "Channels" object and see the "Add" function for more details.
-	*/
-	void AnimationAsset::AddObjectChannels(int objectIndex, Channels channels)
+	void AnimationAsset::addObjectChannels(int objectIndex, Channels channels)
 	{
 		objects[objectIndex] = channels;
 	}
-	/*
-	Use this to create an animation by code.
-	See the "AddObjectChannels" function for more details.
-	*/
-	void AnimationAsset::Modify(unsigned short startFrame, unsigned short endFrame)
+	void AnimationAsset::modify(unsigned short startFrame, unsigned short endFrame)
 	{
 		frameStart = startFrame;
 		frameEnd = endFrame;
 	}
-	/*
-	Use this to create an animation by code.
-	"speed" is 24 by default. Speed can also be changed in the animator.
-	See the "AddObjectChannels" function for more details.
-	*/
-	void AnimationAsset::Modify(unsigned short startFrame, unsigned short endFrame, float speed)
+	void AnimationAsset::modify(unsigned short startFrame, unsigned short endFrame, float speed)
 	{
 		frameStart = startFrame;
 		frameEnd = endFrame;
 		defaultSpeed = speed;
 	}
-	void AnimationAsset::Load(const std::string& path)
+	void AnimationAsset::load(const std::string& path)
 	{
 		// clear data
 		// clear data in side channels?
@@ -604,7 +590,7 @@ namespace engone {
 			//log::out << "obs " << objectCount << "\n";
 
 			for (int i = 0; i < objectCount; i++) {
-				uint16_t index,curves;
+				uint16_t index, curves;
 				
 				file.read(&index);
 				file.read(&curves);
@@ -626,7 +612,7 @@ namespace engone {
 				objects[index] = Channels();
 				Channels* channels = &objects[index];
 
-				const std::string curve_order[]{ "PX","PY","PZ","RX","RY","RZ","SX","SY","SZ","QX","QY","QZ","QW" };
+				//const std::string curve_order[]{ "PX","PY","PZ","RX","RY","RZ","SX","SY","SZ","QX","QY","QZ","QW" };
 				for (ChannelType cha = PosX; cha < 13; cha = (ChannelType)(cha + 1)) {
 					if (curveB[cha]) {
 						uint16_t keys;
@@ -657,7 +643,7 @@ namespace engone {
 		}
 		file.close();
 	}
-	void MeshAsset::Load(const std::string& path)
+	void MeshAsset::load(const std::string& path)
 	{
 		// clear data
 		materials.clear();
@@ -673,8 +659,8 @@ namespace engone {
 			file.read(&textureCount);
 			file.read(&materialCount);
 			//std::cout << "uhu\n";
-			std::string root = GetRootPath();
-			for (int i = 0; i < materialCount; i++) {
+			std::string root = getRootPath();
+			for (int i = 0; i < materialCount && i< MeshAsset::maxMaterials; i++) {
 				std::string materialName;
 				file.read(&materialName);
 
@@ -945,7 +931,7 @@ namespace engone {
 		}
 		file.close();
 	}
-	void ColliderAsset::Load(const std::string& path)
+	void ColliderAsset::load(const std::string& path)
 	{
 		if (colliderType == Type::Sphere) {
 
@@ -972,12 +958,14 @@ namespace engone {
 			case Type::Sphere:
 				file.read(&sphere.radius);
 				file.read(&sphere.position);
+				furthest = sphere.radius;
 				//log::out << cube.scale << " radius \n";
 				break;
 			case Type::Cube:
 				file.read(&cube.scale);
 				file.read(&cube.position);
 				//log::out << cube.scale<<" scale \n";
+				furthest = glm::length(cube.scale);
 				break;
 			case Type::Mesh:
 				
@@ -1009,7 +997,7 @@ namespace engone {
 		}
 		file.close();
 	}
-	void ArmatureAsset::Load(const std::string& path)
+	void ArmatureAsset::load(const std::string& path)
 	{
 		bones.clear();
 
@@ -1039,14 +1027,14 @@ namespace engone {
 		}
 		file.close();
 	}
-	void ModelAsset::Load(const std::string& path)
+	void ModelAsset::load(const std::string& path)
 	{
 		instances.clear();
 		animations.clear();
 
 		FileReader file(path);
 		try {
-			std::string root = GetRootPath();
+			std::string root = getRootPath();
 
 			uint16_t instanceCount;
 			file.read(&instanceCount);
@@ -1095,7 +1083,7 @@ namespace engone {
 		}
 		file.close();
 	}
-	void ModelAsset::GetParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
+	void ModelAsset::getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
 		mats.resize(instances.size());
 
 		std::vector<glm::mat4> modelT(instances.size());
@@ -1112,20 +1100,22 @@ namespace engone {
 
 			short usedChannels = 0;
 
-			for (int k = 0; k < animator->enabledAnimations.size(); k++) {
-				AnimationProperty& prop = animator->enabledAnimations[k];
-				for (int j = 0; j < animations.size(); j++) {
-					AnimationAsset* animation = animations[j];
-					//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
-					if (prop.animationName == animation->baseName &&
-						prop.instanceName == instance.name) {
+			for (int k = 0; k < Animator::maxAnimations; k++) {
+				if (animator->enabledAnimations[i].asset) {
+					AnimationProperty& prop = animator->enabledAnimations[k];
+					for (int j = 0; j < animations.size(); j++) {
+						AnimationAsset* animation = animations[j];
+						//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
+						if (prop.asset == animation &&
+							prop.instanceName == instance.name) {
 
-						if (animation->objects.count(0) > 0) {// the object/instance uses transform object
+							if (animation->objects.count(0) > 0) {// the object/instance uses transform object
 
-							//log::out << "inst " << i << "\n";
-							animation->objects[0].GetValues(prop.frame, prop.blend,
-								pos, euler, scale, quater, &usedChannels);
-							//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+								//log::out << "inst " << i << "\n";
+								animation->objects[0].getValues(prop.frame, prop.blend,
+									pos, euler, scale, quater, &usedChannels);
+								//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+							}
 						}
 					}
 				}
@@ -1193,10 +1183,11 @@ namespace engone {
 			//mats[i] = (modelT[i]);
 		}
 	}
-	void ModelAsset::GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
+	void ModelAsset::getArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
 		mats.resize(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
+			
 			for (int i = 0; i < armature->bones.size(); i++) {
 				Bone& bone = armature->bones[i];
 				glm::mat4 loc = bone.localMat;
@@ -1208,18 +1199,23 @@ namespace engone {
 
 				short usedChannels = 0;
 
-				for (int k = 0; k < animator->enabledAnimations.size(); k++) {
-					AnimationProperty& prop = animator->enabledAnimations[k];
-					for (int j = 0; j < animations.size(); j++) {
-						AnimationAsset* animation = animations[j];
-						if (prop.animationName == animation->baseName &&
-							prop.instanceName == instance->name) {
+				for (int k = 0; k < Animator::maxAnimations; k++) {
+					if (animator->enabledAnimations[k].asset) {
 
-							if (animation->objects.count(i) > 0) {
+						AnimationProperty& prop = animator->enabledAnimations[k];
+						for (int j = 0; j < animations.size(); j++) {
+							AnimationAsset* animation = animations[j];
+							
+							if (prop.asset == animation &&
+								std::strcmp(prop.instanceName, instance->name.c_str()) == 0) {
 
-								animation->objects[i].GetValues(prop.frame, prop.blend,
-									pos, euler, scale, quater, &usedChannels);
-								//log::out << quater<<"\n";
+								if (animation->objects.count(i) > 0) {
+
+									animation->objects[i].getValues(prop.frame, prop.blend,
+										pos, euler, scale, quater, &usedChannels);
+									//log::out << " " << pos.y << " " << i << " " << k << " " << j << "\n";
+									//log::out << quater<<"\n";
+								}
 							}
 						}
 					}

@@ -25,7 +25,9 @@ static const char* depthGLSL = {
 
 #include "Engone/Handlers/ObjectHandler.h"
 
-#include "Engone/UI/UIPipeline.h"
+//#include "Engone/UI/UIPipeline.h"
+
+#include "glm/gtc/quaternion.hpp"
 
 namespace game
 {
@@ -103,14 +105,15 @@ namespace game
 		UpdateEngine(delta);
 
 		Player* player = GetPlayer();
-		Transform* t = player->getComponent<Transform>();
-		if (player->thirdPerson) {
-			glm::mat4 mat = glm::translate(t->position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
-			GetCamera()->position = mat[3];
-		} else {
-			GetCamera()->position = t->position+glm::vec3(0,3.f,0);
+		if (player) {
+			Transform* t = player->getComponent<Transform>();
+			if (player->thirdPerson) {
+				glm::mat4 mat = glm::translate(t->position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
+				GetCamera()->position = mat[3];
+			} else {
+				GetCamera()->position = t->position + glm::vec3(0, 3.f, 0);
+			}
 		}
-
 	}
 
 	static bool initGameAssets = false;
@@ -174,10 +177,9 @@ namespace game
 
 		TestScene();
 	}
-	//engone::VertexBuffer VBO;
-	//engone::VertexBuffer VBO2;
-	//engone::IndexBuffer IBO;
-	//engone::VertexArray VAO;
+	engone::VertexBuffer VBO;
+	engone::IndexBuffer IBO;
+	engone::VertexArray VAO;
 
 	engone::ui::TextBox editText = { "012345",50,100,50 };
 	void uitest() {
@@ -195,8 +197,8 @@ namespace game
 		ui::Box windowed = {100,400,100,100,1.f,0,0};
 		ui::Box borderless = {100,600,100,100,1.f,0,1.f};*/
 
-		float w = editText.font->GetWidth(editText.text, editText.h);
-		ui::Draw({editText.x,editText.y,w,editText.h,1.f,0,0});
+		float w = editText.font->getWidth(editText.text, editText.h);
+		//ui::Draw({editText.x,editText.y,w,editText.h,1.f,0,0});
 
 		//ui::Draw(fullscreen);
 		/*ui::Draw(windowed);
@@ -218,6 +220,62 @@ namespace game
 		}*/
 
 	}
+	void introScreen() {
+		using namespace engone;
+		float time = GetAppTime();
+
+		const float black = 2, fade=black+.5, intro=fade+2, introOut=intro+.5, gameIn=introOut+.5;
+
+
+		if (time < black) { // black 2s
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f });
+		} else if (time<fade) { // fade 0.5s
+			float alpha = 1-(time-black)/.5f;
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		} else if (time<intro) { // intro 2s
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+		} else if (time < introOut) { // fade 0.5s
+			float alpha = (time - intro)/.5f;
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		} else if (time < gameIn) { // fade 0.5s
+			float alpha = 1-(time - introOut)/.5f;
+			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		}
+
+		/*IElement* cover = new IElement("darkCover", 9999);
+		cover->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 0.f });
+		cover->add("fade").Fade({ 0.f,0.f }, .5f);
+
+		IElement* intro = new IElement("introTexture");
+		intro->Left(0)->CenterY(0)->Width(1.f)->Height(1.f)->Fixed(800 / 669.f)->Color({ 1.f })->Texture(GetAsset<Texture>("textures/intro"));
+		IElement* blank = new IElement("introBlank", 9990);
+		blank->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 1.f });
+		blank->add(intro);
+
+		AddTimer(2.f, [=] {
+			cover->setTransition("fade", true);
+			AddTimer(.5 + 2.f, [=] {
+				cover->setTransition("fade", false);
+				AddTimer(.5f, [=] {
+					RemoveElement(blank);
+					cover->setTransition("fade", true);
+					SetState(GameState::RenderGame, true);
+					SetState(GameState::Intro, false);
+					GetWindow()->lockCursor(true);
+					});
+				});
+			});
+
+		AddElement(blank);
+		AddElement(cover);*/
+
+
+	}
 
 	static float rot = 0;
 	static float frame = 0;
@@ -229,20 +287,9 @@ namespace game
 		//Shader* shader = GetAsset<Shader>("armature");
 		//shader->Bind();
 
-		//glm::mat4 fin = glm::mat4(1);
+		RenderEngine(lag);
 
-		//glm::mat4 axis = glm::mat4(1);
-
-		//axis[1][1] = 0;
-		//axis[2][1] = 1;
-		//axis[1][2] = -1;
-		//axis[2][2] = 0;
-
-		//glm::vec3 pos = glm::vec3(1), euler, scale;
-		//glm::mat4 quater = glm::mat4(1);
-
-
-		//AnimationAsset* anim = GetAsset<AnimationAsset>("Snake/SnakeAnim");
+		//AnimationAsset* anim = GetAsset<AnimationAsset>("PlayerAttack/SwingAnim");
 		//frame += anim->defaultSpeed * 1.f / 60;
 
 		//if (frame > 60) {
@@ -250,8 +297,28 @@ namespace game
 		//}
 
 		//short usedChannels = 0;
-		//anim->objects[0].GetValues(frame, 1,
+		//glm::vec3 pos = { 0,0,0 }, euler, scale;
+		//glm::mat4 quater = glm::mat4(1);
+		//anim->objects[1].getValues(frame, 1,
 		//	pos, euler, scale, quater, &usedChannels);
+
+		//glm::mat4 modelMatrix = glm::translate(pos) * quater;
+
+		//Shader* objectShader = GetAsset<Shader>("object");
+		//objectShader->bind();
+
+		//MeshAsset* meshAsset = GetAsset<MeshAsset>("PlayerAttack/Cube.002-B");
+		//MaterialAsset* material = GetAsset<MaterialAsset>("defaultMaterial");
+		//MaterialAsset* material2 = GetAsset<MaterialAsset>("Material.004");
+
+		//material2->bind(objectShader, 0);
+		//material->bind(objectShader, 0);
+
+		////log::out << quater << "\n";
+
+		//objectShader->setMat4("uTransform", modelMatrix);
+
+		//meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
 
 		//glm::mat4 gameObject = glm::mat4(1);
 
@@ -270,9 +337,28 @@ namespace game
 		//PassMaterial(shader, 0, mesh->materials[0]);
 		//mesh->buffer.Draw();
 	
-		uitest();
+		//uitest();
 
-		RenderEngine(lag);
+		//introScreen();
+
+	//	Shader* objectShader = GetAsset<Shader>("object");
+	//	objectShader->bind();
+
+	//	MeshAsset* meshAsset = GetAsset<MeshAsset>("PlayerAttack/Cube.002-B");
+	//	MaterialAsset* material = GetAsset<MaterialAsset>("defaultMaterial");
+	//	MaterialAsset* material2 = GetAsset<MaterialAsset>("Material.004");
+
+	//	material2->bind(objectShader, 0);
+	//	material->bind(objectShader, 0);
+
+	///*	glm::quat quat = {1.f,rot,0,0.f};
+	//	rot += 1/60.f/10;*/
+
+
+	//	glm::mat4 matr = glm::translate(glm::vec3(0, 5, 0)) * glm::mat4_cast(quat);
+	//	objectShader->setMat4("uTransform", matr);
+
+	//	meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
 
 		/*Shader* shad = GetAsset<Shader>("object");
 		shad->bind();*/
@@ -308,6 +394,46 @@ namespace game
 	{
 		using namespace engone;
 
+		/*HeapMemory memory;
+
+		struct A {
+			float x, y;
+		};
+		struct B {
+			std::string name;
+			int age;
+		};
+		struct C {
+			int data[20];
+		};
+
+		A a[3]{ {1,2},{3,4},{5,6} };
+		B b[3]{ {"George",5},{"Tom",54},{"Sara",19}};
+		C c[3];
+		memory.writeMemory<A>('A', a);
+		memory.writeMemory<B>('B', b);
+		memory.writeMemory<B>('B', b+1);
+		memory.writeMemory<C>('C', c);
+		memory.writeMemory<A>('A', a+1);
+
+		
+		while(true) {
+			char type = memory.readType();
+			if(type=='A') {
+				A* ptr = memory.readItem<A>();
+				log::out << "A: " << ptr->x << " " << ptr->y<< "\n";
+			} else if (type == 'B') {
+				B* ptr = memory.readItem<B>();
+				log::out << "B: "<<ptr->name << " " << ptr->age << "\n";
+			} else if (type == 'C') {
+				C* ptr = memory.readItem<C>();
+
+				log::out << "C: " << ptr->data[0] << " " << ptr->data[1] << "\n";
+			} else if (type == 0)
+				break;
+		}*/
+
+
 		//bug::out < a->Get(0)->Get(0)->frames[1].value < bug::end;
 		//engine::AddAnimationAsset("ArmatureAction");
 		//engine::GetModelAsset("Player")->AddAnimation("ArmatureAction");
@@ -341,23 +467,8 @@ namespace game
 			//std::cout << "channs "<< quater->objects[0].fcurves.size() << std::endl;
 		}
 
-		//Tree* tree = new Tree();
-		//AddEntity(tree);
-
-		//Tree* tree = new Tree();
-		//AddEntity(tree);
-		//for (int i = 0; i < 10000;i++) {
-
-		//	//log::out << i <<" "<<(void*)tree->stackPtr<< "\n";
-		//	
-		//	
-		//	tree->getComponent<Transform>()->position = {GetRandom()*1000.f,GetRandom()*2,GetRandom()*1000};
-		//}
-
-		/*for (int i = 0; i < entities.size(); i++) {
-			Transform* t = entities.getEntityComponent<Transform>(i);
-			log::out << t->position << "\n";
-		}*/
+		/*Tree* tree = new Tree();
+		AddEntity(tree);*/
 
 		/*
 		ModelObject* tree = new ModelObject(9, 0, 0, engone::GetAsset<ModelAsset>("Oak/Oak"));
@@ -367,10 +478,17 @@ namespace game
 	/*	ModelObject* terrain = new ModelObject(0, 0, 0, engone::GetAsset<ModelAsset>("Terrain/Terrain"));
 		AddObject(terrain);
 		*/
-		//log::out << "tree ptr " << (void*)tree->getComponent<Model>() << "\n";
-		Player* player = new Player();
+
+		Player* player = new Player(); 
 		AddEntity(player);
 		AddSystem(player);
+
+		Goblin* goblin = new Goblin();
+		AddEntity(goblin);
+		AddSystem(goblin);
+
+		goblin->getComponent<Transform>()->position.y=6;
+
 		//player->getComponent<MeshRenderer>()->renderMesh = false;
 
 		/*ColliderAsset* as = new ColliderAsset("Terrain/Plane.003");
@@ -400,10 +518,10 @@ namespace game
 		DirLight* l = new DirLight({ 2,-4,1 });
 		AddLight(l);
 
-		/*float fArray[]{
-			0,0,1,0,1,1,
-			.1,0,0,1,1,1,
-			.1,.1,1,1,0,1
+		float fArray[]{
+			0,0,1, 0,1,1, 0,0,0,
+			0,0,1, 0,1,1, 0,0,0,
+			0,0,1, 0,1,1, 0,0,0,
 		};
 		uint32_t iArray[]{
 			0,1,2
@@ -414,6 +532,5 @@ namespace game
 
 		VAO.addAttribute(2);
 		VAO.addAttribute(4, &VBO);
-		VAO.addAttribute(2, 1, &VBO2);*/
 	}
 }

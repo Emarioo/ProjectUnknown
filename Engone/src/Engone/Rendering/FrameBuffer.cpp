@@ -6,7 +6,7 @@
 
 namespace engone {
 	FrameBuffer::FrameBuffer() {}
-	void FrameBuffer::Init() {
+	void FrameBuffer::init() {
 		glGenFramebuffers(1, &fbo);
 
 		glGenTextures(1, &texture);
@@ -26,10 +26,10 @@ namespace engone {
 		glReadBuffer(GL_NONE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-	void FrameBuffer::Bind() {
+	void FrameBuffer::bind() {
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	}
-	void FrameBuffer::Unbind() {
+	void FrameBuffer::unbind() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }

@@ -23,32 +23,43 @@ namespace engone {
 	static IndexBuffer indexBuffer;
 	static float floatArray[4 * VERTEX_SIZE * MAX_RECT_BATCH];
 
-	static std::vector<ui::Box> boxes;
-	static std::unordered_map<Texture*,std::vector<ui::TexturedBox>> texturedBoxes;
-	static std::vector<ui::TextBox> texts;
+	//static std::vector<ui::Box> boxes;
+	//static std::unordered_map<Texture*,std::vector<ui::TexturedBox>> texturedBoxes;
+	//static std::vector<ui::TextBox> texts;
+
+	static ItemVector uiObjects;
 
 	// global ui pipeline
 	namespace ui {
 
 		// There is a limit to how many rects you can have thanks to float[], having a std::vector and batching rendering would be better
 		void Draw(Box box) {
-			boxes.push_back(box);
+			uiObjects.writeMemory<Box>('B', &box);
+
+			//boxes.push_back(box);
 		}
 		void Draw(TexturedBox box) {
 			if (box.texture == nullptr) {
 				return;
 			}
-			if (texturedBoxes.count(box.texture) == 0) {
+
+			uiObjects.writeMemory<TexturedBox>('T', &box);
+
+			/*if (texturedBoxes.count(box.texture) == 0) {
 				texturedBoxes[box.texture] = std::vector<TexturedBox>();
 			}
-			texturedBoxes[box.texture].push_back(box);
+			texturedBoxes[box.texture].push_back(box);*/
 		}
 		void Draw(TextBox& box) {
 			if (!box.edited) {
 				box.at = -1;
-			} else
+			} else {
 				box.edited = false;
-			texts.push_back(box);
+			}
+
+			uiObjects.writeMemory<TextBox>('S', &box);
+
+			// texts.push_back(box);
 		}
 
 		void Edit(std::string& str, int& at) {
@@ -56,8 +67,6 @@ namespace engone {
 			while (chr = PollChar()) {
 				if (chr == GLFW_KEY_BACKSPACE) {
 					if (str.length() > 0 && at > 0) {
-						// 012345
-
 						str = str.substr(0, at - 1) + str.substr(at);
 						at--;
 					}
@@ -121,7 +130,7 @@ namespace engone {
 				}
 			} else {
 
-				if (inside({ box.x, box.y, box.font->GetWidth(box.text,box.h), box.h }, x, y)) {
+				if (inside({ box.x, box.y, box.font->getWidth(box.text,box.h), box.h }, x, y)) {
 					return true;
 				}
 			}
@@ -155,19 +164,101 @@ namespace engone {
 	};
 	void RenderUIPipeline() {
 		
-		//log::out << "pipe\n";
 		// setup
-		Shader* shad = GetAsset<Shader>("uiPipeline");
-		if (!shad) return;
+
+		Shader* guiShad = GetAsset<Shader>("gui");
+		if (!guiShad) return;
+
+		guiShad->bind();
+		guiShad->setVec2("uWindow", { GetWidth(), GetHeight() });
+
+		Shader* pipeShad = GetAsset<Shader>("uiPipeline");
+		if (!pipeShad) return;
+
+		pipeShad->bind();
+		pipeShad->setVec2("uWindow", { GetWidth(), GetHeight() });
 
 		EnableBlend();
-		shad->bind();
-		shad->setVec2("uWindow", { GetWidth(), GetHeight() });
 
+		// needs to be done once
 		for (int i = 0; i < 8;i++) {
-			shad->setInt("uSampler["+std::to_string(i)+std::string("]"), i);
+			pipeShad->setInt("uSampler["+std::to_string(i)+std::string("]"), i);
 		}
 		
+		// Method one
+		int floatIndex = 0;
+		std::unordered_map<Texture*, int> boundTextures;
+		char lastShader = 'P';
+		while (true) {
+			char type = uiObjects.readType();
+			if (type=='B') {
+				ui::Box* box = uiObjects.readItem<ui::Box>();
+
+				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x, box->y, 0, 0, box->r, box->g, box->b, box->a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x, box->y + box->h, 0, 0, box->r, box->g, box->b, box->a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h, 0, 0, box->r, box->g, box->b, box->a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y, 0, 0, box->r, box->g, box->b, box->a, -1 };
+
+				floatIndex++;
+
+			} else if(type=='T') {
+				ui::TexturedBox* box = uiObjects.readItem<ui::TexturedBox>();
+
+				int slot = boundTextures.size();
+				if (boundTextures.count(box->texture)) {
+					boundTextures[box->texture] = boundTextures.size();
+				} else {
+					slot = boundTextures[box->texture];
+				}
+
+				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->r, box->g, box->b, box->a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->r, box->g, box->b, box->a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->r, box->g, box->b, box->a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y,			box->u + box->uw,	box->v + box->vh,				box->r, box->g, box->b, box->a, (float)slot };
+
+				floatIndex++;
+
+			} else if(type=='S') {
+				ui::TextBox* box = uiObjects.readItem<ui::TextBox>();
+
+				if (lastShader == 'P')
+					guiShad->bind();
+				lastShader = 'G';
+				guiShad->setVec2("uPos", { box->x, box->y });
+				guiShad->setVec2("uSize", { 1, 1 });
+				guiShad->setVec4("uColor", box->r, box->g, box->b, box->a);
+				DrawString(box->font, box->text, false, box->h, 9999, box->h, box->at);
+
+				// don't continue with other stuff
+				continue;
+			}
+
+			if (floatIndex == MAX_RECT_BATCH || boundTextures.size() >= 7 || (type==0&&floatIndex!=0)) {
+
+				for (auto [texture, index] : boundTextures) {
+					texture->bind(index);
+				}
+
+				if (floatIndex != MAX_RECT_BATCH)
+					ZeroMemory(floatArray + floatIndex * 4 * VERTEX_SIZE, (MAX_RECT_BATCH - floatIndex) * 4 * VERTEX_SIZE * sizeof(float));
+
+				if(lastShader=='G')
+					pipeShad->bind();
+				lastShader = 'P';
+
+				boxBuffer.setData(MAX_RECT_BATCH * 4 * VERTEX_SIZE, floatArray);
+				vertexArray.draw(&indexBuffer);
+
+				floatIndex = 0;
+				boundTextures.clear();
+			}
+			if (type == 0)
+				break;
+		}
+		uiObjects.clear();
+
+#ifdef gone
+		// Method two
 		if (boxes.size() > 0) {
 			int boxIndex = 0;
 			for (int i = 0; i < boxes.size();i++) {
@@ -203,10 +294,10 @@ namespace engone {
 				for(int i=0;i<vector.size();i++){
 					ui::TexturedBox& box = vector[i];
 
-					((VERTEX*)&floatArray)[boxIndex * 4 + 0] = { box.x,			box.y,			box.u,			box.v,				box.r, box.g, box.b, box.a, (float)textureSlot };
-					((VERTEX*)&floatArray)[boxIndex * 4 + 1] = { box.x,			box.y + box.h,	box.u,			box.v + box.vh,		box.r, box.g, box.b, box.a, (float)textureSlot };
-					((VERTEX*)&floatArray)[boxIndex * 4 + 2] = { box.x + box.w, box.y + box.h,	box.u + box.uw,	box.v + box.vh,		box.r, box.g, box.b, box.a, (float)textureSlot };
-					((VERTEX*)&floatArray)[boxIndex * 4 + 3] = { box.x + box.w, box.y,			box.u + box.uw,	box.v,				box.r, box.g, box.b, box.a, (float)textureSlot };
+					((VERTEX*)&floatArray)[boxIndex * 4 + 0] = { box.x,			box.y,			box.u,			box.v + box.vh,				box.r, box.g, box.b, box.a, (float)textureSlot };
+					((VERTEX*)&floatArray)[boxIndex * 4 + 1] = { box.x,			box.y + box.h,	box.u,			box.v,				box.r, box.g, box.b, box.a, (float)textureSlot };
+					((VERTEX*)&floatArray)[boxIndex * 4 + 2] = { box.x + box.w, box.y + box.h,	box.u + box.uw,	box.v,				box.r, box.g, box.b, box.a, (float)textureSlot };
+					((VERTEX*)&floatArray)[boxIndex * 4 + 3] = { box.x + box.w, box.y,			box.u + box.uw,	box.v + box.vh,				box.r, box.g, box.b, box.a, (float)textureSlot };
 					
 					/*for (int i = 0; i < 4;i++) {
 						log::out << floatArray[boxIndex * VERTEX_SIZE * 4 + i * VERTEX_SIZE+2] << " " << floatArray[boxIndex * VERTEX_SIZE * 4 + i * VERTEX_SIZE+3] << "\n";
@@ -254,5 +345,6 @@ namespace engone {
 
 			texts.clear();
 		}
+#endif
 	}
 }

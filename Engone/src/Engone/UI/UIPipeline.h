@@ -45,9 +45,7 @@ namespace engone {
 			int at=-1;
 			bool edited = false;
 		};
-		struct Circle {
-			float x, y, r;
-		};
+
 		// add a rectangle to the pipeline
 		void Draw(Box box);
 		void Draw(TexturedBox box);

@@ -6,8 +6,8 @@
 
 namespace engone {
 
-	std::map<std::string, std::map<std::string, std::string>> langs;
-	std::string currentLang = "english";
+	static std::map<std::string, std::map<std::string, std::string>> langs;
+	static std::string currentLang = "english";
 	void LLoadLang(std::string path) {
 		std::vector<std::string> list;
 		FileReport err = ReadTextFile("assets/languages/" + path + ".txt", list);

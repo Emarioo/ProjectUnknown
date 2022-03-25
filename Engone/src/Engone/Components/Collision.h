@@ -8,8 +8,8 @@ namespace engone {
 		ColliderAsset* asset;
 		Entity entity;
 
+		glm::mat4 matrix;
 		glm::vec3 position;
-		glm::quat rotation;
 		glm::vec3 scale;
 	};
 }

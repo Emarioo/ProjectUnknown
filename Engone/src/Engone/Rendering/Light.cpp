@@ -3,16 +3,16 @@
 #include "Light.h"
 
 namespace engone {
-	void Light::Bind(Shader* shader, int index) {
+	void Light::bind(Shader* shader, int index) {
 
 	}
-	void DirLight::Bind(Shader* shader, int index) {
+	void DirLight::bind(Shader* shader, int index) {
 		shader->setVec3("uDirLight.ambient", ambient);
 		shader->setVec3("uDirLight.diffuse", diffuse);
 		shader->setVec3("uDirLight.specular", specular);
 		shader->setVec3("uDirLight.direction", direction);
 	}
-	void PointLight::Bind(Shader* shader, int index) {
+	void PointLight::bind(Shader* shader, int index) {
 		std::string u = "uPointLights[" + index + (std::string)"].";
 		shader->setVec3(u + "ambient", ambient);
 		shader->setVec3(u + "diffuse", diffuse);
@@ -22,7 +22,7 @@ namespace engone {
 		shader->setFloat(u + "linear", linear);
 		shader->setFloat(u + "quadratic", quadratic);
 	}
-	void SpotLight::Bind(Shader* shader, int index) {
+	void SpotLight::bind(Shader* shader, int index) {
 		std::string u = "uSpotLights[" + index + (std::string)"].";
 		shader->setVec3(u + "ambient", ambient);
 		shader->setVec3(u + "diffuse", diffuse);

@@ -37,7 +37,7 @@ namespace engone {
 	}
 	void DelObject(const std::string& name) {
 		for (int i = 0; i < gameObjects.size(); i++) {
-			if (gameObjects[i]->GetName() == name) {
+			if (gameObjects[i]->getName() == name) {
 				gameObjects.erase(gameObjects.begin() + i);
 				break;
 			}
@@ -48,7 +48,7 @@ namespace engone {
 	}
 	GameObject* GetObjectByName(const std::string& name) {
 		for (GameObject* n : gameObjects) {
-			if (n->GetName() == name) {
+			if (n->getName() == name) {
 				return n;
 			}
 		}

@@ -18,6 +18,77 @@ namespace engone {
 	//The time since epoch in seconds
 	double GetSystemTime();
 
+	// A vector but you can have differently sized classes and structs.
+	class ItemVector {
+	private:
+		char* data = nullptr;
+		int maxSize = 0;
+		int writeIndex = 0;
+		int readIndex = 0;
+
+	public:
+		ItemVector(int size = 0) {
+			if (size != 0) {
+				data = (char*)malloc(size);
+				if (data)
+					maxSize = size;
+				else
+					log::out << log::RED << "failed allocating memory\n";
+			}
+		}
+
+		template<class T>
+		void writeMemory(char type, void* ptr) {
+			int itemSize = sizeof(T);
+			if (maxSize < writeIndex + sizeof(char) + itemSize) {
+				if (maxSize == 0)
+					maxSize = 5;
+
+				if(maxSize*2<writeIndex+sizeof(char)+itemSize) {
+					maxSize += (sizeof(char) + itemSize)*2;
+				} else {
+					maxSize *= 2;
+				}
+
+				char* newPtr = (char*)realloc(data, maxSize);
+				if (newPtr) {
+					data = newPtr;
+				} else {
+					maxSize = 0;
+					log::out << log::RED << "failed reallocating memory\n";
+					return;
+				}
+			}
+			*(data + writeIndex) = type;
+			std::memcpy(data + writeIndex + sizeof(char), ptr, itemSize);
+			writeIndex += sizeof(char) + itemSize;
+		}
+		char readType() {
+			if (writeIndex < readIndex + sizeof(char)) {
+				return 0;
+			}
+
+			char type = *(data + readIndex);
+			readIndex += sizeof(char);
+			return type;
+		}
+		template<class T>
+		T* readItem() {
+			if (writeIndex < readIndex + sizeof(T)) {
+				log::out << "reached end of HeapMemory\n";
+				return nullptr;
+			}
+
+			char* ptr = data + readIndex;
+			readIndex += sizeof(T);
+			return (T*)ptr;
+		}
+		void clear() {
+			writeIndex = 0;
+			readIndex = 0;
+		}
+	};
+
 	class Timer {
 	private:
 		double time;

@@ -18,20 +18,22 @@ namespace engone {
 			entityMax = 0;
 			entitySize = 0;
 			entityCount = 0;
-			free(data);
+			if(data)
+				free(data);
 		}
 		int componentSizes[32];
 		int entityCount = 0, entityMax=0;
 		int entitySize = 0;
 		std::vector<Entity*> entities;
-		char* data=nullptr;// not an array of components. it is an array of specific components in a specific order
+		std::vector<int> deletedSpots;
+		char* data = nullptr; // an array of specific components in a specific order
 		// example: transform, physics | transform, physics...
 		
 		bool add(Entity* entity);
+		bool remove(Entity* entity);
 
 		template <class T>
 		T* getComponent(int index) {
-			//log::out << componentMask << " - " << (1<<((int)T::MASK-1)) << "\n";
 			if (has(T::ID)) {
 				int typeIndex = ((int)T::ID) - 1;
 				return (T*)(data + index * entitySize + componentSizes[typeIndex]);
@@ -70,15 +72,29 @@ namespace engone {
 		bool next() {
 			if (collection->stacks.size()==0)
 				return false;
-			index++;
-			if (index == collection->stacks[stackIndex]->entityCount) {
-				index = 0;
-				stackIndex++;
-			}
-			if (stackIndex == collection->stacks.size()) {
-				index = -1; // Reset values for reusability
-				stackIndex = 0;
-				return false;
+			
+			while (true) {
+				index++;
+				bool cont = false;
+				for (int i = 0; i < collection->stacks[stackIndex]->deletedSpots.size(); i++) {
+					int ind = collection->stacks[stackIndex]->deletedSpots[i];
+					if (index == ind) {
+						cont = true;
+						break;
+					}
+				}
+				if (cont) continue;
+				
+				if (index >= collection->stacks[stackIndex]->entityCount) {
+					index = 0;
+					stackIndex++;
+				}
+				if (stackIndex >= collection->stacks.size()) {
+					index = -1; // Reset values for reusability
+					stackIndex = 0;
+					return false;
+				}
+				return true;
 			}
 			return true;
 		}
@@ -86,10 +102,12 @@ namespace engone {
 			return next();
 		}
 
+		// will crash if next hasn't been called before
 		template<class T>
 		T* get() {
 			return collection->stacks[stackIndex]->getComponent<T>(index);
 		}
+		// will crash if next hasn't been called before
 		Entity getEntity() {
 			return {collection,collection->stacks[stackIndex]->componentSizes,
 				collection->stacks[stackIndex]->data + 
@@ -98,9 +116,11 @@ namespace engone {
 	};
 
 	// Adds the entity to the entity component system, also allocates memory for entity
-	void AddEntity(Entity* entity);
+	bool AddEntity(Entity* entity);
+	bool RemoveEntity(Entity* entity);
 	// Adds the system to entity component system.
 	void AddSystem(System* system);
+	bool RemoveSystem(System* system);
 		
 	void RunUpdateSystems(float delta);
 	void RunCollisionSystems(Collider& c1, Collider& c2);

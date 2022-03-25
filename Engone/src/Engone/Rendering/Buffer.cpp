@@ -25,6 +25,7 @@ namespace engone {
 			glBufferSubData(GL_ARRAY_BUFFER, offset, _floatCount*sizeof(float), data);
 		} else {
 			log::out <<log::RED<< "VertexBuffer: byteSize is limited to "<< _floatCount <<"\n";
+			return;
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}

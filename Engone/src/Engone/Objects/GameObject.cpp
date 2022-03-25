@@ -10,10 +10,10 @@ namespace engone {
 		//physics.position = { x,y,z };
 	}
 
-	void GameObject::SetName(std::string name) {
+	void GameObject::setName(std::string name) {
 		this->m_name = name;
 	}
-	std::string& GameObject::GetName() {
+	std::string& GameObject::getName() {
 		return m_name;
 	}
 	/*void GameObject::SetPosition(glm::vec3 v) {

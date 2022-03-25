@@ -6,9 +6,9 @@ namespace engone {
 	class FrameBuffer {
 	public:
 		FrameBuffer();
-		void Init();
-		void Bind();
-		void Unbind();
+		void init();
+		void bind();
+		void unbind();
 
 		unsigned int fbo;
 		unsigned int texture;

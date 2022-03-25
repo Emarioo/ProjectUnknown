@@ -2,8 +2,6 @@
 
 #include "Gnorg.h"
 
-#include "Engone/Keyboard.h"
-
 Gnorg::Gnorg(float x, float y, float z) : GameObject("Gnorg",x,y,z) {
 	/*
 	renderComponent.SetAnim("goblin_slash");

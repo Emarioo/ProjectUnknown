@@ -7,8 +7,8 @@ public:
 	glm::vec3 velocity;
 	glm::vec3 rotation;
 
-	void SetPosition(float x, float y, float z);
-	void SetPosition(glm::vec3 v);
-	void SetRotation(float x, float y, float z);
-	void SetRotation(glm::vec3 v);
+	void setPosition(float x, float y, float z);
+	void setPosition(glm::vec3 v);
+	void setRotation(float x, float y, float z);
+	void setRotation(glm::vec3 v);
 };

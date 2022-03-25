@@ -11,18 +11,30 @@
 
 #include "GLFW/glfw3.h"
 
-Player::Player() : engone::Entity(engone::ComponentEnum::Transform|engone::ComponentEnum::Physics|
-	engone::ComponentEnum::MeshRenderer) {
-	
-}
 void Player::Init() {
-	engone::MeshRenderer* r = getComponent<engone::MeshRenderer>();
-	r->asset = engone::GetAsset<engone::MeshAsset>("Player/Stick-N");
+	engone::ModelRenderer* r = getComponent<engone::ModelRenderer>();
+	r->asset = engone::GetAsset<engone::ModelAsset>("PlayerAttack/PlayerAttack");
+
+	engone::Animator* a = getComponent<engone::Animator>();
+	a->asset = r->asset;
+
 	engone::Physics* p = getComponent<engone::Physics>();
 	p->movable = true;
 	p->renderCollision = true;
 }
 void Player::OnUpdate(float delta) {
+	engone::Animator* a = getComponent<engone::Animator>();
+	engone::ModelRenderer* r = getComponent<engone::ModelRenderer>();
+	engone::Transform* t = getComponent<engone::Transform>();
+	if (a) {
+		if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+			a->Enable("PlayerAttack", "SwingAnim", { false, 1, 1 });
+		}
+		a->Update(delta);
+	}
+
+	//t->rotation.y = engone::GetCamera()->rotation.y;
+
 	Movement(delta);
 
 	if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
@@ -32,13 +44,12 @@ void Player::OnUpdate(float delta) {
 		
 	}
 }
-//void Player::OnCollision(engone::Collider& my, engone::Collider& their) {
-//	engone::log::out << my.asset->baseName << " " << their.asset->baseName << "\n";
-//	// if sword collider hit a body deal damage to gameobject if possible
-//	if (true) {
-//		
-//	}
-//}
+void Player::OnCollision(engone::Collider& my, engone::Collider& their) {
+	// if sword collider hit a body deal damage to gameobject if possible
+	if (my.asset->baseName=="Damage"&&their.asset->baseName=="Target") {
+		//engone::log::out << "Big damage\n";
+	}
+}
 glm::vec3 Player::Movement(float delta) {
 	using namespace engone;
 	Camera* camera = GetCamera();

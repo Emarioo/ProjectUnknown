@@ -9,11 +9,12 @@ private:
 	float animSpeed = 1.7;
 
 public:
-	Player();
+	Player() : engone::Entity(engone::Transform::ID | engone::Physics::ID |
+		engone::ModelRenderer::ID | engone::Animator::ID) {};
 
 	void Init() override;
 	void OnUpdate(float delta) override;
-	//void OnCollision(engone::Collider& my, engone::Collider& their) override;
+	void OnCollision(engone::Collider& my, engone::Collider& their) override;
 	glm::vec3 Movement(float delta);
 
 	// Movement and camera

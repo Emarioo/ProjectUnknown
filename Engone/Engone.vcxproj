@@ -35,7 +35,6 @@
     <ClInclude Include="src\Engone\Engone.h" />
     <ClInclude Include="src\Engone\Handlers\AssetHandler.h" />
     <ClInclude Include="src\Engone\Handlers\FileHandler.h" />
-    <ClInclude Include="src\Engone\Handlers\ObjectHandler.h" />
     <ClInclude Include="src\Engone\Objects\GameObject.h" />
     <ClInclude Include="src\Engone\Objects\Camera.h" />
     <ClInclude Include="src\Engone\Rendering\Light.h" />
@@ -44,11 +43,8 @@
     <ClInclude Include="src\Engone\Sound\SoundHandler.h" />
     <ClInclude Include="src\Engone\Sound\SoundSource.h" />
     <ClInclude Include="src\Engone\Sound\SoundStream.h" />
-    <ClInclude Include="src\Engone\UI\UIPipeline.h" />
     <ClInclude Include="src\Engone\Utility\Utilities.h" />
     <ClInclude Include="src\Engone\Utility\GameOptions.h" />
-    <ClInclude Include="src\Engone\Keyboard.h" />
-    <ClInclude Include="src\Engone\Languages.h" />
     <ClInclude Include="src\Engone\Window.h" />
     <ClInclude Include="src\gonpch.h" />
     <ClInclude Include="src\vendor\Libaudio.h" />
@@ -65,14 +61,12 @@
     <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
     <ClCompile Include="src\Engone\Components\EntitySystem.cpp" />
     <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
-    <ClCompile Include="src\Engone\Handlers\ObjectHandler.cpp" />
     <ClCompile Include="src\Engone\Components\Entity.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Server\NetworkHandler.cpp" />
     <ClCompile Include="src\Engone\UI\GuiHandler.cpp" />
-    <ClCompile Include="src\Engone\UI\UIPipeline.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -91,9 +85,10 @@
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
     <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
     <ClCompile Include="src\Engone\Utility\GameOptions.cpp" />
-    <ClCompile Include="src\Engone\Utility\Keyboard.cpp" />
-    <ClCompile Include="src\Engone\Utility\Languages.cpp" />
     <ClCompile Include="src\vendor\Libaudio.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Engone\Shaders\renderer.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -172,12 +167,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -194,12 +190,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -216,12 +213,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -238,12 +236,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>ENGONE_GLFW</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>src;src/vendor;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\asio-1.20.0\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

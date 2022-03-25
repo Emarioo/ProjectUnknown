@@ -11,9 +11,9 @@ namespace engone {
 
 		friend class EntityStack;
 
-	public:
 		int* componentSizes = nullptr;// pointing to an array in entityStack;
 		char* stackPtr = nullptr;// pointing to component memory in EntityStack
+	public:
 
 		uint64_t entityId=0;
 
@@ -22,7 +22,6 @@ namespace engone {
 
 		template <class T>
 		T* getComponent() {
-			//log::out << componentMask << " - " << (int)T::MASK << "\n";
 			if (has(T::ID)) {
 				if (!stackPtr)
 					return nullptr;

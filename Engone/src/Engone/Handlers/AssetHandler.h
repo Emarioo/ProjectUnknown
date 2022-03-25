@@ -326,7 +326,7 @@ namespace engone {
 
 		std::string baseName;
 		std::string filePath;
-		std::string GetRootPath(){
+		std::string getRootPath(){
 			int first = filePath.find_first_of("/");
 			int last = filePath.find_last_of("/");
 
@@ -337,7 +337,7 @@ namespace engone {
 				return filePath.substr(7, last-6);
 			}
 		}
-		void SetBaseName(const std::string& name)
+		void setBaseName(const std::string& name)
 		{
 			int last = name.find_last_of("/");
 			if(last!=-1)
@@ -360,16 +360,16 @@ namespace engone {
 		template <class T>
 		T* cast() { return reinterpret_cast<T*>(this); }
 
-		virtual void Load(const std::string& path) { std::cout << "virtual func of asset\n"; };
+		virtual void load(const std::string& path) { std::cout << "virtual func of asset\n"; };
 	};
 	class Texture : public Asset
 	{
 	public:
 		static const AssetType TYPE = AssetType::Texture;
 		Texture() { type == AssetType::Texture; };
-		Texture(const std::string& path) : Asset(path + ".png") { type = AssetType::Texture; Load(filePath); };
-		void Load(const std::string& path) override;
-		void Init(int w, int h, void* data);
+		Texture(const std::string& path) : Asset(path + ".png") { type = AssetType::Texture; load(filePath); };
+		void load(const std::string& path) override;
+		void init(int w, int h, void* data);
 
 		void subData(int x, int y, int w, int h, void* data);
 		void bind(unsigned int slot=0);
@@ -387,11 +387,11 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Shader;
 		Shader() { type = AssetType::Shader; }
-		Shader(const char* source) { Init(source); type = AssetType::Shader; }
-		Shader(const std::string& path) : Asset(path + ".glsl") { Load(filePath); type = AssetType::Shader; }
+		Shader(const char* source) { init(source); type = AssetType::Shader; }
+		Shader(const std::string& path) : Asset(path + ".glsl") { load(filePath); type = AssetType::Shader; }
 		
-		void Load(const std::string& path) override;
-		void Init(const std::string& source);
+		void load(const std::string& path) override;
+		void init(const std::string& source);
 
 		void bind();
 		void setInt(const std::string& name, int i);
@@ -405,10 +405,10 @@ namespace engone {
 
 	private:
 		unsigned int id;
-		unsigned int CreateShader(const std::string& vert, const std::string& frag);
-		unsigned int CompileShader(const unsigned int, const std::string& src);
+		unsigned int createShader(const std::string& vert, const std::string& frag);
+		unsigned int compileShader(const unsigned int, const std::string& src);
 
-		unsigned int GetUniformLocation(const std::string& name);
+		unsigned int getUniformLocation(const std::string& name);
 		std::unordered_map<std::string, unsigned int> uniLocations;
 		int section[3]{ 1,1,1 };
 	};
@@ -417,10 +417,10 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Font;
 		Font() { type = AssetType::Font; };
-		Font(const std::string& path) : Asset(path) { type = AssetType::Font; Load(filePath); };
-		void Load(const std::string& path) override;
+		Font(const std::string& path) : Asset(path) { type = AssetType::Font; load(filePath); };
+		void load(const std::string& path) override;
 
-		float GetWidth(const std::string& str, float height);
+		float getWidth(const std::string& str, float height);
 
 		Texture texture;
 		int charWid[256];
@@ -435,8 +435,8 @@ namespace engone {
 		static const AssetType TYPE = AssetType::Material;
 
 		MaterialAsset() { type = AssetType::Material; };
-		MaterialAsset(const std::string& path) : Asset(path + ".material") { type = AssetType::Material; Load(filePath); };
-		void Load(const std::string& path) override;
+		MaterialAsset(const std::string& path) : Asset(path + ".material") { type = AssetType::Material; load(filePath); };
+		void load(const std::string& path) override;
 
 		Texture* diffuse_map=nullptr;
 		glm::vec3 diffuse_color = { 1,1,1 };
@@ -465,8 +465,8 @@ namespace engone {
 	{
 	public:
 		FCurve();
-		Keyframe& Get(int index);
-		void Add(Keyframe keyframe);
+		Keyframe& get(int index);
+		void add(Keyframe keyframe);
 
 		std::vector<Keyframe> frames;
 	};
@@ -475,22 +475,22 @@ namespace engone {
 		PosX = 0, PosY, PosZ,
 		RotX, RotY, RotZ, // Not used. Deprecated
 		ScaX, ScaY, ScaZ,
-		QuaX, QuaY, QuaZ, QuaW
+		QuaX, QuaY, QuaZ, QuaW,
 	};
 	class Channels
 	{
 	public:
 		Channels() {}
-		FCurve& Get(ChannelType channel);
+		FCurve& get(ChannelType channel);
 		/*
 		"channel" is what type of value the keyframes will be changing. Example PosX.
 		Create a "FCurve" object and see the "Add" function for more details.
 		*/
-		void Add(ChannelType channel, FCurve fcurve);
+		void add(ChannelType channel, FCurve fcurve);
 		/*
 		Add values to the references given in the argument
 		*/
-		void GetValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannel);
+		void getValues(int frame, float blend, glm::vec3& pos, glm::vec3& euler, glm::vec3& scale, glm::mat4& quater, short* usedChannel);
 		std::unordered_map<ChannelType, FCurve> fcurves;
 	};
 	class AnimationAsset : public Asset
@@ -498,29 +498,28 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Animation;
 		AnimationAsset() { type = AssetType::Animation; };
-		AnimationAsset(const std::string& path) : Asset(path+".animation") { type = AssetType::Animation; Load(filePath); };
-		void Load(const std::string& path) override;
+		AnimationAsset(const std::string& path) : Asset(path+".animation") { type = AssetType::Animation; load(filePath); };
+		void load(const std::string& path) override;
 
-		Channels& Get(unsigned short i);
+		Channels& get(unsigned short i);
 		/*
 		objectIndex is the index of the bone. Also known as the vertex group in blender.
 		Create a "Channels" object and see the "Add" function for more details.
 		*/
-		void AddObjectChannels(int objectIndex, Channels channels);
+		void addObjectChannels(int objectIndex, Channels channels);
 		/*
 		Use this to create an animation by code.
 		See the "AddObjectChannels" function for more details.
 		*/
-		void Modify(unsigned short startFrame, unsigned short endFrame);
+		void modify(unsigned short startFrame, unsigned short endFrame);
 		/*
 		Use this to create an animation by code.
 		"speed" is 24 by default. Speed can also be changed in the animator.
 		See the "AddObjectChannels" function for more details.
 		*/
-		void Modify(unsigned short startFrame, unsigned short endFrame, float speed);
-		/*
-		
-		*/
+
+		void modify(unsigned short startFrame, unsigned short endFrame, float speed);
+
 		std::unordered_map<unsigned short, Channels> objects;
 
 		uint16_t frameStart = 0;
@@ -532,8 +531,8 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Mesh;
 		MeshAsset() { type = AssetType::Mesh; };
-		MeshAsset(const std::string& path) : Asset(path+".mesh") { type = AssetType::Mesh; Load(filePath); };
-		void Load(const std::string& path) override;
+		MeshAsset(const std::string& path) : Asset(path+".mesh") { type = AssetType::Mesh; load(filePath); };
+		void load(const std::string& path) override;
 
 		enum class MeshType : char
 		{
@@ -542,6 +541,7 @@ namespace engone {
 		};
 
 		MeshType meshType = MeshType::Normal;
+		static const int maxMaterials=4;
 		std::vector<MaterialAsset*> materials;
 		VertexBuffer vertexBuffer;
 		IndexBuffer indexBuffer;
@@ -553,8 +553,8 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Collider;
 		ColliderAsset() { type = AssetType::Collider; };
-		ColliderAsset(const std::string& path) : Asset(path+".collider") {type = AssetType::Collider; Load(filePath); };
-		void Load(const std::string& path) override;
+		ColliderAsset(const std::string& path) : Asset(path+".collider") {type = AssetType::Collider; load(filePath); };
+		void load(const std::string& path) override;
 
 		enum class Type : char {
 			Sphere,
@@ -594,8 +594,8 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Armature;
 		ArmatureAsset() { type = AssetType::Armature; };
-		ArmatureAsset(const std::string& path) : Asset(path + ".armature") { type = AssetType::Armature; Load(filePath); };
-		void Load(const std::string& path) override;
+		ArmatureAsset(const std::string& path) : Asset(path + ".armature") { type = AssetType::Armature; load(filePath); };
+		void load(const std::string& path) override;
 
 		std::vector<Bone> bones;
 
@@ -617,8 +617,8 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Model;
 		ModelAsset() { type = AssetType::Model; };
-		ModelAsset(const std::string& path) : Asset(path + ".model") { type = AssetType::Model; Load(filePath); };
-		void Load(const std::string& path) override;
+		ModelAsset(const std::string& path) : Asset(path + ".model") { type = AssetType::Model; load(filePath); };
+		void load(const std::string& path) override;
 
 		/*
 		List of mesh, collider and armature transforms.
@@ -629,12 +629,12 @@ namespace engone {
 		std::vector<AnimationAsset*> animations;
 		
 		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
-		void GetParentTransforms(Animator* animator, std::vector<glm::mat4>& mats);
+		void getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats);
 
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		void GetArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
+		void getArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
 
 	};
 
@@ -656,7 +656,7 @@ namespace engone {
 	T* AddAsset(const std::string& name, const std::string& path) {
 		//if (name.empty()||path.empty()) return;
 		T* t = new T(path);
-		t->SetBaseName(name);
+		t->setBaseName(name);
 		return AddAsset<T>(name, t);
 	}
 	/*
