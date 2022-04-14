@@ -1,6 +1,5 @@
-#include "gonpch.h"
 
-#if ENGONE_AL
+#ifdef USE_AL
 
 #include "SoundHandler.h"
 

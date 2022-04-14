@@ -29,7 +29,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SD:\Developement\VisualStudio\ProjectUnknown\Engine\src\vendor\glm -BD:\Developement\VisualStudio\ProjectUnknown\Engine\src\vendor\glm\out\build\x64-Debug
+  command = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" --regenerate-during-build -SD:\Backup\VisualStudio\ProjectUnknown\Engone\src\vendor\glm -BD:\Backup\VisualStudio\ProjectUnknown\Engone\src\vendor\glm\out\build\x64-Debug
   description = Re-running CMake...
   generator = 1
 

@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "EventHandler.h"
 #include "Logger.h"
@@ -15,17 +14,15 @@ namespace engone
 	};
 	static int mouseX, mouseY;
 	static float scrollX, scrollY;
-	static std::unordered_map<short, Keybinding> keybindings;
+	static std::unordered_map<uint16_t, Keybinding> keybindings;
 	static std::vector<Listener*> listeners;
 	static std::vector<Event> events;
 	static std::vector<Input> inputs;
 
-	EventType operator|(EventType a, EventType b)
-	{
+	EventType operator|(EventType a, EventType b) {
 		return (EventType)((char)a | (char)b);
 	}
-	bool operator==(EventType a, EventType b)
-	{
+	bool operator==(EventType a, EventType b) {
 		return ((char)a & (char)b) > 0;
 	}
 
@@ -34,8 +31,7 @@ namespace engone
 		: eventTypes(eventTypes), run(f){}
 	Listener::Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f), priority(priority){}
-	void SetInput(int code, bool down, bool isGlfw=true)
-	{
+	void SetInput(int code, bool down, bool isGlfw=true) {
 		for (int i = 0; i < inputs.size(); i++) {
 			if (inputs[i].code == code) {
 				if (down) {
@@ -54,8 +50,7 @@ namespace engone
 		if (down)
 			inputs.push_back({ code, down, 1});
 	}
-	void ExecuteListeners()
-	{
+	void ExecuteListeners() {
 		for (int j = 0; j < events.size(); j++) {
 			char breaker = 0; // if a flag is simular it will break
 			for (int i = 0; i < listeners.size(); i++) {
@@ -255,7 +250,7 @@ namespace engone
 				inputs[i].pressed--;
 		}
 	}
-	bool IsKeybindingDown(short id)
+	bool IsKeybindingDown(uint16_t id)
 	{
 		if (keybindings.count(id)) {
 			Keybinding& bind = keybindings[id];
@@ -270,7 +265,7 @@ namespace engone
 		}
 		return false;
 	}
-	bool IsKeybindingPressed(short id)
+	bool IsKeybindingPressed(uint16_t id)
 	{
 		if (keybindings.count(id)) {
 			Keybinding& bind = keybindings[id];
@@ -285,7 +280,7 @@ namespace engone
 		}
 		return false;
 	}
-	void AddKeybinding(short id, int key0, int key1, int key2)
+	void AddKeybinding(uint16_t id, int key0, int key1, int key2)
 	{
 		keybindings[id] = { key0,key1,key2 };
 	}

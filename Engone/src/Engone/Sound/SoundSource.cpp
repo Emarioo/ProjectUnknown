@@ -1,5 +1,5 @@
-#include "gonpch.h"
 
+#ifdef USE_AL
 #include "SoundSource.h";
 
 namespace engone {
@@ -67,3 +67,4 @@ namespace engone {
 		return AL_STOPPED;
 	}
 }
+#endif

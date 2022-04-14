@@ -1,6 +1,4 @@
-#include "gonpch.h"
 
-//#if ENGONE_GLFW
 #include "FrameBuffer.h"
 #include <GL/glew.h>
 

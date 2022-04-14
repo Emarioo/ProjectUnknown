@@ -1,179 +1,134 @@
-#include "gonpch.h"
-
 #include "NetworkHandler.h"
 
-namespace engone
-{
+namespace engone {
+
 	static asio::io_context io_context;
 	static std::thread* thrContext;
-	static bool io_context_initialized=false;
-	static void InitIOContext()
-	{
-		if (!io_context_initialized) {
-			io_context_initialized = true;
-			thrContext = new std::thread([&]() { io_context.run(); });
+	static bool running_context=false;
+	void InitIOContext() {
+		if (running_context) {
+			return;
 		}
+		running_context = true;
+
+		if (thrContext) {
+			if (thrContext->joinable()) {
+				thrContext->join();
+				delete thrContext;
+			}
+		}
+		thrContext = new std::thread([&]() {
+			io_context.run();
+			io_context.restart();
+			running_context = false;
+			std::cout << "stopped context" << "\n";
+			});
+
+	}
+	uint32_t lastUUID = 0;
+	uint32_t GenerateUUID() {
+		return ++lastUUID;
 	}
 
-	Connection::Connection(asio::ip::tcp::socket socket)
-		: socket(std::move(socket))
-	{
+	bool Connection::forcedShutdown(asio::error_code ec) {
 
-	}
-	Server::Server() : acceptor(io_context)
-	{
+		if (ec.value() == 0 || // manual
+			ec.value() == 10054 || //
+			ec.value() == 10009 || //
+			ec.value() == 995 || // program requested stop
+			ec.value() == 10053 || // established connection broken - disconnect was called in onConnect func? 
+			ec.value() == 1236 || // 
+			ec.value() == 995 || // socket.cancel
+			ec.value() == 2) // end of file
+		{
+			//std::cout << "forced " << this << " uuid " << m_uuid << "\n";
 
-	}
-	void Server::SetConnect(std::function<bool()> onConnect)
-	{
-		this->onConnect = onConnect;
-	}
-	void Server::OnConnect()
-	{
-		/*
-		acceptor.async_accept([=](std::error_code ec, asio::ip::tcp::socket socket) {
-			if (!ec) {
-				std::cout << "connect " << socket.remote_endpoint() << "\n";
-
-				bool accept = onConnect();
-				if (accept) {
-					Connection* con = new Connection(std::move(socket));
-
-					connections.push_back(con);
-
-					OnReceive(con->socket);
+			if (!hasWork()) {
+				if (m_server) {
+					m_server->_disconnect(m_uuid);
+				}
+				if (m_client) {
+					m_client->_disconnect();
 				}
 			}
-			else {
-				std::cout << "error " << ec.message()<<" "<<ec.value() << "\n";
-			}
-			});
-		*/
-	}
-	void Server::SetReceive(std::function<void(void*, uint32_t)> onReceive)
-	{
-		this->onReceive = onReceive;
-	}
-	void Server::OnReceive(asio::ip::tcp::socket& socket)
-	{
-		/*
-		asio::async_read(socket,asio::buffer(buffer.data(), buffer.size()),
-			[&](std::error_code ec, std::size_t length) {
-				if (!ec) {
-					//std::cout << "\n\nRead " << length << " bytes\n\n";
-					for (int i = 0; i < length; i++) {
-						//std::cout << vBuffer[i];
-					}
-					onReceive(buffer.data(), length);
-					OnReceive(socket);
-				}
-			});
-		*/
-	}
-	void Server::Start(const std::string& port)
-	{
-		buffer.reserve(1*1024);
-		open = true;
-		OnConnect();
-
-		InitIOContext();
-		
-		std::cout << "Started?\n";
-	}
-	void Server::Send(void* data, uint32_t size)
-	{
-
-	}
-	void Server::Update(uint32_t maxMessages)
-	{
-
-	}
-	Client::Client()
-		: socket(io_context)
-	{
-
-	}
-	void Client::SetReceive(std::function<void(void*,uint32_t)> onReceive)
-	{
-		this->onReceive = onReceive;
-	}
-	void Client::OnReceive(asio::ip::tcp::socket& socket)
-	{
-		/*
-		asio::async_read(socket, asio::buffer(buffer.data(), buffer.size()),
-			[&](std::error_code ec, std::size_t length) {
-				if (!ec) {
-					//std::cout << "\n\nRead " << length << " bytes\n\n";
-					for (int i = 0; i < length; i++) {
-						//std::cout << vBuffer[i];
-					}
-					onReceive(buffer.data(), length);
-					OnReceive(socket);
-				}
-				else {
-
-				}
-			});
-		*/
-	}
-	void Client::Connect(const std::string& ip, uint16_t port)
-	{
-		buffer.reserve(1 * 1024);
-
-		std::error_code ec;
-		asio::ip::tcp::endpoint endpoint(asio::ip::make_address(ip, ec), port);
-		/*
-		asio::async_connect(socket, endpoint, [&](std::error_code ec, asio::ip::tcp::endpoint enpoint) {
-			if (!ec) {
-				std::cout << "connected\n";
-				if (socket.is_open()) {
-					open = true;
-					OnReceive(socket);
-				}
-			}
-			else {
-				std::cout << "not connected\n";
-			}
-			});
-		*/
-		InitIOContext();
-	}
-	void Client::Send(void* data, uint32_t size)
-	{
-		std::error_code ec;
-		//asio::write(socket, asio::buffer(data, size), ec);
-	}
-
-	void InitNetwork()
-	{
-		Server server;
-		server.SetConnect([]() {
 
 			return true;
-			});
-		server.SetReceive([](void* data, uint32_t size) {
-			std::cout << "server receive\n";
-			});
-		server.Start("40001");
-
-		Client client;
-		client.SetReceive([](void* data, uint32_t size) {
-			std::cout << "client receive\n";
-			});
-		client.Connect("localhost", 40001);
-
-		std::string req =
-			"Here is your data sir.";
-
-		client.Send(req.data(), req.size());
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(20000));
-
-		std::cin.get();
+		}
+		return false;
 	}
-	void UninitNetwork()
-	{
-		io_context.stop();
-		if (thrContext->joinable()) thrContext->join();
+	void Connection::readBody() {
+		if (!m_socket.is_open())
+			return;
+		readingBody = true;
+		asio::async_read(m_socket, asio::buffer(m_buffer->m_data + MSG_HEADER_SIZE, m_buffer->size()),
+			[this](std::error_code ec, std::size_t length) {
+				readingBody = false;
+				if (ec) {
+					if (!forcedShutdown(ec))
+						std::cout << "readBody error " << ec.value() << " " << m_uuid << " " << ec.message() << "\n";
+				} else {
+
+					if (m_server) {
+						if (m_server->m_onReceive) {
+							m_server->m_onReceive(m_uuid, *m_buffer);
+							m_buffer->flush();
+						}
+					}
+					if (m_client) {
+						if (m_client->m_onReceive) {
+							m_client->m_onReceive(*m_buffer);
+							m_buffer->flush();
+						}
+					}
+					readHead();
+				}
+			});
+	}
+	void Connection::writeBody() {
+		if (!m_socket.is_open())
+			return;
+		writingBody = true;
+		asio::async_write(m_socket, asio::buffer(m_outMessages.front()->m_data + MSG_HEADER_SIZE, m_outMessages.front()->size()),
+			[this](std::error_code ec, std::size_t length) {
+				writingBody = false;
+				if (ec) {
+					if (!forcedShutdown(ec))
+						std::cout << "writeBody error "<< ec.value()<<" " << m_uuid << " " << ec.message() << "\n";
+				} else {
+
+					MessageBuffer* msg = m_outMessages.front();
+					msg->unshare();
+					m_outMessages.erase(m_outMessages.begin());
+					// delete message on client or server
+					if (m_client) {
+						for (int i = 0; i < m_client->m_outMessages.size(); i++) {
+							MessageBuffer* buf = m_client->m_outMessages[i];
+							if (buf == msg) {
+								if (!buf->isShared()) {
+									delete buf;
+									m_client->m_outMessages.erase(m_client->m_outMessages.begin() + i);
+								}
+								break;
+							}
+						}
+					}
+					if (m_server) {
+						for (int i = 0; i < m_server->m_outMessages.size(); i++) {
+							MessageBuffer* buf = m_server->m_outMessages[i];
+							if (buf == msg) {
+								if (!buf->isShared()) {
+									delete buf;
+									m_server->m_outMessages.erase(m_server->m_outMessages.begin() + i);
+								}
+								break;
+							}
+						}
+					}
+
+					if (m_outMessages.size() > 0) {
+						writeHead();
+					}
+				}
+			});
 	}
 }

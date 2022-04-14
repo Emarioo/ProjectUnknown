@@ -1,9 +1,9 @@
-#include "gonpch.h"
 
-#include "Handlers/FileHandler.h"
+#ifdef USE_AL
+#include "../Handlers/FileHandler.h"
 
 #include "SoundBuffer.h"
-#include "Libaudio.h"
+#include <vendor/Libaudio.h>
 
 bool al_check_error() {
 	ALenum err = alGetError();
@@ -60,3 +60,4 @@ namespace engone {
 		}
 	}
 }
+#endif

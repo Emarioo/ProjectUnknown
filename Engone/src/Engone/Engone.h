@@ -3,7 +3,7 @@
 #include "Rendering/Renderer.h"
 #include "Window.h"
 
-#include "UI/GuiHandler.h"
+//#include "UI/GuiHandler.h"
 //#include "UI/UIPipeline.h"
 #include "Sound/SoundHandler.h"
 #include "Utility/Utilities.h"

@@ -20,10 +20,12 @@ namespace engone {
 		None = 0,
 		UI = 1,
 		Game3D = 2,
+		Network = 3,
+		Sound = 4,
 	};
 
 	EngoneHint operator|(EngoneHint a, EngoneHint b);
-	bool operator==(EngoneHint a, EngoneHint b);
+	bool operator&(EngoneHint a, EngoneHint b);
 
 	EngoneHint GetEngoneHints();
 	void SetEngoneHints(EngoneHint hints);

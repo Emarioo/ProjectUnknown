@@ -6,7 +6,7 @@
 
 #include "Buffer.h"
 
-#include "Handlers/AssetHandler.h"
+#include "../Handlers/AssetHandler.h"
 
 #include "../GameState.h"
 
@@ -67,21 +67,24 @@ namespace engone {
 	void DrawLines();
 
 	namespace ui {
+		struct Color {
+			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
+		};
 		struct Box {
 			float x = 0, y = 0, w = 0, h = 0;
-			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
+			Color rgba;
 		};
 		struct TexturedBox {
 			Texture* texture;
 			float x = 0, y = 0, w = 0, h = 0;
 			float u = 0, v = 0, uw = 1.f, vh = 1.f;
-			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
+			Color rgba;
 		};
 		struct TextBox {
 			std::string text;
 			float x = 0, y = 0, h = 20;
 			Font* font = nullptr;
-			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
+			Color rgba;
 			int at = -1;
 			bool edited = false;
 		};

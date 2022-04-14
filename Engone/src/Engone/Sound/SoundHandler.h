@@ -1,6 +1,6 @@
 #pragma once
 
-#if ENGONE_AL
+#ifdef USE_AL
 #include "../Sound/SoundStream.h"
 
 namespace engone {

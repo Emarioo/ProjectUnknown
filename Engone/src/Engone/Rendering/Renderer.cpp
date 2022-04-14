@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "Renderer.h"
 #include "../Handlers/AssetHandler.h"
@@ -808,10 +807,10 @@ namespace engone {
 			if (type == 'B') {
 				ui::Box* box = uiObjects.readItem<ui::Box>();
 
-				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x, box->y, 0, 0, box->r, box->g, box->b, box->a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x, box->y + box->h, 0, 0, box->r, box->g, box->b, box->a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h, 0, 0, box->r, box->g, box->b, box->a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y, 0, 0, box->r, box->g, box->b, box->a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
 
 				floatIndex++;
 
@@ -825,10 +824,10 @@ namespace engone {
 					slot = boundTextures[box->texture];
 				}
 
-				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->r, box->g, box->b, box->a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->r, box->g, box->b, box->a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->r, box->g, box->b, box->a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y,			box->u + box->uw,	box->v + box->vh,				box->r, box->g, box->b, box->a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y,			box->u + box->uw,	box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
 
 				floatIndex++;
 
@@ -840,7 +839,7 @@ namespace engone {
 				lastShader = 'G';
 				guiShad->setVec2("uPos", { box->x, box->y });
 				guiShad->setVec2("uSize", { 1, 1 });
-				guiShad->setVec4("uColor", box->r, box->g, box->b, box->a);
+				guiShad->setVec4("uColor", box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a);
 				DrawString(box->font, box->text, false, box->h, 9999, box->h, box->at);
 
 				// don't continue with other stuff

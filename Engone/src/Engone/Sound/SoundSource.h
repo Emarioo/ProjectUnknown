@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef USE_AL
 #include "SoundBuffer.h"
 
 namespace engone {
@@ -26,3 +27,4 @@ namespace engone {
 		unsigned int id=0;
 	};
 }
+#endif

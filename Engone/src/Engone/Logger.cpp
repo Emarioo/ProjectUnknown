@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "Logger.h"
 

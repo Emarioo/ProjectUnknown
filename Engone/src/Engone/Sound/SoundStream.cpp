@@ -1,5 +1,4 @@
-#include "gonpch.h"
-
+#ifdef USE_AL
 #include "../Handlers/Filehandler.h"
 
 #include "SoundStream.h"
@@ -94,3 +93,4 @@ namespace engone {
 		}
 	}
 }
+#endif

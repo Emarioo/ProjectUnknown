@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "ObjectHandler.h"
 

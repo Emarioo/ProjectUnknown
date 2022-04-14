@@ -1,10 +1,8 @@
-#include "gonpch.h"
 
 #include "Engone.h"
 
-#include "glm/gtx/matrix_decompose.hpp"
-
-#include <assert.h>
+#include "EventHandler.h"
+#include "Handlers/AssetHandler.h"
 
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -43,7 +41,6 @@ namespace engone {
 
 	static int lastMouseX = -1, lastMouseY = -1;
 	static double cameraSensitivity = 0.1;
-
 
 	EventType FirstPerson(Event& e) {
 		if (lastMouseX != -1) {
@@ -86,13 +83,13 @@ namespace engone {
 		glEnable(GL_CULL_FACE);*/
 		//glEnable(GL_FRAMEBUFFER_SRGB);
 
-		if (GetEngoneHints()==EngoneHint::UI){
+		if (hints & EngoneHint::UI){
 			AddAsset<Shader>("gui", new Shader(guiShaderSource));
-			InitGui();
+			//InitGui();
 			//InitUIPipeline();
 			InitRenderer(EngoneHint::UI);
 		}
-		if (GetEngoneHints()==EngoneHint::Game3D) {
+		if (hints & EngoneHint::Game3D) {
 			AddAsset<Shader>("object", new Shader(objectSource));
 			AddAsset<Shader>("armature", new Shader(armatureSource));
 			AddAsset<Shader>("collision", new Shader(collisionSource));
@@ -107,6 +104,12 @@ namespace engone {
 			zNear = 0.1f;
 			zFar = 400.f;*/
 			//SetProjection(GetWidth() / GetHeight());
+		}
+		if (hints & EngoneHint::Network) {
+			
+		}
+		if (hints & EngoneHint::Sound) {
+
 		}
 
 		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
@@ -1017,89 +1020,92 @@ namespace engone {
 		EnableDepth();
 
 		if (GetWindow()->hasFocus()) {
-			glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 
 			//glClearColor(0.05f, 0.08f, 0.08f, 1);
 			glClearColor(0.15f, 0.18f, 0.18f, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glCullFace(GL_BACK);
-
-			// All this should be automated and customizable in the engine.
-			// Shadow stuff
-			/*
-			Shader* depth = GetAsset<Shader>("depth");
-			if (depth != nullptr) {
-				depth->Bind();
-				glCullFace(GL_BACK);
-				depth->SetMatrix("uLightMatrix", GetLightProj() * lightView);
-				glViewport(0, 0, 1024, 1024);
-				GetDepthBuffer().Bind();
-				glClear(GL_DEPTH_BUFFER_BIT);
-				RenderRawObjects(depth, lag);
-				GetDepthBuffer().Unbind();
-			}
-			*/
-			Shader* objectShader = GetAsset<Shader>("object");
-			if (objectShader != nullptr) {
-				objectShader->bind();
-
-				objectShader->setInt("shadow_map", 0);
-				objectShader->setMat4("uLightSpaceMatrix", GetLightProj() * lightView);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-
-				MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
-
-				for (int j = 0; j < asset->materials.size(); j++){// Maximum of 4 materials
-					asset->materials[j]->bind(objectShader, j);
+			if (GetEngoneHints() & EngoneHint::Game3D) {
+				// All this should be automated and customizable in the engine.
+				// Shadow stuff
+				glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
+				/*
+				Shader* depth = GetAsset<Shader>("depth");
+				if (depth != nullptr) {
+					depth->Bind();
+					glCullFace(GL_BACK);
+					depth->SetMatrix("uLightMatrix", GetLightProj() * lightView);
+					glViewport(0, 0, 1024, 1024);
+					GetDepthBuffer().Bind();
+					glClear(GL_DEPTH_BUFFER_BIT);
+					RenderRawObjects(depth, lag);
+					GetDepthBuffer().Unbind();
 				}
-				objectShader->setMat4("uTransform", glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)));
-				asset->vertexArray.draw(&asset->indexBuffer);
+				*/
+				Shader* objectShader = GetAsset<Shader>("object");
+				if (objectShader != nullptr) {
+					objectShader->bind();
 
-				RenderObjects(lag);
-
-				//objectShader->SetMatrix("uTransform", glm::mat4(1));
-				//testBuffer.Draw();
-			}/*
-			if (IsKeyDown(GLFW_KEY_K)) {
-				//std::cout << "yes\n";
-				SwitchBlendDepth(true);
-				Shader* experiment = GetAsset<Shader>("experiment");
-				if (experiment != nullptr) {
-					experiment->Bind();
-					experiment->SetInt("uTexture", 0);
-					glActiveTexture(GL_TEXTURE1);
+					objectShader->setInt("shadow_map", 0);
+					objectShader->setMat4("uLightSpaceMatrix", GetLightProj() * lightView);
+					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
-					cont.Draw();
-				}
-			}*/
 
-			RenderRenderer();
+					MeshAsset* asset = GetAsset<MeshAsset>("Axis/Cube.031");
+
+					for (int j = 0; j < asset->materials.size(); j++) {// Maximum of 4 materials
+						asset->materials[j]->bind(objectShader, j);
+					}
+					objectShader->setMat4("uTransform", glm::translate(glm::mat4(1), glm::vec3(0, 0, 0)));
+					asset->vertexArray.draw(&asset->indexBuffer);
+
+					RenderObjects(lag);
+
+					//objectShader->SetMatrix("uTransform", glm::mat4(1));
+					//testBuffer.Draw();
+				}/*
+				if (IsKeyDown(GLFW_KEY_K)) {
+					//std::cout << "yes\n";
+					SwitchBlendDepth(true);
+					Shader* experiment = GetAsset<Shader>("experiment");
+					if (experiment != nullptr) {
+						experiment->Bind();
+						experiment->SetInt("uTexture", 0);
+						glActiveTexture(GL_TEXTURE1);
+						glBindTexture(GL_TEXTURE_2D, GetDepthBuffer().texture);
+						cont.Draw();
+					}
+				}*/
+				RenderRenderer();
+				//-- Debug
+				EnableBlend();
+				Shader* gui = GetAsset<Shader>("gui");
+				gui->bind();
+				gui->setVec2("uPos", { 0,0 });
+				gui->setVec2("uSize", { 1,1 });
+				gui->setVec4("uColor", 1, 1, 1, 1);
+				gui->setInt("uColorMode", 1);
+				DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
+
+			}
 		}
 
-		RenderElements();
-		RenderUIPipeline();
-
-		//-- Debug
-		EnableBlend();
-		Shader* gui = GetAsset<Shader>("gui");
-		gui->bind();
-		gui->setVec2("uPos", { 0,0 });
-		gui->setVec2("uSize", { 1,1 });
-		gui->setVec4("uColor", 1, 1, 1, 1);
-		gui->setInt("uColorMode", 1);
-		DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
+		if (GetEngoneHints() & EngoneHint::UI) {
+			//RenderElements();
+			RenderUIPipeline();
+		}
 	}
-	void UpdateEngine(double delta)
-	{
+	void UpdateEngine(double delta) {
 		//if (CheckState(GameState::RenderGame)) {
 			//if (HasFocus() && !CheckState(GameState::Paused)) {
+		if (GetEngoneHints() & EngoneHint::Game3D) {
 			UpdateObjects(delta);
+		}
 			//}
 		//}
 		UpdateTimers(delta);
 		//if (CheckState(GameState::RenderGui)) {
-			UpdateElements(delta);
+			//UpdateElements(delta);
 		//}
 	}
 	static std::vector<Delayed> timers;
@@ -1292,6 +1298,7 @@ namespace engone {
 
 			//while (lag >= MS_PER_UPDATE) {
 				//UpdateEngine(MS_PER_UPDATE);
+			UpdateEngine(MS_PER_UPDATE);
 			update(MS_PER_UPDATE);
 			//	lag -= MS_PER_UPDATE;
 			//	FPS++;
@@ -1304,6 +1311,7 @@ namespace engone {
 			//}
 
 			render(lag);
+			RenderEngine(lag);
 
 			// reset
 			while (PollChar());

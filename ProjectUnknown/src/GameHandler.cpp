@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "Engone/EventHandler.h"
 #include "Engone/Engone.h"
@@ -24,10 +23,6 @@ static const char* depthGLSL = {
 #include "Engone/Rendering/Buffer.h"
 
 #include "Engone/Handlers/ObjectHandler.h"
-
-//#include "Engone/UI/UIPipeline.h"
-
-#include "glm/gtc/quaternion.hpp"
 
 namespace game
 {
@@ -102,7 +97,7 @@ namespace game
 		//light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
 		//light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
 
-		UpdateEngine(delta);
+		//UpdateEngine(delta);
 
 		Player* player = GetPlayer();
 		if (player) {
@@ -134,7 +129,7 @@ namespace game
 			SetState(GameState::Intro, true);
 			//ui::SetupIntro();
 
-			IElement* cover = new IElement("darkCover", 9999);
+			/*IElement* cover = new IElement("darkCover", 9999);
 			cover->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 0.f });
 			cover->add("fade").Fade({ 0.f,0.f }, .5f);
 
@@ -159,7 +154,7 @@ namespace game
 				});
 
 			AddElement(blank);
-			AddElement(cover);
+			AddElement(cover);*/
 		}
 
 		//-- Assets
@@ -287,7 +282,7 @@ namespace game
 		//Shader* shader = GetAsset<Shader>("armature");
 		//shader->Bind();
 
-		RenderEngine(lag);
+		//RenderEngine(lag);
 
 		//AnimationAsset* anim = GetAsset<AnimationAsset>("PlayerAttack/SwingAnim");
 		//frame += anim->defaultSpeed * 1.f / 60;

@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "AssetHandler.h"
 #include "../Components/Component.h"
@@ -6,9 +5,9 @@
 #include "../Utility/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image/stb_image.h>
+#include <vendor/stb_image/stb_image.h>
 
-#include "GL/glew.h"
+#include <GL/glew.h>
 
 namespace engone {
 

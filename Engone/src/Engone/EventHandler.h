@@ -103,14 +103,14 @@ namespace engone {
 	*/
 	bool IsKeyPressed(int virtualKeyCode, bool isGlfw = true);
 
-	bool IsKeybindingDown(short id);
-	bool IsKeybindingPressed(short id);
+	bool IsKeybindingDown(uint16_t id);
+	bool IsKeybindingPressed(uint16_t id);
 	/*
 	When using IsKeybindingDown: All of the specified keycodes needs to be down.
 	When using IsKeybindingPressed: The last two keycodes needs to be down before pressing the first one.
 	The last two keycodes are optional
 	*/
-	void AddKeybinding(short id, int keyCode0, int keyCode1=-1, int keyCode2=-1);
+	void AddKeybinding(uint16_t id, int keyCode0, int keyCode1=-1, int keyCode2=-1);
 	/*
 	Returns number of keys loaded. You should create default keybindings if zero is returned.
 	Less keybindings than there should be will most likely cause issues in gameplay.

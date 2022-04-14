@@ -1,8 +1,7 @@
-#include "gonpch.h"
 
 #include "Keybindings.h"
 
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
 void CreateDefualtKeybindings() {
 	using namespace engone;

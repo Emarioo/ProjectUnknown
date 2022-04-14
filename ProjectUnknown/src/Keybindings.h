@@ -7,7 +7,7 @@
 
 #define KEY_COUNT 11
 
-enum ActionKey : unsigned short {
+enum ActionKey : uint16_t {
 	KeyForward=0,KeyLeft,KeyBack,KeyRight, KeyJump, KeyCrouch, KeySprint,
 	KeyInventory, KeyCrafting, KeyPause,
 	KeySwitchItem

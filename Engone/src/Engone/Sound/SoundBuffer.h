@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef USE_AL
 #include "AL/al.h"
 #include "AL/alc.h"
 
@@ -19,3 +20,4 @@ namespace engone {
 		unsigned int id=0;
 	};
 }
+#endif

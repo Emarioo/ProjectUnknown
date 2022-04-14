@@ -1,4 +1,3 @@
-#include "gonpch.h"
 
 #include "GameState.h"
 
@@ -9,7 +8,7 @@ namespace engone {
 	EngoneHint operator|(EngoneHint a, EngoneHint b) {
 		return (EngoneHint)(((uint32_t)a) | ((uint32_t)b));
 	}
-	bool operator==(EngoneHint a, EngoneHint b) {
+	bool operator&(EngoneHint a, EngoneHint b) {
 		return (((uint32_t)a) & ((uint32_t)b)) > 0;
 	}
 	static EngoneHint engoneHints;

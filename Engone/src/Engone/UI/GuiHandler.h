@@ -2,7 +2,6 @@
 
 #include "../EventHandler.h"
 #include "../Handlers/AssetHandler.h"
-#include "../Rendering/Texture.h"
 
 namespace engone
 {
