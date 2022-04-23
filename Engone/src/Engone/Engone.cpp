@@ -83,13 +83,13 @@ namespace engone {
 		glEnable(GL_CULL_FACE);*/
 		//glEnable(GL_FRAMEBUFFER_SRGB);
 
-		if (hints & EngoneHint::UI){
+		//if (hints & EngoneHint::UI){
 			AddAsset<Shader>("gui", new Shader(guiShaderSource));
 			//InitGui();
 			//InitUIPipeline();
-			InitRenderer(EngoneHint::UI);
-		}
-		if (hints & EngoneHint::Game3D) {
+			//InitRenderer(EngoneHint::UI);
+		//}
+		//if (hints & EngoneHint::Game3D) {
 			AddAsset<Shader>("object", new Shader(objectSource));
 			AddAsset<Shader>("armature", new Shader(armatureSource));
 			AddAsset<Shader>("collision", new Shader(collisionSource));
@@ -104,13 +104,13 @@ namespace engone {
 			zNear = 0.1f;
 			zFar = 400.f;*/
 			//SetProjection(GetWidth() / GetHeight());
-		}
-		if (hints & EngoneHint::Network) {
+		//}
+		//if (hints & EngoneHint::Network) {
 			
-		}
-		if (hints & EngoneHint::Sound) {
+		//}
+		//if (hints & EngoneHint::Sound) {
 
-		}
+		//}
 
 		AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
 	}
@@ -910,14 +910,14 @@ namespace engone {
 			shader->bind();
 			UpdateProjection(shader);
 			glLineWidth(1.f);
-			shader->setVec3("uColor", {0.05,0.9,0.1});
+			shader->setVec3("uColor", { 0.05,0.9,0.1 });
 
-			EntityIterator modelIterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer|ComponentEnum::Physics);
+			EntityIterator modelIterator = GetEntityIterator(ComponentEnum::Transform | ComponentEnum::ModelRenderer | ComponentEnum::Physics);
 			while (modelIterator) {
 				ModelRenderer* renderer = modelIterator.get<ModelRenderer>();
 				Physics* physics = modelIterator.get<Physics>();
 
-				if (renderer->asset&& physics->renderCollision) {
+				if (renderer->asset && physics->renderCollision) {
 					ModelAsset* model = renderer->asset;
 
 					Transform* transform = modelIterator.get<Transform>();
@@ -931,7 +931,7 @@ namespace engone {
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
-					if(animator)
+					if (animator)
 						model->getParentTransforms(animator, transforms);
 
 					// Draw instances
@@ -940,34 +940,34 @@ namespace engone {
 						//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
 						if (instance.asset->type == AssetType::Collider) {
 							ColliderAsset* asset = instance.asset->cast<ColliderAsset>();
-							glm::vec3 offset=glm::vec3(0);
+							glm::vec3 offset = glm::vec3(0);
 							if (asset->colliderType == ColliderAsset::Type::Sphere) {
 								offset = asset->sphere.position;
 							} else if (asset->colliderType == ColliderAsset::Type::Cube) {
 								offset = asset->cube.position;
 							}
 							glm::mat4 out;
-							if(animator)
+							if (animator)
 								out = modelMatrix * glm::translate(offset) * transforms[i] * instance.localMat;
 							else
 								out = modelMatrix * glm::translate(offset) * instance.localMat;
 
 							if (asset->colliderType == ColliderAsset::Type::Sphere) {
 								//DrawSphere(asset->sphere.radius);
-								
-							}else if (asset->colliderType == ColliderAsset::Type::Cube) {
+
+							} else if (asset->colliderType == ColliderAsset::Type::Cube) {
 								DrawNetCube(out, asset->cube.scale);
 								//DrawCube(asset->cube.scale.x, asset->cube.scale.y, asset->cube.scale.z);
 							} else if (asset->colliderType == ColliderAsset::Type::Mesh) {
 								DrawBegin();
-								for (int i = 0; i < asset->points.size();i++) {
-									AddVertex(asset->points[i].x,asset->points[i].y,asset->points[i].z);
+								for (int i = 0; i < asset->points.size(); i++) {
+									AddVertex(asset->points[i].x, asset->points[i].y, asset->points[i].z);
 								}
 								auto& tris = asset->tris;
-								for (int i = 0; i < asset->tris.size()/3; i++) {
-									AddIndex(tris[i*3], tris[i * 3 + 1]);
-									AddIndex(tris[i*3+1], tris[i * 3 + 2]);
-									AddIndex(tris[i*3+2], tris[i * 3]);
+								for (int i = 0; i < asset->tris.size() / 3; i++) {
+									AddIndex(tris[i * 3], tris[i * 3 + 1]);
+									AddIndex(tris[i * 3 + 1], tris[i * 3 + 2]);
+									AddIndex(tris[i * 3 + 2], tris[i * 3]);
 								}
 								DrawBuffer();
 							}
@@ -975,6 +975,7 @@ namespace engone {
 					}
 				}
 			}
+
 			//debug
 			shader->setVec3("uColor", { 0.7,0.1,0.1 });
 			shader->setMat4("uTransform", glm::mat4(1));

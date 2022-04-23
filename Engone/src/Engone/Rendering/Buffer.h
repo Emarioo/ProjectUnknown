@@ -56,11 +56,12 @@ namespace engone {
 
 		void bind(bool unbind=false);
 
-		void draw(IndexBuffer* indexBuffer = nullptr);
+		void drawLines(IndexBuffer* indexBuffer);
+		void draw(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer, int instanceAmount);
 
 	};
-	
+#if gone
 	class Buffer {
 	public:
 		unsigned int vertexCount, indexCount;
@@ -111,4 +112,5 @@ namespace engone {
 		
 		void Draw() override;
 	};
+#endif
 }

@@ -43,9 +43,9 @@ namespace engone {
 	*/
 	void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar);
 	// set guiShader uniforms
-	void DrawRect();
+	//void DrawRect();
 	// set guiShader uniforms
-	void DrawUVRect(float u, float v, float uw, float vh);	
+	//void DrawUVRect(float u, float v, float uw, float vh);	
 
 	void DrawCube(glm::mat4 matrix, glm::vec3 scale = {1,1,1}, glm::vec3 color = { 1,1,1 });
 	void DrawNetCube(glm::mat4 matrix, glm::vec3 scale = {1,1,1}, glm::vec3 color = { 1,1,1 });

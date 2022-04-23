@@ -158,8 +158,29 @@ namespace engone {
 			glBindVertexArray(id);
 		}
 	}
+	void VertexArray::drawLines(IndexBuffer* indexBuffer) {
+		glBindVertexArray(id);
+
+		if (bufferSection == 0) {
+			log::out << log::RED << "VertexArray: You forgot VBO in addAttribute!\n";
+		}
+
+		if (indexBuffer != nullptr) {
+			if (indexBuffer->id != 0) {
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id);
+
+				glDrawElements(GL_LINES, indexBuffer->intCount, GL_UNSIGNED_INT, nullptr);
+			}
+		} else {
+			log::out << log::RED << "VertexArray: Must have indexBuffer when drawing!\n";
+		}
+	}
 	void VertexArray::draw(IndexBuffer* indexBuffer) {
 		glBindVertexArray(id);
+
+		if (bufferSection == 0) {
+			log::out << log::RED << "VertexArray: You forgot VBO in addAttribute!\n";
+		}
 
 		if (indexBuffer != nullptr) {
 			if (indexBuffer->id != 0) {
@@ -180,7 +201,7 @@ namespace engone {
 			log::out << log::RED << "VertexArray: indexBuffer required when drawing instances!\n";
 		}
 	}
-
+#if gone
 	/*
 	Only use this if OpenGL has been initialized.
 	*/
@@ -214,9 +235,11 @@ namespace engone {
 		GenBuffers(vertices, indices);
 	}
 	void Buffer::Uninit() {
+		/*if (&vertexArray == nullptr)
+			return;
 		glDeleteBuffers(1, &vertexArray);
 		glDeleteBuffers(1, &vertexBuffer);
-		glDeleteBuffers(1, &indexBuffer);
+		glDeleteBuffers(1, &indexBuffer);*/
 	}
 	void Buffer::SetAttrib(unsigned int loc, unsigned int count, unsigned int stride, unsigned int offset) {
 		glEnableVertexAttribArray(loc);
@@ -256,4 +279,5 @@ namespace engone {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 		glDrawElements(GL_LINES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
+#endif
 }

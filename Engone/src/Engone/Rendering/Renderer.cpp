@@ -22,18 +22,39 @@ namespace engone {
 	static glm::mat4 viewMatrix;
 	static float fov, zNear, zFar;
 
-	static const int colliderVertexLimit = 400*3, colliderIndexLimit = 600*2;
-	static LineBuffer colliderBuffer;
-	static float colliderVertices[colliderVertexLimit];
-	static uint32_t colliderIndices[colliderIndexLimit];
+	//static const int colliderVertexLimit = 400*3, colliderIndexLimit = 600*2;
+#ifndef RAW_VERTEX_LIMIT
+#define RAW_VERTEX_LIMIT 400*3
+#endif
+#ifndef RAW_INDEX_LIMIT
+#define RAW_INDEX_LIMIT 600*2
+#endif
+	//static LineBuffer colliderBuffer;
+	static VertexBuffer rawVBO;
+	static IndexBuffer rawIBO;
+	static VertexArray rawVAO;
+	static float rawVertices[RAW_VERTEX_LIMIT];
+	static uint32_t rawIndices[RAW_INDEX_LIMIT];
 
-	static const int lineBufferLimit = 100;
-	static LineBuffer lineBuffer;
-	static float lineVertices[lineBufferLimit*6];
-	static uint32_t lineIndices[lineBufferLimit*2];
+#ifndef LINE_LIMIT
+#define LINE_LIMIT 100
+#endif
+	//static const int lineBufferLimit = 100;
+	//static LineBuffer lineBuffer;
+	static VertexBuffer lineVBO;
+	static IndexBuffer lineIBO;
+	static VertexArray lineVAO;
+	static float lineVertices[LINE_LIMIT * 6];
+	static uint32_t lineIndices[LINE_LIMIT * 2];
 
-	static const int MAX_CUBE_BATCH = 100;
-	static const int CUBE_INSTANCE_SIZE = 4*4+3;
+#ifndef MAX_CUBE_BATCH
+#define MAX_CUBE_BATCH 100
+#endif
+#ifndef CUBE_INSTANCE_SIZE
+#define CUBE_INSTANCE_SIZE 16+3
+#endif
+	//static const int MAX_CUBE_BATCH = 100;
+	//static const int CUBE_INSTANCE_SIZE = 4*4+3;
 	static VertexArray cubeVAO;
 	static VertexBuffer cubeVBO;
 	static VertexBuffer cubeInstanceVBO;
@@ -46,7 +67,10 @@ namespace engone {
 
 	static const int TEXT_BATCH = 40;
 	static float verts[4 * 4 * TEXT_BATCH];
-	static TriangleBuffer textBuffer, rectBuffer;
+	static VertexBuffer textVBO;
+	static VertexArray textVAO;
+	static IndexBuffer textIBO;
+	//static TriangleBuffer textBuffer, rectBuffer;
 
 	static const int MAX_BOX_BATCH = 100;
 	static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
@@ -60,7 +84,7 @@ namespace engone {
 	//-- funcs
 
 	void InitRenderer(EngoneHint hints) {
-		if (hints==EngoneHint::UI) {
+		//if (hints == EngoneHint::UI) {
 			std::uint32_t indes[TEXT_BATCH * 6];
 			for (int i = 0; i < TEXT_BATCH; i++) {
 				indes[0 + 6 * i] = 0 + 4 * i;
@@ -70,20 +94,26 @@ namespace engone {
 				indes[4 + 6 * i] = 3 + 4 * i;
 				indes[5 + 6 * i] = 0 + 4 * i;
 			}
-			textBuffer.Init(true, nullptr, 4 * 4 * TEXT_BATCH, indes, 6 * TEXT_BATCH);
-			textBuffer.SetAttrib(0, 4, 4, 0);
-			float temp[]{ // This will be updated in when using DrawRect or DrawUVRect
-				0, 0, 0, 0,
-				0, 1, 0, 1,
-				1, 1, 1, 1,
-				1, 0, 1, 0,
-			};
-			unsigned int temp2[]{
-				0,1,2,
-				2,3,0
-			};
-			rectBuffer.Init(true, temp, 16, temp2, 6);
-			rectBuffer.SetAttrib(0, 4, 4, 0);
+
+			textVBO.setData(4 * 4 * TEXT_BATCH, nullptr);
+			textIBO.setData(6 * TEXT_BATCH, indes);
+			textVAO.addAttribute(4, &textVBO);
+
+			//textBuffer.Init(true, nullptr, 4 * 4 * TEXT_BATCH, indes, 6 * TEXT_BATCH);
+			//textBuffer.SetAttrib(0, 4, 4, 0);
+			// 
+			//float temp[]{ // This will be updated in when using DrawRect or DrawUVRect
+			//	0, 0, 0, 0,
+			//	0, 1, 0, 1,
+			//	1, 1, 1, 1,
+			//	1, 0, 1, 0,
+			//};
+			//unsigned int temp2[]{
+			//	0,1,2,
+			//	2,3,0
+			//};
+			//rectBuffer.Init(true, temp, 16, temp2, 6);
+			//rectBuffer.SetAttrib(0, 4, 4, 0);
 
 			// pipeline
 			AddAsset<Shader>("uiPipeline", new Shader(uiPipelineGLSL));
@@ -105,8 +135,8 @@ namespace engone {
 			boxVAO.addAttribute(2); // uv
 			boxVAO.addAttribute(4); // color
 			boxVAO.addAttribute(1, &boxVBO); // texture
-		}
-		if (hints==EngoneHint::Game3D) {
+		//}
+		//if (hints == EngoneHint::Game3D) {
 
 			float near_plane = 1.f, far_plane = 20.5f;
 			lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
@@ -119,21 +149,28 @@ namespace engone {
 			//colliderVertices = new float[colliderVertexLimit];// {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1}; not using color
 			//colliderIndices = new unsigned int[colliderIndexLimit];// {0, 1, 0, 2, 0, 3};
 
-			ZeroMemory(colliderVertices, colliderVertexLimit * sizeof(float));
-			ZeroMemory(colliderIndices, colliderIndexLimit * sizeof(unsigned int));
+			ZeroMemory(rawVertices, RAW_VERTEX_LIMIT * sizeof(float));
+			ZeroMemory(rawIndices, RAW_INDEX_LIMIT * sizeof(uint32_t));
 
-			colliderBuffer.Init(true, colliderVertices, colliderVertexLimit, colliderIndices, colliderIndexLimit);
-			colliderBuffer.SetAttrib(0, 3, 3, 0);
+			rawVBO.setData(RAW_VERTEX_LIMIT, rawVertices);
+			rawIBO.setData(RAW_INDEX_LIMIT, rawIndices);
+			rawVAO.addAttribute(3, &rawVBO);
+			//colliderBuffer.Init(true, colliderVertices, colliderVertexLimit, colliderIndices, colliderIndexLimit);
+			//colliderBuffer.SetAttrib(0, 3, 3, 0);
 
 			/*lineVertices = new float[lineBufferLimit * 6];
 			lineIndices = new unsigned int[lineBufferLimit * 2];*/
 
-			ZeroMemory(lineVertices, sizeof(float) * lineBufferLimit * 6);
-			for (int i = 0; i < lineBufferLimit * 2; i++) {
+			ZeroMemory(lineVertices, sizeof(float) * LINE_LIMIT * 6);
+			for (int i = 0; i < LINE_LIMIT * 2; i++) {
 				lineIndices[i] = i;
 			}
-			lineBuffer.Init(true, nullptr, lineBufferLimit * 6, lineIndices, lineBufferLimit * 2);
-			lineBuffer.SetAttrib(0, 3, 3, 0);
+
+			//lineBuffer.Init(true, nullptr, LINE_LIMIT * 6, lineIndices, LINE_LIMIT * 2);
+			//lineBuffer.SetAttrib(0, 3, 3, 0);
+			lineVBO.setData(LINE_LIMIT * 6, nullptr);
+			lineIBO.setData(LINE_LIMIT * 2, lineIndices);
+			lineVAO.addAttribute(3, &lineVBO);
 
 			AddAsset<Shader>("renderer", new Shader(rendererGLSL));
 			float v[48]{
@@ -148,7 +185,7 @@ namespace engone {
 				1,1,1, 0,0,1,
 			};
 			for (int i = 0; i < 24; i++)
-				v[i%3+(i/3)*6] -= 0.5;
+				v[i % 3 + (i / 3) * 6] -= 0.5;
 			uint32_t i[36]{
 				0, 2, 1, 1, 2, 3,
 				0, 1, 4, 1, 5, 4,
@@ -167,15 +204,16 @@ namespace engone {
 			cubeVAO.addAttribute(4, 1);
 			cubeVAO.addAttribute(4, 1);
 			cubeVAO.addAttribute(3, 1, &cubeInstanceVBO);
-		}
+		//}
 	}
 	void UninitRenderer() {
 		//delete[] colliderVertices;
 		//delete[] colliderIndices;
 		//delete[] lineVertices;
 		//delete[] lineIndices;
-		colliderBuffer.Uninit();
-		lineBuffer.Uninit();
+
+		//colliderBuffer.Uninit();
+		//lineBuffer.Uninit();
 	}
 	void EnableBlend() {
 		glEnable(GL_BLEND);
@@ -218,7 +256,7 @@ namespace engone {
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_BOX_BATCH, cubeObjects.size() - drawnCubes);
 
-				cubeInstanceVBO.setData(cubeCount*sizeof(Cube), (float*)(cubeObjects.data() + drawnCubes));
+				cubeInstanceVBO.setData(cubeCount * sizeof(Cube), (float*)(cubeObjects.data() + drawnCubes));
 				cubeVAO.selectBuffer(2, &cubeInstanceVBO);
 				cubeVAO.draw(&cubeIBO, cubeCount);
 				drawnCubes += cubeCount;
@@ -226,27 +264,23 @@ namespace engone {
 			cubeObjects.clear();
 		}
 	}
-	static void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3)
-	{
+	static void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
 		ar[ind] = f0;
 		ar[ind + 1] = f1;
 		ar[ind + 2] = f2;
 		ar[ind + 3] = f3;
 	}
-	void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar)
-	{
+	void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar) {
 		if (text.length() == 0 && atChar == -1)
 			return;
 		if (font == nullptr) {
 			std::cout << "DrawString: Font is null\n";
 			return;
-		}
-		else if (font->texture.error) {
+		} else if (font->texture.error) {
 			return;
-		}
-		else {
+		} else {
 			Shader* guiShader = GetAsset<Shader>("gui");
-			if(guiShader!=nullptr)
+			if (guiShader != nullptr)
 				guiShader->setInt("uColorMode", 1);
 			font->texture.bind();
 		}
@@ -428,18 +462,19 @@ namespace engone {
 				float u = (chr % 16);
 				float v = 15 - (chr / 16);
 
-				Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v+1) / 16);
-				Insert4(verts, 4 + 16 * dataIndex, x, y+ wantedHeight, (u) / 16, (v) / 16);
-				Insert4(verts, 8 + 16 * dataIndex, x + wStride, y+ wantedHeight, (u) / 16 + wuv, (v) / 16);
-				Insert4(verts, 12 + 16 * dataIndex, x + wStride, y, (u) / 16 + wuv, (v+1) / 16);
+				Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v + 1) / 16);
+				Insert4(verts, 4 + 16 * dataIndex, x, y + wantedHeight, (u) / 16, (v) / 16);
+				Insert4(verts, 8 + 16 * dataIndex, x + wStride, y + wantedHeight, (u) / 16 + wuv, (v) / 16);
+				Insert4(verts, 12 + 16 * dataIndex, x + wStride, y, (u) / 16 + wuv, (v + 1) / 16);
 				x += wStride + spacing;
 
 				if (dataIndex == TEXT_BATCH) {
-					textBuffer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
-					textBuffer.Draw();
+					textVBO.setData(16 * TEXT_BATCH, verts);
+					textVAO.draw(&textIBO);
+					//textBuffer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
+					//textBuffer.Draw();
 					dataIndex = 0;
-				}
-				else {
+				} else {
 					dataIndex++;
 				}
 			}
@@ -463,37 +498,40 @@ namespace engone {
 			std::cout << "\n";
 		}*/
 
-		textBuffer.ModifyVertices(0, 16 * TEXT_BATCH, verts);
-		textBuffer.Draw();
+		textVBO.setData(16 * TEXT_BATCH, verts);
+		textVAO.draw(&textIBO);
+
+		//textBuffer.ModifyVertices(0, 16 * TEXT_BATCH, verts);
+		//textBuffer.Draw();
 		//rectBuffer.Draw();
 	}
-	void DrawRect() {
-		float vertices[16]{
-		0,0,0,1,
-		0,1,0,0,
-		1,1,1,0,
-		1,0,1,1,
-		};
-		rectBuffer.ModifyVertices(0, 16, vertices);
-		rectBuffer.Draw();
-	}
-	void DrawUVRect(float u, float v, float uw, float vh) {
-		float vertices[16]{
-			0,0,u,v,
-			0,1,u,v+vh,
-			1,1,u + uw,v + vh,
-			1,0,u+uw,v
-		};
-		rectBuffer.ModifyVertices(0, 16, vertices);
-		rectBuffer.Draw();
-	}
-	
+	//void DrawRect() {
+	//	float vertices[16]{
+	//	0,0,0,1,
+	//	0,1,0,0,
+	//	1,1,1,0,
+	//	1,0,1,1,
+	//	};
+	//	//rectBuffer.ModifyVertices(0, 16, vertices);
+	//	//rectBuffer.Draw();
+	//}
+	//void DrawUVRect(float u, float v, float uw, float vh) {
+	//	float vertices[16]{
+	//		0,0,u,v,
+	//		0,1,u,v+vh,
+	//		1,1,u + uw,v + vh,
+	//		1,0,u+uw,v
+	//	};
+	//	//rectBuffer.ModifyVertices(0, 16, vertices);
+	//	//rectBuffer.Draw();
+	//}
+
 	void DrawCube(glm::mat4 matrix, glm::vec3 scale, glm::vec3 color) {
-		cubeObjects.push_back({glm::scale(matrix,scale),color});
+		cubeObjects.push_back({ glm::scale(matrix,scale),color });
 	}
 	void DrawNetCube(glm::mat4 matrix, glm::vec3 scale, glm::vec3 color) {
 		auto p = [&](float x, float y, float z) {
-			return (matrix*glm::translate(glm::vec3(scale.x * (x-.5), scale.y * (y-.5), scale.z * (z-.5))))[3];
+			return (matrix * glm::translate(glm::vec3(scale.x * (x - .5), scale.y * (y - .5), scale.z * (z - .5))))[3];
 		};
 		AddLine(p(0, 0, 0), p(1, 0, 0));
 		AddLine(p(0, 0, 0), p(0, 0, 1));
@@ -511,44 +549,28 @@ namespace engone {
 		AddLine(p(1, 1, 1), p(0, 1, 1));
 	}
 	void DrawSphere(glm::vec3 position, float radius, glm::vec3 color) {
+	/*	std::vector<glm::vec3> points;
+		std::vector<tri> tris;
+		std::vector<line> lines;*/
 
-	}
+		float pi = glm::pi<float>();
+		DrawBegin();
+		AddVertex(0, 1*radius, 0);
+		AddVertex(0,-1* radius, 0);
+		for (int i = 0; i < 5; i++) {
+			AddVertex( cosf(2 * pi * (i / 5.f))*radius,.5* radius,sinf(2 * pi * (i / 5.f)) * radius);
+			AddVertex( cosf(2 * pi * (1 / 10.f + i / 5.f))* radius,-.5* radius,sinf(2 * pi * (1 / 10.f + i / 5.f)) * radius);
 
-	void DrawCube(float w,float h,float d) {
-		w /= 2;
-		h /= 2;
-		d /= 2;
+			AddIndex( 2 + i * 2,2 + i * 2 + 1 );
+			AddIndex( 2 + ((i + 1) % 5) * 2,2 + i * 2 + 1 );
+			AddIndex( 2 + i * 2, 2 + ((i + 1) % 5) * 2 );
+			AddIndex( 2 + i * 2 + 1, 2 + ((i + 1) % 5) * 2 + 1 );
+			
+			AddIndex( 0,2 + i * 2 );
+			AddIndex( 1,2 + i * 2 + 1 );
+		}
+		DrawBuffer();
 
-		// this function needs some work, creating arrays on stack and copying it to a heap array is a little strange.
-		// it's fine since it's mostly a debug function but improvement wouldn't be bad.
-		float v[]{
-			-w,-h,-d,
-			w,-h,-d,
-			w,-h,d,
-			-w,-h,d,
-
-			-w,h,-d,
-			w,h,-d,
-			w,h,d,
-			-w,h,d
-		};
-		int lenv = sizeof(v) / sizeof(float);
-		memcpy(colliderVertices, v, sizeof(v));
-
-		unsigned int ind[]{
-			0,1, 1,2, 2,3, 3,0,
-			0,4, 1,5, 2,6, 3,7,
-			4,5, 5,6, 6,7, 7,4
-		};
-		int leni = sizeof(ind) / sizeof(unsigned int);
-		memcpy(colliderIndices, ind, sizeof(ind));
-		
-		ZeroMemory(colliderVertices+lenv,sizeof(float)*(colliderVertexLimit-lenv));
-		ZeroMemory(colliderIndices+leni,sizeof(unsigned int)*(colliderIndexLimit-leni));
-
-		colliderBuffer.ModifyVertices(0, colliderVertexLimit,colliderVertices);
-		colliderBuffer.ModifyIndices(0, colliderIndexLimit,colliderIndices);
-		colliderBuffer.Draw();
 	}
 	struct line {
 		int a, b;
@@ -556,41 +578,40 @@ namespace engone {
 	struct tri {
 		int a, b, c;
 	};
-	void DrawSphere(float radius) {
-		std::vector<glm::vec3> points;
-		std::vector<tri> tris;
-		std::vector<line> lines;
+	//void DrawSphere(float radius) {
+	//	std::vector<glm::vec3> points;
+	//	std::vector<tri> tris;
+	//	std::vector<line> lines;
 
-		float pi = glm::pi<float>();
-		points.push_back({ 0,1,0 });
-		points.push_back({ 0,-1,0 });
-		for (int i = 0; i < 5; i++) {
-			points.push_back({ cosf(2 * pi * (i / 5.f)),.5,sinf(2 * pi * (i / 5.f)) });
-			points.push_back({ cosf(2 * pi * (1 / 10.f + i / 5.f)),-.5,sinf(2 * pi * (1 / 10.f + i / 5.f)) });
+	//	float pi = glm::pi<float>();
+	//	points.push_back({ 0,1,0 });
+	//	points.push_back({ 0,-1,0 });
+	//	for (int i = 0; i < 5; i++) {
+	//		points.push_back({ cosf(2 * pi * (i / 5.f)),.5,sinf(2 * pi * (i / 5.f)) });
+	//		points.push_back({ cosf(2 * pi * (1 / 10.f + i / 5.f)),-.5,sinf(2 * pi * (1 / 10.f + i / 5.f)) });
 
-			lines.push_back({ 2 + i * 2,2 + i * 2 + 1 });
-			lines.push_back({ 2 + ((i + 1) % 5) * 2,2 + i * 2 + 1 });
+	//		lines.push_back({ 2 + i * 2,2 + i * 2 + 1 });
+	//		lines.push_back({ 2 + ((i + 1) % 5) * 2,2 + i * 2 + 1 });
+	//		lines.push_back({ 2 + i * 2, 2 + ((i + 1) % 5) * 2 });
+	//		lines.push_back({ 2 + i * 2 + 1, 2 + ((i + 1) % 5) * 2 + 1 });
 
-			lines.push_back({ 2 + i * 2, 2 + ((i + 1) % 5) * 2 });
-			lines.push_back({ 2 + i * 2 + 1, 2 + ((i + 1) % 5) * 2 + 1 });
+	//		lines.push_back({ 0,2 + i * 2 });
+	//		lines.push_back({ 1,2 + i * 2 + 1 });
+	//	}
 
-			lines.push_back({ 0,2 + i * 2 });
-			lines.push_back({ 1,2 + i * 2 + 1 });
-		}
+	//	for (glm::vec3& p : points)
+	//		p *= radius;
 
-		for (glm::vec3& p : points)
-			p *= radius;
+	//	{
+	//		std::vector<glm::vec3> oldPoints = points;
+	//		std::vector<line> oldLines = lines;
+	//		std::vector<tri> oldTris = tris;
+	//	}
 
-		{
-			//std::vector<glm::vec3> oldPoints=points;
-			//std::vector<line> oldLines=lines;
-			//std::vector<tri> oldTris=tris;
-		}
-
-		colliderBuffer.ModifyVertices(0, points.size() * 3, points.data());
-		colliderBuffer.ModifyIndices(0, lines.size() * 2, lines.data());
-		colliderBuffer.Draw();
-	}
+	//	/*colliderBuffer.ModifyVertices(0, points.size() * 3, points.data());
+	//	colliderBuffer.ModifyIndices(0, lines.size() * 2, lines.data());
+	//	colliderBuffer.Draw();*/
+	//}
 	static int writtenVertexPos=0;
 	static int writtenIndexPos=0;
 	void DrawBegin() {
@@ -598,33 +619,35 @@ namespace engone {
 		writtenIndexPos = 0;
 	}
 	void AddVertex(float x,float y,float z) {
-		if (writtenVertexPos + 3 >= colliderVertexLimit|| writtenIndexPos + 2 >= colliderIndexLimit)
+		if (writtenVertexPos + 3 >= RAW_VERTEX_LIMIT|| writtenIndexPos + 2 >= RAW_INDEX_LIMIT)
 			return;
-		colliderVertices[writtenVertexPos++] = x;
-		colliderVertices[writtenVertexPos++] = y;
-		colliderVertices[writtenVertexPos++] = z;
+		
+		rawVertices[writtenVertexPos++] = x;
+		rawVertices[writtenVertexPos++] = y;
+		rawVertices[writtenVertexPos++] = z;
 	}
 	void AddIndex(unsigned int a,unsigned int b) {
-		if (writtenVertexPos + 3 >= colliderVertexLimit || writtenIndexPos + 2 >= colliderIndexLimit)
+		if (writtenVertexPos + 3 >= RAW_VERTEX_LIMIT || writtenIndexPos + 2 >= RAW_INDEX_LIMIT)
 			return;
-		colliderIndices[writtenIndexPos++] = a;
-		colliderIndices[writtenIndexPos++] = b;
+		rawIndices[writtenIndexPos++] = a;
+		rawIndices[writtenIndexPos++] = b;
 	}
 	void DrawBuffer() {
-		ZeroMemory(colliderVertices+writtenVertexPos,sizeof(float)*(colliderVertexLimit-writtenVertexPos-1));
-		ZeroMemory(colliderIndices+writtenIndexPos,sizeof(unsigned int)*(colliderIndexLimit-writtenIndexPos-1));
+		ZeroMemory(rawVertices+writtenVertexPos,sizeof(float)*(RAW_VERTEX_LIMIT-writtenVertexPos-1));
+		ZeroMemory(rawIndices+writtenIndexPos,sizeof(uint32_t)*(RAW_INDEX_LIMIT-writtenIndexPos-1));
 		// variable in buffer to keep track of which area of the data are zeros
-		colliderBuffer.ModifyVertices(0, colliderVertexLimit, colliderVertices);
-		colliderBuffer.ModifyIndices(0, colliderIndexLimit, colliderIndices);
-		colliderBuffer.Draw();
+		rawVBO.setData(RAW_VERTEX_LIMIT,rawVertices);
+		rawIBO.setData(RAW_INDEX_LIMIT,rawIndices);
+		rawVAO.drawLines(&rawIBO);
 	}
 	static int lines = 0;
 	void ClearLines() {
 		lines = 0;
 	}
 	void AddLine(glm::vec3 a, glm::vec3 b) {
-		if (lines >= lineBufferLimit)
+		if (lines >= LINE_LIMIT)
 			return;
+
 		lineVertices[lines *6]=a.x;
 		lineVertices[lines *6+1]=a.y;
 		lineVertices[lines *6+2]=a.z;
@@ -635,10 +658,11 @@ namespace engone {
 		lines++;
 	}
 	void DrawLines() {
-		if(lines!=lineBufferLimit)
-			ZeroMemory(lineVertices+lines*6, sizeof(float)*(lineBufferLimit-lines-1) * 6);
-		lineBuffer.ModifyVertices(0, lineBufferLimit*6,lineVertices);
-		lineBuffer.Draw();
+		if(lines!=LINE_LIMIT)
+			ZeroMemory(lineVertices+lines*6, sizeof(float)*(LINE_LIMIT-lines-1) * 6);
+
+		lineVBO.setData(LINE_LIMIT*6,lineVertices);
+		lineVAO.drawLines(&lineIBO);
 		lines = 0;
 	}
 

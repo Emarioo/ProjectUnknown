@@ -78,7 +78,7 @@ ItemType GetItemType(const std::string& name) {
 	}
 	return ItemType(0,0,"Unknown",999);
 }
-engone::TriangleBuffer itemContainer;
+//engone::TriangleBuffer itemContainer;
 void InitItemHandler() {
 
 	InitItemList();
@@ -86,8 +86,8 @@ void InitItemHandler() {
 
 	unsigned int ind[]{ 0,1,2,2,3,0 };
 
-	itemContainer.Init(true, nullptr, 16, ind, 6);
-	itemContainer.SetAttrib(0, 4, 4, 0);
+	//itemContainer.Init(true, nullptr, 16, ind, 6);
+	//itemContainer.SetAttrib(0, 4, 4, 0);
 }
 int imageSize=512;
 int itemWidth=8;
@@ -120,7 +120,7 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 		gui->setVec4("uColor", 1, 1, 1, 1);
 		gui->setVec2("uPos", {x,y});
 		gui->setVec2("uSize", {w,h});
-		engone::DrawUVRect(u, v, size, size);
+		//engone::DrawUVRect(u, v, size, size);
 
 		if (!text.empty()) {
 			gui->setVec2("uPos", {x+w/6,y+h/4});
