@@ -12,17 +12,15 @@ namespace engone {
 	// used in ModelAsset, not great but it works
 	class Animator;
 
-	enum AssetError
-	{
+	enum AssetError {
 		None = 0,
 		MissingFile,
 		CorruptedData
 	};
 	std::string toString(AssetError t);
-	
+
 #define ASSET_TYPES 9
-	enum class AssetType : char
-	{
+	enum class AssetType : char {
 		None = 0,
 		Texture,
 		Font,
@@ -35,28 +33,27 @@ namespace engone {
 		Collider
 	};
 	std::string toString(AssetError t);
-	namespace log
-	{
+	namespace log {
 		logger operator<<(logger log, AssetType type);
 	}
-	
-	class FileReader
-	{
+
+	class FileReader {
 	public:
 		//FileReader() = default;
-		FileReader(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path)
-		{
-			file.open(path,std::ios::binary);
+		FileReader(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
+			file.open(path, std::ios::binary);
 			if (file) {
 				file.seekg(0, file.end);
 				fileSize = file.tellg();
 				file.seekg(file.beg);
-			}
-			else {
+			} else {
 				//std::cout << " how strangee" <<"not found " << path << "\n";
 				error = MissingFile;
 				close();
 			}
+		}
+		~FileReader() {
+			close();
 		}
 
 		bool binaryForm = false;

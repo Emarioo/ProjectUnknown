@@ -397,7 +397,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Material",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 		// add diffuse_map as a texture asset
 	}
 	static MaterialAsset* loaded[4];
@@ -640,7 +640,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Animation",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 	}
 	void MeshAsset::load(const std::string& path)
 	{
@@ -928,7 +928,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 	}
 	void ColliderAsset::load(const std::string& path)
 	{
@@ -994,7 +994,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 	}
 	void ArmatureAsset::load(const std::string& path)
 	{
@@ -1024,7 +1024,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Armature",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 	}
 	void ModelAsset::load(const std::string& path)
 	{
@@ -1080,7 +1080,7 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		file.close();
+		//file.close();
 	}
 	void ModelAsset::getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
 		mats.resize(instances.size());
