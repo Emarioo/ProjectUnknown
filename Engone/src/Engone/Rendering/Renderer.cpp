@@ -730,17 +730,14 @@ namespace engone {
 			int at = str.length();
 			Edit(str, at);
 		}
-		void Edit(TextBox& box) {
-			if (box.at == -1)
-				box.at = box.text.length();
-			box.edited = true;
-			Edit(box.text, box.at);
+		void Edit(TextBox* box) {
+			Edit(box->text);
 		}
 
 		static bool inside(Box box, float x, float y) {
 			return box.x<x&& box.x + box.w>x && box.y<y&& box.y + box.h>y;
 		}
-		bool Clicked(Box box) {
+		bool Clicked(Box& box) {
 			if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 				float x = GetMouseX();
 				float y = GetMouseY();
@@ -750,7 +747,7 @@ namespace engone {
 			}
 			return false;
 		}
-		bool Hover(Box box) {
+		bool Hover(Box& box) {
 			float x = GetMouseX();
 			float y = GetMouseY();
 			if (inside(box, x, y)) {
@@ -758,7 +755,7 @@ namespace engone {
 			}
 			return false;
 		}
-		bool Hover(TextBox box) {
+		bool Hover(TextBox& box) {
 			float x = GetMouseX();
 			float y = GetMouseY();
 			if (box.font == nullptr) {

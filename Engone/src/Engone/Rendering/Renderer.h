@@ -71,16 +71,23 @@ namespace engone {
 			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
 		};
 		struct Box {
+		//public:
+			//Box() = default;
+			//Box(float x, float y, float w, float h, Color rgba) : x(x), y(y), w(w), h(h), rgba(rgba) { }
 			float x = 0, y = 0, w = 0, h = 0;
 			Color rgba;
 		};
 		struct TexturedBox {
+			//TexturedBox() = default;
+			//TexturedBox(Texture* texture, float x, float y, float w, float h, Color rgba) : Box(x,y,w,h,rgba), texture(texture) {}
 			Texture* texture;
 			float x = 0, y = 0, w = 0, h = 0;
 			float u = 0, v = 0, uw = 1.f, vh = 1.f;
 			Color rgba;
 		};
+		// edited needs to be true for the at cursor to be shown
 		struct TextBox {
+			//TextBox(const std::string& text, float x, float y, float h) : text() {}
 			std::string text;
 			float x = 0, y = 0, h = 20;
 			Font* font = nullptr;
@@ -96,12 +103,12 @@ namespace engone {
 
 		void Edit(std::string& str, int& at);
 		void Edit(std::string& str);
-		void Edit(TextBox& box);
+		void Edit(TextBox* text);
 
-		bool Clicked(Box box);
-		bool Clicked(Box box);
-		bool Hover(Box box);
-		bool Hover(TextBox box);
+		bool Clicked(Box& box);
+		bool Clicked(Box& box);
+		bool Hover(Box& box);
+		bool Hover(TextBox& box);
 	};
 	//void InitUIPipeline();
 	void RenderUIPipeline();
