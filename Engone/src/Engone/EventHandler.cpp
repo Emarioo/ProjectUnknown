@@ -84,6 +84,24 @@ namespace engone
 			charArray[charCount++] = chr;
 		}
 	}
+	static std::vector<std::string> pathDrops;
+	void DropCallback(GLFWwindow* window, int count, const char** paths) {
+		for (int i = 0; i < count;i++) {
+			pathDrops.push_back(paths[i]);
+		}
+	}
+	std::string PollClipboard() {
+		return glfwGetClipboardString(GetWindow()->glfw());
+	}
+	void SetClipboard(const char* str) {
+		return glfwSetClipboardString(GetWindow()->glfw(),str);
+	}
+	std::string PollPathDrop() {
+		if (pathDrops.size() == 0) return "";
+		std::string path = pathDrops.back();
+		pathDrops.pop_back();
+		return path;
+	}
 	uint32_t PollChar() {
 		if (readIndex < ARRAY_SIZE) {
 			if (charArray[readIndex] != 0) {
@@ -172,6 +190,7 @@ namespace engone
 		glfwSetCursorPosCallback(window, CursorPosCallback);
 		glfwSetScrollCallback(window, ScrollCallback);
 		glfwSetCharCallback(window, CharCallback);
+		glfwSetDropCallback(window, DropCallback);
 
 		ZeroMemory(charArray, sizeof(charArray));
 

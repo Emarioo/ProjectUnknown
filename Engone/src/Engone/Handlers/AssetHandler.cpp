@@ -20,34 +20,24 @@ namespace engone {
 	std::string toString(AssetType type)
 	{
 		switch (type) {
-		case AssetType::None:
-			return "None";
-		case AssetType::Texture:
-			return "Texture";
-		case AssetType::Font:
-			return "Font";
-		case AssetType::Shader:
-			return "Shader";
-		case AssetType::Material:
-			return "Material";
-		case AssetType::Mesh:
-			return "Mesh";
-		case AssetType::Animation:
-			return "Animation";
-		case AssetType::Armature:
-			return "Armature";
-		case AssetType::Model:
-			return "Model";
-		case AssetType::Collider:
-			return "Collider";
+		case AssetType::None: return "None";
+		case AssetType::Texture: return "Texture";
+		case AssetType::Font: return "Font";
+		case AssetType::Shader: return "Shader";
+		case AssetType::Material: return "Material";
+		case AssetType::Mesh: return "Mesh";
+		case AssetType::Animation: return "Animation";
+		case AssetType::Armature: return "Armature";
+		case AssetType::Model: return "Model";
+		case AssetType::Collider: return "Collider";
 		}
 	}
-	namespace log
-	{
-		logger operator<<(logger log, AssetType type)
-		{
-			log << toString(type);
-			return log;
+	namespace log {
+		logger operator<<(logger log, AssetType type) {
+			return log << toString(type);
+		}
+		logger operator<<(logger log, AssetError err) {
+			return log << toString(err);
 		}
 	}
 	void Texture::load(const std::string& path)
@@ -145,12 +135,13 @@ namespace engone {
 					section[2]++;
 			}
 		}
+		//log::out << id << "\n";
 
 		id = createShader(ss[0].str(), ss[1].str());
 	}
 	void Shader::init(const std::string& source)
 	{
-		std::string vertex, fragment;
+		std::string& vertex=vs, &fragment = fs;
 
 		int vertPos = source.find("#shader vertex\n");
 		int fragPos = source.find("#shader fragment\n");
@@ -178,7 +169,13 @@ namespace engone {
 			std::cout << "Is this shader source correct?:\n" << source << "\n";
 		}
 
+
+		//fs = fragment;
+		//fs = vertex;
+
 		id = createShader(vertex, fragment);
+
+		//log::out << id<< " other \n";
 	}
 	unsigned int Shader::createShader(const std::string& vertexShader, const std::string& fragmentShader)
 	{
@@ -321,11 +318,16 @@ namespace engone {
 		if (uniLocations.find(name) != uniLocations.end()) {
 			return uniLocations[name];
 		}
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << num << "\n";
 		unsigned int loc = glGetUniformLocation(id, name.c_str());
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << num << "\n";
 		uniLocations[name] = loc;
 		return loc;
 	}
-
 	void Font::load(const std::string& path)
 	{
 		std::vector<std::string> list;

@@ -58,6 +58,9 @@ namespace engone {
 			log::out << log::RED << "IndexBuffer: byteSize is limited to " << _intCount << "\n";
 		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << num << "\n";
 	}
 	void IndexBuffer::bind(bool unbind) {
 		if (id == 0)
@@ -186,6 +189,9 @@ namespace engone {
 			if (indexBuffer->id != 0) {
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id);
 				glDrawElements(GL_TRIANGLES, indexBuffer->intCount, GL_UNSIGNED_INT, nullptr);
+				//int num = glGetError();
+				//const GLubyte* okay = glewGetErrorString(num);
+				//std::cout << okay << "\n";
 			}
 		} else {
 			log::out <<log::RED<< "VertexArray: Must have indexBuffer when drawing!\n";

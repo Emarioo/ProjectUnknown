@@ -183,12 +183,12 @@ namespace game
 		using namespace engone;
 		//editText.y += 0.05;
 
-		ui::Edit(hey, indexing);
-		ui::TextBox wow = {hey,50,100,30};
+		/*ui::Edit(hey, indexing);
+		ui::TextBox wow = { hey, 50, 100, 30 };
 		wow.font = GetAsset<Font>("consolas");
 		wow.at = indexing;
 		wow.edited = true;
-		ui::Draw(wow);
+		ui::Draw(wow);*/
 		
 		/*if (editText.font == nullptr) {
 			editText.font = GetAsset<Font>("consolas");
@@ -222,7 +222,6 @@ namespace game
 		if (ui::Clicked(borderless)) {
 			GetWindow()->setMode(WindowMode::BorderlessFullscreen);
 		}*/
-
 	}
 	void introScreen() {
 		using namespace engone;
@@ -284,6 +283,7 @@ namespace game
 	static float rot = 0;
 	static float frame = 0;
 	static float move = 0;
+
 	void Render(double lag) {
 		using namespace engone;
 
@@ -343,6 +343,8 @@ namespace game
 	
 		uitest();
 
+		
+
 		//introScreen();
 
 	//	Shader* objectShader = GetAsset<Shader>("object");
@@ -393,11 +395,18 @@ namespace game
 
 		// Render custom things like items dragged by the mouse
 		//ui::Render(2);
+
+		//pipeShader->bind();
+		//pipeShader->setVec2("uWindow", {1000,1000});
 	}
+	static const char* pipeGLSL = {
+#include "Engone/Shaders/uiPipeline.glsl"
+	};
 	void TestScene()
 	{
 		using namespace engone;
 
+		//pipeShader = new Shader(pipeGLSL);
 		/*HeapMemory memory;
 
 		struct A {
