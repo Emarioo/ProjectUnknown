@@ -35,11 +35,102 @@ namespace engone {
 	std::string toString(AssetError t);
 	namespace log {
 		logger operator<<(logger log, AssetType type);
+		logger operator<<(logger log, AssetError err);
 	}
+<<<<<<< HEAD
 
 	class FileReader {
 	public:
 		//FileReader() = default;
+=======
+	
+	class FileWriter {
+	public:
+		//FileReader() = default;
+		FileWriter(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
+			file.open(path, std::ios::binary);
+			if (file) {
+			} else {
+				error = MissingFile;
+				close();
+			}
+		}
+
+		bool binaryForm = false;
+		int writeHead = 0;
+		std::ofstream file;
+		std::string path;
+		AssetError error;
+
+		std::vector<std::string> readNumbers;
+
+		bool operator!() {
+			return error != None;
+		}
+		operator bool() {
+			return error == None;
+		}
+		void close() {
+			if (file.is_open())
+				file.close();
+		}
+		/*
+		T has to be convertable to a string std::to_string(T)
+		*/
+		template <typename T>
+		void write(T* var, uint32_t size = 1) {
+			if (error != None)
+				return;
+			if (binaryForm) {
+				file.write(reinterpret_cast<char*>(var), size * sizeof(T));
+				writeHead += size * sizeof(T);
+			} else {
+
+				std::string out;
+				for (int i = 0; i < size;i++) {
+					if(i==0)
+						out += std::to_string(var[i]);
+					else
+						out += " "+ std::to_string(var[i]);
+				}
+				file.write(out.c_str(),out.length());
+				file.write("\n", 1);
+			}
+		}
+		void write(glm::vec3* var, uint32_t size = 1) {
+			write((float*)var, size * 3);
+		}
+		void write(glm::mat4* var, uint32_t size = 1) {
+			write((float*)var, size * 16);
+		}
+		/*
+		256 characters is the current max size.
+		*/
+		void write(std::string* var) {
+			if (error == MissingFile)
+				return;
+			if (binaryForm) {
+				file.write(var->c_str(),var->length());
+				writeHead += var->length();
+			} else {
+				file.write(var->c_str(),var->length());
+				file.write("\n", 1);
+			}
+		}
+		void writeComment(const std::string& str) {
+			if (error == MissingFile)
+				return;
+			if (!binaryForm) {
+				file.write("# ", 2);
+				file.write(str.c_str(), str.length());
+				file.write("\n",1);
+			}
+		}
+	};
+	class FileReader {
+	public:
+		//FileReader() = default;
+>>>>>>> c695a340ac7eba6d14136a81892de7a27fdb84e5
 		FileReader(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
 			file.open(path, std::ios::binary);
 			if (file) {
@@ -65,26 +156,22 @@ namespace engone {
 
 		std::vector<std::string> readNumbers;
 
-		bool operator!()
-		{
+		bool operator!() {
 			return error != None;
 		}
-		operator bool()
-		{
+		operator bool() {
 			return error == None;
 		}
 
-		void close()
-		{
-			if(file.is_open())
+		void close() {
+			if (file.is_open())
 				file.close();
 		}
 		/*
 		T has to be convertable to int or float. Can also be char short and most of them. Maybe not long or double
 		*/
 		template <typename T>
-		void read(T* var, uint32_t size = 1)
-		{
+		void read(T* var, uint32_t size = 1) {
 			if (error != None)
 				return;
 			if (binaryForm) {
@@ -93,11 +180,10 @@ namespace engone {
 					throw CorruptedData;
 				}
 
-				file.read(reinterpret_cast<char*>(var), size*sizeof(T));
+				file.read(reinterpret_cast<char*>(var), size * sizeof(T));
 				readHead += size * sizeof(T);
 				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
-			}
-			else {
+			} else {
 				try {
 					std::string line;
 					int index = 0;
@@ -129,143 +215,33 @@ namespace engone {
 								continue;
 							}
 							if (str.find('.') == -1) {
-								var[index++] = static_cast<T>(std::stoi(str));
-							}
-							else {
+								try {
+									var[index] = static_cast<T>(std::stoi(str));
+								} catch (std::out_of_range e) {
+									var[index] = static_cast<T>(std::stoull(str));
+								}
+								index++;
+							} else {
 								var[index++] = static_cast<T>(std::stof(str));
 							}
 							readNumbers.erase(readNumbers.begin());
 						}
 					}
-					//log::out << "\n";
-				}catch(std::invalid_argument e){
+				} catch (std::invalid_argument e) {
 					throw CorruptedData;
 				}
 			}
 		}
-		void read(glm::vec3* var, uint32_t size = 1)
-		{
+		void read(glm::vec3* var, uint32_t size = 1) {
 			read((float*)var, size * 3);
-			/*
-			if (error != None)
-				return;
-			if (binaryForm) {
-				if (readHead - 1 + size * sizeof(glm::vec3) > fileSize) {
-					error = MissingData;
-					throw MissingData;
-				}
-
-				file.read(reinterpret_cast<char*>(var), size * sizeof(glm::vec3));
-				readHead += size * sizeof(glm::vec3);
-				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
-			}
-			else {
-				try {
-					std::string line;
-					int index = 0;
-
-					while (index < size*3) {
-						std::getline(file, line);
-
-						if (file.eof())
-							throw CorruptedData;
-						if (line.empty())
-							continue;
-						if (line[0] == '#')
-							continue;
-						if (line.back() == '\r')
-							line.erase(line.end() - 1);
-
-						std::vector<std::string> numbers = SplitString(line, " ");
-
-						for (int i = 0; i < numbers.size(); i++) {
-							//std::cout << "num"<<numbers[i] << "\n";
-							if (numbers[i].length() == 0)
-								continue;
-							if (numbers[i].find('.') == -1) {
-								//var[index/3][index%3] = std::stoi(numbers[i]);
-							}
-							else {
-								
-								//glm::vec3& temp = var[index / 3];
-								//temp[index%3] = std::stof(numbers[i]);
-								//std::cout << temp[index % 3] << "\n";
-								
-								var[index / 3][index%3]= std::stof(numbers[i]);
-							}
-							index++;
-						}
-					}
-				}
-				catch (std::invalid_argument e) {
-					throw CorruptedData;
-				}
-			}*/
 		}
-		void read(glm::mat4* var, uint32_t size = 1)
-		{
+		void read(glm::mat4* var, uint32_t size = 1) {
 			read((float*)var, size * 16);
-			/*
-			if (error != None)
-				return;
-			if (binaryForm) {
-				if (readHead - 1 + size * sizeof(glm::mat4) > fileSize) {
-					error = MissingData;
-					throw MissingData;
-				}
-
-				file.read(reinterpret_cast<char*>(var), size * sizeof(glm::mat4));
-				readHead += size * sizeof(glm::mat4);
-				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
-			}
-			else {
-				try {
-					std::string line;
-					int index = 0;
-
-					while (index < size * 16) {
-						std::getline(file, line);
-
-						if (file.eof())
-							throw CorruptedData;
-						if (line.empty())
-							continue;
-						if (line[0] == '#')
-							continue;
-						if (line.back() == '\r')
-							line.erase(line.end() - 1);
-
-						std::vector<std::string> numbers = SplitString(line, " ");
-
-						for (int i = 0; i < numbers.size(); i++) {
-							//std::cout << "num"<<numbers[i] << "\n";
-							if (numbers[i].length() == 0)
-								continue;
-							if (numbers[i].find('.') == -1) {
-								//var[index/3][index%3] = std::stoi(numbers[i]);
-							}
-							else {
-								
-								//glm::vec3& temp = var[index / 3];
-								//temp[index%3] = std::stof(numbers[i]);
-								//std::cout << temp[index % 3] << "\n";
-								
-								var[index / 16][(index/4) % 4][index%4] = std::stof(numbers[i]);
-							}
-							index++;
-						}
-					}
-				}
-				catch (std::invalid_argument e) {
-					throw CorruptedData;
-				}
-			}*/
 		}
 		/*
 		256 characters is the current max size.
 		*/
-		void read(std::string* var)
-		{
+		void read(std::string* var) {
 			if (error == MissingFile)
 				return;
 			if (binaryForm) {
@@ -289,8 +265,7 @@ namespace engone {
 
 				file.read(reinterpret_cast<char*>(var), length);
 				readHead += length;
-			}
-			else {
+			} else {
 				std::string line;
 				int index = 0;
 
@@ -299,13 +274,14 @@ namespace engone {
 
 					if (file.eof())
 						throw CorruptedData;
-					if (line.empty())
-						continue;
+
 					if (line[0] == '#')
 						continue;
-					if (line.back() == '\r')
-						line.erase(line.end() - 1);
-					
+					if (!line.empty()) {
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+					}
+
 					*var = line;
 					index++;
 				}
@@ -389,6 +365,8 @@ namespace engone {
 		
 		void load(const std::string& path) override;
 		void init(const std::string& source);
+
+		std::string vs,fs;
 
 		void bind();
 		void setInt(const std::string& name, int i);

@@ -68,6 +68,58 @@ namespace engone {
 			InitGLFW();
 		}
 
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
+		
+		x = vidmode->width / 6;
+		y = vidmode->height / 6;
+		w = vidmode->width / 1.5;
+		h = vidmode->height / 1.5;
+
+		setMode(mode);
+
+		GLenum err = glewInit();
+		if (err != GLEW_OK) {
+			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
+			return;
+		}
+	}
+	Window::Window(int width, int height, WindowMode mode) {
+		// setup
+		if (!glfwIsActive) {
+			InitGLFW();
+		}
+
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
+
+		w = width;
+		h = height;
+		x = vidmode->width / 2-w/2;
+		y = vidmode->height / 2-h/2;
+
+		setMode(mode);
+
+		GLenum err = glewInit();
+		if (err != GLEW_OK) {
+			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
+			return;
+		}
+	}
+	Window::Window(int x, int y, int width, int height, WindowMode mode) {
+		// setup
+		if (!glfwIsActive) {
+			InitGLFW();
+		}
+
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
+
+		this->x = x;
+		this->y = y;
+		w = width;
+		h = height;
+
 		setMode(mode);
 
 		GLenum err = glewInit();
@@ -113,10 +165,10 @@ namespace engone {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		if (!m_window) {
-			x = mode->width / 6;
-			y = mode->height / 6;
-			w = mode->width / 1.5;
-			h = mode->height / 1.5;
+			//x = mode->width / 6;
+			//y = mode->height / 6;
+			//w = mode->width / 1.5;
+			//h = mode->height / 1.5;
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 			if (winMode == WindowMode::Windowed) {
 				glfwWindowHint(GLFW_DECORATED, true);

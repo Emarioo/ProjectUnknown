@@ -79,6 +79,9 @@ namespace engone {
 	// Called absolute last of update loop, always necessary
 	void ResetEvents();
 
+	std::string PollClipboard();
+	void SetClipboard(const char* str);
+	std::string PollPathDrop();
 	uint32_t PollChar();
 
 	int GetMouseX();

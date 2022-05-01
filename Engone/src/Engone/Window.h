@@ -25,6 +25,8 @@ namespace engone {
 		friend void ResizeCallback(GLFWwindow* window, int width, int height);
 
 		Window(WindowMode mode = WindowMode::Windowed);
+		Window(int width, int height, WindowMode mode = WindowMode::Windowed);
+		Window(int x, int y, int width, int height, WindowMode mode = WindowMode::Windowed);
 		~Window();
 
 		GLFWwindow* glfw() {

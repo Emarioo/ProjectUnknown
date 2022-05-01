@@ -1083,11 +1083,12 @@ namespace engone {
 				Shader* gui = GetAsset<Shader>("gui");
 				gui->bind();
 				gui->setVec2("uPos", { 0,0 });
+				gui->setVec2("uWindow", { GetWidth(), GetHeight() });
 				gui->setVec2("uSize", { 1,1 });
 				gui->setVec4("uColor", 1, 1, 1, 1);
 				gui->setInt("uColorMode", 1);
 				DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
-
+				//DrawString(GetAsset<Font>("consolas"), "Chicken ma swwet sdo", false, 50, 300, 50, -1);
 			}
 		}
 

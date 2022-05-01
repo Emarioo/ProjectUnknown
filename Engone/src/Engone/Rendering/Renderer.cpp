@@ -80,12 +80,13 @@ namespace engone {
 	static float floatArray[4 * VERTEX_SIZE * MAX_BOX_BATCH];
 
 	static ItemVector uiObjects;
+	static std::vector<std::string> uiStrings;
 
 	//-- funcs
 
 	void InitRenderer(EngoneHint hints) {
 		//if (hints == EngoneHint::UI) {
-			std::uint32_t indes[TEXT_BATCH * 6];
+			uint32_t indes[TEXT_BATCH * 6];
 			for (int i = 0; i < TEXT_BATCH; i++) {
 				indes[0 + 6 * i] = 0 + 4 * i;
 				indes[1 + 6 * i] = 1 + 4 * i;
@@ -468,7 +469,7 @@ namespace engone {
 				Insert4(verts, 12 + 16 * dataIndex, x + wStride, y, (u) / 16 + wuv, (v + 1) / 16);
 				x += wStride + spacing;
 
-				if (dataIndex == TEXT_BATCH) {
+				if (dataIndex + 1 == TEXT_BATCH) {
 					textVBO.setData(16 * TEXT_BATCH, verts);
 					textVAO.draw(&textIBO);
 					//textBuffer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
@@ -668,7 +669,14 @@ namespace engone {
 
 	// global ui pipeline
 	namespace ui {
-
+		struct PipeTextBox {
+			//TextBox(const std::string& text, float x, float y, float h) : text() {}
+			int text_index;
+			float x = 0, y = 0, h = 20;
+			Font* font = nullptr;
+			Color rgba;
+			int at = -1;
+		};
 		// There is a limit to how many rects you can have thanks to float[], having a std::vector and batching rendering would be better
 		void Draw(Box box) {
 			uiObjects.writeMemory<Box>('B', &box);
@@ -694,13 +702,30 @@ namespace engone {
 				box.edited = false;
 			}
 
-			uiObjects.writeMemory<TextBox>('S', &box);
+			PipeTextBox a;
+			uiStrings.push_back(box.text);
+			a.text_index = uiStrings.size()-1;
+			a.x = box.x;
+			a.y = box.y;
+			a.h = box.h;
+			a.font = box.font;
+			a.rgba = box.rgba;
+			a.at = box.at;
+
+			uiObjects.writeMemory<PipeTextBox>('S', &a);
 
 			// texts.push_back(box);
 		}
 
 		void Edit(std::string& str, int& at) {
 			uint32_t chr;
+			if (IsKeyDown(GLFW_KEY_LEFT_CONTROL) && IsKeyPressed(GLFW_KEY_V)) {
+				std::string tmp = PollClipboard();
+				//str.insert(str.begin() + at, tmp);
+				str.insert(at, tmp);
+				at += tmp.length();
+				return;
+			}
 			while (chr = PollChar()) {
 				if (chr == GLFW_KEY_BACKSPACE) {
 					if (str.length() > 0 && at > 0) {
@@ -853,7 +878,7 @@ namespace engone {
 				floatIndex++;
 
 			} else if (type == 'S') {
-				ui::TextBox* box = uiObjects.readItem<ui::TextBox>();
+				ui::PipeTextBox* box = uiObjects.readItem<ui::PipeTextBox>();
 
 				if (lastShader == 'P')
 					guiShad->bind();
@@ -861,7 +886,7 @@ namespace engone {
 				guiShad->setVec2("uPos", { box->x, box->y });
 				guiShad->setVec2("uSize", { 1, 1 });
 				guiShad->setVec4("uColor", box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a);
-				DrawString(box->font, box->text, false, box->h, 9999, box->h, box->at);
+				DrawString(box->font, uiStrings[box->text_index], false, box->h, 9999, box->h, box->at);
 
 				// don't continue with other stuff
 				continue;
@@ -890,6 +915,7 @@ namespace engone {
 				break;
 		}
 		uiObjects.clear();
+		uiStrings.clear();
 
 #ifdef gone
 		// Method two

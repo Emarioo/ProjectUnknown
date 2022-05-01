@@ -6,142 +6,164 @@
 #define ASIO_STANDALONE
 #include <asio.hpp>
 
-#define MSG_HEADER_SIZE 4
-
 #ifndef MAX_MESSAGE_BUFFER
-	#define MAX_MESSAGE_BUFFER 512
+	#define MAX_MESSAGE_BUFFER 100
 #endif
+
+#include "Logger.h"
 
 namespace engone {
 
-	extern asio::io_context io_context;
+	asio::io_context& GetIOContext();
 	void InitIOContext();
 
 	uint32_t GenerateUUID();
 
+	enum class NetEvent : int {
+		// client/server connected
+		Connect,
+		// safe client/server disconnect
+		Disconnect,
+		// client abruptly failed to connect
+		Failed,
+		// server was stopped
+		Stopped,
+	};
+	std::string toString(NetEvent t);
+	log::logger operator<<(log::logger a, NetEvent b);
+
 	class MessageBuffer {
 	private:
+		static const int HEAD_SIZE=4;
 		char* m_data = nullptr;
 		uint32_t m_maxSize = 0;
-		uint32_t m_readHead = 0;
-		int sharings = 0;
+		uint32_t m_readHead = HEAD_SIZE; // why start at buffer size
+		bool noDelete = false;
 
 		friend class Connection;
 		friend class Client;
 		friend class Server;
 
 		bool resize(int size) {
-			if (size < 4)
-				size = 4;
+			if (size <= m_maxSize)
+				size = 2 * m_maxSize;
 
-			char* data = (char*)realloc(m_data, size);
+			char* data;
+			if (!m_data) {
+				data = (char*)malloc(size);
+				if(data)
+					*((int*)data) = 4; // 4 bytes for storing size of buffer
+			} else {
+				data = (char*)realloc(m_data, size);
+			}
 			if (data) {
 				m_data = data;
 				m_maxSize = size;
-				return false;
+				return true;
 			} else {
 				// failed
-				return true;
+				return false;
 			}
-		}
-		MessageBuffer* copy() {
-			MessageBuffer* buf = new MessageBuffer(*this);
-			sharings++;
-			return buf;
 		}
 	public:
-		MessageBuffer(uint32_t size = 4) {
-			if (size < 4)
-				size = 4;
-
-			m_data = (char*)malloc(size);
-			if (m_data) {
-				m_maxSize = size;
-				*((uint32_t*)m_data) = 0;
-			} else {
-				// failed
+		MessageBuffer(int header, int size = 8);
+		MessageBuffer();
+		~MessageBuffer();
+		void print() {
+			int len = size();
+			for (int i = 0; i < len;i++) {
+				log::out << m_data[i];
 			}
+			log::out << "\n";
 		}
-		~MessageBuffer() {
-			if (m_data && sharings==0) {
-				free(m_data);
-			}
-		}
-		bool isShared() {
-			return sharings > 0;
-		}
-		
-		void unshare() {
-			sharings--;
-		}
-		MessageBuffer* share() {
-			sharings++;
-			return this;
-		}
-		uint32_t size() {
+		int size() {
 			if (m_data) {
-				return *((uint32_t*)m_data);
+				return *((int*)m_data);
 			}
 			return 0;
 		}
 		template<class T>
-		void operator<<(T& in) {
+		void push(T* in, int count = 1) {
 			if (m_data) {
-				if (m_maxSize<size()+sizeof(T) ) {
-					bool failed = resize((m_maxSize+sizeof(T))*2);
-					if (failed) {
+				int head = size();
+				if (m_maxSize<head+sizeof(T) * count) {
+					if (!resize((m_maxSize + sizeof(T) * count) * 2)) {
 						// failed
 						return;
 					}
 				}
-				uint32_t head = size();
-				std::memcpy(m_data+ MSG_HEADER_SIZE +head, &in, sizeof(T));
-				*((uint32_t*)m_data) += sizeof(T);
-			}
-		}
-		void operator<<(std::string& in) {
-			if (m_data) {
-				if (m_maxSize < size() + in.length()+1) {
-					bool failed = resize((m_maxSize + in.length()+1) * 2);
-					if (failed) {
-						// failed
-						return;
-					}
-				}
-				uint32_t head = size();
-				std::memcpy(m_data + MSG_HEADER_SIZE+ head, in.data(), in.length()+1);
-				*((uint32_t*)m_data) += in.length() + 1;
+				std::memcpy(m_data + head, in, sizeof(T) * count);
+				*((int*)m_data) += sizeof(T) * count;
 			}
 		}
 		template<class T>
-		void operator>>(T& out) {
+		void push(const T in) {
 			if (m_data) {
-				if (sizeof(T) > size()) {
-					// fishy
-					std::cout << "Corrupted network message\n";
-					return;
+				int head = size();
+				if (m_maxSize < head + sizeof(T)) {
+					if (!resize((m_maxSize + sizeof(T)) * 2)) {
+						// failed
+						return;
+					}
 				}
-				std::memcpy(&out, m_data + MSG_HEADER_SIZE + m_readHead, sizeof(T));
-				m_readHead += sizeof(T);
-				*((uint32_t*)m_data) -= sizeof(T);
+				std::memcpy(m_data + head, &in, sizeof(T));
+				*((int*)m_data) += sizeof(T);
 			}
 		}
-		void operator>>(std::string& out) {
+		void push(const std::string& in) {
 			if (m_data) {
-				int length = strlen(m_data+MSG_HEADER_SIZE);
-				if (length+1 > size()) {
+				int head = size();
+				if (m_maxSize < head + in.length()+1) {
+					if (!resize((m_maxSize + in.length() + 1) * 2)) {
+						// failed
+						return;
+					}
+				}
+				std::memcpy(m_data + head, in.data(), in.length()+1);
+				*((int*)m_data) += in.length() + 1;
+			}
+		}
+		void push(const char* in) {
+			if (m_data) {
+				int len = std::strlen(in)+1;
+				int head = size();
+				if (m_maxSize < head + len) {
+					if (!resize((m_maxSize + len) * 2)) {
+						// failed
+						return;
+					}
+				}
+				std::memcpy(m_data + head, in, len);
+				*((int*)m_data) += len;
+			}
+		}
+		template<class T>
+		void pull(T* out, int count=1) {
+			if (m_data) {
+				if (sizeof(T)*count > size()-m_readHead) {
+					// fishy
+					std::cout << "Corrupted network message, did you turn a string into a pointer?\n";
+					return;
+				}
+				std::memcpy(out, m_data + m_readHead, sizeof(T)*count);
+				m_readHead += sizeof(T)*count;
+			}
+		}
+		void pull(std::string& out) {
+			if (m_data) {
+				int length = strlen(m_data+m_readHead)+1;
+				if (length > size()-m_readHead) {
 					// fishy
 					std::cout << "Corrupted network message\n";
 					return;
 				}
-				out.append(std::string_view(m_data + MSG_HEADER_SIZE + m_readHead));
-				m_readHead += length+1;// +1 for \0
-				*((uint32_t*)m_data) -= length + 1;
+				out.append(std::string_view(m_data + m_readHead));
+				m_readHead += length;
 			}
 		}
 		void flush() {
-			*((uint32_t*)m_data) = 0;
-			m_readHead = 0;
+			*((int*)m_data) = HEAD_SIZE; // first for bytes for the size of the buffer
+			m_readHead = HEAD_SIZE;
 		}
 	};
 	class Server;
@@ -157,71 +179,25 @@ namespace engone {
 			}
 			if (m_buffer) {
 				// we share it when we create and now have to lose it
-				m_buffer->unshare();
+				//m_buffer->unshare();
 				delete m_buffer;
 			}
 
-			for (int i = 0; i < m_outMessages.size(); i++)
-				m_outMessages[i]->unshare();
+			/*for (int i = 0; i < m_outMessages.size(); i++)
+				m_outMessages[i]->unshare();*/
+			m_outMessages.clear();
 		}
-
-		uint32_t m_uuid=0;
-		asio::ip::tcp::socket m_socket;
-
-		MessageBuffer* m_buffer=nullptr;
-		
-		Server* m_server = nullptr;
-		Client* m_client = nullptr;
-
 		void close() {
 			if (m_socket.is_open()) {
 				m_socket.close();
 			}
 		}
-		bool readingHead=false, readingBody=false, writingHead=false, writingBody=false;
-		bool hasWork() {
-			//std::cout << m_uuid << " "<<readingHead << " " <<readingBody << " " << writingHead << " " << writingBody << "\n";
-			return (readingHead + readingBody + writingHead + writingBody) != 0;
-		}
-		void readHead() {
-			if (!m_socket.is_open()) {
-				forcedShutdown(asio::error_code());
-				return;
-			}
 
-			if (!m_buffer) {
-				m_buffer = new MessageBuffer(MAX_MESSAGE_BUFFER);
-				// prevent the data of this buffer from being deleted out of this scope
-				m_buffer->share();
-			}
-			if (m_buffer->m_maxSize == 0) {
-				// no buffer for some reason
-				return;
-			}
-
-			if (readingHead)
-				return;
-
-			readingHead = true;
-			asio::async_read(m_socket, asio::buffer(m_buffer->m_data, MSG_HEADER_SIZE),
-				[this](std::error_code ec, std::size_t length) {
-					readingHead = false;
-
-					if (ec) {
-						if (!forcedShutdown(ec))
-							std::cout << "readHead error " << ec.value() << " " << m_uuid << " " << ec.message() << "\n";
-					} else {
-						readBody();
-					}
-				});
-		}
-		void readBody();
-
-		void send(MessageBuffer* msg) {
+		void send(std::shared_ptr<MessageBuffer> msg) {
 			if (!m_socket.is_open())
 				return;
 
-			asio::post(io_context, [this, msg]() {
+			asio::post(GetIOContext(), [this, msg]() {
 				m_outMessages.push_back(msg);
 				if (!writingHead && !writingBody && (readingHead||readingBody)) {
 					if (m_outMessages.size() == 1) {
@@ -230,59 +206,56 @@ namespace engone {
 				}
 			});
 		}
-
-		friend class Client;
-
+		uint32_t m_uuid=0;
 	private:
-		bool forcedShutdown(asio::error_code ec);
-		void writeHead() {
-			if (!m_socket.is_open())
-				return;
+		friend class Client;
+		friend class Server;
 
-			if (m_outMessages.size() == 0)
-				return;
+		asio::ip::tcp::socket m_socket;
 
-			if (writingHead)
-				return;
+		MessageBuffer* m_buffer=nullptr;
+		
+		Server* m_server = nullptr;
+		Client* m_client = nullptr;
 
-			writingHead = true;
-			asio::async_write(m_socket, asio::buffer(m_outMessages.front()->m_data, MSG_HEADER_SIZE),
-				[this](std::error_code ec, std::size_t length) {
-					writingHead = false;
-					if (ec) {
-						if (!forcedShutdown(ec))
-							std::cout << "writeHead error " << ec.value() << " " << m_uuid << " " << ec.message() << "\n";
-					} else {
-						writeBody();
-					}
-				});
-
+		bool readingHead=false, readingBody=false, writingHead=false, writingBody=false;
+		bool hasWork() {
+			//std::cout << m_uuid << " "<<readingHead << " " <<readingBody << " " << writingHead << " " << writingBody << "\n";
+			return (readingHead + readingBody + writingHead + writingBody) != 0;
 		}
+		bool forcedShutdown(asio::error_code ec);
+		void readHead();
+		void readBody();
+		void writeHead();
 		void writeBody();
 
-		std::vector<MessageBuffer*> m_outMessages;
+		std::vector<std::shared_ptr<MessageBuffer>> m_outMessages;
 	};
-
-	class Server {
+	class Sender {
 	public:
-		Server() : m_acceptor(io_context) {}
+		Sender() = default;
+
+		virtual void send(MessageBuffer& msg, uint32_t uuid = -1, bool ignore = false);
+		virtual void send(MessageBuffer& msg);
+	};
+	class Server : public Sender {
+	public:
+		Server() : m_acceptor(GetIOContext()) {}
 		~Server() {
 			stop();
 		}
-
-		void setOnReceive(std::function<bool(uint32_t,MessageBuffer)> onReceive) {
+		// lambda should return true to deny connection, false to accept
+		void setOnEvent(std::function<bool(NetEvent, uint32_t)> onEvent) {
+			m_onEvent = onEvent;
+		}
+		// lambda should return true to close connection
+		void setOnReceive(std::function<bool(MessageBuffer, uint32_t)> onReceive) {
 			m_onReceive = onReceive;
-		}
-		void setOnConnect(std::function<bool(uint32_t)> onConnect) {
-			m_onConnect = onConnect;
-		}
-		void setOnDisconnect(std::function<void(uint32_t)> onDisconnect) {
-			m_onDisconnect = onDisconnect;
 		}
 
 		void start(uint16_t port) {
-			if (started) return;
-			started = true;
+			if (keepRunning ||m_connections.size()>0) return;
+			keepRunning = true;
 
 			asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), port);
 
@@ -294,6 +267,7 @@ namespace engone {
 
 			InitIOContext();
 		}
+		// called by you
 		void disconnect(uint32_t uuid) {
 			if (m_acceptor.is_open()) {
 				// connection doesn't exist
@@ -303,55 +277,67 @@ namespace engone {
 			}
 		}
 		void stop() {
-			if (!started) return;
+			if (!keepRunning) return;
+			keepRunning = false;
 
 			for (auto[uuid, conn] : m_connections) {
 				conn->close();
 			}
 			if(m_acceptor.is_open())
 				m_acceptor.close();
-
-			started = false;
+			else {
+				std::cout << "server::stop - this should not happen\n";
+			}
+			
 		}
-		void send(MessageBuffer& msg, uint32_t uuid = -1, bool ignore = false) {
+		void send(MessageBuffer& msg, uint32_t uuid = -1, bool ignore = false) override {
 			if (m_connections.size() == 0) {
 				std::cout << "no connections\n";
 				return;
 			}
 
-			MessageBuffer* buffer = msg.copy();
-			m_outMessages.push_back(buffer);
+			if (msg.size() == 0) {
+				log::out << "You tried to send no data?\n";
+				return;
+			}
+
+			std::shared_ptr<MessageBuffer> ptr = std::make_shared<MessageBuffer>(msg);
+			msg.noDelete = true;
 
 			if (uuid != -1 && !ignore) {
 				auto pair = m_connections.find(uuid);
 				if (pair != m_connections.end()) {
-					pair->second->send(buffer->share());
+					pair->second->send(ptr);
 				}
 			} else {
 				for (auto [id, conn] : m_connections) {
 					if ((uuid == id && ignore) || !ignore) {
-						conn->send(buffer->share());
+						conn->send(ptr);
 					}
 				}
 			}
 		}
 
 		friend class Connection;
-		//private:
-		bool started = false;
+	private:
+		bool keepRunning = false;
 
-		std::vector<MessageBuffer*> m_outMessages;
+		//std::vector<std::shared_ptr<MessageBuffer>> m_outMessages;
 
 		asio::ip::tcp::acceptor m_acceptor;
 
 		std::unordered_map<uint32_t, Connection*> m_connections;
 
-		std::function<bool(uint32_t,MessageBuffer)> m_onReceive = nullptr;
-		std::function<bool(uint32_t)> m_onConnect = nullptr;
-		std::function<void(uint32_t)> m_onDisconnect = nullptr;
+		std::function<bool(NetEvent, uint32_t)> m_onEvent= nullptr;
+		std::function<bool(MessageBuffer, uint32_t)> m_onReceive = nullptr;
 
+		void clean(){
+			// what should i do?
+		}
+		// called from within
 		void _disconnect(uint32_t uuid) {
-			asio::post(io_context, [this, uuid]() {
+			
+			asio::post(GetIOContext(), [this, uuid]() {
 
 				// connection doesn't exist
 				if (m_connections.find(uuid) == m_connections.end()) return;
@@ -361,20 +347,22 @@ namespace engone {
 
 					delete pair->second;
 
-					// delete unshared messages
-					for (int i = 0; i < m_outMessages.size(); i++) {
-						MessageBuffer* buf = m_outMessages[i];
-						if (!buf->isShared()) {
-							delete buf;
+					// delete unused messages
+					/*for (int i = 0; i < m_outMessages.size(); i++) {
+						std::shared_ptr<MessageBuffer> buf = m_outMessages[i];
+						if (buf.use_count()==1) {
 							m_outMessages.erase(m_outMessages.begin() + i);
 							i--;
 						}
-					}
+					}*/
 
 					m_connections.erase(uuid);
 
-					if (m_onDisconnect)
-						m_onDisconnect(uuid);
+					if (m_onEvent) m_onEvent(NetEvent::Disconnect,uuid);
+
+					if (!keepRunning&&m_connections.size()==0) {
+						m_onEvent(NetEvent::Stopped, -1);
+					}
 				}
 				});
 		}
@@ -389,12 +377,20 @@ namespace engone {
 				m_acceptor.async_accept([this](std::error_code ec, asio::ip::tcp::socket socket) {
 					if (ec) {
 						if (shutdown(ec)) {
-							std::cout << "stopped server\n";
+							//std::cout << "stopped server\n";
+							if (m_connections.size() == 0) {
+								m_onEvent(NetEvent::Stopped, -1);
+							} else {
+								for (auto [uuid, conn] : m_connections) {
+									conn->close();
+								}
+							}
 						} else {
+							stop();
 							std::cout << "server error " << ec.value() << " " << ec.message() << "\n";
 						}
 					} else {
-						std::cout << "accepted connection " << socket.remote_endpoint() << "\n";
+						//std::cout << "accepted connection " << socket.remote_endpoint() << "\n";
 
 						uint32_t uuid = GenerateUUID();
 						Connection* conn = new Connection(std::move(socket));
@@ -406,57 +402,69 @@ namespace engone {
 
 						conn->readHead();
 
-						if (m_onConnect) {
-							if (!m_onConnect(uuid)) {
+						if (m_onEvent) {
+							if (m_onEvent(NetEvent::Connect,uuid)) {
 								conn->close();
-								//delete conn;
-								//m_connections.erase(uuid);
-								//return;
 							}
 						}
-
 					}
 					});
 			}
 		}
 	};
-	class Client {
+	class Client : public Sender {
 	public:
 		Client() = default;
 		~Client() {
 			disconnect();
 		}
-
+		// lambda should return true to deny connection, false to accept
+		void setOnEvent(std::function<bool(NetEvent)> onEvent) {
+			m_onEvent = onEvent;
+		}
+		// lambda should return true to close connection
 		void setOnReceive(std::function<bool(MessageBuffer)> onReceive) {
 			m_onReceive = onReceive;
-		}
-		void setOnConnect(std::function<bool()> onConnect) {
-			m_onConnect = onConnect;
-		}
-		void setOnDisconnect(std::function<void()> onDisconnect) {
-			m_onDisconnect = onDisconnect;
 		}
 		/*
 		set on events before connecting
 		*/
 		void connect(const std::string& ip, uint16_t port) {
-			if (m_connection) return;
 
-			m_connection = new Connection(io_context);
+			if (keepRunning||m_connection) return;
+			keepRunning = true;
+
+			m_connection = new Connection(GetIOContext());
 			m_connection->m_uuid = 9999;
 			m_connection->m_client = this;
 
-			asio::ip::tcp::resolver resolver(io_context);
-			asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(ip, std::to_string(port));
-			
+			asio::ip::tcp::resolver resolver(GetIOContext());
+			asio::ip::tcp::resolver::results_type endpoints;
+			try {
+				endpoints = resolver.resolve(ip, std::to_string(port));
+			} catch (std::system_error err) {
+				// ip was incorrect or couldn't be found
+				keepRunning = false;
+				clean();
+				return;
+			}
+			//log::out << "async conn before\n";
 			asio::async_connect(m_connection->m_socket, endpoints, [this](std::error_code ec, asio::ip::tcp::endpoint endpoint) {
 				if (ec) {
-					std::cout << "client not connected\n";
+					// connection failed, clean is safe to run
+					//log::out <<"EC: "<< ec.message() << "\n";
+					clean();
+					if (keepRunning) {
+						m_onEvent(NetEvent::Failed);
+						keepRunning = false;
+					} else {
+						m_onEvent(NetEvent::Disconnect);
+					}
 				} else {
-					std::cout << "client connected "<< endpoint <<" \n";
+					//std::cout << "async conn " <<" \n";
 
-					if (m_onConnect) {
-						if (!m_onConnect()) {
+					if (m_onEvent) {
+						if (m_onEvent(NetEvent::Connect)) {
 							disconnect();
 							return;
 						}
@@ -468,46 +476,63 @@ namespace engone {
 
 			InitIOContext();
 		}
+		// Called by you, will call close on connection.
 		void disconnect() {
+			if (!keepRunning) return;
+			keepRunning = false;
 			if (m_connection) {
 				m_connection->close();
 			}
 		}
-		void send(MessageBuffer& msg) {
+		void send(MessageBuffer& msg) override {
 			if (!m_connection) return;
-		
-			MessageBuffer* buffer = msg.copy();
-			m_outMessages.push_back(buffer);
-			m_connection->send(buffer->share());
+
+			if (msg.size() == 0) {
+				log::out << "You tried to send no data?\n";
+				return;
+			}
+
+			std::shared_ptr<MessageBuffer> ptr = std::make_shared<MessageBuffer>(msg);
+			
+			m_connection->send(ptr);
+			msg.noDelete = true;
 		}
 		
-	//private:
-
+		friend class Connection;
+	private:
+		bool keepRunning = false;
+		
+		// When the connection's read and write listeners failed due to connection closing.
+		// This will then be called to clean data.
 		void _disconnect() {
 			if (m_connection) {
-				asio::post(io_context, [this]() {
+				asio::post(GetIOContext(), [this]() {
 
-					delete m_connection;
-					m_connection = nullptr;
+					clean();
+					keepRunning = false;
 
-					for (int i = 0; i < m_outMessages.size(); i++)
-						delete m_outMessages[i];
-					m_outMessages.clear();
-
-					if (m_onDisconnect)
-						m_onDisconnect();
+					if (m_onEvent) m_onEvent(NetEvent::Disconnect);
 
 					});
 			}
 		}
+		// Will only work when connection don't have any work
+		void clean(){
+			if (m_connection->hasWork()) return;
+
+			delete m_connection;
+			m_connection=nullptr;
+			
+			//for (int i = 0; i < m_outMessages.size(); i++)
+				//delete m_outMessages[i];
+			//m_outMessages.clear();
+		}
 		
 		Connection* m_connection=nullptr;
 
-		std::vector<MessageBuffer*> m_outMessages;
+		//std::vector<std::shared_ptr<MessageBuffer>> m_outMessages;
 
-		std::function<bool(MessageBuffer)> m_onReceive=nullptr;
-		std::function<bool()> m_onConnect=nullptr;
-		std::function<void()> m_onDisconnect=nullptr;
-
+		std::function<bool(NetEvent)> m_onEvent = nullptr;
+		std::function<bool(MessageBuffer)> m_onReceive = nullptr;
 	};
 }
