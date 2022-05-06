@@ -37,18 +37,16 @@ namespace engone {
 		logger operator<<(logger log, AssetType type);
 		logger operator<<(logger log, AssetError err);
 	}
-<<<<<<< HEAD
-
-	class FileReader {
-	public:
-		//FileReader() = default;
-=======
 	
 	class FileWriter {
-	public:
-		//FileReader() = default;
+	{
+	{
 		FileWriter(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
 			file.open(path, std::ios::binary);
+		{
+			file.open(path,std::ios::binary);
+		{
+			file.open(path,std::ios::binary);
 			if (file) {
 			} else {
 				error = MissingFile;
@@ -130,7 +128,6 @@ namespace engone {
 	class FileReader {
 	public:
 		//FileReader() = default;
->>>>>>> c695a340ac7eba6d14136a81892de7a27fdb84e5
 		FileReader(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
 			file.open(path, std::ios::binary);
 			if (file) {
