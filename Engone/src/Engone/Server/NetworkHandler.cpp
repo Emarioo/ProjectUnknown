@@ -44,7 +44,6 @@ namespace engone {
 			running_context = false;
 			//std::cout << "stopped context" << "\n";
 			});
-
 	}
 	uint32_t lastUUID = 0;
 	uint32_t GenerateUUID() {
@@ -63,7 +62,6 @@ namespace engone {
 		return a << toString(b);
 	}
 	bool Connection::forcedShutdown(asio::error_code ec) {
-
 		if (ec.value() == 0 || // manual
 			ec.value() == 10054 || //
 			ec.value() == 10009 || //
@@ -73,8 +71,6 @@ namespace engone {
 			ec.value() == 995 || // socket.cancel
 			ec.value() == 2) // end of file
 		{
-			//std::cout << "forced " << this << " uuid " << m_uuid << "\n";
-
 			if (!hasWork()) {
 				if (m_server) {
 					m_server->_disconnect(m_uuid);
@@ -98,7 +94,6 @@ namespace engone {
 			m_buffer = new MessageBuffer();
 			m_buffer->resize(MAX_MESSAGE_BUFFER);
 			// prevent the data of this buffer from being deleted out of this scope
-			//m_buffer->share();
 		}
 		if (m_buffer->m_maxSize == 0) {
 			// no buffer for some reason
@@ -120,7 +115,6 @@ namespace engone {
 				if (m_buffer->m_maxSize < m_buffer->size()) {
 					m_buffer->resize(m_buffer->size()*1.5);
 				}
-				//m_buffer->print();
 				readBody();
 			}
 		});
@@ -137,6 +131,7 @@ namespace engone {
 					std::cout << "readBody error " << ec.value() << " " << m_uuid << " " << ec.message() << "\n";
 			} else {
 				MessageBuffer copy = *m_buffer;
+				
 				copy.noDelete = true;
 				if (m_server) {
 					if (m_server->m_onReceive) {
@@ -177,8 +172,6 @@ namespace engone {
 			return;
 		writingBody = true;
 		
-		//m_outMessages.front()->print();
-
 		asio::async_write(m_socket, asio::buffer(m_outMessages.front()->m_data + MessageBuffer::HEAD_SIZE, m_outMessages.front()->size()-MessageBuffer::HEAD_SIZE),
 			[this](std::error_code ec, std::size_t length) {
 				writingBody = false;
@@ -187,34 +180,7 @@ namespace engone {
 						std::cout << "writeBody error "<< ec.value()<<" " << m_uuid << " " << ec.message() << "\n";
 				} else {
 
-					//MessageBuffer* msg = m_outMessages.front();
-					//msg->unshare();
 					m_outMessages.erase(m_outMessages.begin());
-					// delete message on client or server
-					if (m_client) {
-						//for (int i = 0; i < m_client->m_outMessages.size(); i++) {
-							/*MessageBuffer* buf = m_client->m_outMessages[i];
-							if (buf == msg) {
-								if (!buf->isShared()) {
-									delete buf;
-									m_client->m_outMessages.erase(m_client->m_outMessages.begin() + i);
-								}
-								break;
-							}*/
-						//}
-					}
-					if (m_server) {
-						//for (int i = 0; i < m_server->m_outMessages.size(); i++) {
-							/*MessageBuffer* buf = m_server->m_outMessages[i];
-							if (buf == msg) {
-								if (!buf->isShared()) {
-									delete buf;
-									m_server->m_outMessages.erase(m_server->m_outMessages.begin() + i);
-								}
-								break;
-							}*/
-						//}
-					}
 
 					if (m_outMessages.size() > 0) {
 						writeHead();

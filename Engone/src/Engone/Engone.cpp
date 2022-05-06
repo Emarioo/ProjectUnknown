@@ -1020,7 +1020,7 @@ namespace engone {
 
 		EnableDepth();
 
-		if (GetWindow()->hasFocus()) {
+		//if (GetWindow()->hasFocus()) {
 
 			//glClearColor(0.05f, 0.08f, 0.08f, 1);
 			glClearColor(0.15f, 0.18f, 0.18f, 1);
@@ -1090,7 +1090,7 @@ namespace engone {
 				DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
 				//DrawString(GetAsset<Font>("consolas"), "Chicken ma swwet sdo", false, 50, 300, 50, -1);
 			}
-		}
+		//}
 
 		if (GetEngoneHints() & EngoneHint::UI) {
 			//RenderElements();
@@ -1278,17 +1278,10 @@ namespace engone {
 			glfwPollEvents();
 		}*/
 
-		double previous = GetAppTime();
-		double lag = 0.0;
-		double MS_PER_UPDATE = 1. / fps;
-		double lastSecond = previous;
+		double delta = 1. / fps;
 		int FPS = 0;
 		while (GetWindow()->isRunning()) {
-			double current = GetAppTime();
-			double elapsed = current - previous;
-			//std::cout << elapsed << std::endl;
-			previous = current;
-			lag += elapsed;
+			double before = GetAppTime();
 
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1300,8 +1293,8 @@ namespace engone {
 
 			//while (lag >= MS_PER_UPDATE) {
 				//UpdateEngine(MS_PER_UPDATE);
-			UpdateEngine(MS_PER_UPDATE);
-			update(MS_PER_UPDATE);
+			UpdateEngine(delta);
+			update(delta);
 			//	lag -= MS_PER_UPDATE;
 			//	FPS++;
 			//	if (current - lastSecond > 1) {
@@ -1312,8 +1305,8 @@ namespace engone {
 			//	}
 			//}
 
-			render(lag);
-			RenderEngine(lag);
+			render(0);
+			RenderEngine(0);
 
 			// reset
 			while (PollChar());
@@ -1321,6 +1314,14 @@ namespace engone {
 
 			glfwSwapBuffers(GetWindow()->glfw());
 			glfwPollEvents();
+
+			double after = GetAppTime();
+			delta = after - before;
+
+			if (delta < 1 / fps) {
+				std::this_thread::sleep_for(std::chrono::milliseconds((int)(1000 * (1 / fps - delta))));
+				delta += (1 / fps - delta);
+			}
 		}
 
 		// remove buffer and stuff or not?

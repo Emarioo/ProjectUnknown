@@ -32,6 +32,8 @@ namespace engone {
 		GLFWwindow* glfw() {
 			return m_window;
 		}
+		
+		std::function<void()> closeCallback=nullptr;
 
 		void setTitle(const std::string title);
 		void setActiveContext();

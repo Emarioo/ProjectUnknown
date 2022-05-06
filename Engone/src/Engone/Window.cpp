@@ -50,16 +50,25 @@ namespace engone {
 		return nullptr;
 	}
 	static void FocusCallback(GLFWwindow* window, int focused) {
-		if (windowMapping.count(window)) {
-			windowMapping[window]->m_focus = focused;
+		auto win = windowMapping.find(window);
+		if (win != windowMapping.end()) {
+			win->second->m_focus = focused;
 			if (focused)
-				activeWindow = windowMapping[window];
+				activeWindow = win->second;
 		}
 	}
 	static void ResizeCallback(GLFWwindow* window, int width, int height) {
-		if (windowMapping.count(window)) {
-			windowMapping[window]->m_width = width;
-			windowMapping[window]->m_height = height;
+		auto win = windowMapping.find(window);
+		if (win != windowMapping.end()) {
+			win->second->m_width = width;
+			win->second->m_height = height;
+		}
+	}
+	static void CloseCallback(GLFWwindow* window) {
+		auto win = windowMapping.find(window);
+		if (win != windowMapping.end()) {
+			if(win->second->closeCallback)
+				win->second->closeCallback();
 		}
 	}
 	Window::Window(WindowMode mode) {
@@ -189,6 +198,7 @@ namespace engone {
 
 			glfwSetWindowFocusCallback(m_window, FocusCallback);
 			glfwSetWindowSizeCallback(m_window, ResizeCallback);
+			glfwSetWindowCloseCallback(m_window, CloseCallback);
 			InitEvents(m_window);
 		} else {
 			if (winMode == WindowMode::Windowed) {

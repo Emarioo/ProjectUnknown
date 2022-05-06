@@ -38,16 +38,12 @@ namespace engone {
 		logger operator<<(logger log, AssetError err);
 	}
 	
-	class FileWriter {
-	{
-	{
+	class FileWriter{
+	public:
 		FileWriter(const std::string& path, bool binaryForm = false) : binaryForm(binaryForm), path(path) {
-			file.open(path, std::ios::binary);
-		{
-			file.open(path,std::ios::binary);
-		{
 			file.open(path,std::ios::binary);
 			if (file) {
+
 			} else {
 				error = MissingFile;
 				close();
@@ -77,7 +73,7 @@ namespace engone {
 		*/
 		template <typename T>
 		void write(T* var, uint32_t size = 1) {
-			if (error != None)
+			if (error != None || var==nullptr || size==0)
 				return;
 			if (binaryForm) {
 				file.write(reinterpret_cast<char*>(var), size * sizeof(T));
@@ -169,7 +165,7 @@ namespace engone {
 		*/
 		template <typename T>
 		void read(T* var, uint32_t size = 1) {
-			if (error != None)
+			if (error != None || var == nullptr || size==0)
 				return;
 			if (binaryForm) {
 				if (readHead - 1 + size * sizeof(T) > fileSize) {
@@ -179,7 +175,6 @@ namespace engone {
 
 				file.read(reinterpret_cast<char*>(var), size * sizeof(T));
 				readHead += size * sizeof(T);
-				//std::cout << "read "<<size << " "<<sizeof(T)<<" "<< readHead<<" "<< "\n";
 			} else {
 				try {
 					std::string line;
@@ -239,7 +234,7 @@ namespace engone {
 		256 characters is the current max size.
 		*/
 		void read(std::string* var) {
-			if (error == MissingFile)
+			if (error != None || var == nullptr)
 				return;
 			if (binaryForm) {
 				if (readHead - 1 + 1 > fileSize) {
