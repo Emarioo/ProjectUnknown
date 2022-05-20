@@ -2,11 +2,11 @@
 
 #include "ItemHandler.h"
 
-#include "Engone/Handlers/FileHandler.h"
+//#include "Engone/U/FileHandler.h"
 #include "Engone/Engone.h"
-
+#ifdef gone
 std::vector<CraftingCategory> craftingCategories;
-CraftingCategory* GetCategory(int index) {
+CraftingCategory* GetCategory(size_t index) {
 	if(-1<index&&index<craftingCategories.size())
 		return &craftingCategories[index];
 	return nullptr;
@@ -18,13 +18,14 @@ std::vector<ItemType> itemList;
 std::vector<std::string> textureGroups;
 void InitItemList() {
 	std::vector<std::string> list;
-	engone::FileReport err = engone::ReadTextFile("assets/items/itemlist.dat", list);
-	if(err==engone::FileReport::NotFound)
-		return;
+	engone::log::out << engone::log::RED << " InitItemList is broken\n";
+	//engone::FileReport err = engone::ReadTextFile("assets/items/itemlist.dat", list);
+	//if(err==engone::FileReport::NotFound)
+	//	return;
 
-	int group = -1;
-	int index = 0;
-	for (int i = 0; i < list.size();i++) {
+	size_t group = -1;
+	size_t index = 0;
+	for (size_t i = 0; i < list.size();++i) {
 		std::string str = list[i];
 		std::vector<std::string> split = engone::SplitString(list[i], ",");
 		if (str[0] == '#') {
@@ -45,13 +46,13 @@ void InitItemList() {
 }
 void InitCraftingRecipes() {
 	std::vector<std::string> list;
-	engone::FileReport err =engone::ReadTextFile("assets/items/craftingrecipes.dat", list);
-	if (err == engone::FileReport::NotFound)
-		return;
+	//engone::FileReport err =engone::ReadTextFile("assets/items/craftingrecipes.dat", list);
+	//if (err == engone::FileReport::NotFound)
+	//	return;
 
-	int index=0;
+	size_t index=0;
 	CraftingCategory* lastCat=nullptr;
-	for (int i = 0; i < list.size(); i++) {
+	for (size_t i = 0; i < list.size(); ++i) {
 		std::string str = list[i];
 		std::vector<std::string> split = engone::SplitString(list[i], ",");
 		if (str[0]=='#') {
@@ -64,14 +65,14 @@ void InitCraftingRecipes() {
 				std::cout << "ItemHandler.cpp : InitCraftingRecipes - lastCat is nullptr\n";
 			}
 			CraftingRecipe* recipe = lastCat->AddRecipe(split[0], std::stoi(split[1]));
-			for (int i = 1; i < split.size()/2; i++) {
+			for (size_t i = 1; i < split.size()/2; ++i) {
 				recipe->AddInput(split[2*i], std::stoi(split[2*i+1]));
 			}
 		}
 	}
 }
 ItemType GetItemType(const std::string& name) {
-	for (int i = 0; i < itemList.size(); i++) {
+	for (size_t i = 0; i < itemList.size(); ++i) {
 		if (itemList[i].name == name) {
 			return itemList[i];
 		}
@@ -106,7 +107,7 @@ void DrawItem(Item* item, float x, float y,float w, float h, float r, float g, f
 }
 void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float g, float b, float a,const std::string& text) {
 
-	if (textureGroups.size() > type.textureGroup) {
+	if (textureGroups.size() > (size_t)type.textureGroup) {
 		short index = type.textureIndex;
 		engone::GetAsset<engone::Texture>(textureGroups[type.textureGroup])->bind();
 
@@ -124,9 +125,10 @@ void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float
 
 		if (!text.empty()) {
 			gui->setVec2("uPos", {x+w/6,y+h/4});
-			gui->setVec2("uSize", { 0.75,0.75 });
+			gui->setVec2("uSize", { 0.75f,0.75f });
 			gui->setVec4("uColor", r, g, b, a);
-			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6,w,h,-1);
+			engone::DrawString(engone::GetAsset<engone::Font>("consolas"), text, true, h * 0.6f,w,h,-1);
 		}
 	}
 }
+#endif

@@ -12,6 +12,7 @@
 
 #include "GameStateEnum.h"
 
+#ifdef gone
 namespace UI
 {
 	void SetHeldItem(Item* item);
@@ -56,3 +57,4 @@ public:
 };
 extern InterfaceManager interfaceManager;
 */
+#endif

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../Logger.h"
-#include "../Handlers/AssetHandler.h"
+#include "Engone/Logger.h"
+#include "Engone/AssetModule.h"
 
 namespace engone {
 
-	enum class ComponentEnum : int {
+	enum class ComponentEnum : size_t {
 		None = 0,
 		Transform,
 		Physics,
@@ -17,9 +17,9 @@ namespace engone {
 	class  ComponentMask {
 	protected:
 	public:
-		int componentMask=0;
+		size_t componentMask=0;
 		ComponentMask() = default;
-		ComponentMask(int mask);
+		ComponentMask(size_t mask);
 		ComponentMask(ComponentEnum mask);
 		ComponentMask(const ComponentMask& mask);
 		ComponentMask(ComponentMask* mask);
@@ -47,22 +47,22 @@ namespace engone {
 		// not
 		// 00010
 		bool has(ComponentMask& filter) {
-			int a = componentMask ^ filter.componentMask;
+			size_t a = componentMask ^ filter.componentMask;
 			a = a | (~filter.componentMask);
 			a = ~a;
 			return a==filter.componentMask;
 		}
 		bool has(ComponentMask* filter) {
 			//log::out << componentMask << " " << filter->componentMask;
-			int a = componentMask ^ filter->componentMask;
-			int b = a | (~filter->componentMask);
+			size_t a = componentMask ^ filter->componentMask;
+			size_t b = a | (~filter->componentMask);
 			//log::out << a << " > " << b;
-			int c = ~b;
+			size_t c = ~b;
 			return c == filter->componentMask;
 		}
 		bool has(ComponentEnum filter) {
 			//log::out << componentMask << " " << ((int)filter)<<" "<< (componentMask & (1 << ((int)filter - 1)))<< " \n";
-			return componentMask & (1<<((int)filter-1));
+			return componentMask & (1<<((size_t)filter-1));
 		}
 	};
 	ComponentMask operator|(ComponentEnum a, ComponentEnum b);
@@ -124,7 +124,7 @@ namespace engone {
 
 		ModelAsset* asset; // animations are stored in here
 
-		static const int maxAnimations = 4;
+		static const size_t maxAnimations = 4;
 		AnimationProperty enabledAnimations[maxAnimations];
 
 		void Update(float delta);

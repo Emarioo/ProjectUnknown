@@ -3,7 +3,7 @@
 #include "Item.h"
 
 #include "ItemHandler.h"
-
+#ifdef gone
 Item::Item() {
 
 }
@@ -22,3 +22,4 @@ void Item::SetItem(const std::string& name, int count) {
 std::string Item::GetName() {
 	return type.name;
 }
+#endif

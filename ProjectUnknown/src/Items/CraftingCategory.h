@@ -2,6 +2,7 @@
 
 #include "CraftingRecipe.h"
 
+#ifdef gone
 class CraftingCategory {
 public:
 	CraftingCategory(const std::string& name);
@@ -11,3 +12,4 @@ public:
 	// May return nullptr
 	CraftingRecipe* GetRecipe(int index);
 };
+#endif

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Collision.h"
+#include "Collider.h"
 
 namespace engone {
 	class System {

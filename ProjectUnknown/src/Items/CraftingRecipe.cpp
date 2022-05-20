@@ -4,6 +4,7 @@
 
 #include "ItemHandler.h"
 
+#ifdef gone
 CraftingIngredient::CraftingIngredient(const std::string& name, int count) 
 : name(name),count(count) {
 
@@ -89,3 +90,4 @@ int CraftingRecipe::AttemptCraft(Container* inventory, int count) {
 	}
 	return craftCount;
 }
+#endif

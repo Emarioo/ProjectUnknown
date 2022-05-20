@@ -1,8 +1,7 @@
 #pragma once
 
-#ifdef USE_AL
 #include <vendor/Libaudio.h>
-#include "SoundSource.h"
+#include "Engone/Sound/SoundSource.h"
 
 namespace engone {
 	class SoundStream {
@@ -10,11 +9,11 @@ namespace engone {
 		const std::size_t NUM_BUFFERS = 4;
 		const std::size_t BUFFER_SIZE = 65536;// 32kb
 		char* bufferData = nullptr;
-		ALsizei bufferSize=0;
-		ALsizei bufferFreq=0;
-		ALenum bufferFormat=0;
+		int bufferSize=0;
+		int bufferFreq=0;
+		int32_t bufferFormat=0;
 		std::size_t cursor=0;
-		ALuint buffer_id[4];
+		uint32_t buffer_id[4];
 		bool isInitialized = false;
 	public:
 		SoundStream();
@@ -25,4 +24,3 @@ namespace engone {
 		SoundSource source;
 	};
 }
-#endif

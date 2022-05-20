@@ -1,8 +1,8 @@
+#include "Engone/Sound/SoundBuffer.h"
 
-#ifdef USE_AL
-#include "../Handlers/FileHandler.h"
-
-#include "SoundBuffer.h"
+#include "Engone/Utility/Utilities.h"
+#include "AL/al.h"
+#include "AL/alc.h"
 #include <vendor/Libaudio.h>
 
 bool al_check_error() {
@@ -60,4 +60,4 @@ namespace engone {
 		}
 	}
 }
-#endif
+//#endif

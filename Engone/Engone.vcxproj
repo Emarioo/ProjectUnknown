@@ -19,27 +19,35 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engone\Components\Collision.h" />
+    <ClInclude Include="src\Engone\Application.h" />
+    <ClInclude Include="src\Engone\Collision.h" />
+    <ClInclude Include="src\Engone\Components\Collider.h" />
     <ClInclude Include="src\Engone\Components\Component.h" />
     <ClInclude Include="src\Engone\Components\MetaComponent.h" />
     <ClInclude Include="src\Engone\Components\System.h" />
+    <ClInclude Include="src\Engone\Networking\Client.h" />
+    <ClInclude Include="src\Engone\Networking\MessageBuffer.h" />
+    <ClInclude Include="src\Engone\Networking\NetEvent.h" />
+    <ClInclude Include="src\Engone\Networking\Sender.h" />
+    <ClInclude Include="src\Engone\Networking\Server.h" />
+    <ClInclude Include="src\Engone\Scripting\Script.h" />
+    <ClInclude Include="src\Engone\ScriptingModule.h" />
     <ClInclude Include="src\Engone\Logger.h" />
-    <ClInclude Include="src\Engone\EventHandler.h" />
+    <ClInclude Include="src\Engone\EventModule.h" />
     <ClInclude Include="src\Engone\GameState.h" />
     <ClInclude Include="src\Engone\Components\EntitySystem.h" />
     <ClInclude Include="src\Engone\Components\Entity.h" />
     <ClInclude Include="src\Engone\Rendering\Buffer.h" />
-    <ClInclude Include="src\Engone\Server\NetworkHandler.h" />
+    <ClInclude Include="src\Engone\NetworkModule.h" />
     <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
     <ClInclude Include="src\Engone\Engone.h" />
-    <ClInclude Include="src\Engone\Handlers\AssetHandler.h" />
-    <ClInclude Include="src\Engone\Handlers\FileHandler.h" />
+    <ClInclude Include="src\Engone\AssetModule.h" />
     <ClInclude Include="src\Engone\Objects\GameObject.h" />
     <ClInclude Include="src\Engone\Objects\Camera.h" />
     <ClInclude Include="src\Engone\Rendering\Light.h" />
     <ClInclude Include="src\Engone\Rendering\Renderer.h" />
     <ClInclude Include="src\Engone\Sound\SoundBuffer.h" />
-    <ClInclude Include="src\Engone\Sound\SoundHandler.h" />
+    <ClInclude Include="src\Engone\SoundModule.h" />
     <ClInclude Include="src\Engone\Sound\SoundSource.h" />
     <ClInclude Include="src\Engone\Sound\SoundStream.h" />
     <ClInclude Include="src\Engone\Utility\Utilities.h" />
@@ -49,22 +57,23 @@
     <ClInclude Include="src\vendor\Libaudio.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engone\Components\Collision.cpp" />
+    <ClCompile Include="src\Engone\Application.cpp" />
+    <ClCompile Include="src\Engone\Collision.cpp" />
     <ClCompile Include="src\Engone\Components\Component.cpp" />
     <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
     <ClCompile Include="src\Engone\Components\System.cpp" />
+    <ClCompile Include="src\Engone\Scripting\ScriptingModule.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
-    <ClCompile Include="src\Engone\EventHandler.cpp" />
+    <ClCompile Include="src\Engone\Events\EventModule.cpp" />
     <ClCompile Include="src\Engone\GameState.cpp" />
-    <ClCompile Include="src\Engone\Handlers\AssetHandler.cpp" />
+    <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="src\Engone\Components\EntitySystem.cpp" />
-    <ClCompile Include="src\Engone\Handlers\FileHandlar.cpp" />
     <ClCompile Include="src\Engone\Components\Entity.cpp" />
     <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
-    <ClCompile Include="src\Engone\Server\NetworkHandler.cpp" />
+    <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -78,7 +87,7 @@
     <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Renderer.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
-    <ClCompile Include="src\Engone\Sound\SoundHandler.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
     <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
@@ -93,33 +102,33 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</ProjectGuid>
     <RootNamespace>Engone</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
     <ProjectName>Engone</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -143,23 +152,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(Configuration)_$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(Configuration)_$(Platform)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -167,21 +176,25 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;shell32.lib;user32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -191,12 +204,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -205,9 +219,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;shell32.lib;user32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -215,21 +232,25 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -239,12 +260,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;src/Engone;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -253,9 +275,12 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winmm.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;OpenAL32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
     </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

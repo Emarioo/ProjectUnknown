@@ -2,6 +2,7 @@
 
 #include "ItemType.h"
 
+#ifdef gone
 class Item {
 public:
 	Item();
@@ -17,3 +18,4 @@ public:
 	ItemType type;
 
 };
+#endif

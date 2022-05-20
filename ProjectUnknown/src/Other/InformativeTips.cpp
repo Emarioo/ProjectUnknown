@@ -93,7 +93,7 @@ namespace infotips
 	std::string Tip::GetTip()
 	{
 		std::vector<std::string> split = engone::SplitString(text, "[x]");
-		for (int i = 0; i < split.size() - 1; i++) {
+		for (size_t i = 0; i < split.size() - 1; i++) {
 			if (stats.size() > i)
 				split[0] += gamestats::GetStringStat(stats[i]) + split[i + 1];
 			else
@@ -122,7 +122,7 @@ namespace infotips
 	std::uniform_real_distribution global_dis;
 	void Init()
 	{
-		global_gen.seed(engone::GetSystemTime());
+		global_gen.seed((unsigned int)engone::GetSystemTime());
 		// Death tips
 		AddDeathTip({ "You have died [x] times.", PlayerDeaths });
 		AddDeathTip({ "Are you raging because you have died [x] times the last hour.",PlayerDeathsLastHour,{PlayerDeathsLastHour,7,0} });
@@ -175,7 +175,7 @@ namespace infotips
 		double random = global_dis(global_gen) * totalChance;
 		double at = 0;
 		int index = 0;
-		for (int j = 0; j < tips.size(); j++) {
+		for (size_t j = 0; j < tips.size(); j++) {
 			//if (!tips[j].IsFulfilled()) continue;
 			index = j;
 			if (at < random && random < at + tips[j].chance)
@@ -185,7 +185,7 @@ namespace infotips
 		at = tips[index].chance;
 
 		// Increase the chance of the tips
-		for (int j = 0; j < tips.size(); j++) {
+		for (size_t j = 0; j < tips.size(); j++) {
 			tips[j].chance += at / (tips.size() - 1);
 		}
 		tips[index].chance = 0;

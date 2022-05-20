@@ -1,6 +1,6 @@
-
-#ifdef USE_AL
-#include "SoundSource.h";
+#include "Engone/Sound/SoundSource.h"
+#include "AL/al.h"
+#include "AL/alc.h"
 
 namespace engone {
 	SoundSource::SoundSource() {
@@ -58,7 +58,7 @@ namespace engone {
 			alCall(alSourceStop(id));
 		//TEST_ERROR("source stop");
 	}
-	ALint SoundSource::GetState() {
+	int SoundSource::GetState() {
 		if (isInitialized) {
 			ALint state;
 			alCall(alGetSourcei(id, AL_SOURCE_STATE, &state));
@@ -67,4 +67,3 @@ namespace engone {
 		return AL_STOPPED;
 	}
 }
-#endif

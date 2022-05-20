@@ -14,8 +14,8 @@ namespace engone {
 	static uint64_t entityCount;
 	
 	//-- Components
-	static int sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer), sizeof(Collision) };
-	static int componentEnumCount=32;
+	static size_t sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer), sizeof(Collision) };
+	static size_t componentEnumCount=32;
 
 	//-- System
 	static std::vector<System*> systems;
@@ -23,7 +23,7 @@ namespace engone {
 	//-- Methods
 	bool EntityStack::add(Entity* entity) {
 		if (data == nullptr) {
-			for (int i = 0; i < componentEnumCount;i++) {
+			for (size_t i = 0; i < componentEnumCount;i++) {
 				componentSizes[i] = entitySize;
 				if (has((ComponentEnum)(i+1))) {
 					entitySize += sizeOfComponents[i];
@@ -41,7 +41,7 @@ namespace engone {
 		}
 		
 		if (deletedSpots.size() > 0) {
-			int index = deletedSpots.back();
+			size_t index = deletedSpots.back();
 			//log::out << "filled spot " << index << "\n";
 			deletedSpots.pop_back();
 
@@ -61,7 +61,7 @@ namespace engone {
 				data = ptr;
 				ZeroMemory(data + entitySize * entityMax / 2, entitySize * entityMax / 2);
 
-				for (int i = 0; i < entities.size(); i++) {
+				for (size_t i = 0; i < entities.size(); i++) {
 					Entity* ent = entities[i];
 					ent->stackPtr = data + i * entitySize;
 				}
@@ -85,7 +85,7 @@ namespace engone {
 			entity->getComponent<MeshRenderer>()->visible = true;
 		}
 		if (entity->has(Physics::ID)) {
-			entity->getComponent<Physics>()->gravity = -9.81;
+			entity->getComponent<Physics>()->gravity = -9.81f;
 		}
 		
 		entity->Init();
@@ -93,7 +93,7 @@ namespace engone {
 	}
 	bool EntityStack::remove(Entity* entity) {
 		
-		int index = (int)(entity->stackPtr-data) / entitySize;
+		size_t index = (size_t)(entity->stackPtr-data) / entitySize;
 		//log::out << "deleted entity index: " << index << "\n";
 
 		deletedSpots.push_back(index);
@@ -115,7 +115,7 @@ namespace engone {
 
 		// find entity stack
 		EntityStack* stack=nullptr;
-		for (int i = 0; i < entityStacks.size();i++) {
+		for (size_t i = 0; i < entityStacks.size();++i) {
 			if (entityStacks[i]->same(entity)) {
 				stack = entityStacks[i];
 				break;
@@ -126,7 +126,7 @@ namespace engone {
 			stack = new EntityStack(entity);
 			entityStacks.push_back(stack);
 			
-			for (int i = 0; i < stackCollections.size(); i++) {
+			for (size_t i = 0; i < stackCollections.size(); ++i) {
 				if (stackCollections[i]->has(stack)) {
 					stackCollections[i]->push(stack);
 				}
@@ -137,7 +137,7 @@ namespace engone {
 	}
 	bool RemoveEntity(Entity* entity) {
 		EntityStack* stack = nullptr;
-		for (int i = 0; i < entityStacks.size(); i++) {
+		for (size_t i = 0; i < entityStacks.size(); ++i) {
 			if (entityStacks[i]->same(entity)) {
 				stack = entityStacks[i];
 				break;
@@ -155,7 +155,7 @@ namespace engone {
 		systems.push_back(system);
 	}
 	bool RemoveSystem(System* system) {
-		for (int i = 0; i < systems.size(); i++) {
+		for (size_t i = 0; i < systems.size(); ++i) {
 			if (systems[i] == system) 				{
 				systems.erase(systems.begin()+i);
 				return true;
@@ -175,7 +175,7 @@ namespace engone {
 	}
 	EntityIterator GetEntityIterator(ComponentMask mask){
 		// If collection exists
-		for (int i = 0; i < stackCollections.size(); i++) {
+		for (size_t i = 0; i < stackCollections.size(); ++i) {
 			if (stackCollections[i]->same(mask)) {
 				return stackCollections[i];
 			}
@@ -185,7 +185,7 @@ namespace engone {
 		stackCollections.push_back(new StackCollection(mask));
 
 		// Fill collection
-		for (int i = 0; i < entityStacks.size(); i++) {
+		for (size_t i = 0; i < entityStacks.size(); ++i) {
 			EntityStack* stack = entityStacks[i];
 			if (stack->has(mask)) {
 				stackCollections.back()->push(stack);

@@ -8,10 +8,10 @@ namespace engone {
 		uint32_t floatCount=0;
 	public:
 		VertexBuffer() = default;
-		VertexBuffer(int floatCount, float* data);
+		VertexBuffer(size_t floatCount, float* data);
 		~VertexBuffer();
 
-		void setData(int floatCount, float* data, int offset = 0);
+		void setData(size_t floatCount, float* data, size_t offset = 0);
 
 		void bind(bool unbind = false);
 	};
@@ -23,43 +23,41 @@ namespace engone {
 		friend class VertexArray;
 	public:
 		IndexBuffer()=default;
-		IndexBuffer(int intCount, uint32_t* data);
+		IndexBuffer(size_t intCount, uint32_t* data);
 		~IndexBuffer();
 
-		void setData(int intCount, uint32_t* data, int offset = 0);
+		void setData(size_t intCount, uint32_t* data, size_t offset = 0);
 
 		void bind(bool unbind = false);
 	};
 #define VAO_MAX_LOCATIONS 8
 #define VAO_MAX_BUFFERS 2
 	class VertexArray {
-	private:
-		unsigned int id=0;
-
-		uint8_t totalLocation = 0, location=0, bufferSection=0;
-		// max locations
-		uint8_t locationSizes[VAO_MAX_LOCATIONS];
-		// Buffer section
-		uint8_t strides[VAO_MAX_BUFFERS];
-		uint8_t startLocations[VAO_MAX_BUFFERS];
-
 	public:
 		VertexArray() = default;
 		~VertexArray();
 
-		void addAttribute(int floatSize);
-		void addAttribute(int floatSize, VertexBuffer* buffer);
-		void addAttribute(int floatSize, int divisor);
-		void addAttribute(int floatSize, int divisor, VertexBuffer* buffer);
+		void addAttribute(uint8_t floatSize);
+		void addAttribute(uint8_t floatSize, VertexBuffer* buffer);
+		void addAttribute(uint8_t floatSize, uint8_t divisor);
+		void addAttribute(uint8_t floatSize, uint8_t divisor, VertexBuffer* buffer);
 
-		void selectBuffer(int location, VertexBuffer* buffer);
+		void selectBuffer(uint8_t location, VertexBuffer* buffer);
 
 		void bind(bool unbind=false);
 
 		void drawLines(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer);
-		void draw(IndexBuffer* indexBuffer, int instanceAmount);
+		void draw(IndexBuffer* indexBuffer, size_t instanceAmount);
+	private:
+		unsigned int id = 0;
 
+		uint8_t totalLocation = 0, location = 0, bufferSection = 0;
+		// max locations
+		uint8_t locationSizes[VAO_MAX_LOCATIONS];
+		// Buffer section
+		uint8_t strides[VAO_MAX_BUFFERS];
+		uint8_t startLocations[VAO_MAX_BUFFERS];
 	};
 #if gone
 	class Buffer {

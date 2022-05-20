@@ -1,16 +1,16 @@
 
-#include "Renderer.h"
-#include "../Handlers/AssetHandler.h"
+#include "Engone/Rendering/Renderer.h"
+#include "Engone/AssetModule.h"
 
-#include "../Window.h"
+#include "Engone/Window.h"
 
-#include "../EventHandler.h"
+#include "Engone/EventModule.h"
 
 static const char* uiPipelineGLSL = {
-#include "../Shaders/uiPipeline.glsl"
+#include "Engone/Shaders/uiPipeline.glsl"
 };
 static const char* rendererGLSL = {
-#include "../Shaders/renderer.glsl"
+#include "Engone/Shaders/renderer.glsl"
 };
 
 namespace engone {
@@ -84,7 +84,7 @@ namespace engone {
 
 	//-- funcs
 
-	void InitRenderer(EngoneHint hints) {
+	void InitRenderer(EngoneOption option) {
 		//if (hints == EngoneHint::UI) {
 			uint32_t indes[TEXT_BATCH * 6];
 			for (int i = 0; i < TEXT_BATCH; i++) {
@@ -207,7 +207,7 @@ namespace engone {
 			cubeVAO.addAttribute(3, 1, &cubeInstanceVBO);
 		//}
 	}
-	void UninitRenderer() {
+	void TerminateRenderer() {
 		//delete[] colliderVertices;
 		//delete[] colliderIndices;
 		//delete[] lineVertices;
@@ -251,8 +251,8 @@ namespace engone {
 		if (shad) {
 			shad->bind();
 			UpdateProjection(shad);
-			int drawnCubes = 0;
-			int cubeCount = 0;
+			size_t drawnCubes = 0;
+			size_t cubeCount = 0;
 
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_BOX_BATCH, cubeObjects.size() - drawnCubes);
@@ -296,7 +296,7 @@ namespace engone {
 		float wordWidth = 0;
 		lines.push_back("");
 		lineWidths.push_back(0);
-		for (int i = 0; i < text.length(); i++) {
+		for (size_t i = 0; i < text.length(); ++i) {
 			unsigned char chr = text[i];
 			//std::cout << (int)chr << "\n";
 
@@ -379,7 +379,7 @@ namespace engone {
 
 		if (reachedWidth > maxWidth) {
 			wantedHeight *= maxWidth / reachedWidth;
-			for (int i = 0; i < lineWidths.size(); i++) {
+			for (size_t i = 0; i < lineWidths.size(); ++i) {
 				//lineWidths[i] -= spacing * (lines[i].length() - 1);
 				lineWidths[i] *= maxWidth / reachedWidth;
 				//lineWidths[i] += spacing*(lines[i].length()-1);
@@ -387,7 +387,7 @@ namespace engone {
 			}
 		}
 		if (lineWidths.size() * wantedHeight > maxHeight) {
-			for (int i = 0; i < lineWidths.size(); i++) {
+			for (size_t i = 0; i < lineWidths.size(); ++i) {
 				//lineWidths[i] -= spacing * (lines[i].length() - 1);
 				lineWidths[i] *= maxHeight / (lineWidths.size() * wantedHeight);
 				//lineWidths[i] += spacing*(lines[i].length()-1);
@@ -401,16 +401,16 @@ namespace engone {
 		if (center) {
 			y = (maxHeight - wantedHeight * lines.size()) / 2;
 		}
-		int dataIndex = 0;
+		size_t dataIndex = 0;
 		//std::cout << lines[0] << "\n";
 		if (atChar != -1) { // do marker
 			//std::cout << lines.size()<<"\n";
-			for (int i = 0; i < lines.size(); i++) {
+			for (size_t i = 0; i < lines.size(); ++i) {
 				if (center)
 					x = (maxWidth - lineWidths[i]) / 2;
 				else
 					x = 0;
-				for (int j = 0; j < lines[i].length(); j++) {
+				for (size_t j = 0; j < lines[i].length(); ++j) {
 					char chr = lines[i][j];
 
 					float wStride = wantedHeight * (font->charWid[chr] / (float)font->charSize);
@@ -447,21 +447,21 @@ namespace engone {
 				y = (maxHeight - wantedHeight * lines.size()) / 2;
 			}
 		}
-		for (int i = 0; i < lines.size(); i++) {
+		for (size_t i = 0; i < lines.size(); ++i) {
 			//std::cout << "[" << lines[i] << "] " << "\n";
 			float x = 0;
 			if (center)
 				x = (maxWidth - lineWidths[i]) / 2;
 			//std::cout << lines[i].length()<<"\n";
-			for (int j = 0; j < lines[i].length(); j++) {
+			for (size_t j = 0; j < lines[i].length(); ++j) {
 				char chr = lines[i][j];
 				//if (chr == '\n')
 				//	continue;
 				float wStride = wantedHeight * (font->charWid[chr] / (float)font->charSize);
 
 				float wuv = font->charWid[chr] / (float)font->imgSize;
-				float u = (chr % 16);
-				float v = 15 - (chr / 16);
+				float u = (float)(chr % 16);
+				float v = (float)(15 - (chr / 16));
 
 				Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v + 1) / 16);
 				Insert4(verts, 4 + 16 * dataIndex, x, y + wantedHeight, (u) / 16, (v) / 16);
@@ -482,7 +482,7 @@ namespace engone {
 			y += wantedHeight;
 		}
 
-		int charIndex = dataIndex % TEXT_BATCH;
+		size_t charIndex = dataIndex % TEXT_BATCH;
 		memset(&verts[16 * charIndex], 0, 16 * (TEXT_BATCH - charIndex) * sizeof(float));
 
 		//memset(&verts[0], 0, 16 * (TEXT_BATCH) * sizeof(float));
@@ -549,18 +549,21 @@ namespace engone {
 		AddLine(p(1, 1, 1), p(1, 1, 0));
 		AddLine(p(1, 1, 1), p(0, 1, 1));
 	}
+	constexpr float pis() {
+		return glm::pi<float>();
+	}
 	void DrawSphere(glm::vec3 position, float radius, glm::vec3 color) {
 	/*	std::vector<glm::vec3> points;
 		std::vector<tri> tris;
 		std::vector<line> lines;*/
 
-		float pi = glm::pi<float>();
+		constexpr float pi = pis();
 		DrawBegin();
 		AddVertex(0, 1*radius, 0);
 		AddVertex(0,-1* radius, 0);
 		for (int i = 0; i < 5; i++) {
-			AddVertex( cosf(2 * pi * (i / 5.f))*radius,.5* radius,sinf(2 * pi * (i / 5.f)) * radius);
-			AddVertex( cosf(2 * pi * (1 / 10.f + i / 5.f))* radius,-.5* radius,sinf(2 * pi * (1 / 10.f + i / 5.f)) * radius);
+			AddVertex( cosf(2 * pi * (i / 5.f))*radius,.5f* radius,sinf(2 * pi * (i / 5.f)) * radius);
+			AddVertex( cosf(2 * pi * (1 / 10.f + i / 5.f))* radius,-.5f* radius,sinf(2 * pi * (1 / 10.f + i / 5.f)) * radius);
 
 			AddIndex( 2 + i * 2,2 + i * 2 + 1 );
 			AddIndex( 2 + ((i + 1) % 5) * 2,2 + i * 2 + 1 );
@@ -671,11 +674,11 @@ namespace engone {
 	namespace ui {
 		struct PipeTextBox {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
-			int text_index;
+			uint32_t text_index=0;
 			float x = 0, y = 0, h = 20;
 			Font* font = nullptr;
 			Color rgba;
-			int at = -1;
+			uint32_t at = -1;
 		};
 		// There is a limit to how many rects you can have thanks to float[], having a std::vector and batching rendering would be better
 		void Draw(Box box) {
@@ -723,7 +726,7 @@ namespace engone {
 				std::string tmp = PollClipboard();
 				//str.insert(str.begin() + at, tmp);
 				str.insert(at, tmp);
-				at += tmp.length();
+				at += (int)tmp.length();
 				return;
 			}
 			while (chr = PollChar()) {
@@ -736,14 +739,14 @@ namespace engone {
 					str.insert(str.begin() + at, '\n');
 					at++;
 				} else if (chr == GLFW_KEY_DELETE) {
-					if (str.length() > at) {
+					if ((int)str.length() > at) {
 						str = str.substr(0, at) + str.substr(at + 1);
 					}
 				} else if (chr == GLFW_KEY_LEFT) {
 					if (at > 0)
 						at--;
 				} else if (chr == GLFW_KEY_RIGHT) {
-					if (at < str.length())
+					if (at < (int)str.length())
 						at++;
 				} else {
 					str.insert(str.begin() + at, chr);
@@ -752,7 +755,7 @@ namespace engone {
 			}
 		}
 		void Edit(std::string& str) {
-			int at = str.length();
+			int at = (int)str.length();
 			Edit(str, at);
 		}
 		void Edit(TextBox* box) {
@@ -818,7 +821,7 @@ namespace engone {
 	//	vertexArray.addAttribute(4); // color
 	//	vertexArray.addAttribute(1, &boxBuffer); // texture
 	//}
-	static struct VERTEX {
+	struct PIPE_VERTEX {
 		float data[VERTEX_SIZE];
 	};
 	void RenderUIPipeline() {
@@ -853,10 +856,10 @@ namespace engone {
 			if (type == 'B') {
 				ui::Box* box = uiObjects.readItem<ui::Box>();
 
-				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y, 0, 0, box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, -1 };
 
 				floatIndex++;
 
@@ -870,10 +873,10 @@ namespace engone {
 					slot = boundTextures[box->texture];
 				}
 
-				((VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
-				((VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y,			box->u + box->uw,	box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
+				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 3] = { box->x + box->w, box->y,			box->u + box->uw,	box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
 
 				floatIndex++;
 

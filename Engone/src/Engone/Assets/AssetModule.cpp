@@ -1,12 +1,12 @@
 
-#include "AssetHandler.h"
-#include "../Components/Component.h"
+#include "Engone/AssetModule.h"
+#include "Engone/Components/Component.h"
 
-#include "../Utility/Utilities.h"
+#include "Engone/Utility/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <vendor/stb_image/stb_image.h>
-
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 namespace engone {
@@ -16,9 +16,9 @@ namespace engone {
 		case MissingFile: return "Missing File";
 		case CorruptedData: return "Corrupted Data";
 		}
+		return "";
 	}
-	std::string toString(AssetType type)
-	{
+	std::string toString(AssetType type) {
 		switch (type) {
 		case AssetType::None: return "None";
 		case AssetType::Texture: return "Texture";
@@ -31,6 +31,7 @@ namespace engone {
 		case AssetType::Model: return "Model";
 		case AssetType::Collider: return "Collider";
 		}
+		return "";
 	}
 	namespace log {
 		logger operator<<(logger log, AssetType type) {
@@ -40,8 +41,7 @@ namespace engone {
 			return log << toString(err);
 		}
 	}
-	void Texture::load(const std::string& path)
-	{
+	void Texture::load(const std::string& path) {
 		//Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
 
 		//std::cout << "Texture " << path << "\n";
@@ -101,8 +101,9 @@ namespace engone {
 	{
 		return height;
 	}
-	void Shader::load(const std::string& path)
-	{
+	void Shader::load(const std::string& path) {
+		log::out << log::RED<<"Shader.load is deleted" << "\n";
+#ifdef gone
 		std::ifstream file(path);
 		if (!file) {
 			error = MissingFile;
@@ -138,19 +139,20 @@ namespace engone {
 		//log::out << id << "\n";
 
 		id = createShader(ss[0].str(), ss[1].str());
+#endif
 	}
 	void Shader::init(const std::string& source)
 	{
 		std::string& vertex=vs, &fragment = fs;
 
-		int vertPos = source.find("#shader vertex\n");
-		int fragPos = source.find("#shader fragment\n");
+		size_t vertPos = source.find("#shader vertex\n");
+		size_t fragPos = source.find("#shader fragment\n");
 		
 		section[0] = 1;
 		section[1] = 1;
 		section[2] = 0;
 
-		for (int i = 0; i < source.length(); i++) {
+		for (size_t i = 0; i < source.length(); ++i) {
 			if (source[i] == '\n') {
 				if (i < vertPos)
 					section[0]++;
@@ -332,18 +334,21 @@ namespace engone {
 	{
 		std::vector<std::string> list;
 		
-		FileReport err = ReadTextFile(path + ".txt", list);
+		FileReader file(path,false);
+		try {
+			if (!file) return;
+			std::string str;
+			file.readAll(&str);
+			std::vector<std::string> list = SplitString(str,"\n");
 
-		if (err == FileReport::Success) {
 			if (list.size() == 2) {
 				charWid[0] = std::stoi(list.at(0));
 				int num = std::stoi(list.at(1));
-				for (int i = 1; i < 256; i++) {
+				for (size_t i = 1; i < 256; ++i) {
 					charWid[i] = num;
 				}
-			}
-			else {
-				int i = 0;
+			} else {
+				size_t i = 0;
 				for (std::string s : list) {
 					std::vector<std::string> list2 = SplitString(s, ",");
 					for (std::string s2 : list2) {
@@ -352,22 +357,17 @@ namespace engone {
 					}
 				}
 			}
-			texture.load(path+".png");
+			texture.load(path + ".png");
 			if (!texture) {
 				error = texture.error;
 			}
+		} catch (AssetError err) {
+			error = err;
 		}
-		else {
-			error = MissingFile;
-		}
-		if (error) {
-			//Logging({ "AssetManager","Font",toString(error) + ": " + path }, LogStatus::Error);
-		}
-			
 	}
 	float Font::getWidth(const std::string& str, float height) {
 		float out=0;
-		for (int i = 0; i < str.length(); i++) {
+		for (size_t i = 0; i < str.length(); ++i) {
 			unsigned char chr = str[i];
 			
 			out +=  height*(charWid[chr] / (float)charSize);
@@ -455,7 +455,7 @@ namespace engone {
 		// q0[3] == q0[].w == 1
 
 		float slerpT = 0;
-		for (auto [type, curve] : fcurves) {
+		for (auto& [type, curve] : fcurves) {
 			Keyframe* a = nullptr;
 			Keyframe* b = nullptr;
 			for (Keyframe& k : curve.frames) {
@@ -590,7 +590,7 @@ namespace engone {
 
 			//log::out << "obs " << objectCount << "\n";
 
-			for (int i = 0; i < objectCount; i++) {
+			for (size_t i = 0; i < objectCount; ++i) {
 				uint16_t index, curves;
 				
 				file.read(&index);
@@ -600,9 +600,9 @@ namespace engone {
 				//log::out << "curve " << curves << "\n";
 
 				bool curveB[13]{ 0,0,0,0,0,0,0,0,0,0,0,0,0 };
-				for (int j = 12; j >= 0; j--) {
-					if (0 <= curves - pow(2, j)) {
-						curves -= pow(2, j);
+				for (int j = 12; j >= 0; --j) {
+					if (0 <= curves - (uint16_t)pow(2, j)) {
+						curves -= (uint16_t)pow(2, j);
 						curveB[j] = 1;
 					}
 					else {
@@ -622,7 +622,7 @@ namespace engone {
 						channels->fcurves[cha] = FCurve();
 						FCurve* fcurve = &channels->fcurves[cha];
 
-						for (int k = 0; k < keys; k++) {
+						for (size_t k = 0; k < keys; ++k) {
 							PolationType polation;
 							file.read(&polation); // 1 byte
 
@@ -661,7 +661,7 @@ namespace engone {
 			file.read(&materialCount);
 			//std::cout << "uhu\n";
 			std::string root = getRootPath();
-			for (int i = 0; i < materialCount && i< MeshAsset::maxMaterials; i++) {
+			for (size_t i = 0; i < materialCount && i< MeshAsset::maxMaterials; ++i) {
 				std::string materialName;
 				file.read(&materialName);
 
@@ -689,23 +689,23 @@ namespace engone {
 			
 			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 
-			int uPointSize = 3 * pointCount;
+			size_t uPointSize = 3 * pointCount;
 			float* uPoint = new float[uPointSize];
 			file.read(uPoint, uPointSize);
 
-			int uTextureSize = textureCount * 3;
+			size_t uTextureSize = textureCount * 3;
 			float* uTexture = new float[uTextureSize];
 
 			file.read(uTexture, uTextureSize);
 
 			// Weight
-			int uWeightS = weightCount * 3;
+			size_t uWeightS = weightCount * 3;
 			int* uWeightI = new int[uWeightS];
 			float* uWeightF = new float[uWeightS];
 			if (meshType==MeshType::Boned) {
 				char index[3];
 				float floats[3];
-				for (int i = 0; i < weightCount; i++) {
+				for (size_t i = 0; i < weightCount; ++i) {
 					file.read(index, 3);
 
 					file.read(floats, 3);
@@ -718,10 +718,10 @@ namespace engone {
 				}
 			}
 
-			int tStride = 6;
+			size_t tStride = 6;
 			if (meshType==MeshType::Boned)
 				tStride = 9;
-			int trisS = triangleCount * tStride;
+			size_t trisS = triangleCount * tStride;
 			uint16_t* tris = new uint16_t[trisS];
 			//std::cout << "head: "<<file.readHead << "\n";
 
@@ -732,7 +732,7 @@ namespace engone {
 			//std::cout << file.readHead << " "<<trisS<< "\n";
 
 			//std::cout << "stride " << tStride << "\n";
-			for (int i = 0; i < trisS;i++) {
+			for (size_t i = 0; i < trisS;++i) {
 				 //for (int j = 0; j < tStride;j++) {
 					//std::cout << tris[i]<<" ";
 				//}
@@ -741,9 +741,9 @@ namespace engone {
 
 			std::vector<uint16_t> indexNormal;
 			std::vector<float> uNormal;
-			for (int i = 0; i < triangleCount; i++) {
-				for (int j = 0; j < 3; j++) {
-					if (tris[i * tStride + j * tStride / 3] * 3 + 2 >= uPointSize) {
+			for (size_t i = 0; i < triangleCount; ++i) {
+				for (size_t j = 0; j < 3; ++j) {
+					if (tris[i * tStride + j * tStride / 3] * 3u + 2u >= uPointSize) {
 						//std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
 						throw AssetError::CorruptedData;
 					}
@@ -760,10 +760,10 @@ namespace engone {
 				//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
 
 				bool same = false;
-				for (int j = 0; j < uNormal.size() / 3; j++) {
+				for (size_t j = 0; j < uNormal.size() / 3; ++j) {
 					if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
 						same = true;
-						indexNormal.push_back(j);
+						indexNormal.push_back((uint16_t)j);
 						break;
 					}
 				}
@@ -771,18 +771,18 @@ namespace engone {
 					uNormal.push_back(norm.x);
 					uNormal.push_back(norm.y);
 					uNormal.push_back(norm.z);
-					indexNormal.push_back(uNormal.size() / 3 - 1);
+					indexNormal.push_back((uint16_t)(uNormal.size() / 3 - 1));
 				}
 			}
 
 			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
-			unsigned int* triangleOut = new unsigned int[triangleCount * 3];
+			size_t* triangleOut = new size_t[triangleCount * 3];
 
-			int uvStride = 1 + (tStride) / 3;
-			for (int i = 0; i < triangleCount; i++) {
-				for (int t = 0; t < 3; t++) {
+			size_t uvStride = 1 + (tStride) / 3;
+			for (size_t i = 0; i < triangleCount; ++i) {
+				for (size_t t = 0; t < 3; ++t) {
 					bool same = false;
-					for (int v = 0; v < uniqueVertex.size() / (uvStride); v++) {
+					for (size_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
 						if (uniqueVertex[v * uvStride] != tris[i * tStride + 0 + t * tStride / 3])
 							continue;
 						if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
@@ -821,13 +821,13 @@ namespace engone {
 			}
 			*/
 
-			int vStride = 3 + 3 + 3;
+			size_t vStride = 3 + 3 + 3;
 			if (meshType == MeshType::Boned)
 				vStride += 6;
 			float* vertexOut = new float[(uniqueVertex.size() / uvStride) * vStride];
-			for (int i = 0; i < uniqueVertex.size() / uvStride; i++) {
+			for (size_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 				// Position
-				for (int j = 0; j < 3; j++) {
+				for (size_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride] * 3 + j > uPointSize) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
 						throw AssetError::CorruptedData;
@@ -835,7 +835,7 @@ namespace engone {
 					vertexOut[i * vStride + j] = uPoint[uniqueVertex[i * uvStride] * 3 + j];
 				}
 				// Normal
-				for (int j = 0; j < 3; j++) {
+				for (size_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
 						throw AssetError::CorruptedData;
@@ -843,31 +843,31 @@ namespace engone {
 					vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
 				}
 				// UV
-				for (int j = 0; j < 3; j++) {
+				for (size_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride + 2] * 3 + j > uTextureSize) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
 						//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
 						throw AssetError::CorruptedData;
 					}
 					else
-						vertexOut[i * vStride + 3 + 3 + j] = uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
+						vertexOut[i * vStride + 3 + 3 + j] = (float)uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
 				}
 				if (meshType == MeshType::Boned) {
 					// Bone Index
-					for (int j = 0; j < 3; j++) {
+					for (size_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
 							throw AssetError::CorruptedData;
 						}
-						vertexOut[i * vStride + 3 + 3 + 3 + j] = uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
+						vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
 					}
 					// Weight
-					for (int j = 0; j < 3; j++) {
+					for (size_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
 							throw AssetError::CorruptedData;
 						}
-						vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
+						vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
 					}
 				}
 			}
@@ -982,10 +982,10 @@ namespace engone {
 
 				points.resize(pointCount);
 				tris.resize(triCount*3);
-				for (int i = 0; i < points.size();i++) {
+				for (size_t i = 0; i < points.size();++i) {
 					file.read(&points[i]);
 				}
-				for (int i = 0; i < tris.size(); i++) {
+				for (size_t i = 0; i < tris.size(); ++i) {
 					file.read(&tris[i]);
 				}
 
@@ -1011,7 +1011,7 @@ namespace engone {
 			//log::out << boneCount << "\n";
 	
 			// Acquire and Load Data
-			for (int i = 0; i < boneCount; i++) {
+			for (size_t i = 0; i < boneCount; ++i) {
 				Bone b;
 				file.read(&b.parent);
 				//log::out << b.parent << "\n";
@@ -1039,7 +1039,7 @@ namespace engone {
 
 			uint16_t instanceCount;
 			file.read(&instanceCount);
-			for (int i = 0; i < instanceCount; i++) {
+			for (size_t i = 0; i < instanceCount; ++i) {
 				instances.push_back({});
 				AssetInstance& instance = instances.back();
 
@@ -1072,7 +1072,7 @@ namespace engone {
 			
 			uint16_t animationCount;
 			file.read(&animationCount);
-			for (int i = 0; i < animationCount; i++) {
+			for (size_t i = 0; i < animationCount; ++i) {
 				std::string name;
 				file.read(&name);
 				animations.push_back(GetAsset<AnimationAsset>(root + name));
@@ -1089,7 +1089,7 @@ namespace engone {
 
 		std::vector<glm::mat4> modelT(instances.size());
 		//log::out << "go "<< "\n";
-		for (int i = 0; i < instances.size(); i++) {
+		for (size_t i = 0; i < instances.size(); ++i) {
 			AssetInstance& instance = instances[i];
 			glm::mat4 loc = instances[i].localMat;
 			glm::mat4 inv = instances[i].invModel;
@@ -1101,10 +1101,10 @@ namespace engone {
 
 			short usedChannels = 0;
 
-			for (int k = 0; k < Animator::maxAnimations; k++) {
+			for (size_t k = 0; k < Animator::maxAnimations; ++k) {
 				if (animator->enabledAnimations[i].asset) {
 					AnimationProperty& prop = animator->enabledAnimations[k];
-					for (int j = 0; j < animations.size(); j++) {
+					for (size_t j = 0; j < animations.size(); ++j) {
 						AnimationAsset* animation = animations[j];
 						//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
 						if (prop.asset == animation &&
@@ -1113,7 +1113,7 @@ namespace engone {
 							if (animation->objects.count(0) > 0) {// the object/instance uses transform object
 
 								//log::out << "inst " << i << "\n";
-								animation->objects[0].getValues(prop.frame, prop.blend,
+								animation->objects[0].getValues((int)prop.frame, prop.blend,
 									pos, euler, scale, quater, &usedChannels);
 								//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
 							}
@@ -1189,7 +1189,7 @@ namespace engone {
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
 			
-			for (int i = 0; i < armature->bones.size(); i++) {
+			for (size_t i = 0; i < armature->bones.size(); ++i) {
 				Bone& bone = armature->bones[i];
 				glm::mat4 loc = bone.localMat;
 				glm::mat4 inv = bone.invModel;
@@ -1200,19 +1200,19 @@ namespace engone {
 
 				short usedChannels = 0;
 
-				for (int k = 0; k < Animator::maxAnimations; k++) {
+				for (size_t k = 0; k < Animator::maxAnimations; ++k) {
 					if (animator->enabledAnimations[k].asset) {
 
 						AnimationProperty& prop = animator->enabledAnimations[k];
-						for (int j = 0; j < animations.size(); j++) {
+						for (size_t j = 0; j < animations.size(); ++j) {
 							AnimationAsset* animation = animations[j];
 							
 							if (prop.asset == animation &&
 								std::strcmp(prop.instanceName, instance->name.c_str()) == 0) {
 
-								if (animation->objects.count(i) > 0) {
+								if (animation->objects.count((uint16_t)i) > 0u) {
 
-									animation->objects[i].getValues(prop.frame, prop.blend,
+									animation->objects[(uint16_t)i].getValues((int)prop.frame, prop.blend,
 										pos, euler, scale, quater, &usedChannels);
 									//log::out << " " << pos.y << " " << i << " " << k << " " << j << "\n";
 									//log::out << quater<<"\n";

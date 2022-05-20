@@ -1,8 +1,8 @@
 
-#include "EventHandler.h"
-#include "Logger.h"
+#include "Engone/EventModule.h"
+#include "Engone/Logger.h"
 
-#include "Window.h"
+#include "Engone/Window.h"
 
 namespace engone {
 	struct Input {
@@ -10,7 +10,7 @@ namespace engone {
 		bool down = false;
 		int pressed = false;
 	};
-	static int mouseX, mouseY;
+	static float mouseX, mouseY;
 	static float scrollX, scrollY;
 	static std::unordered_map<uint16_t, Keybinding> keybindings;
 	static std::vector<Listener*> listeners;
@@ -24,13 +24,12 @@ namespace engone {
 		return ((char)a & (char)b) > 0;
 	}
 
-	Event::Event(EventType type) : eventType(type) {}
 	Listener::Listener(EventType eventTypes, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f) {}
 	Listener::Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f)
 		: eventTypes(eventTypes), run(f), priority(priority) {}
 	void SetInput(int code, bool down) {
-		for (int i = 0; i < inputs.size(); i++) {
+		for (size_t i = 0; i < inputs.size(); ++i) {
 			if (inputs[i].code == code) {
 				if (down) {
 					if (!inputs[i].down) {
@@ -48,9 +47,9 @@ namespace engone {
 			inputs.push_back({ code, down, 1 });
 	}
 	void ExecuteListeners() {
-		for (int j = 0; j < events.size(); j++) {
+		for (size_t j = 0; j < events.size(); ++j) {
 			char breaker = 0; // if a flag is simular it will break
-			for (int i = 0; i < listeners.size(); i++) {
+			for (size_t i = 0; i < listeners.size(); ++i) {
 				if ((char)listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
 					continue;
 
@@ -64,14 +63,14 @@ namespace engone {
 		while (events.size() > 0)
 			events.pop_back();
 	}
-	static int charCount = 0;
-	static int readIndex = 0;
-	static const int ARRAY_SIZE = 20;
+	static size_t charCount = 0;
+	static size_t readIndex = 0;
+	static const size_t ARRAY_SIZE = 20;
 	static uint32_t charArray[ARRAY_SIZE];
 	void CharCallback(GLFWwindow* window, uint32_t chr) {
 		//log::out << (char)chr << "\n";
 		if (readIndex != 0) {
-			for (int i = readIndex; i < charCount; i++)
+			for (size_t i = readIndex; i < charCount; ++i)
 				charArray[i - readIndex] = charArray[readIndex];
 			charCount = charCount - readIndex;
 			readIndex = 0;
@@ -83,15 +82,15 @@ namespace engone {
 	}
 	static std::vector<std::string> pathDrops;
 	void DropCallback(GLFWwindow* window, int count, const char** paths) {
-		for (int i = 0; i < count; i++) {
+		for (size_t i = 0; i < (size_t)count; ++i) {
 			pathDrops.push_back(paths[i]);
 		}
 	}
 	std::string PollClipboard() {
-		return glfwGetClipboardString(GetWindow()->glfw());
+		return glfwGetClipboardString(GetActiveWindow()->glfw());
 	}
 	void SetClipboard(const char* str) {
-		return glfwSetClipboardString(GetWindow()->glfw(), str);
+		return glfwSetClipboardString(GetActiveWindow()->glfw(), str);
 	}
 	std::string PollPathDrop() {
 		if (pathDrops.size() == 0) return "";
@@ -115,7 +114,7 @@ namespace engone {
 		}
 		if (!win->hasFocus()) return;
 
-		Event e(EventType::Key);
+		Event e{ EventType::Key };
 		e.key = key;
 		e.scancode = scancode;
 		e.action = action;
@@ -137,7 +136,7 @@ namespace engone {
 		}
 		if (!win->hasFocus()) return;
 
-		Event e(EventType::Click);
+		Event e{ EventType::Click };
 		e.button = button;
 		e.action = action;
 		e.mx = mouseX;
@@ -154,11 +153,11 @@ namespace engone {
 		}
 		if (!win->hasFocus()) return;
 
-		mouseX = mx;
-		mouseY = my;
-		Event e(EventType::Move);
-		e.mx = mx;
-		e.my = my;
+		mouseX = (float)mx;
+		mouseY = (float)my;
+		Event e{ EventType::Move };
+		e.mx = (float)mx;
+		e.my = (float)my;
 		events.push_back(e);
 		ExecuteListeners();
 	}
@@ -170,15 +169,15 @@ namespace engone {
 		}
 		if (!win->hasFocus()) return;
 
-		Event e(EventType::Scroll);
-		e.scrollX = xoffset;
-		e.scrollY = yoffset;
-		e.mx = mouseX;
-		e.my = mouseY;
+		Event e{ EventType::Scroll };
+		e.scrollX = (float)xoffset;
+		e.scrollY = (float)yoffset;
+		e.mx = (float)mouseX;
+		e.my = (float)mouseY;
 		events.push_back(e);
 		//std::cout << xoffset << " " << yoffset << "\n";
-		scrollX = xoffset;
-		scrollY = yoffset;
+		scrollX = (float)xoffset;
+		scrollY = (float)yoffset;
 		ExecuteListeners();
 	}
 	void InitEvents(GLFWwindow* window) {
@@ -209,13 +208,13 @@ namespace engone {
 	}
 	void AddListener(Listener* listener) {
 		// Prevent duplicates
-		for (int i = 0; i < listeners.size(); i++) {
+		for (size_t i = 0; i < listeners.size(); ++i) {
 			if (listener == listeners[i]) {
 				return;
 			}
 		}
 		// Priorities
-		for (int i = 0; i < listeners.size(); i++) {
+		for (size_t i = 0; i < listeners.size(); ++i) {
 			if (listener->priority > listeners[i]->priority) {
 				listeners.insert(listeners.begin() + i, listener);
 				return;
@@ -223,28 +222,28 @@ namespace engone {
 		}
 		listeners.push_back(listener);
 	}
-	int GetMouseX() { return mouseX; }
-	int GetMouseY() { return mouseY; }
-	int IsScrolledY() {
+	float GetMouseX() { return mouseX; }
+	float GetMouseY() { return mouseY; }
+	float IsScrolledY() {
 		if (scrollY != 0)
 			return scrollY;
 
 		return 0;
 	}
-	int IsScrolledX() {
+	float IsScrolledX() {
 		if (scrollX != 0)
 			return scrollX;
 		return 0;
 	}
 	bool IsKeyDown(int code) {
-		for (int i = 0; i < inputs.size(); i++) {
+		for (size_t i = 0; i < inputs.size(); ++i) {
 			if (inputs[i].code == code)
 				return inputs[i].down;
 		}
 		return false;
 	}
 	bool IsKeyPressed(int code) {
-		for (int i = 0; i < inputs.size(); i++) {
+		for (size_t i = 0; i < inputs.size(); ++i) {
 			if (inputs[i].code == code)
 				return inputs[i].pressed > 0;
 		}
@@ -253,7 +252,7 @@ namespace engone {
 	void ResetEvents() {
 		scrollX = 0;
 		scrollY = 0;
-		for (int i = 0; i < inputs.size(); i++) {
+		for (size_t i = 0; i < inputs.size(); ++i) {
 			if (inputs[i].pressed > 0)
 				inputs[i].pressed--;
 		}
@@ -296,9 +295,8 @@ namespace engone {
 			file.close();
 			return 0;
 		}
-
 		file.seekg(0, file.end);
-		int size = file.tellg();
+		size_t size = (size_t)file.tellg();
 		file.seekg(0, file.beg);
 
 		struct keyset {
@@ -332,7 +330,7 @@ namespace engone {
 		int numKeys = keybindings.size();
 
 		struct keyset {
-			short id;
+			uint16_t id;
 			int keys[3];
 		};
 
@@ -341,8 +339,9 @@ namespace engone {
 		int i = 0;
 		for (auto& pair : keybindings) {
 			sets[i].id = pair.first;
-			memcpy_s(&sets[i].keys[0], 3 * sizeof(int), &pair.second.keys[0], 3 * sizeof(int));
-			//std::cout << sets[i].id << " " << sets[i].keys[0]<<"\n";
+			for (int j = 0; j < 3;j++)
+				sets[i].keys[j] = pair.second.keys[j];
+
 			i++;
 		}
 

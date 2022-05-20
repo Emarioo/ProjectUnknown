@@ -3,17 +3,17 @@
 
 namespace engone {
 
-	ComponentMask::ComponentMask(int mask) : componentMask(mask) {}
-	ComponentMask::ComponentMask(ComponentEnum mask) : componentMask(1 << ((int)mask - 1)) {}
+	ComponentMask::ComponentMask(size_t mask) : componentMask(mask) {}
+	ComponentMask::ComponentMask(ComponentEnum mask) : componentMask(1 << ((size_t)mask - 1)) {}
 	ComponentMask::ComponentMask(const ComponentMask& mask) : componentMask(mask.componentMask) {}
 	ComponentMask::ComponentMask(ComponentMask* mask) : componentMask(mask->componentMask) {}
 	ComponentMask ComponentMask::operator|(ComponentEnum filter) {
-		componentMask = componentMask | (1 << ((int)filter - 1));
+		componentMask = componentMask | (1 << ((size_t)filter - 1));
 		return *this;
 	}
 
 	ComponentMask operator|(ComponentEnum a, ComponentEnum b) {
-		return (1 << ((int)a - 1)) | (1 << ((int)b - 1));
+		return (1 << ((size_t)a - 1)) | (1 << ((size_t)b - 1));
 	}
 	AnimationProperty::AnimationProperty(bool loop, float blend, float speed)
 		: frame(0), loop(loop), blend(blend), speed(speed) {}
@@ -23,12 +23,12 @@ namespace engone {
 	}
 	void Animator::Update(float delta) {
 		if (asset != nullptr) {
-			for (int i = 0; i < maxAnimations; i++) {
+			for (size_t i = 0; i < maxAnimations; ++i) {
 				if (enabledAnimations[i].asset) {
 					AnimationProperty& prop = enabledAnimations[i];
 					
 					for (AnimationAsset* anim : asset->animations) {// This is kind of bad. A lot of animations will cause performance issues
-						if (prop.asset == anim) {
+						if (prop.asset == anim && anim) {
 							
 							prop.frame += anim->defaultSpeed * prop.speed * delta;
 							if (anim->frameEnd <= prop.frame) {
@@ -47,13 +47,13 @@ namespace engone {
 		}
 	}
 	void Animator::Blend(const std::string& name, float blend) {
-		for (int i = 0; i < maxAnimations; i++) {
+		for (size_t i = 0; i < maxAnimations; ++i) {
 			if (std::strcmp(enabledAnimations[i].instanceName, name.c_str()) == 0)
 				enabledAnimations[i].blend = blend;
 		}
 	}
 	void Animator::Speed(const std::string& name, float speed) {
-		for (int i = 0; i < maxAnimations; i++) {
+		for (size_t i = 0; i < maxAnimations; ++i) {
 			if (std::strcmp(enabledAnimations[i].instanceName, name.c_str())==0)
 				enabledAnimations[i].speed = speed;
 		}
@@ -72,7 +72,7 @@ namespace engone {
 				}
 			}
 			if (anim&&animationName.length()<20) {
-				for (int i = 0; i < maxAnimations; i++) {
+				for (size_t i = 0; i < maxAnimations; ++i) {
 					if (enabledAnimations[i].asset == anim) {
 						if (std::strcmp(enabledAnimations[i].instanceName, instanceName.c_str()) == 0) {
 							return;
@@ -82,7 +82,7 @@ namespace engone {
 				std::strcpy(prop.instanceName, instanceName.c_str());
 
 				prop.asset = anim;
-				for (int i = 0; i < maxAnimations;i++) {
+				for (size_t i = 0; i < maxAnimations;++i) {
 					if (!enabledAnimations[i].asset) {
 						enabledAnimations[i] = prop;
 						break;

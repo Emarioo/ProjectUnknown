@@ -11,23 +11,26 @@ namespace engone {
 
 		friend class EntityStack;
 
-		int* componentSizes = nullptr;// pointing to an array in entityStack;
+		size_t* componentSizes = nullptr;// pointing to an array in entityStack;
 		char* stackPtr = nullptr;// pointing to component memory in EntityStack
 	public:
 
 		uint64_t entityId=0;
 
 		Entity(ComponentMask mask);
-		Entity(ComponentMask mask, int* sizes, char* ptr);
+		Entity(ComponentMask mask, size_t* sizes, char* ptr);
 
 		template <class T>
 		T* getComponent() {
 			if (has(T::ID)) {
-				if (!stackPtr)
+				if (!stackPtr) {
+					log::out << log::RED << "Missing component. Did you forget AddEntity(...)\n";
 					return nullptr;
-				int index = ((int)T::ID) - 1;
+				}
+				size_t index = ((size_t)T::ID) - 1;
 				return (T*)(stackPtr + componentSizes[index]);
 			}
+			log::out << log::RED << "Missing component. Did you forget AddEntity(...)\n";
 			return nullptr;
 		}
 		

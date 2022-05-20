@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Handlers/FileHandler.h"
-
 namespace engone {
 	void ReadOptions();
 	int GetOptioni(std::string);
