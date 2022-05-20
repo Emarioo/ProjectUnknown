@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Handlers/AssetHandler.h"
+#include "Engone/AssetModule.h"
 
 namespace engone {
 	enum class LightType {
@@ -46,8 +46,8 @@ namespace engone {
 			: Light(LightType::Point, position, { -1,-1,-1 }, ambient, diffuse, specular) {}
 
 		float constant = 1;
-		float linear = 0.09;
-		float quadratic = 0.032;
+		float linear = 0.09f;
+		float quadratic = 0.032f;
 		
 		void bind(Shader* shader, int index) override;
 	};

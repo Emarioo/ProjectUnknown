@@ -3,8 +3,9 @@
 #include "Item.h"
 #include "CraftingCategory.h"
 
-#include "Engone/Handlers/AssetHandler.h"
+#include "Engone/AssetModule.h"
 
+#ifdef gone
 CraftingCategory* GetCategory(int index);
 int GetCategoriesSize();
 void InitItemList();
@@ -15,3 +16,4 @@ void InitItemHandler();
 void DrawItem(Item* item, float x, float y, float w, float h, float r, float g, float b, float a);
 // Use GuiColor to change color of text. Customize the text
 void DrawItem(ItemType& type, float x, float y, float w, float h, float r, float g, float b, float a, const std::string& text);
+#endif

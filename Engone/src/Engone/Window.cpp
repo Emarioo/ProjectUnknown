@@ -1,14 +1,12 @@
+#include "Engone/Rendering/Renderer.h"
+#include "Engone/Window.h"
 
-#include "Rendering/Renderer.h"
-
-#include "EventHandler.h"
-
-#include "Window.h"
+#include "Engone/EventModule.h"
 
 namespace engone {
 
 	static Window* activeWindow=nullptr;
-	Window* GetWindow() {
+	Window* GetActiveWindow() {
 		return activeWindow;
 	}
 	float GetWidth() {
@@ -19,11 +17,11 @@ namespace engone {
 	}
 
 	static bool glfwIsActive = false;
-	static double glfwFreezeTime = 0;
-	void InitGLFW() {
+	static float glfwFreezeTime = 0;
+	void InitializeGLFW() {
 		// There is this bug with glfw where it freezes. This will tell you if it has.
 		std::thread tempThread = std::thread([] {
-			for (int i = 0; i < 20; i++) {
+			for (int i = 0; i < 20; ++i) {
 				std::this_thread::sleep_for((std::chrono::milliseconds)100);
 				if (glfwIsActive) {
 					return;
@@ -32,13 +30,15 @@ namespace engone {
 			std::cerr << "GLFW has frozen... ";
 			glfwFreezeTime = GetSystemTime();
 			});
+
 		if (!glfwInit()) {
 			std::cout << "Glfw Init error!" << std::endl;
 			return;
 		}
-		if (glfwFreezeTime != 0)
+
+		if (glfwFreezeTime != 0) {
 			std::cout << "it took " << (GetSystemTime() - glfwFreezeTime) << " seconds\n";
-		
+		}
 		glfwIsActive = true;
 		tempThread.join();
 	}
@@ -53,37 +53,37 @@ namespace engone {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end()) {
 			win->second->m_focus = focused;
-			if (focused)
-				activeWindow = win->second;
+			//if (focused)
+				//activeWindow = win->second;
 		}
 	}
 	static void ResizeCallback(GLFWwindow* window, int width, int height) {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end()) {
-			win->second->m_width = width;
-			win->second->m_height = height;
+			win->second->m_width = (float)width;
+			win->second->m_height = (float)height;
 		}
 	}
 	static void CloseCallback(GLFWwindow* window) {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end()) {
 			if(win->second->closeCallback)
-				win->second->closeCallback();
+				win->second->closeCallback(win->second);
 		}
 	}
 	Window::Window(WindowMode mode) {
 		// setup
 		if (!glfwIsActive) {
-			InitGLFW();
+			InitializeGLFW();
 		}
 
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
 		
-		x = vidmode->width / 6;
-		y = vidmode->height / 6;
-		w = vidmode->width / 1.5;
-		h = vidmode->height / 1.5;
+		x = (float)vidmode->width / 6.0f;
+		y = (float)vidmode->height / 6.0f;
+		w = (float)vidmode->width / 1.5f;
+		h = (float)vidmode->height / 1.5f;
 
 		setMode(mode);
 
@@ -96,16 +96,16 @@ namespace engone {
 	Window::Window(int width, int height, WindowMode mode) {
 		// setup
 		if (!glfwIsActive) {
-			InitGLFW();
+			InitializeGLFW();
 		}
 
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
 
-		w = width;
-		h = height;
-		x = vidmode->width / 2-w/2;
-		y = vidmode->height / 2-h/2;
+		w = (float)width;
+		h = (float)height;
+		x = (float)vidmode->width / 2.0f-w/2.0f;
+		y = (float)vidmode->height / 2.0f-h/2.0f;
 
 		setMode(mode);
 
@@ -118,16 +118,16 @@ namespace engone {
 	Window::Window(int x, int y, int width, int height, WindowMode mode) {
 		// setup
 		if (!glfwIsActive) {
-			InitGLFW();
+			InitializeGLFW();
 		}
 
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
 
-		this->x = x;
-		this->y = y;
-		w = width;
-		h = height;
+		this->x = (float)x;
+		this->y = (float)y;
+		w = (float)width;
+		h = (float)height;
 
 		setMode(mode);
 
@@ -157,8 +157,8 @@ namespace engone {
 		int wid;
 		int hei;
 		glfwGetWindowSize(m_window, &wid, &hei);
-		m_width = wid;
-		m_height = hei;
+		m_width = (float)wid;
+		m_height = (float)hei;
 		glViewport(0, 0, wid, hei);
 		activeWindow = this;
 	}
@@ -181,8 +181,8 @@ namespace engone {
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 			if (winMode == WindowMode::Windowed) {
 				glfwWindowHint(GLFW_DECORATED, true);
-				m_window = glfwCreateWindow(w, h, m_title.c_str(), NULL, NULL);
-				glfwSetWindowPos(m_window,x,y);
+				m_window = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, NULL);
+				glfwSetWindowPos(m_window, (int)x, (int)y);
 				//glfwSetWindowMonitor(m_window, NULL, x, y, w, h, mode->refreshRate);
 			} else if (winMode == WindowMode::Fullscreen) {
 				glfwWindowHint(GLFW_DECORATED, true);
@@ -204,7 +204,7 @@ namespace engone {
 			if (winMode == WindowMode::Windowed) {
 				glfwWindowHint(GLFW_DECORATED, true);
 				glfwWindowHint(GLFW_FLOATING, false);
-				glfwSetWindowMonitor(m_window, NULL, x, y, w, h, mode->refreshRate);
+				glfwSetWindowMonitor(m_window, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
 			} else if (winMode == WindowMode::Fullscreen) {
 				glfwWindowHint(GLFW_DECORATED, true);
 				glfwWindowHint(GLFW_FLOATING, false);
@@ -219,7 +219,7 @@ namespace engone {
 
 		m_windowMode = winMode;
 
-		setActiveContext();	
+		setActiveContext();
 	}
 	WindowMode Window::getMode() {
 		return m_windowMode;
@@ -256,7 +256,7 @@ namespace engone {
 				glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 	}
-	bool Window::isRunning() {
+	bool Window::isActive() {
 		return !glfwWindowShouldClose(m_window);
 	}
 

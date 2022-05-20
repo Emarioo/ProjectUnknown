@@ -6,6 +6,7 @@
 
 #include "ItemHandler.h"
 
+#ifdef gone
 Container::Container() {
 
 }
@@ -142,14 +143,14 @@ Item* Container::TakeItemAt(int slotX, int slotY) {
 	}
 	return nullptr;
 }
-Item* Container::GetItemAt(int slotX, int slotY) {
+Item* Container::GetItemAt(size_t slotX, size_t slotY) {
 	if (slotWidth > slotX && slotHeight > slotY) {
 		int index = slotY * slotWidth + slotX;
 		return itemArray[index];
 	}
 	return nullptr;
 }
-Item* Container::GetItemAt(int index) {
+Item* Container::GetItemAt(size_t index) {
 	if (0 < index && index < itemArray.size()) {
 		return itemArray[index];
 	}
@@ -239,3 +240,4 @@ int Container::GetSlotWidth(){
 int Container::GetSlotHeight() {
 	return slotHeight;
 }
+#endif

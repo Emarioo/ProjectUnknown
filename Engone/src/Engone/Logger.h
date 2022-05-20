@@ -7,8 +7,7 @@ namespace engone
 	namespace log
 	{
 		// Will change color of out stream
-		enum ConsoleColorCode : char
-		{
+		enum ConsoleColorCode : uint8_t {
 			BLACK,
 			NAVY,
 			GREEN,

@@ -1,11 +1,8 @@
 #pragma once
 
-#include "../Handlers/FileHandler.h"
-#include "../Rendering/Buffer.h"
-
+#include "Engone/Rendering/Buffer.h"
 #include "Engone/Utility/Utilities.h"
-
-#include "../Logger.h"
+#include "Engone/Logger.h"
 
 namespace engone {
 
@@ -54,7 +51,7 @@ namespace engone {
 		int writeHead = 0;
 		std::ofstream file;
 		std::string path;
-		AssetError error;
+		AssetError error=AssetError::None;
 
 		std::vector<std::string> readNumbers;
 
@@ -76,12 +73,11 @@ namespace engone {
 			if (error != None || var==nullptr || size==0)
 				return;
 			if (binaryForm) {
-				file.write(reinterpret_cast<char*>(var), size * sizeof(T));
+				file.write(reinterpret_cast<char*>(var), size * (size_t)sizeof(T));
 				writeHead += size * sizeof(T);
 			} else {
-
 				std::string out;
-				for (int i = 0; i < size;i++) {
+				for (uint32_t i = 0; i < size;i++) {
 					if(i==0)
 						out += std::to_string(var[i]);
 					else
@@ -128,7 +124,7 @@ namespace engone {
 			file.open(path, std::ios::binary);
 			if (file) {
 				file.seekg(0, file.end);
-				fileSize = file.tellg();
+				fileSize = (std::size_t)file.tellg();
 				file.seekg(file.beg);
 			} else {
 				//std::cout << " how strangee" <<"not found " << path << "\n";
@@ -141,11 +137,11 @@ namespace engone {
 		}
 
 		bool binaryForm = false;
-		int readHead = 0;
-		size_t fileSize = 0;
+		uint32_t readHead = 0;
+		uint32_t fileSize = 0;
 		std::ifstream file;
 		std::string path;
-		AssetError error;
+		AssetError error=AssetError::None;
 
 		std::vector<std::string> readNumbers;
 
@@ -173,12 +169,12 @@ namespace engone {
 					throw CorruptedData;
 				}
 
-				file.read(reinterpret_cast<char*>(var), size * sizeof(T));
+				file.read(reinterpret_cast<char*>(var), size * (size_t)sizeof(T));
 				readHead += size * sizeof(T);
 			} else {
 				try {
 					std::string line;
-					int index = 0;
+					uint32_t index = 0;
 
 					while (index < size) {
 						if (readNumbers.size() == 0) {
@@ -196,11 +192,11 @@ namespace engone {
 
 							readNumbers = SplitString(line, " ");
 						}
-						int toRead = readNumbers.size();
+						uint32_t toRead = readNumbers.size();
 						if (size < readNumbers.size())
 							toRead = size;
 
-						for (int i = 0; i < toRead; i++) {
+						for (uint32_t i = 0; i < toRead; i++) {
 							std::string& str = readNumbers[0];
 							if (str.length() == 0) {
 								readNumbers.erase(readNumbers.begin());
@@ -237,7 +233,7 @@ namespace engone {
 			if (error != None || var == nullptr)
 				return;
 			if (binaryForm) {
-				if (readHead - 1 + 1 > fileSize) {
+				if (readHead - 1u + 1u > fileSize) {
 					error = CorruptedData;
 					throw CorruptedData;
 				}
@@ -245,30 +241,32 @@ namespace engone {
 				file.read(reinterpret_cast<char*>(&length), 1);
 				readHead++;
 
-				if (length == 0)
+				if (length == 0u)
 					return;
 
-				if (readHead - 1 + length > fileSize) {
+				if (readHead - 1u + length > fileSize) {
 					error = CorruptedData;
 					throw CorruptedData;
 				}
 
 				*var = std::string(length, ' ');
 
-				file.read(reinterpret_cast<char*>(var), length);
+				file.read(reinterpret_cast<char*>(var->data()), length);
 				readHead += length;
 			} else {
 				std::string line;
-				int index = 0;
+				uint32_t index = 0;
 
-				while (index < 1) {
+				while (index < 1u) {
+					if (file.eof()) {
+						throw CorruptedData;
+					}
 					std::getline(file, line);
 
-					if (file.eof())
-						throw CorruptedData;
-
-					if (line[0] == '#')
+					//std::cout << line[0] << "\n";
+					if (line[0] == '#') {
 						continue;
+					}
 					if (!line.empty()) {
 						if (line.back() == '\r')
 							line.erase(line.end() - 1);
@@ -279,6 +277,99 @@ namespace engone {
 				}
 			}
 		}
+		void readAll(std::string* var) {
+			if (error != None || var == nullptr)
+				return;
+			if (binaryForm) {
+				log::out <<log::RED <<"readAll with binary is not implemented" << "\n";
+				throw CorruptedData;
+				//if (readHead - 1 + 1 > fileSize) {
+				//	error = CorruptedData;
+				//	throw CorruptedData;
+				//}
+				//uint8_t length;
+				//file.read(reinterpret_cast<char*>(&length), 1);
+				//readHead++;
+
+				//if (length == 0)
+				//	return;
+
+				//if (readHead - 1 + length > fileSize) {
+				//	error = CorruptedData;
+				//	throw CorruptedData;
+				//}
+
+				//*var = std::string(length, ' ');
+
+				//file.read(reinterpret_cast<char*>(var->data()), length);
+				//readHead += length;
+			} else {
+				std::string line;
+				while (true) {
+					if (file.eof()) {
+						break;
+					}
+					std::getline(file, line);
+
+					if (line[0] == '#') {
+						continue;
+					}
+					if (!line.empty()) {
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+					}
+					*var += line+"\n";
+				}
+			}
+		}
+		std::vector<std::string> readLines() {
+			if (error != None)
+				return std::vector<std::string>();
+			if (binaryForm) {
+				log::out << log::RED << "readLines with binary is not implemented" << "\n";
+				throw CorruptedData;
+				//if (readHead - 1 + 1 > fileSize) {
+				//	error = CorruptedData;
+				//	throw CorruptedData;
+				//}
+				//uint8_t length;
+				//file.read(reinterpret_cast<char*>(&length), 1);
+				//readHead++;
+
+				//if (length == 0)
+				//	return;
+
+				//if (readHead - 1 + length > fileSize) {
+				//	error = CorruptedData;
+				//	throw CorruptedData;
+				//}
+
+				//*var = std::string(length, ' ');
+
+				//file.read(reinterpret_cast<char*>(var->data()), length);
+				//readHead += length;
+			} else {
+				std::vector<std::string> list;
+				std::string line;
+				while (true) {
+					if (file.eof()) {
+						break;
+					}
+					std::getline(file, line);
+
+					if (line[0] == '#') {
+						continue;
+					}
+					if (!line.empty()) {
+						if (line.back() == '\r')
+							line.erase(line.end() - 1);
+					}
+					list.push_back(line + "\n");
+				}
+				return list;
+			}
+		}
+
 	};
 
 	class Asset
@@ -287,13 +378,14 @@ namespace engone {
 		static const AssetType TYPE = AssetType::None; // General type
 		AssetType type = AssetType::None; // my type
 		Asset() = default;
-		Asset(const std::string& path) : filePath("assets/" + path) { }
+		Asset(AssetType type) : type(type) {};
+		Asset(AssetType type,const std::string& path) : type(type), filePath("assets/" + path) { }
 
 		std::string baseName;
 		std::string filePath;
 		std::string getRootPath(){
-			int first = filePath.find_first_of("/");
-			int last = filePath.find_last_of("/");
+			size_t first = filePath.find_first_of("/");
+			size_t last = filePath.find_last_of("/");
 
 			if (first == last) {// directly in assets
 				return "";
@@ -304,7 +396,7 @@ namespace engone {
 		}
 		void setBaseName(const std::string& name)
 		{
-			int last = name.find_last_of("/");
+			size_t last = name.find_last_of("/");
 			if(last!=-1)
 				baseName = name.substr(last+1);
 			else
@@ -313,12 +405,10 @@ namespace engone {
 
 		AssetError error=None;
 
-		bool operator!()
-		{
+		bool operator!() {
 			return error != None;
 		}
-		operator bool()
-		{
+		operator bool() {
 			return error == None;
 		}
 
@@ -331,8 +421,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Texture;
-		Texture() { type == AssetType::Texture; };
-		Texture(const std::string& path) : Asset(path + ".png") { type = AssetType::Texture; load(filePath); };
+		Texture() : Asset(TYPE)  { };
+		Texture(const std::string& path) : Asset(TYPE,path + ".png") { load(filePath); };
 		void load(const std::string& path) override;
 		void init(int w, int h, void* data);
 
@@ -343,17 +433,17 @@ namespace engone {
 		int getHeight();
 	
 	private:
-		unsigned int id;
+		unsigned int id=0;
 		unsigned char* buffer = nullptr;
-		int width = 0, height, BPP = 0;
+		int width = 0, height=0, BPP = 0;
 	};
 	class Shader: public Asset
 	{
 	public:
 		static const AssetType TYPE = AssetType::Shader;
-		Shader() { type = AssetType::Shader; }
-		Shader(const char* source) { init(source); type = AssetType::Shader; }
-		Shader(const std::string& path) : Asset(path + ".glsl") { load(filePath); type = AssetType::Shader; }
+		Shader() : Asset(TYPE) { }
+		Shader(const char* source) { init(source); }
+		Shader(const std::string& path) : Asset(TYPE,path + ".glsl") { load(filePath); }
 		
 		void load(const std::string& path) override;
 		void init(const std::string& source);
@@ -371,7 +461,7 @@ namespace engone {
 		void setMat4(const std::string& name, glm::mat4 v);
 
 	private:
-		unsigned int id;
+		unsigned int id=0;
 		unsigned int createShader(const std::string& vert, const std::string& frag);
 		unsigned int compileShader(const unsigned int, const std::string& src);
 
@@ -383,8 +473,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Font;
-		Font() { type = AssetType::Font; };
-		Font(const std::string& path) : Asset(path) { type = AssetType::Font; load(filePath); };
+		Font() : Asset(TYPE) {  };
+		Font(const std::string& path) : Asset(TYPE,path) { load(filePath); };
 		void load(const std::string& path) override;
 
 		float getWidth(const std::string& str, float height);
@@ -401,8 +491,8 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetType::Material;
 
-		MaterialAsset() { type = AssetType::Material; };
-		MaterialAsset(const std::string& path) : Asset(path + ".material") { type = AssetType::Material; load(filePath); };
+		MaterialAsset() : Asset(TYPE) { };
+		MaterialAsset(const std::string& path) : Asset(TYPE,path + ".material") { load(filePath); };
 		void load(const std::string& path) override;
 
 		Texture* diffuse_map=nullptr;
@@ -464,8 +554,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Animation;
-		AnimationAsset() { type = AssetType::Animation; };
-		AnimationAsset(const std::string& path) : Asset(path+".animation") { type = AssetType::Animation; load(filePath); };
+		AnimationAsset() : Asset(TYPE) {  };
+		AnimationAsset(const std::string& path) : Asset(TYPE,path+".animation") { load(filePath); };
 		void load(const std::string& path) override;
 
 		Channels& get(unsigned short i);
@@ -497,8 +587,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Mesh;
-		MeshAsset() { type = AssetType::Mesh; };
-		MeshAsset(const std::string& path) : Asset(path+".mesh") { type = AssetType::Mesh; load(filePath); };
+		MeshAsset() : Asset(TYPE) {  };
+		MeshAsset(const std::string& path) : Asset(TYPE,path+".mesh") { load(filePath); };
 		void load(const std::string& path) override;
 
 		enum class MeshType : char
@@ -519,8 +609,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Collider;
-		ColliderAsset() { type = AssetType::Collider; };
-		ColliderAsset(const std::string& path) : Asset(path+".collider") {type = AssetType::Collider; load(filePath); };
+		ColliderAsset() : Asset(TYPE) {  };
+		ColliderAsset(const std::string& path) : Asset(TYPE,path+".collider") { load(filePath); };
 		void load(const std::string& path) override;
 
 		enum class Type : char {
@@ -537,11 +627,11 @@ namespace engone {
 		Type colliderType = Type::Sphere;
 		union {
 			struct {// cube
-				glm::vec3 position, scale, rotation;
-			} cube;
+				glm::vec3 position = { 0,0,0 }, scale = { 0,0,0 }, rotation = { 0,0,0 };
+			} cube{};
 			struct {// sphere
-				glm::vec3 position;
-				float radius;
+				glm::vec3 position = { 0,0,0 };
+				float radius=0;
 			} sphere;
 		};
 	};
@@ -560,8 +650,8 @@ namespace engone {
 	{
 	public:
 		static const AssetType TYPE = AssetType::Armature;
-		ArmatureAsset() { type = AssetType::Armature; };
-		ArmatureAsset(const std::string& path) : Asset(path + ".armature") { type = AssetType::Armature; load(filePath); };
+		ArmatureAsset() : Asset(TYPE) { };
+		ArmatureAsset(const std::string& path) : Asset(TYPE,path + ".armature") { load(filePath); };
 		void load(const std::string& path) override;
 
 		std::vector<Bone> bones;
@@ -583,8 +673,8 @@ namespace engone {
 	class ModelAsset : public Asset {
 	public:
 		static const AssetType TYPE = AssetType::Model;
-		ModelAsset() { type = AssetType::Model; };
-		ModelAsset(const std::string& path) : Asset(path + ".model") { type = AssetType::Model; load(filePath); };
+		ModelAsset() : Asset(TYPE) {  };
+		ModelAsset(const std::string& path) : Asset(TYPE, path + ".model") { load(filePath); };
 		void load(const std::string& path) override;
 
 		/*

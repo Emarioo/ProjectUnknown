@@ -11,19 +11,7 @@ namespace engone {
 		BorderlessFullscreen
 	};
 	class Window {
-	private:
-		GLFWwindow* m_window;
-		WindowMode m_windowMode = WindowMode::None;
-		bool m_cursorVisible = true, m_cursorLocked = false, m_focus = true;
-		float m_width, m_height;
-		std::string m_title = "Untitled";
-
-		float x=-1, y=-1, w=-1, h=-1;
-
 	public:
-		friend void FocusCallback(GLFWwindow* window, int focused);
-		friend void ResizeCallback(GLFWwindow* window, int width, int height);
-
 		Window(WindowMode mode = WindowMode::Windowed);
 		Window(int width, int height, WindowMode mode = WindowMode::Windowed);
 		Window(int x, int y, int width, int height, WindowMode mode = WindowMode::Windowed);
@@ -32,19 +20,23 @@ namespace engone {
 		GLFWwindow* glfw() {
 			return m_window;
 		}
-		
-		std::function<void()> closeCallback=nullptr;
 
 		void setTitle(const std::string title);
 		void setActiveContext();
 
 		void setMode(WindowMode mode);
 		WindowMode getMode();
+
 		// Width of game screen not window!
 		float getWidth();
 		// Height of game screen not window!
 		float getHeight();
+
 		bool hasFocus();
+
+		void setCloseCallback(std::function<void(Window*)> callback) {
+			closeCallback = callback;
+		}
 
 		/*
 		True if the cursor is visible.
@@ -63,13 +55,27 @@ namespace engone {
 		*/
 		void lockCursor(bool locked);
 
-		bool isRunning();
+		bool isActive();
+	private:
+		GLFWwindow* m_window;
+		WindowMode m_windowMode = WindowMode::None;
+		bool m_cursorVisible = true, m_cursorLocked = false, m_focus = true;
+		float m_width, m_height;
+		std::string m_title = "Untitled";
+		float x = -1, y = -1, w = -1, h = -1;
+
+		std::function<void(Window*)> closeCallback = nullptr;
+
+		friend void FocusCallback(GLFWwindow* window, int focused);
+		friend void CloseCallback(GLFWwindow* window);
+		friend void ResizeCallback(GLFWwindow* window, int width, int height);
+
 	};
 
-	void InitGLFW();
+	void InitializeGLFW();
 	Window* GetMappedWindow(GLFWwindow* window);
 
-	Window* GetWindow();
+	Window* GetActiveWindow();
 	// Width of game screen not window!
 	float GetWidth();
 	// Height of game screen not window!

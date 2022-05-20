@@ -1,7 +1,9 @@
-#ifdef USE_AL
-#include "../Handlers/Filehandler.h"
+#include "Engone/Sound/SoundStream.h"
 
-#include "SoundStream.h"
+#include "Engone/Utility/Utilities.h"
+#include "AL/al.h"
+#include "AL/alc.h"
+#include <vendor/Libaudio.h>
 
 namespace engone {
 
@@ -72,9 +74,9 @@ namespace engone {
 				char* data = new char[dataSize];
 				std::memset(data, 0, dataSize);
 
-				std::size_t dataSizeToCopy = BUFFER_SIZE;
-				if (cursor + BUFFER_SIZE > bufferSize)
-					dataSizeToCopy = bufferSize - cursor;
+				size_t dataSizeToCopy = BUFFER_SIZE;
+				if (cursor + BUFFER_SIZE > (size_t)bufferSize)
+					dataSizeToCopy = (size_t)bufferSize - cursor;
 
 				std::memcpy(&data[0], &bufferData[cursor], dataSizeToCopy);
 				cursor += dataSizeToCopy;
@@ -93,4 +95,4 @@ namespace engone {
 		}
 	}
 }
-#endif
+//#endif

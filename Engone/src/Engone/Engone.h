@@ -1,41 +1,44 @@
 #pragma once
 
-#include "Rendering/Renderer.h"
-#include "Window.h"
+#include "Engone/Rendering/Renderer.h"
+#include "Engone/Window.h"
 
 //#include "UI/GuiHandler.h"
 //#include "UI/UIPipeline.h"
-#include "Sound/SoundHandler.h"
-#include "Utility/Utilities.h"
-#include "GameState.h"
-#include "Server/NetworkHandler.h"
+#include "Engone/SoundModule.h"
+#include "Engone/Utility/Utilities.h"
+#include "Engone/GameState.h"
+#include "Engone/NetworkModule.h"
 
-#include "Components/EntitySystem.h"
+#include "Engone/Components/EntitySystem.h"
 
-#include "Rendering/FrameBuffer.h"
-#include "Rendering/Light.h"
+#include "Engone/Rendering/FrameBuffer.h"
+#include "Engone/Rendering/Light.h"
 
-#include "Window.h"
+#include "Engone/Window.h"
 
-#include "Objects/Camera.h"
+#include "Engone/Objects/Camera.h"
+#include "Engone/Application.h"
 
 /*
-Include this file in your Application.cpp to get access to all the engine's functions. But not really haha
+Include this file in your main.cpp to get access to all the engine's functions. But not really haha
 
 Your own update function should include the UpdateObjects, UpdateCamera and UpdateUI functions.
 Your render function should include RenderObjects, RenderUI and RenderRawObjects incase of specialties.
 */
 namespace engone {
 
-	// Init glfw, glew, guiShader. has ui functions
-	void InitEngone(EngoneHint hints=EngoneHint::None);
-	void UninitEngone();
+	// Currently only sets options
+	void Initialize(EngoneOption hints=EngoneOption::None);
+	// Not really done
+	void Cleanup();
 
 	/*
-	Start the game loop and give the engine update and render calls.
-	The argument is delta for update and lag for render
+	Start the loop running the applications.
+	When all windows of all applications are closed the loop will end.
 	*/
-	void Start(std::function<void(double)> update, std::function<void(double)> render, double fps);
+	void Start();
+	void AddApplication(Application* app);
 
 	FrameBuffer& GetDepthBuffer();
 
@@ -47,24 +50,23 @@ namespace engone {
 	*/
 	void UpdateObjects(float delta);
 
-	//void RenderUI(double lag);
 	/*
 	Render objects, hitboxes with the appropriate shaders.
 	*/
-	void RenderObjects(double lag);
+	void RenderObjects(float lag);
 	/*
 	Render objects without doing anything but calling the object's draw function.
 	*/
-	void RenderRawObjects(Shader* shader, double lag);
+	void RenderRawObjects(Shader* shader, float lag);
 
 	/*
 	Render objects, ui, debug tool
 	*/
-	void RenderEngine(double lag);
+	void RenderEngine(float lag);
 	/*
 	Update objects, ui, debug tool
 	*/
-	void UpdateEngine(double delta);
+	void UpdateEngine(float delta);
 
 	struct Delayed {
 		float time;

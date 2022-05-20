@@ -18,14 +18,14 @@ namespace engone {
 			entityMax = 0;
 			entitySize = 0;
 			entityCount = 0;
-			if(data)
+			if (data)
 				free(data);
 		}
-		int componentSizes[32];
-		int entityCount = 0, entityMax=0;
-		int entitySize = 0;
+		size_t componentSizes[32];
+		size_t entityCount = 0, entityMax=0;
+		size_t entitySize = 0;
 		std::vector<Entity*> entities;
-		std::vector<int> deletedSpots;
+		std::vector<size_t> deletedSpots;
 		char* data = nullptr; // an array of specific components in a specific order
 		// example: transform, physics | transform, physics...
 		
@@ -35,7 +35,7 @@ namespace engone {
 		template <class T>
 		T* getComponent(int index) {
 			if (has(T::ID)) {
-				int typeIndex = ((int)T::ID) - 1;
+				size_t typeIndex = ((size_t)T::ID) - 1;
 				return (T*)(data + index * entitySize + componentSizes[typeIndex]);
 			}
 			return nullptr;
@@ -59,15 +59,11 @@ namespace engone {
 		
 	};
 	/*
-		Iterator can be reused if the iteration wasn't interrupted.
+		Iterator can be reused if the iteration wasn't interrupted. If it was use revert().
 	*/
 	class EntityIterator {
 	public:
 		EntityIterator(StackCollection* stack) : collection(stack) {};
-
-		int index = -1;
-		int stackIndex = 0;
-		StackCollection* collection=nullptr;
 
 		bool next() {
 			if (collection->stacks.size()==0)
@@ -76,8 +72,8 @@ namespace engone {
 			while (true) {
 				index++;
 				bool cont = false;
-				for (int i = 0; i < collection->stacks[stackIndex]->deletedSpots.size(); i++) {
-					int ind = collection->stacks[stackIndex]->deletedSpots[i];
+				for (size_t i = 0; i < collection->stacks[stackIndex]->deletedSpots.size(); i++) {
+					size_t ind = collection->stacks[stackIndex]->deletedSpots[i];
 					if (index == ind) {
 						cont = true;
 						break;
@@ -101,6 +97,11 @@ namespace engone {
 		operator bool() {
 			return next();
 		}
+		// Start the iterator from the beginning (index=0)
+		void revert() {
+			index = -1;
+			stackIndex = 0;
+		}
 
 		// will crash if next hasn't been called before
 		template<class T>
@@ -113,6 +114,10 @@ namespace engone {
 				collection->stacks[stackIndex]->data + 
 				(collection->stacks[stackIndex]->entityCount - 1) * collection->stacks[stackIndex]->entitySize };
 		}
+	private:
+		size_t index = -1;
+		size_t stackIndex = 0;
+		StackCollection* collection = nullptr;
 	};
 
 	// Adds the entity to the entity component system, also allocates memory for entity

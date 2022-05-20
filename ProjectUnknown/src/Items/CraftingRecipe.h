@@ -2,6 +2,7 @@
 
 #include "Container.h"
 
+#ifdef gone
 class CraftingIngredient {
 public:
 	CraftingIngredient(const std::string& name, int count);
@@ -29,3 +30,4 @@ public:
 	*/
 	int AttemptCraft(Container* inventory,int count);
 };
+#endif

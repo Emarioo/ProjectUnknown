@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef USE_AL
-#include "SoundBuffer.h"
+#include "Engone/Sound/SoundBuffer.h"
 
 namespace engone {
 	class SoundSource {
@@ -22,9 +21,8 @@ namespace engone {
 		void Play();
 		void Pause();
 		void Stop();
-		ALint GetState();
+		int GetState();
 
 		unsigned int id=0;
 	};
 }
-#endif

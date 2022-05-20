@@ -1,7 +1,6 @@
 #pragma once
 
-#ifdef USE_AL
-#include "../Sound/SoundStream.h"
+#include "Engone/Sound/SoundStream.h"
 
 namespace engone {
 	// returns false if error
@@ -15,7 +14,7 @@ namespace engone {
 	*/
 	void ListenerRotation(float x, float y, float z, float x1, float y1, float z1);
 }
-#endif
+//#endif
 /* Example
 
 	melody.Init("assets/sounds/melody.wav");

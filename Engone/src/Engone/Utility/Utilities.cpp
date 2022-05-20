@@ -25,8 +25,8 @@ namespace engone {
 	};
 	std::string SanitizeString(std::string s) {
 		std::string out;
-		for (int i = 0; i < s.size(); i++) {
-			for (int j = 0; j < 64; j++) {
+		for (size_t i = 0; i < s.size(); ++i) {
+			for (size_t j = 0; j < 64; ++j) {
 				if (s.at(i) == SanitizedChars[j]) {
 					out += s.at(i);
 					break;
@@ -49,7 +49,7 @@ namespace engone {
 		return (x - min) / (max - min);
 	}
 	float distance(float x, float y, float x1, float y1) {
-		return sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
+		return (float)sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
 	}
 	/*
 	void insert(float* ar, int off, int len, float* data) { // carefull with going overboard
@@ -62,7 +62,7 @@ namespace engone {
 	}*/
 	float bezier(float x, float xStart, float xEnd) {
 		float t = (x - xStart) / (xEnd - xStart);
-		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * pow(t, 2) + pow(t, 3));
+		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * (float)pow(t, 2) + (float)pow(t, 3));
 		return va;
 	}
 	/*
@@ -79,22 +79,24 @@ namespace engone {
 		}
 		return out;
 	}*/
-	double GetAppTime() {
-		return glfwGetTime();
+	float GetAppTime() {
+		return (float)glfwGetTime();
 	}
+	// needs to return double. Float is to small.
 	double GetSystemTime() {
-		return std::chrono::system_clock::now().time_since_epoch().count() / 10000000.0;
+		//std::cout << std::chrono::system_clock::now().time_since_epoch().count() <<" "<< (std::chrono::system_clock::now().time_since_epoch().count() / 10000000) << "\n";
+		return (double)(std::chrono::system_clock::now().time_since_epoch().count() / 10000000);
 	}
 	// how do this
 	static std::mt19937 utility_mt19937_random;
 	static std::uniform_real_distribution utility_uniform_distrubtion;
 	static bool once = false;
-	double GetRandom() {
+	float GetRandom() {
 		if (!once) {
-			utility_mt19937_random.seed(GetSystemTime());
+			utility_mt19937_random.seed((uint32_t)GetSystemTime());
 			once = true;
 		}
-		return utility_uniform_distrubtion(utility_mt19937_random);
+		return (float)utility_uniform_distrubtion(utility_mt19937_random);
 	}
 	std::string GetClock() {
 		time_t t;
@@ -120,19 +122,47 @@ namespace engone {
 		}
 		std::cout << "Time: " << (aft - bef) << std::endl;
 	}*/
+	LinearAllocator::LinearAllocator(uint32_t size) {
+		if (size != 0) {
+			m_data = (char*)malloc(size);
+		}
+	}
+	LinearAllocator::LinearAllocator(char* stackPtr, uint32_t size) {
+		m_stackAllocation = true;
+		m_data = stackPtr;
+		m_size = size;
+	}
+	LinearAllocator::~LinearAllocator() {
+		if (m_data&&!m_stackAllocation)
+			free(m_data);
+	}
+	bool LinearAllocator::resize(uint32_t size) {
+		if (m_stackAllocation) {
+			log::out << "Arena switched to heap allocation\n";
+		} else {
+			if (m_data) free(m_data);
+		}
+		m_data = (char*)malloc(size);
+		m_stackAllocation = false;
+		return m_data!=nullptr;
+	}
+	void LinearAllocator::clear() {
+		m_head = 0;
+	}
+	char* LinearAllocator::allocate(uint32_t size) {
+		if (m_head + size > m_size) return nullptr;
+
+		char* ptr = m_data + m_head;
+		m_head += size;
+		return ptr;
+	}
+
 	static std::unordered_map<int, int> timerCounting;
-	Timer::Timer() : time(GetAppTime()) {
-
-	}
-	Timer::Timer(const std::string& str) : time(GetAppTime()), name(str) {
-
-	}
-	Timer::Timer(const std::string& str, int id) : time(GetAppTime()), name(str), id(id) {
-
-	}
+	Timer::Timer() : time(GetAppTime()) { }
+	Timer::Timer(const std::string& str) : time(GetAppTime()), name(str) { }
+	Timer::Timer(const std::string& str, int id) : time(GetAppTime()), name(str), id(id) { }
 	Timer::~Timer() {
-		if (time != 0)
-			end();
+		if (time != 0) end();
 	}
 	void Timer::end() {
 		if (id != 0) {
@@ -151,5 +181,16 @@ namespace engone {
 
 		log::out << name << " : " << (GetAppTime() - time) << "\n";
 		time = 0;
+	}
+	bool FindFile(const std::string& path) {
+		struct stat buffer;
+		return (stat(path.c_str(), &buffer) == 0);
+	}
+	std::vector<std::string> GetFiles(const std::string& path) {
+		std::vector<std::string> list;
+		for (const auto& entry : std::filesystem::directory_iterator(path)) {
+			list.push_back(entry.path().generic_string());
+		}
+		return list;
 	}
 }

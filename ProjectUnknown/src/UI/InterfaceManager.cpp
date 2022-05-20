@@ -1,10 +1,10 @@
 
 #include "InterfaceManager.h"
 
-#include "GameHandler.h"
+//#include "GameHandler.h"
 
 #include "Items/ItemHandler.h"
-
+#ifdef gone
 namespace UI
 {
 	static Item* heldItem;
@@ -94,7 +94,7 @@ namespace UI
 		hasMainMenu = true;
 
 		using namespace engone;
-#if begone
+//#if begone
 		// Stage One
 		IElement* alone = AddElement("playAlone", 5);
 		{
@@ -214,7 +214,7 @@ namespace UI
 			uiFade->conX.Center(0)->conY.Center(0)->conW.Center(2.f)->conH.Center(2.f);
 			uiFade->NewTransition(&uiFadeBool)->Fade({ 0.f, 1.f }, .5f);
 		}
-#endif
+//#endif
 	}
 	bool hasGameUI = false;
 	void SetupGameUI()
@@ -275,3 +275,4 @@ namespace UI
 	}
 }*/
 }
+#endif

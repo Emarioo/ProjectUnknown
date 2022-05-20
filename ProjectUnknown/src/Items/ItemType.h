@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef gone
 class ItemType {
 public:
 	ItemType();
@@ -9,3 +10,4 @@ public:
 	short maxCount;
 	std::string name;
 };
+#endif

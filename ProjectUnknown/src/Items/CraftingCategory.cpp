@@ -1,7 +1,7 @@
 #include "gonpch.h"
 
 #include "CraftingCategory.h"
-
+#ifdef gone
 CraftingCategory::CraftingCategory(const std::string& name)
 	: name(name) {
 
@@ -15,3 +15,4 @@ CraftingRecipe* CraftingCategory::GetRecipe(int index) {
 		return &recipes[index];
 	return nullptr;
 }
+#endif

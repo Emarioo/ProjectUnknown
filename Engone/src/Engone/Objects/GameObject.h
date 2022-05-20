@@ -4,7 +4,7 @@
 //#include "../Components/Physics.h"
 //#include "../Components/RenderComponent.h"
 
-#include "../Handlers/AssetHandler.h"
+#include "Engone/AssetModule.h"
 
 namespace engone {
 	class GameObject {

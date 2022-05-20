@@ -6,7 +6,7 @@
 class Player : public engone::Entity, public engone::System {
 private:
 	float animBlending = 0;
-	float animSpeed = 1.7;
+	float animSpeed = 1.7f;
 
 public:
 	Player() : engone::Entity(engone::Transform::ID | engone::Physics::ID |

@@ -6,11 +6,11 @@
 
 #include "Buffer.h"
 
-#include "../Handlers/AssetHandler.h"
+#include "Engone/AssetModule.h"
 
-#include "../GameState.h"
+#include "Engone/GameState.h"
 
-#include "../Objects/Camera.h"
+#include "Engone/Objects/Camera.h"
 
 namespace engone {
 
@@ -25,8 +25,8 @@ namespace engone {
 	};
 
 	// Create buffers/meshes for drawing rectangles. Gui shader should be added before. 
-	void InitRenderer(EngoneHint hints);
-	void UninitRenderer();
+	void InitRenderer(EngoneOption options=EngoneOption::None);
+	void TerminateRenderer();
 	void EnableBlend();
 	void EnableDepth();
 

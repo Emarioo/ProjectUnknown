@@ -1,18 +1,18 @@
-
 #include "Buffer.h"
 #include "../Logger.h"
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 namespace engone {
 
-	VertexBuffer::VertexBuffer(int _floatCount, float* data) {
+	VertexBuffer::VertexBuffer(size_t _floatCount, float* data) {
 		setData(_floatCount, data);
 	}
 	VertexBuffer::~VertexBuffer() {
 		if (id != 0)
 			glDeleteBuffers(1,&id);
 	}
-	void VertexBuffer::setData(int _floatCount, float* data, int offset) {
+	void VertexBuffer::setData(size_t _floatCount, float* data, size_t offset) {
 		if(id==0)
 			glGenBuffers(1, &id);
 
@@ -37,14 +37,14 @@ namespace engone {
 			glBindBuffer(GL_ARRAY_BUFFER, id);
 	}
 
-	IndexBuffer::IndexBuffer(int _intCount, uint32_t* data) {
+	IndexBuffer::IndexBuffer(size_t _intCount, uint32_t* data) {
 		setData(_intCount, data);
 	}
 	IndexBuffer::~IndexBuffer() {
 		if (id != 0)
 			glDeleteBuffers(1, &id);
 	}
-	void IndexBuffer::setData(int _intCount, uint32_t* data, int offset) {
+	void IndexBuffer::setData(size_t _intCount, uint32_t* data, size_t offset) {
 		if (id == 0)
 			glGenBuffers(1, &id);
 
@@ -75,7 +75,7 @@ namespace engone {
 		if(id!=0)
 			glDeleteVertexArrays(1,&id);
 	}
-	void VertexArray::addAttribute(int floatSize, int divisor) {
+	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor) {
 		if (id == 0)
 			glGenVertexArrays(1, &id);
 		
@@ -87,7 +87,7 @@ namespace engone {
 		locationSizes[totalLocation++] = floatSize + (divisor << 4);
 		strides[bufferSection] += floatSize;
 	}
-	void VertexArray::addAttribute(int floatSize, int divisor, VertexBuffer* buffer) {
+	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor, VertexBuffer* buffer) {
 
 		addAttribute(floatSize, divisor);
 		if (location == 8)
@@ -119,24 +119,24 @@ namespace engone {
 		if (buffer) buffer->bind(0);
 		glBindVertexArray(0);
 	}
-	void VertexArray::addAttribute(int floatSize) {
-		addAttribute(floatSize, 0);
+	void VertexArray::addAttribute(uint8_t floatSize) {
+		addAttribute(floatSize, (uint8_t)0);
 	}
-	void VertexArray::addAttribute(int floatSize, VertexBuffer* buffer) {
-		addAttribute(floatSize, 0, buffer);
+	void VertexArray::addAttribute(uint8_t floatSize, VertexBuffer* buffer) {
+		addAttribute(floatSize, 0u, buffer);
 	}
-	void VertexArray::selectBuffer(int location, VertexBuffer* buffer) {
+	void VertexArray::selectBuffer(uint8_t location, VertexBuffer* buffer) {
 		buffer->bind();
 		glBindVertexArray(id);
-		int offset = 0;
-		int section = 0;
+		size_t offset = 0;
+		size_t section = 0;
 		while (section < VAO_MAX_BUFFERS) {
 			if (startLocations[section] >= location)
 				break;
 			section++;
 		}
-		int index = startLocations[section];
-		while(offset==strides[section]-locationSizes[startLocations[section]]){
+		uint8_t index = startLocations[(int)section];
+		while(offset==strides[(int)section]-locationSizes[startLocations[section]]){
 			offset += locationSizes[index];
 			index++;
 		}
@@ -197,7 +197,7 @@ namespace engone {
 			log::out <<log::RED<< "VertexArray: Must have indexBuffer when drawing!\n";
 		}
 	}
-	void VertexArray::draw(IndexBuffer* indexBuffer, int instanceAmount) {
+	void VertexArray::draw(IndexBuffer* indexBuffer, size_t instanceAmount) {
 		glBindVertexArray(id);
 
 		if (indexBuffer != nullptr) {

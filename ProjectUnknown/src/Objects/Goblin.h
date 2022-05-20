@@ -6,7 +6,7 @@
 class Goblin : public engone::Entity, public engone::System {
 private:
 	float blending = 0;
-	float speed = 1.7;
+	float speed = 1.7f;
 
 public:
 	Goblin() : engone::Entity(engone::Transform::ID | engone::Physics::ID |

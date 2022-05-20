@@ -1,5 +1,6 @@
-
 #include "GameOptions.h"
+
+#include "Engone/Logger.h"
 
 namespace engone {
 
@@ -20,19 +21,20 @@ namespace engone {
 	}
 	void ReadOptions() {
 		std::vector<std::string> list;
-		FileReport err = ReadTextFile("data/gameoptions.txt", list);
-		if (err == FileReport::NotFound)
-			return;
-		for (std::string s : list) {
-			std::vector<std::string> set = SplitString(s, " ");
-			if (set.size() > 1) {
-				//std::cout << set[0] << " " << set[1] << std::endl;
-				if (set[0].at(0) == 'f') {
-					AddOptionf(set[0].substr(1), std::stof(set[1]));
-				} else {
-					AddOptioni(set[0].substr(1), std::stoi(set[1]));
-				}
-			}
-		}
+		log::out << log::RED << "Deprecated ReadOptions\n";
+		//FileReport err = ReadTextFile("data/gameoptions.txt", list);
+		//if (err == FileReport::NotFound)
+		//	return;
+		//for (std::string s : list) {
+		//	std::vector<std::string> set = SplitString(s, " ");
+		//	if (set.size() > 1) {
+		//		//std::cout << set[0] << " " << set[1] << std::endl;
+		//		if (set[0].at(0) == 'f') {
+		//			AddOptionf(set[0].substr(1), std::stof(set[1]));
+		//		} else {
+		//			AddOptioni(set[0].substr(1), std::stoi(set[1]));
+		//		}
+		//	}
+		//}
 	}
 }

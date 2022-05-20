@@ -1,7 +1,6 @@
-
-#ifdef USE_AL
-
-#include "SoundHandler.h"
+#include "Engone/SoundModule.h"
+#include "AL/al.h"
+#include "AL/alc.h"
 
 namespace engone {
 
@@ -33,8 +32,8 @@ namespace engone {
 	ALCdevice* device;
 	ALCcontext* context;
 	bool InitSound() {
-		ALvoid* data;
-		ALint source_state;
+		//ALvoid* data;
+		//ALint source_state;
 		ALboolean enumeration = alCall(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"));
 		if (enumeration == AL_FALSE)
 
@@ -48,7 +47,7 @@ namespace engone {
 		device = alCall(alcOpenDevice(defaultDeviceName));
 		if (!device) {
 			std::cout << "Unable to open default device" << std::endl;
-			return -1;
+			return false;
 		}
 		// Add Debug option? sound_device_list
 		const ALchar* spec = alCall(alcGetString(device, ALC_DEVICE_SPECIFIER));
@@ -65,6 +64,7 @@ namespace engone {
 		ListenerPosition(0, 0, 0);
 		ListenerVelocity(0, 0, 0);
 		ListenerRotation(0, 0, 1, 0, 1, 0);
+		return true;
 	}
 	void UninitSound() {
 		device = alCall(alcGetContextsDevice(context));
@@ -73,4 +73,3 @@ namespace engone {
 		alCall(alcCloseDevice(device));
 	}
 }
-#endif

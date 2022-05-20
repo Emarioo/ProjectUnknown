@@ -1,9 +1,7 @@
 
 #include "Player.h"
 
-#include "Engone/Handlers/ObjectHandler.h"
-
-#include "Engone/EventHandler.h"
+#include "Engone/EventModule.h"
 #include "Keybindings.h"
 
 #include "GameStateEnum.h"
@@ -87,7 +85,7 @@ glm::vec3 Player::Movement(float delta) {
 		physics->gravity = 0;
 		physics->velocity = { 0,0,0 };
 	} else {
-		physics->gravity = -9.81;
+		physics->gravity = -9.81f;
 		if (IsKeybindingDown(KeySprint))
 			speed = sprintSpeed;
 

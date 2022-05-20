@@ -2,6 +2,7 @@
 
 #include "Item.h"
 
+#ifdef gone
 /*
 The container will destroy it's contents when destroyed. It is therefore importent to
 not have a refrence to any items in the container or at least be very careful with it.
@@ -25,11 +26,11 @@ public:
 	/*
 	Return nullptr if slot is empty
 	*/
-	Item* GetItemAt(int slotX, int slotY);
+	Item* GetItemAt(size_t slotX, size_t slotY);
 	/*
 	Return nullpptr if slot is empty
 	*/
-	Item* GetItemAt(int index);
+	Item* GetItemAt(size_t index);
 	Item** GetItemPointerAt(int slotX, int slotY);
 	/*
 	Self explanatory
@@ -77,3 +78,4 @@ private:
 	int totalItemCount=0;
 
 };
+#endif
