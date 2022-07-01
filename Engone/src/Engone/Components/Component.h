@@ -32,20 +32,6 @@ namespace engone {
 		bool same(ComponentMask* filter) {
 			return componentMask == filter->componentMask;
 		}
-
-		// 01011
-		// xor
-		// 00110
-
-		// 01101
-		
-		// 01101
-		// or
-		// 11001
-		// 
-		// 11101
-		// not
-		// 00010
 		bool has(ComponentMask& filter) {
 			size_t a = componentMask ^ filter.componentMask;
 			a = a | (~filter.componentMask);

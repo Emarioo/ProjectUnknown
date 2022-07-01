@@ -14,7 +14,7 @@ namespace game {
 
 		void update(float delta) override;
 		void render() override;
-		static void CloseCallback(engone::Window* window);
+		void onClose(engone::Window* window) override;
 
 	private:
 		Player* m_player;

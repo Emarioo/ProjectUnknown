@@ -19,10 +19,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 	runApp(false);
 	return 0;
 }
+class A {
+public:
+	A() = default;
+	void hej() {}
+};
 // Runs the game with a console
 int main(int argc, char* argv[]) {
 	runApp(true);
 	//std::cout << "HERE\n";
+
+
 
 	//using namespace engone;
 

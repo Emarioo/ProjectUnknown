@@ -25,7 +25,6 @@ namespace game {
 		
 		m_window = new Window();
 		m_window->setTitle("Project Unknown");
-		m_window->setCloseCallback(GameApp::CloseCallback);
 		attachWindow(m_window);
 
 		//-- Assets
@@ -191,7 +190,7 @@ namespace game {
 		//pipeShader->bind();
 		//pipeShader->setVec2("uWindow", {1000,1000});
 	}
-	void GameApp::CloseCallback(engone::Window* window) {
+	void GameApp::onClose(engone::Window* window) {
 
 	}
 

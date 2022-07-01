@@ -3,6 +3,8 @@
 
 #include "Engone/EventModule.h"
 
+#include "Engone/Application.h"
+
 namespace engone {
 
 	static Window* activeWindow=nullptr;
@@ -67,8 +69,9 @@ namespace engone {
 	static void CloseCallback(GLFWwindow* window) {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end()) {
-			if(win->second->closeCallback)
-				win->second->closeCallback(win->second);
+			if (win->second->m_parentApplication) {
+				win->second->m_parentApplication->onClose(win->second);
+			}
 		}
 	}
 	Window::Window(WindowMode mode) {

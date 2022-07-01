@@ -10,6 +10,7 @@ namespace engone {
 		Fullscreen,
 		BorderlessFullscreen
 	};
+	class Application;
 	class Window {
 	public:
 		Window(WindowMode mode = WindowMode::Windowed);
@@ -34,9 +35,9 @@ namespace engone {
 
 		bool hasFocus();
 
-		void setCloseCallback(std::function<void(Window*)> callback) {
-			closeCallback = callback;
-		}
+		//void setCloseCallback(std::function<void(Window*)> callback) {
+		//	closeCallback = callback;
+		//}
 
 		/*
 		True if the cursor is visible.
@@ -57,14 +58,14 @@ namespace engone {
 
 		bool isActive();
 	private:
-		GLFWwindow* m_window;
+		GLFWwindow* m_window=nullptr;
+		Application* m_parentApplication=nullptr;
+
 		WindowMode m_windowMode = WindowMode::None;
 		bool m_cursorVisible = true, m_cursorLocked = false, m_focus = true;
 		float m_width, m_height;
 		std::string m_title = "Untitled";
 		float x = -1, y = -1, w = -1, h = -1;
-
-		std::function<void(Window*)> closeCallback = nullptr;
 
 		friend void FocusCallback(GLFWwindow* window, int focused);
 		friend void CloseCallback(GLFWwindow* window);
