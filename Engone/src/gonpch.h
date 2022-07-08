@@ -24,5 +24,8 @@
 #include <vendor/glm/gtc/type_ptr.hpp>
 #include <vendor/glm/gtc/matrix_transform.hpp>
 
-#define WIN32_LEAN_AND_MEAN // don't include winsock
+// causes issues with std::numeric_limit::max in reactphysics
+#define NOMINMAX
+// don't include winsock
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>

@@ -176,21 +176,21 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;shell32.lib;user32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib;reactphysics3d.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -204,7 +204,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -219,8 +219,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;shell32.lib;user32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw332.lib;reactphysics3d.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -232,20 +232,20 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>gonpch.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
@@ -260,7 +260,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\V8\include\V8</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -275,7 +275,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\V8\lib;$(SolutionDir)..\GLFW3\GLFW3\build\src\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>

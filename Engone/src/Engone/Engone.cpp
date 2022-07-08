@@ -916,8 +916,8 @@ namespace engone {
 			//	});
 			//}
 		} else {
+			constexpr float FPS = 60.0f;
 			while (true) {
-				float FPS = 60.0f;
 				float delta = 1.0f / FPS;
 				float before = GetAppTime();
 				for (size_t i = 0; i < applications.size(); ++i) {

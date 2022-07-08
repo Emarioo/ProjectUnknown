@@ -245,6 +245,9 @@ namespace engone {
 		if (shader != nullptr)
 			shader->setMat4("uProj", projMatrix * viewMatrix);
 	}
+	static int min(int a, int b) {
+		return a > b ? a : b;
+	}
 	void RenderRenderer() {
 		EnableDepth();
 		Shader* shad = GetAsset<Shader>("renderer");

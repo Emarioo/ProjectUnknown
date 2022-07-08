@@ -97,17 +97,18 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>propch.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;$(SolutionDir)../V8/v8/out/x86.release/obj;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <AdditionalDependencies>
       </AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -122,7 +123,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
@@ -134,7 +135,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;$(SolutionDir)../V8/v8/out/x86.release/obj;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <AdditionalDependencies>
       </AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -148,7 +150,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
@@ -158,7 +160,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;$(SolutionDir)../V8/v8/out/x64.release/obj;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <AdditionalDependencies>
       </AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -173,7 +176,7 @@
       <PreprocessorDefinitions>
       </PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Engone/src;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;src;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
@@ -185,7 +188,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs/GLFW/lib;$(SolutionDir)libs/GLEW/lib;$(SolutionDir)libs/AL/lib;$(SolutionDir)../V8/v8/out/x64.release/obj;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <AdditionalDependencies>
       </AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
