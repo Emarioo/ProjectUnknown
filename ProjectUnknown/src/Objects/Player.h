@@ -1,25 +1,17 @@
 #pragma once
 
-#include "Engone/Components/Entity.h"
-#include "Engone/Components/System.h"
+#include "Engone/Engone.h"
+#include "Engone/GameObject.h"
 
-class Player : public engone::Entity, public engone::System {
-private:
-	float animBlending = 0;
-	float animSpeed = 1.7f;
-
+class Player : public engone::GameObject {
 public:
-	Player() : engone::Entity(engone::Transform::ID | engone::Physics::ID |
-		engone::ModelRenderer::ID | engone::Animator::ID) {};
+	Player(engone::Engone* engone);
 
-	void Init() override;
-	void OnUpdate(float delta) override;
-	void OnCollision(engone::Collider& my, engone::Collider& their) override;
-	glm::vec3 Movement(float delta);
+	void update(engone::UpdateInfo& info) override;
+	void Movement(float delta);
 
 	// Movement and camera
-	bool thirdPerson = false;
-	bool flight = true;
+	float zoomOut = 0;
 
 	bool sprintMode = false;
 	bool crouchMode = false;
@@ -42,4 +34,10 @@ public:
 	float maxHunger = 100;
 	float mana = 9;
 	float maxMana = 20;
+
+private:
+	float animBlending = 0;
+	float animSpeed = 1.7f;
+
+	
 };

@@ -1,6 +1,39 @@
 #pragma once
 
 #include "ConsoleEventHandler.h"
+
+// This function is not relevant here, i just happened to throw this code here because i don't need
+// it but i don't want to delete it completly.
+void ConvertToEmbeddedData(const std::string& inPath, const std::string& outPath) {
+	using namespace engone;
+	FileReader in(inPath, true);
+	uint8_t* inData = new uint8_t[in.size()];
+	in.read(inData, in.size());
+	in.close();
+
+	uint32_t outSize = in.size() * 4 + 10;// convertion should not exceed this
+	char* outData = new char[outSize];
+
+	uint32_t writeIndex = 0;
+
+	for (int i = 0; i < in.size(); i++) {
+		writeIndex += snprintf((char*)outData + writeIndex, outSize - writeIndex, "%u,", (int)inData[i]);
+	}
+
+	FileWriter out(outPath, true);
+	out.write(outData, writeIndex);
+
+	log::out << outSize << " " << writeIndex << "\n";
+	delete[] inData;
+	delete[] outData;
+
+
+	//HANDLE hnd = LoadImage(NULL, MAKEINTRESOURCE(IDB_PNG1), IMAGE_BITMAP, 0, 0, 0);
+
+	//DWORD err = GetLastError();
+	//engone::log::out << err << "\n";
+}
+
 namespace input
 {
 	struct Input

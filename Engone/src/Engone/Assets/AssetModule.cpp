@@ -2,34 +2,27 @@
 #include "Engone/AssetModule.h"
 #include "Engone/Components/Component.h"
 
-#include "Engone/Utility/Utilities.h"
+#include "Engone/Utilities/Utilities.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <vendor/stb_image/stb_image.h>
+#include "Engone/vendor/stb_image/stb_image.h"
 #define GLEW_STATIC
 #include <GL/glew.h>
 
 namespace engone {
 
-	std::string toString(AssetError e){
-		switch (e) {
-		case MissingFile: return "Missing File";
-		case CorruptedData: return "Corrupted Data";
-		}
-		return "";
-	}
 	std::string toString(AssetType type) {
 		switch (type) {
-		case AssetType::None: return "None";
-		case AssetType::Texture: return "Texture";
-		case AssetType::Font: return "Font";
-		case AssetType::Shader: return "Shader";
-		case AssetType::Material: return "Material";
-		case AssetType::Mesh: return "Mesh";
-		case AssetType::Animation: return "Animation";
-		case AssetType::Armature: return "Armature";
-		case AssetType::Model: return "Model";
-		case AssetType::Collider: return "Collider";
+		case AssetNone: return "None";
+		case AssetTexture: return "Texture";
+		case AssetFont: return "Font";
+		case AssetShader: return "Shader";
+		case AssetMaterial: return "Material";
+		case AssetMesh: return "Mesh";
+		case AssetAnimation: return "Animation";
+		case AssetArmature: return "Armature";
+		case AssetModel: return "Model";
+		case AssetCollider: return "Collider";
 		}
 		return "";
 	}
@@ -37,40 +30,49 @@ namespace engone {
 		logger operator<<(logger log, AssetType type) {
 			return log << toString(type);
 		}
-		logger operator<<(logger log, AssetError err) {
-			return log << toString(err);
-		}
 	}
-	void Texture::load(const std::string& path) {
-		//Logging({ "AssetManager","Texture","Path: " + path }, LogStatus::Info);
+	void Texture::load(const char* inBuffer, uint32_t size, Assets* assets) {
+		stbi_set_flip_vertically_on_load(1);
 
-		//std::cout << "Texture " << path << "\n";
+		buffer = stbi_load_from_memory((const stbi_uc*)inBuffer, size, &width, &height, &BPP, 4);
+
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+
+		if (buffer)
+			stbi_image_free(buffer);
+	}
+	void Texture::load(const std::string& path, Assets* assets) {
 		if (!FindFile(path)) {
-			error = MissingFile;
-			//Logging({ "AssetManager","Texture",toString(error) + ": " + path }, LogStatus::Error);
-			//log::out << log::RED << log::TIME<< toString(error) << ": " << path << "\n"<<log::SILVER;
+			error = FileErrorMissing;
 			return;
 		}
-		//if (path.length() > 4) {
-			stbi_set_flip_vertically_on_load(1);
-			buffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
+		stbi_set_flip_vertically_on_load(1);
+		buffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
 
-			glGenTextures(1, &id);
-			glBindTexture(GL_TEXTURE_2D, id);
+		glGenTextures(1, &id);
+		glBindTexture(GL_TEXTURE_2D, id);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-			glBindTexture(GL_TEXTURE_2D, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
-			//log::out << log::SILVER <<log::TIME << " Loaded " << path << "\n";
 
-			if (buffer)
-				stbi_image_free(buffer);
-		//}
+		if (buffer)
+			stbi_image_free(buffer);
 	}
 	void Texture::init(int w, int h, void* data)
 	{
@@ -101,9 +103,8 @@ namespace engone {
 	{
 		return height;
 	}
-	void Shader::load(const std::string& path) {
-		log::out << log::RED<<"Shader.load is deleted" << "\n";
 #ifdef gone
+	void Shader::load(const std::string& path) {
 		std::ifstream file(path);
 		if (!file) {
 			error = MissingFile;
@@ -139,20 +140,20 @@ namespace engone {
 		//log::out << id << "\n";
 
 		id = createShader(ss[0].str(), ss[1].str());
-#endif
 	}
+#endif
 	void Shader::init(const std::string& source)
 	{
 		std::string& vertex=vs, &fragment = fs;
 
-		size_t vertPos = source.find("#shader vertex\n");
-		size_t fragPos = source.find("#shader fragment\n");
+		uint32_t vertPos = source.find("#shader vertex\n");
+		uint32_t fragPos = source.find("#shader fragment\n");
 		
 		section[0] = 1;
 		section[1] = 1;
 		section[2] = 0;
 
-		for (size_t i = 0; i < source.length(); ++i) {
+		for (uint32_t i = 0; i < source.length(); ++i) {
 			if (source[i] == '\n') {
 				if (i < vertPos)
 					section[0]++;
@@ -205,7 +206,7 @@ namespace engone {
 		int result;
 		glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 		if (result == GL_FALSE) {
-			error = CorruptedData;
+			error = FileErrorCorrupted;
 			int length;
 			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 			//char* message = (char*)alloca(length * sizeof(char));
@@ -289,6 +290,9 @@ namespace engone {
 	}
 	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << okay << "\n";
 		glUniform2f(getUniformLocation(name), v.x, v.y);
 	}
 	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
@@ -330,13 +334,9 @@ namespace engone {
 		uniLocations[name] = loc;
 		return loc;
 	}
-	void Font::load(const std::string& path)
-	{
-		std::vector<std::string> list;
-		
-		FileReader file(path,false);
+	void Font::load(const std::string& path, Assets* assets) {
+		FileReader file(path+".txt", false);
 		try {
-			if (!file) return;
 			std::string str;
 			file.readAll(&str);
 			std::vector<std::string> list = SplitString(str,"\n");
@@ -344,11 +344,11 @@ namespace engone {
 			if (list.size() == 2) {
 				charWid[0] = std::stoi(list.at(0));
 				int num = std::stoi(list.at(1));
-				for (size_t i = 1; i < 256; ++i) {
+				for (uint32_t i = 1; i < 256; ++i) {
 					charWid[i] = num;
 				}
 			} else {
-				size_t i = 0;
+				uint32_t i = 0;
 				for (std::string s : list) {
 					std::vector<std::string> list2 = SplitString(s, ",");
 					for (std::string s2 : list2) {
@@ -357,24 +357,53 @@ namespace engone {
 					}
 				}
 			}
-			texture.load(path + ".png");
+			texture.load(path + ".png",nullptr);
 			if (!texture) {
 				error = texture.error;
 			}
-		} catch (AssetError err) {
+		} catch (FileError err) {
 			error = err;
+		}
+	}
+	void Font::load(const char* bufferImg,uint32_t size, const char* bufferTxt, uint32_t size2, Assets* assets) {
+
+		std::string str;
+		str.resize(size2 , 0);
+		memcpy(str.data(), bufferTxt, size2);
+
+		std::vector<std::string> list = SplitString(str, "\n");
+
+		if (list.size() == 2) {
+			charWid[0] = std::stoi(list.at(0));
+			int num = std::stoi(list.at(1));
+			for (uint32_t i = 1; i < 256; ++i) {
+				charWid[i] = num;
+			}
+		} else {
+			uint32_t i = 0;
+			for (std::string s : list) {
+				std::vector<std::string> list2 = SplitString(s, ",");
+				for (std::string s2 : list2) {
+					charWid[i] = std::stoi(s2);
+					i++;
+				}
+			}
+		}
+		texture.load(bufferImg,size, nullptr);
+		if (!texture) {
+			error = texture.error;
 		}
 	}
 	float Font::getWidth(const std::string& str, float height) {
 		float out=0;
-		for (size_t i = 0; i < str.length(); ++i) {
+		for (uint32_t i = 0; i < str.length(); ++i) {
 			unsigned char chr = str[i];
 			
 			out +=  height*(charWid[chr] / (float)charSize);
 		}
 		return out;
 	}
-	void MaterialAsset::load(const std::string& path)
+	void MaterialAsset::load(const std::string& path, Assets* assets)
 	{
 		// free/reset data? no need though
 
@@ -384,8 +413,13 @@ namespace engone {
 			std::string root = getRootPath();
 			file.read(&diffuse_mapName);
 			//std::cout << "Path: "<< root << diffuse_mapName << "\n";
-			if(diffuse_mapName.length()!=0)
-				diffuse_map = GetAsset<Texture>(root+diffuse_mapName);
+			if (diffuse_mapName.length() != 0) {
+				if (assets) {
+					diffuse_map = assets->set<Texture>(root + diffuse_mapName);
+				} else {
+					diffuse_map = new Texture(root + diffuse_mapName);
+				}
+			}
 
 			//std::cout << "Diffuse "<<diffuse_map << "\n";
 
@@ -395,7 +429,7 @@ namespace engone {
 
 			//std::cout << diffuse_color[0] << " " << diffuse_color[1] << " " << diffuse_color[2] << "\n";
 		}
-		catch (AssetError err) {
+		catch (FileError err) {
 			error = err;
 			//Logging({ "AssetManager","Material",toString(err) + ": " + path }, LogStatus::Error);
 		}
@@ -573,7 +607,7 @@ namespace engone {
 		frameEnd = endFrame;
 		defaultSpeed = speed;
 	}
-	void AnimationAsset::load(const std::string& path)
+	void AnimationAsset::load(const std::string& path,Assets* assets)
 	{
 		// clear data
 		// clear data in side channels?
@@ -590,7 +624,7 @@ namespace engone {
 
 			//log::out << "obs " << objectCount << "\n";
 
-			for (size_t i = 0; i < objectCount; ++i) {
+			for (uint32_t i = 0; i < objectCount; ++i) {
 				uint16_t index, curves;
 				
 				file.read(&index);
@@ -622,7 +656,7 @@ namespace engone {
 						channels->fcurves[cha] = FCurve();
 						FCurve* fcurve = &channels->fcurves[cha];
 
-						for (size_t k = 0; k < keys; ++k) {
+						for (uint32_t k = 0; k < keys; ++k) {
 							PolationType polation;
 							file.read(&polation); // 1 byte
 
@@ -638,13 +672,12 @@ namespace engone {
 				}
 			}
 		}
-		catch (AssetError err) {
+		catch (FileError err) {
 			error = err;
 			//Logging({ "AssetManager","Animation",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		//file.close();
 	}
-	void MeshAsset::load(const std::string& path)
+	void MeshAsset::load(const std::string& path, Assets* assets)
 	{
 		// clear data
 		materials.clear();
@@ -661,13 +694,17 @@ namespace engone {
 			file.read(&materialCount);
 			//std::cout << "uhu\n";
 			std::string root = getRootPath();
-			for (size_t i = 0; i < materialCount && i< MeshAsset::maxMaterials; ++i) {
+			for (uint32_t i = 0; i < materialCount && i< MeshAsset::maxMaterials; ++i) {
 				std::string materialName;
 				file.read(&materialName);
 
 				//std::cout << "Matloc: " << root<<materialName<< "\n";
-				MaterialAsset* asset = GetAsset<MaterialAsset>(root + materialName);
-				
+				MaterialAsset* asset;
+				if (assets) {
+					asset = assets->set<MaterialAsset>(root + materialName);
+				} else {
+					asset = new MaterialAsset(root + materialName);
+				}
 				if(asset)
 					materials.push_back(asset);
 				else{
@@ -677,7 +714,16 @@ namespace engone {
 				//std::cout << materials.back()->error << " err\n";
 			}
 			if (materialCount == 0) {
-				MaterialAsset* asset = GetAsset<MaterialAsset>("defaultMaterial");
+				MaterialAsset* asset;
+				if (assets) {
+					asset = assets->set<MaterialAsset>("defaultMaterial");
+					if (!asset) {
+						asset = new MaterialAsset();
+						assets->set<MaterialAsset>("defaultMaterial", asset);
+					}
+				} else {
+					asset = new MaterialAsset();
+				}
 				materials.push_back(asset);
 			}
 			//std::cout << "uh2u\n";
@@ -689,23 +735,23 @@ namespace engone {
 			
 			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 
-			size_t uPointSize = 3 * pointCount;
+			uint32_t uPointSize = 3 * pointCount;
 			float* uPoint = new float[uPointSize];
 			file.read(uPoint, uPointSize);
 
-			size_t uTextureSize = textureCount * 3;
+			uint32_t uTextureSize = textureCount * 3;
 			float* uTexture = new float[uTextureSize];
 
 			file.read(uTexture, uTextureSize);
 
 			// Weight
-			size_t uWeightS = weightCount * 3;
+			uint32_t uWeightS = weightCount * 3;
 			int* uWeightI = new int[uWeightS];
 			float* uWeightF = new float[uWeightS];
 			if (meshType==MeshType::Boned) {
 				char index[3];
 				float floats[3];
-				for (size_t i = 0; i < weightCount; ++i) {
+				for (uint32_t i = 0; i < weightCount; ++i) {
 					file.read(index, 3);
 
 					file.read(floats, 3);
@@ -718,10 +764,10 @@ namespace engone {
 				}
 			}
 
-			size_t tStride = 6;
+			uint32_t tStride = 6;
 			if (meshType==MeshType::Boned)
 				tStride = 9;
-			size_t trisS = triangleCount * tStride;
+			uint32_t trisS = triangleCount * tStride;
 			uint16_t* tris = new uint16_t[trisS];
 			//std::cout << "head: "<<file.readHead << "\n";
 
@@ -732,7 +778,7 @@ namespace engone {
 			//std::cout << file.readHead << " "<<trisS<< "\n";
 
 			//std::cout << "stride " << tStride << "\n";
-			for (size_t i = 0; i < trisS;++i) {
+			for (uint32_t i = 0; i < trisS;++i) {
 				 //for (int j = 0; j < tStride;j++) {
 					//std::cout << tris[i]<<" ";
 				//}
@@ -741,11 +787,11 @@ namespace engone {
 
 			std::vector<uint16_t> indexNormal;
 			std::vector<float> uNormal;
-			for (size_t i = 0; i < triangleCount; ++i) {
-				for (size_t j = 0; j < 3; ++j) {
+			for (uint32_t i = 0; i < triangleCount; ++i) {
+				for (uint32_t j = 0; j < 3; ++j) {
 					if (tris[i * tStride + j * tStride / 3] * 3u + 2u >= uPointSize) {
 						//std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
-						throw AssetError::CorruptedData;
+						throw FileErrorCorrupted;
 					}
 				}
 				glm::vec3 p0(uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 2]);
@@ -760,7 +806,7 @@ namespace engone {
 				//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
 
 				bool same = false;
-				for (size_t j = 0; j < uNormal.size() / 3; ++j) {
+				for (uint32_t j = 0; j < uNormal.size() / 3; ++j) {
 					if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
 						same = true;
 						indexNormal.push_back((uint16_t)j);
@@ -776,13 +822,13 @@ namespace engone {
 			}
 
 			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
-			size_t* triangleOut = new size_t[triangleCount * 3];
+			uint32_t* triangleOut = new uint32_t[triangleCount * 3];
 
-			size_t uvStride = 1 + (tStride) / 3;
-			for (size_t i = 0; i < triangleCount; ++i) {
-				for (size_t t = 0; t < 3; ++t) {
+			uint32_t uvStride = 1 + (tStride) / 3;
+			for (uint32_t i = 0; i < triangleCount; ++i) {
+				for (uint32_t t = 0; t < 3; ++t) {
 					bool same = false;
-					for (size_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
+					for (uint32_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
 						if (uniqueVertex[v * uvStride] != tris[i * tStride + 0 + t * tStride / 3])
 							continue;
 						if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
@@ -821,51 +867,51 @@ namespace engone {
 			}
 			*/
 
-			size_t vStride = 3 + 3 + 3;
+			uint32_t vStride = 3 + 3 + 3;
 			if (meshType == MeshType::Boned)
 				vStride += 6;
 			float* vertexOut = new float[(uniqueVertex.size() / uvStride) * vStride];
-			for (size_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
+			for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 				// Position
-				for (size_t j = 0; j < 3; ++j) {
+				for (uint32_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride] * 3 + j > uPointSize) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
-						throw AssetError::CorruptedData;
+						throw FileErrorCorrupted;
 					}
 					vertexOut[i * vStride + j] = uPoint[uniqueVertex[i * uvStride] * 3 + j];
 				}
 				// Normal
-				for (size_t j = 0; j < 3; ++j) {
+				for (uint32_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
-						throw AssetError::CorruptedData;
+						throw FileErrorCorrupted;
 					}
 					vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
 				}
 				// UV
-				for (size_t j = 0; j < 3; ++j) {
+				for (uint32_t j = 0; j < 3; ++j) {
 					if (uniqueVertex[i * uvStride + 2] * 3 + j > uTextureSize) {
 						//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
 						//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
-						throw AssetError::CorruptedData;
+						throw FileErrorCorrupted;
 					}
 					else
 						vertexOut[i * vStride + 3 + 3 + j] = (float)uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
 				}
 				if (meshType == MeshType::Boned) {
 					// Bone Index
-					for (size_t j = 0; j < 3; ++j) {
+					for (uint32_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
-							throw AssetError::CorruptedData;
+							throw FileErrorCorrupted;
 						}
 						vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
 					}
 					// Weight
-					for (size_t j = 0; j < 3; ++j) {
+					for (uint32_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
-							throw AssetError::CorruptedData;
+							throw FileErrorCorrupted;
 						}
 						vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
 					}
@@ -883,7 +929,6 @@ namespace engone {
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					std::cout << std::endl;
 			}*/
-			
 			vertexBuffer.setData((uniqueVertex.size() / uvStride)* vStride, vertexOut);
 			indexBuffer.setData(triangleCount * 3, triangleOut);
 			
@@ -919,7 +964,7 @@ namespace engone {
 			delete[] vertexOut;
 			delete[] triangleOut;
 		}
-		catch (AssetError err) {/*
+		catch (FileError err) {/*
 			if (err == MissingData) {
 				std::cout << "Missing Data\n";
 			}
@@ -932,15 +977,16 @@ namespace engone {
 		}
 		//file.close();
 	}
-	void ColliderAsset::load(const std::string& path)
+	void ColliderAsset::load(const std::string& path, Assets* assets)
 	{
-		if (colliderType == Type::Sphere) {
+		// Reset old data
+		if (colliderType == Type::Cube) {
 
-		}else if (colliderType == Type::Cube) {
+		}else if (colliderType == Type::Sphere) {
 
-		}else if (colliderType == Type::Mesh) {
-			points.clear();
-			tris.clear();
+		}else if (colliderType == Type::HeightMap) {
+			//points.clear();
+			//tris.clear();
 		}
 		
 		//ints.push_back(2);
@@ -956,49 +1002,57 @@ namespace engone {
 			//log::out << (int)colliderType << " type\n";
 
 			switch (colliderType) {
+			case Type::Cube:
+				file.read(&cube.size);
+				//log::out << cube.scale<<" scale \n";
+				//furthest = glm::length(cube.size);
+				break;
 			case Type::Sphere:
-				file.read(&sphere.radius);
-				file.read(&sphere.position);
-				furthest = sphere.radius;
+				//file.read(&sphere.radius);
+				//file.read(&sphere.position);
+				//furthest = sphere.radius;
 				//log::out << cube.scale << " radius \n";
 				break;
-			case Type::Cube:
-				file.read(&cube.scale);
-				file.read(&cube.position);
-				//log::out << cube.scale<<" scale \n";
-				furthest = glm::length(cube.scale);
+			case Type::HeightMap:
+				file.read(&heightMap.gridWidth);
+				file.read(&heightMap.gridHeight);
+				file.read(&heightMap.minHeight);
+				file.read(&heightMap.maxHeight);
+				file.read(&heightMap.scale);
+				uint32_t count= heightMap.gridWidth * heightMap.gridHeight;
+				heightMap.heights.resize(count);
+				file.read(heightMap.heights.data(), count);
 				break;
-			case Type::Mesh:
 				
-				uint16_t triCount,pointCount;
-				file.read(&pointCount);
-				file.read(&triCount);
-				file.read(&furthest);
+				//uint16_t triCount,pointCount;
+				//file.read(&pointCount);
+				//file.read(&triCount);
+				//file.read(&furthest);
 
-				/*if (triCount > 100000 || pointCount > 100000||furthest<0){
-					log::out << "something may be corrupted\n";
-					throw CorruptedData;
-				}*/
+				///*if (triCount > 100000 || pointCount > 100000||furthest<0){
+				//	log::out << "something may be corrupted\n";
+				//	throw CorruptedData;
+				//}*/
 
-				points.resize(pointCount);
-				tris.resize(triCount*3);
-				for (size_t i = 0; i < points.size();++i) {
-					file.read(&points[i]);
-				}
-				for (size_t i = 0; i < tris.size(); ++i) {
-					file.read(&tris[i]);
-				}
+				//points.resize(pointCount);
+				//tris.resize(triCount*3);
+				//for (uint32_t i = 0; i < points.size();++i) {
+				//	file.read(&points[i]);
+				//}
+				//for (uint32_t i = 0; i < tris.size(); ++i) {
+				//	file.read(&tris[i]);
+				//}
 
 				break;
 			}
 		}
-		catch (AssetError err) {
+		catch (FileError err) {
 			error = err;
 			//Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		//file.close();
 	}
-	void ArmatureAsset::load(const std::string& path)
+	void ArmatureAsset::load(const std::string& path, Assets* assets)
 	{
 		bones.clear();
 
@@ -1011,7 +1065,7 @@ namespace engone {
 			//log::out << boneCount << "\n";
 	
 			// Acquire and Load Data
-			for (size_t i = 0; i < boneCount; ++i) {
+			for (uint32_t i = 0; i < boneCount; ++i) {
 				Bone b;
 				file.read(&b.parent);
 				//log::out << b.parent << "\n";
@@ -1022,13 +1076,13 @@ namespace engone {
 				bones.push_back(b);
 			}
 		}
-		catch (AssetError err) {
+		catch (FileError err) {
 			error = err;
 			//Logging({ "AssetManager","Armature",toString(err) + ": " + path }, LogStatus::Error);
 		}
 		//file.close();
 	}
-	void ModelAsset::load(const std::string& path)
+	void ModelAsset::load(const std::string& path, Assets* assets)
 	{
 		instances.clear();
 		animations.clear();
@@ -1039,7 +1093,7 @@ namespace engone {
 
 			uint16_t instanceCount;
 			file.read(&instanceCount);
-			for (size_t i = 0; i < instanceCount; ++i) {
+			for (uint32_t i = 0; i < instanceCount; ++i) {
 				instances.push_back({});
 				AssetInstance& instance = instances.back();
 
@@ -1055,13 +1109,25 @@ namespace engone {
 
 				switch (instanceType) {
 				case 0:
-					instance.asset = GetAsset<MeshAsset>(root + name);
+					if (assets) {
+						instance.asset = assets->set<MeshAsset>(root + name);
+					} else {
+						instance.asset = new MeshAsset(root + name);
+					}
 					break;
 				case 1:
-					instance.asset = GetAsset<ArmatureAsset>(root + name);
+					if (assets) {
+						instance.asset = assets->set<ArmatureAsset>(root + name);
+					} else {
+						instance.asset = new ArmatureAsset(root + name);
+					}
 					break;
 				case 2:
-					instance.asset = GetAsset<ColliderAsset>(root + name);
+					if (assets) {
+						instance.asset = assets->set<ColliderAsset>(root + name);
+					} else {
+						instance.asset = new ColliderAsset(root + name);
+					}
 					break;
 				}
 
@@ -1072,24 +1138,27 @@ namespace engone {
 			
 			uint16_t animationCount;
 			file.read(&animationCount);
-			for (size_t i = 0; i < animationCount; ++i) {
+			for (uint32_t i = 0; i < animationCount; ++i) {
 				std::string name;
 				file.read(&name);
-				animations.push_back(GetAsset<AnimationAsset>(root + name));
+				if (assets) {
+					animations.push_back(assets->set<AnimationAsset>(root + name));
+				} else {
+					animations.push_back(new AnimationAsset(root + name));
+				}
 			}
 		}
-		catch (AssetError err) {
+		catch (FileError err) {
 			error = err;
 			//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		//file.close();
 	}
 	void ModelAsset::getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
 		mats.resize(instances.size());
 
 		std::vector<glm::mat4> modelT(instances.size());
 		//log::out << "go "<< "\n";
-		for (size_t i = 0; i < instances.size(); ++i) {
+		for (uint32_t i = 0; i < instances.size(); ++i) {
 			AssetInstance& instance = instances[i];
 			glm::mat4 loc = instances[i].localMat;
 			glm::mat4 inv = instances[i].invModel;
@@ -1101,10 +1170,10 @@ namespace engone {
 
 			short usedChannels = 0;
 
-			for (size_t k = 0; k < Animator::maxAnimations; ++k) {
+			for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
 				if (animator->enabledAnimations[i].asset) {
-					AnimationProperty& prop = animator->enabledAnimations[k];
-					for (size_t j = 0; j < animations.size(); ++j) {
+					AnimatorProperty& prop = animator->enabledAnimations[k];
+					for (uint32_t j = 0; j < animations.size(); ++j) {
 						AnimationAsset* animation = animations[j];
 						//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
 						if (prop.asset == animation &&
@@ -1189,7 +1258,7 @@ namespace engone {
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
 			
-			for (size_t i = 0; i < armature->bones.size(); ++i) {
+			for (uint32_t i = 0; i < armature->bones.size(); ++i) {
 				Bone& bone = armature->bones[i];
 				glm::mat4 loc = bone.localMat;
 				glm::mat4 inv = bone.invModel;
@@ -1200,11 +1269,11 @@ namespace engone {
 
 				short usedChannels = 0;
 
-				for (size_t k = 0; k < Animator::maxAnimations; ++k) {
+				for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
 					if (animator->enabledAnimations[k].asset) {
 
-						AnimationProperty& prop = animator->enabledAnimations[k];
-						for (size_t j = 0; j < animations.size(); ++j) {
+						AnimatorProperty& prop = animator->enabledAnimations[k];
+						for (uint32_t j = 0; j < animations.size(); ++j) {
 							AnimationAsset* animation = animations[j];
 							
 							if (prop.asset == animation &&
@@ -1276,5 +1345,5 @@ namespace engone {
 		}
 	}
 
-	std::unordered_map<std::string, Asset*> engone_assets[ASSET_TYPES];
+	//std::unordered_map<std::string, Asset*> engone_assets[ASSET_TYPES];
 }

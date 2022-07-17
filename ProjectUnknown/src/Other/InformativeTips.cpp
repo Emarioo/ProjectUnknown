@@ -3,7 +3,7 @@
 
 #include "InformativeTips.h"
 
-#include "Engone/Utility/Utilities.h"
+#include "Engone/Utilities.h"
 
 namespace infotips
 {

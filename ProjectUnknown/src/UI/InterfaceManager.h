@@ -10,7 +10,7 @@
 #include "Items/Item.h"
 //#include "Engone/UI/GuiHandler.h"
 
-#include "GameStateEnum.h"
+//#include "GameStateEnum.h"
 
 #ifdef gone
 namespace UI

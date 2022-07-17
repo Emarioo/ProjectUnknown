@@ -1,24 +1,28 @@
 #pragma once
 
 #include "Engone/Engone.h"
-
-#include "Engone/Application.h"
-
+#include "Objects/Sword.h"
 #include "Objects/Player.h"
-#include "Objects/Goblin.h"
+#include "Objects/Terrain.h"
 
 namespace game {
 	class GameApp : public engone::Application {
 	public:
-		GameApp();
+		GameApp(engone::Engone* engone);
 
-		void update(float delta) override;
-		void render() override;
+		void update(engone::UpdateInfo& info) override;
+		void render(engone::RenderInfo& info) override;
 		void onClose(engone::Window* window) override;
 
+		Player* player=nullptr;
+		Terrain* terrain = nullptr;
+
 	private:
-		Player* m_player;
-		engone::Window* m_window;
+		bool paused = true;
+
+		engone::Window* m_window=nullptr;
+
+		Sword* sword = nullptr;
 
 		void TestScene();
 		void IntroScreen();

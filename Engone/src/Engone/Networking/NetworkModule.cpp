@@ -44,6 +44,10 @@ namespace engone {
 			//std::cout << "stopped context" << "\n";
 		});
 	}
+	void DestroyIOContext() {
+		if(thrContext)
+			thrContext->join();
+	}
 	/*
 		NETEVENT
 	*/
@@ -79,7 +83,7 @@ namespace engone {
 		if (!m_data) {
 			data = (char*)malloc(size);
 			if (data)
-				*((size_t*)data) = 4; // 4 bytes for storing size of buffer
+				*((uint32_t*)data) = 4; // 4 bytes for storing size of buffer
 		} else {
 			data = (char*)realloc(m_data, size);
 		}
@@ -92,32 +96,32 @@ namespace engone {
 			return false;
 		}
 	}
-	size_t MessageBuffer::size() {
+	uint32_t MessageBuffer::size() {
 		if (m_data) {
-			return *((size_t*)m_data);
+			return *((uint32_t*)m_data);
 		}
 		return 0;
 	}
-	char* MessageBuffer::pushBuffer(int count) {
+	char* MessageBuffer::pushBuffer(uint32_t count) {
 		push(&count);
 		if (count == 0)
 			return nullptr;
 		if (m_data) {
-			size_t head = size();
+			uint32_t head = size();
 			if (m_maxSize < head + count) {
 				if (!resize((m_maxSize + count) * 2)) {
 					// failed
 					return nullptr;
 				}
 			}
-			*((size_t*)m_data) += count;
+			*((uint32_t*)m_data) += count;
 			return m_data + head;
 		}
 		return nullptr;
 	}
 	void MessageBuffer::push(const std::string& in) {
 		if (m_data) {
-			size_t head = size();
+			uint32_t head = size();
 			if (m_maxSize < head + in.length() + 1) {
 				if (!resize((m_maxSize + in.length() + 1) * 2)) {
 					// failed
@@ -125,13 +129,13 @@ namespace engone {
 				}
 			}
 			std::memcpy(m_data + head, in.data(), in.length() + 1);
-			*((size_t*)m_data) += in.length() + 1;
+			*((uint32_t*)m_data) += in.length() + 1;
 		}
 	}
 	void MessageBuffer::push(const char* in) {
 		if (m_data) {
-			size_t len = std::strlen(in) + 1;
-			size_t head = size();
+			uint32_t len = std::strlen(in) + 1;
+			uint32_t head = size();
 			if (m_maxSize < head + len) {
 				if (!resize((m_maxSize + len) * 2)) {
 					// failed
@@ -139,10 +143,10 @@ namespace engone {
 				}
 			}
 			std::memcpy(m_data + head, in, len);
-			*((size_t*)m_data) += len;
+			*((uint32_t*)m_data) += len;
 		}
 	}
-	char* MessageBuffer::pullBuffer(size_t* count) {
+	char* MessageBuffer::pullBuffer(uint32_t* count) {
 		pull(count);
 		if (*count == 0)
 			return nullptr;
@@ -160,7 +164,7 @@ namespace engone {
 	}
 	void MessageBuffer::pull(std::string& out) {
 		if (m_data) {
-			size_t length = strlen(m_data + m_readHead) + 1;
+			uint32_t length = strlen(m_data + m_readHead) + 1;
 			if (length > size() - m_readHead) {
 				// fishy
 				std::cout << "Corrupted network message\n";
@@ -171,7 +175,7 @@ namespace engone {
 		}
 	}
 	void MessageBuffer::flush() {
-		*((size_t*)m_data) = HEAD_SIZE; // first for bytes for the size of the buffer
+		*((uint32_t*)m_data) = HEAD_SIZE; // first for bytes for the size of the buffer
 		m_readHead = HEAD_SIZE;
 	}
 	/*
@@ -206,7 +210,6 @@ namespace engone {
 		void send(std::shared_ptr<MessageBuffer> msg) {
 			if (!m_socket.is_open())
 				return;
-
 			asio::post(GetIOContext(), [this, msg]() {
 
 				m_outMessages.push_back(msg);
@@ -286,7 +289,7 @@ namespace engone {
 
 		readingHead = true;
 		asio::async_read(m_socket, asio::buffer(m_buffer->m_data, MessageBuffer::HEAD_SIZE),
-			[this](std::error_code ec, std::size_t length) {
+			[this](std::error_code ec, std::uint32_t length) {
 			readingHead = false;
 			if (ec) {
 				if (!forcedShutdown(ec))
@@ -305,7 +308,7 @@ namespace engone {
 			return;
 		readingBody = true;
 		asio::async_read(m_socket, asio::buffer(m_buffer->m_data + MessageBuffer::HEAD_SIZE, m_buffer->size() - MessageBuffer::HEAD_SIZE),
-			[this](std::error_code ec, std::size_t length) {
+			[this](std::error_code ec, std::uint32_t length) {
 			readingBody = false;
 			if (ec) {
 				if (!forcedShutdown(ec))
@@ -316,17 +319,20 @@ namespace engone {
 				copy.noDelete = true;
 				if (m_server) {
 					if (m_server->m_onReceive) {
-						m_server->m_onReceive(copy, m_uuid);
+						bool stay = m_server->m_onReceive(copy, m_uuid);
 						m_buffer->flush();
+						if(!stay)
+							m_server->disconnect(m_uuid);
 					}
 				}
 				if (m_client) {
 					if (m_client->m_onReceive) {
-						m_client->m_onReceive(copy);
+						bool stay =  m_client->m_onReceive(copy);
 						m_buffer->flush();
+						if (!stay)
+							m_client->disconnect();
 					}
 				}
-
 				readHead();
 			}
 		});
@@ -338,7 +344,7 @@ namespace engone {
 
 		writingHead = true;
 		asio::async_write(m_socket, asio::buffer(m_outMessages.front()->m_data, MessageBuffer::HEAD_SIZE),
-			[this](std::error_code ec, std::size_t length) {
+			[this](std::error_code ec, std::uint32_t length) {
 			writingHead = false;
 			if (ec) {
 				if (!forcedShutdown(ec))
@@ -354,7 +360,7 @@ namespace engone {
 		writingBody = true;
 
 		asio::async_write(m_socket, asio::buffer(m_outMessages.front()->m_data + MessageBuffer::HEAD_SIZE, m_outMessages.front()->size() - MessageBuffer::HEAD_SIZE),
-			[this](std::error_code ec, std::size_t length) {
+			[this](std::error_code ec, std::uint32_t length) {
 			writingBody = false;
 			if (ec) {
 				if (!forcedShutdown(ec))
@@ -372,10 +378,18 @@ namespace engone {
 	/*
 		SERVER
 	*/
-	Server::Server() : m_acceptor(new asio::ip::tcp::acceptor(GetIOContext())) {}
+	Server::Server()
+		//: test(GetIOContext()) {}
+		: m_acceptor(new asio::ip::tcp::acceptor(GetIOContext())) {}
 	Server::~Server() {
 		stop();
-		delete m_acceptor;
+		//std::cout << "del\n";
+		//asio::ip::tcp::acceptor def(GetIOContext());
+		//((asio::ip::tcp::acceptor*)m_acceptor)->release();
+		//((asio::ip::tcp::acceptor*)m_acceptor)->close();
+		//((asio::ip::tcp::acceptor*)m_acceptor)->release();
+		delete ((asio::ip::tcp::acceptor*)m_acceptor);
+		//delete m_acceptor;
 	}
 	void Server::setOnEvent(std::function<bool(NetEvent, uint32_t)> onEvent) {
 		m_onEvent = onEvent;
@@ -383,13 +397,18 @@ namespace engone {
 	void Server::setOnReceive(std::function<bool(MessageBuffer, uint32_t)> onReceive) {
 		m_onReceive = onReceive;
 	}
-	void Server::start(uint16_t port) {
+	void Server::start(const std::string& port) {
 		if (keepRunning || m_connections.size() > 0) return;
 		keepRunning = true;
 
-		asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), port);
+		uint16_t intPort = 0; 
+		try {
+			intPort = std::stoi(port);
+		} catch (std::invalid_argument err) {
+			return;
+		}
 
-		
+		asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), intPort);
 
 		((asio::ip::tcp::acceptor*)m_acceptor)->open(endpoint.protocol());
 		((asio::ip::tcp::acceptor*)m_acceptor)->bind(endpoint);
@@ -479,7 +498,7 @@ namespace engone {
 					conn->readHead();
 
 					if (m_onEvent) {
-						if (m_onEvent(NetEvent::Connect, uuid)) {
+						if (!m_onEvent(NetEvent::Connect, uuid)) {
 							conn->close();
 						}
 					}
@@ -524,12 +543,10 @@ namespace engone {
 	void Client::setOnEvent(std::function<bool(NetEvent)> onEvent) {
 		m_onEvent = onEvent;
 	}
-	// lambda should return true to close connection
 	void Client::setOnReceive(std::function<bool(MessageBuffer)> onReceive) {
 		m_onReceive = onReceive;
 	}
-	void Client::connect(const std::string& ip, uint16_t port) {
-
+	void Client::connect(const std::string& ip, const std::string& port) {
 		if (keepRunning || m_connection) return;
 		keepRunning = true;
 
@@ -540,7 +557,7 @@ namespace engone {
 		asio::ip::tcp::resolver resolver(GetIOContext());
 		asio::ip::tcp::resolver::results_type endpoints;
 		try {
-			endpoints = resolver.resolve(ip, std::to_string(port));
+			endpoints = resolver.resolve(ip, port);
 		}
 		catch (std::system_error err) {
 			// ip was incorrect or couldn't be found
@@ -561,7 +578,7 @@ namespace engone {
 			}
 			else {
 				if (m_onEvent) {
-					if (m_onEvent(NetEvent::Connect)) {
+					if (!m_onEvent(NetEvent::Connect)) {
 						disconnect();
 						return;
 					}

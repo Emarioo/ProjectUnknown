@@ -1,12 +1,15 @@
 
-#include "Entity.h"
+#include "Engone/Components/Entity.h"
 //#include "EntitySystem.h"
 
 namespace engone {
-	Entity::Entity(ComponentMask mask) : ComponentMask(mask) {
+	Entity::Entity(ComponentMask mask) : m_mask(mask) {
 		
 	}
-	Entity::Entity(ComponentMask mask, size_t* sizes, char* ptr) : ComponentMask(mask), componentSizes(sizes), stackPtr(ptr) {
+	Entity::Entity(int mask) : m_mask((ComponentMask)mask) {
+
+	}
+	Entity::Entity(ComponentMask mask, size_t* sizes, char* ptr) : m_mask(mask), componentSizes(sizes), stackPtr(ptr) {
 		
 	}
 }

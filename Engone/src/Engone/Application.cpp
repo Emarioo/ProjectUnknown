@@ -2,13 +2,10 @@
 #include "Engone/Application.h"
 
 namespace engone {
-	Application::Application(float fps) : m_fps(fps) {
-		AddApplication(this);
-	}
-	void Application::attachWindow(Window* window) {
-		m_windows.push_back(window);
-	}
-	std::vector<Window*>& Application::getAttachedWindows() {
-		return m_windows;
+
+	void Application::stop() {
+		for (int i = 0; i < m_windows.size(); i++) {
+			m_windows[i]->close();
+		}
 	}
 }

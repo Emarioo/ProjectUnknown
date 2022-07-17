@@ -19,61 +19,50 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engone\Application.h" />
-    <ClInclude Include="src\Engone\Collision.h" />
-    <ClInclude Include="src\Engone\Components\Collider.h" />
-    <ClInclude Include="src\Engone\Components\Component.h" />
-    <ClInclude Include="src\Engone\Components\MetaComponent.h" />
-    <ClInclude Include="src\Engone\Components\System.h" />
-    <ClInclude Include="src\Engone\Networking\Client.h" />
-    <ClInclude Include="src\Engone\Networking\MessageBuffer.h" />
-    <ClInclude Include="src\Engone\Networking\NetEvent.h" />
-    <ClInclude Include="src\Engone\Networking\Sender.h" />
-    <ClInclude Include="src\Engone\Networking\Server.h" />
-    <ClInclude Include="src\Engone\Scripting\Script.h" />
-    <ClInclude Include="src\Engone\ScriptingModule.h" />
-    <ClInclude Include="src\Engone\Logger.h" />
-    <ClInclude Include="src\Engone\EventModule.h" />
-    <ClInclude Include="src\Engone\GameState.h" />
-    <ClInclude Include="src\Engone\Components\EntitySystem.h" />
-    <ClInclude Include="src\Engone\Components\Entity.h" />
-    <ClInclude Include="src\Engone\Rendering\Buffer.h" />
-    <ClInclude Include="src\Engone\NetworkModule.h" />
-    <ClInclude Include="src\Engone\Rendering\FrameBuffer.h" />
-    <ClInclude Include="src\Engone\Engone.h" />
-    <ClInclude Include="src\Engone\AssetModule.h" />
-    <ClInclude Include="src\Engone\Objects\GameObject.h" />
-    <ClInclude Include="src\Engone\Objects\Camera.h" />
-    <ClInclude Include="src\Engone\Rendering\Light.h" />
-    <ClInclude Include="src\Engone\Rendering\Renderer.h" />
-    <ClInclude Include="src\Engone\Sound\SoundBuffer.h" />
-    <ClInclude Include="src\Engone\SoundModule.h" />
-    <ClInclude Include="src\Engone\Sound\SoundSource.h" />
-    <ClInclude Include="src\Engone\Sound\SoundStream.h" />
-    <ClInclude Include="src\Engone\Utility\Utilities.h" />
-    <ClInclude Include="src\Engone\Utility\GameOptions.h" />
-    <ClInclude Include="src\Engone\Window.h" />
-    <ClInclude Include="src\gonpch.h" />
-    <ClInclude Include="src\vendor\Libaudio.h" />
+    <ClInclude Include="..\..\ScriptRuntime\ScriptRuntime\include\script\MemAllocator.h" />
+    <ClInclude Include="include\Engone\Application.h" />
+    <ClInclude Include="include\Engone\GameObject.h" />
+    <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
+    <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
+    <ClInclude Include="include\Engone\vendor\Libaudio.h" />
+    <ClInclude Include="include\Engone\Components\Component.h" />
+    <ClInclude Include="include\Engone\EngoneFlag.h" />
+    <ClInclude Include="include\Engone\Networking\Client.h" />
+    <ClInclude Include="include\Engone\Networking\MessageBuffer.h" />
+    <ClInclude Include="include\Engone\Networking\NetEvent.h" />
+    <ClInclude Include="include\Engone\Networking\Sender.h" />
+    <ClInclude Include="include\Engone\Networking\Server.h" />
+    <ClInclude Include="include\Engone\Logger.h" />
+    <ClInclude Include="include\Engone\EventModule.h" />
+    <ClInclude Include="include\Engone\Rendering\Buffer.h" />
+    <ClInclude Include="include\Engone\NetworkModule.h" />
+    <ClInclude Include="include\Engone\Rendering\FrameBuffer.h" />
+    <ClInclude Include="include\Engone\Engone.h" />
+    <ClInclude Include="include\Engone\AssetModule.h" />
+    <ClInclude Include="include\Engone\Rendering\Camera.h" />
+    <ClInclude Include="include\Engone\Rendering\Light.h" />
+    <ClInclude Include="include\Engone\RenderModule.h" />
+    <ClInclude Include="include\Engone\Sound\SoundBuffer.h" />
+    <ClInclude Include="include\Engone\SoundModule.h" />
+    <ClInclude Include="include\Engone\Sound\SoundSource.h" />
+    <ClInclude Include="include\Engone\Sound\SoundStream.h" />
+    <ClInclude Include="include\Engone\Utilities\Utilities.h" />
+    <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h" />
+    <ClInclude Include="include\Engone\Window.h" />
+    <ClInclude Include="include\gonpch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\Application.cpp" />
-    <ClCompile Include="src\Engone\Collision.cpp" />
     <ClCompile Include="src\Engone\Components\Component.cpp" />
-    <ClCompile Include="src\Engone\Components\MetaComponent.cpp" />
-    <ClCompile Include="src\Engone\Components\System.cpp" />
-    <ClCompile Include="src\Engone\Scripting\ScriptingModule.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
-    <ClCompile Include="src\Engone\GameState.cpp" />
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
-    <ClCompile Include="src\Engone\Components\EntitySystem.cpp" />
-    <ClCompile Include="src\Engone\Components\Entity.cpp" />
-    <ClCompile Include="src\Engone\Objects\GameObject.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
+    <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -83,19 +72,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Engone\Objects\Camera.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Camera.cpp" />
     <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp" />
-    <ClCompile Include="src\Engone\Rendering\Renderer.cpp" />
+    <ClCompile Include="src\Engone\Rendering\RenderModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
-    <ClCompile Include="src\Engone\Utility\Utilities.cpp" />
-    <ClCompile Include="src\Engone\Utility\GameOptions.cpp" />
-    <ClCompile Include="src\vendor\Libaudio.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Engone\Shaders\renderer.glsl" />
+    <ClCompile Include="src\Engone\Utilites\Utilities.cpp" />
+    <ClCompile Include="src\Engone\vendor\Libaudio.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -152,31 +137,31 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(Configuration)_$(Platform)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(Configuration)_$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(Configuration)_$(Platform)</IntDir>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -190,7 +175,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw3.lib;reactphysics3d.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;libOpenAL32.dll.a;glew32s.lib;glfw3.lib;reactphysics3d.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -202,9 +187,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -220,7 +205,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;OpenAL32.lib;glfw332.lib;reactphysics3d.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;libOpenAL32.dll.a;glew32s.lib;glfw3.lib;reactphysics3d_debug.lib</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -232,7 +217,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>
@@ -260,7 +245,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>gonpch.h</PrecompiledHeaderFile>

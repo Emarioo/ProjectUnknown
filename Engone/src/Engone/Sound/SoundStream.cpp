@@ -1,12 +1,12 @@
 #include "Engone/Sound/SoundStream.h"
+#include "Engone/Utilities/Utilities.h"
 
-#include "Engone/Utility/Utilities.h"
+#ifndef ENGONE_NO_SOUND
 #include "AL/al.h"
 #include "AL/alc.h"
-#include <vendor/Libaudio.h>
+#include "Engone/vendor/Libaudio.h"
 
 namespace engone {
-
 	static ALenum to_al_format(short channels, short samples) {
 		bool stereo = (channels > 1);
 
@@ -25,9 +25,7 @@ namespace engone {
 			return -1;
 		}
 	}
-	SoundStream::SoundStream() {
 
-	}
 	SoundStream::~SoundStream() {
 		if (isInitialized) {
 			delete bufferData;
@@ -43,7 +41,7 @@ namespace engone {
 
 			alCall(alGenBuffers(NUM_BUFFERS, &buffer_id[0]));
 
-			for (std::size_t i = 0; i < NUM_BUFFERS; ++i)
+			for (std::uint32_t i = 0; i < NUM_BUFFERS; ++i)
 				alCall(alBufferData(buffer_id[i], bufferFormat, &bufferData[i * BUFFER_SIZE], BUFFER_SIZE, bufferFreq));
 
 			source.Init();
@@ -74,9 +72,9 @@ namespace engone {
 				char* data = new char[dataSize];
 				std::memset(data, 0, dataSize);
 
-				size_t dataSizeToCopy = BUFFER_SIZE;
-				if (cursor + BUFFER_SIZE > (size_t)bufferSize)
-					dataSizeToCopy = (size_t)bufferSize - cursor;
+				uint32_t dataSizeToCopy = BUFFER_SIZE;
+				if (cursor + BUFFER_SIZE > (uint32_t)bufferSize)
+					dataSizeToCopy = (uint32_t)bufferSize - cursor;
 
 				std::memcpy(&data[0], &bufferData[cursor], dataSizeToCopy);
 				cursor += dataSizeToCopy;
@@ -95,4 +93,17 @@ namespace engone {
 		}
 	}
 }
-//#endif
+#else
+
+namespace engone {
+	SoundStream::~SoundStream() {
+		
+	}
+	void SoundStream::Init(const std::string& path) {
+		
+	}
+	void SoundStream::UpdateStream() {
+		
+	}
+}
+#endif

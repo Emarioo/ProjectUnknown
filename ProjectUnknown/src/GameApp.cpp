@@ -1,12 +1,10 @@
 
 #include "GameApp.h"
 #include "Engone/EventModule.h"
-#include "Engone/GameState.h"
 
-#include "GameStateEnum.h"
 #include "Keybindings.h"
-
-#include "Engone/Collision.h"
+#include "Objects/Player.h"
+#include "Objects/Sword.h"
 
 namespace game {
 
@@ -17,67 +15,102 @@ namespace game {
 	static const char* depthGLSL = {
 	#include "Shaders/depth.glsl"
 	};
+	static const char* testGLSL = {
+	#include "Shaders/test.glsl"
+	};
 
 	engone::EventType OnKey(engone::Event& e);
 	engone::EventType OnMouse(engone::Event& e);
-	GameApp::GameApp() {
+	GameApp::GameApp(engone::Engone* engone) : Application(engone) {
 		using namespace engone;
 		
-		m_window = new Window();
+		m_window = createWindow({ WindowedMode,1000,800 });
+
+		//m_window = new Window(this,1000,800);
 		m_window->setTitle("Project Unknown");
-		attachWindow(m_window);
+		m_window->enableFirstPerson();
 
 		//-- Assets
-		AddAsset<Shader>("depth", new Shader(depthGLSL));
-		AddAsset<Shader>("experiment", new Shader(experimentGLSL));
-		AddAsset<Font>("consolas", "fonts/consolas42");
+		Assets* assets = getAssets();
+		//assets->set("depth")
+		//AddAsset<Shader>("depth", new Shader(depthGLSL));
+		//AddAsset<Shader>("experiment", new Shader(experimentGLSL));
+		//AddAsset<Shader>("test", new Shader(testGLSL));
+		assets->set<Font>("consolas", "fonts/consolas42");
 
 		//-- Event and game loop functions
-		AddListener(new Listener(EventType::Key, OnKey));
-		AddListener(new Listener(EventType::Click, OnMouse));
+		m_window->attachListener(new Listener(EventKey, OnKey));
+		m_window->attachListener(new Listener(EventClick, OnMouse));
 
 		if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
 		}
 
-		SetState(GameState::Paused, true);
+		engone->m_pCommon = new rp3d::PhysicsCommon();
+		engone->m_pWorld = engone->m_pCommon->createPhysicsWorld();
 
-		TestScene();
+		engone->m_pWorld->setIsDebugRenderingEnabled(true);
+		rp3d::DebugRenderer& debugRenderer = engone->m_pWorld->getDebugRenderer();
+		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+
+		sword = new Sword(engone);
+		engone->addObject(sword);
+		player = new Player(engone);
+		player->setTransform({ 0,10,0 });
+		engone->addObject(player);
+		terrain = new Terrain(engone);
+		engone->addObject(terrain);
+		//terrain->setTransform({ 0,-2,0 });
+
+		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
+		engone->addLight(dir);
 	}
-	void GameApp::update(float delta) {
+	float tempTime = 0;
+	void GameApp::update(engone::UpdateInfo& info) {
 		using namespace engone;
+		sword->setTransform(glm::translate(glm::mat4(1),glm::vec3(0, 0, tempTime)));
+		//tempTime -= 0.0016;
 
-		//melody.UpdateStream();
-
-		//light->position.x = 5 * glm::cos(engone::GetPlayTime());// bez3 * 2;
-		//light->position.z = 5 * glm::sin(engone::GetPlayTime());// bez3 * 2;
-
-		//UpdateEngine(delta);
-
-		if (m_player) {
-			Transform* t = m_player->getComponent<Transform>();
-			if (m_player->thirdPerson) {
-				glm::mat4 mat = glm::translate(t->position + glm::vec3(0, 3.f, 0)) * glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, 5));
-				GetCamera()->position = mat[3];
+		if (engone::IsKeybindingPressed(KeyPause)) {
+			if(engone::GetActiveWindow()->isCursorLocked()){
+				engone::GetActiveWindow()->lockCursor(false);
 			} else {
-				GetCamera()->position = t->position + glm::vec3(0, 3.f, 0);
+				engone::GetActiveWindow()->lockCursor(true);
+			}
+		}
+		if (player) {
+			if (player->rigidBody) {
+				glm::vec3 pos = player->getTransform()[3];
+				Camera* cam = m_window->getRenderer()->getCamera();
+				if (player->zoomOut!=0) {
+					glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(cam->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
+					cam->position = mat[3];
+				} else {
+					cam->position = pos + glm::vec3(0, 3.f, 0);
+				}
 			}
 		}
 	}
-	void GameApp::render() {
+	void GameApp::render(engone::RenderInfo& info) {
 		using namespace engone;
 
-		glm::mat4 m1 = glm::translate(glm::vec3(1, 8, 0));
-		glm::vec3 s1(1, 1, 1);
+		//ui::Box box = { 20,30,100,100,{1,1,1,1} };
+		//ui::Draw(box);
 
-		glm::mat4 m2 = glm::translate(glm::vec3(1, 8, 0));
-		glm::vec3 s2(1.5, 1, 1);
+		//glm::mat4 m1 = glm::translate(glm::vec3(1, 8, 0));
+		//glm::vec3 s1(1, 1, 1);
 
-		PlaneCollider col1 = MakeCubeCollider(m1, s1);
-		PlaneCollider col2 = MakeCubeCollider(m2, s2);
+		//glm::mat4 m2 = glm::translate(glm::vec3(1, 8, 0));
+		//glm::vec3 s2(1.5, 1, 1);
 
-		bool boolean = TestPlanes(col1, col2);
-		
+		//PlaneCollider col1 = MakeCubeCollider(m1, s1);
+		//PlaneCollider col2 = MakeCubeCollider(m2, s2);
+
+		//bool boolean = TestPlanes(col1, col2);
+		//
 		//ModelAsset* model = GetAsset<ModelAsset>("Snake/Snake");
 		//Shader* shader = GetAsset<Shader>("armature");
 		//shader->Bind();
@@ -101,6 +134,7 @@ namespace game {
 
 		//Shader* objectShader = GetAsset<Shader>("object");
 		//objectShader->bind();
+		//VAO.draw(&IBO,3);
 
 		//MeshAsset* meshAsset = GetAsset<MeshAsset>("PlayerAttack/Cube.002-B");
 		//MaterialAsset* material = GetAsset<MaterialAsset>("defaultMaterial");
@@ -134,7 +168,7 @@ namespace game {
 
 		//UiTest();
 
-
+		//DrawCube(glm::mat4(),)
 
 		//introScreen();
 
@@ -155,14 +189,6 @@ namespace game {
 	//	glm::mat4 matr = glm::translate(glm::vec3(0, 5, 0)) * glm::mat4_cast(quat);
 	//	objectShader->setMat4("uTransform", matr);
 
-	//	meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
-
-		/*Shader* shad = GetAsset<Shader>("object");
-		shad->bind();*/
-
-		//MeshAsset* as = GetAsset<MeshAsset>("Player/Stick-N");
-		//move += 1/60.f/20.f;
-
 		//float fi[]{
 		//	move / 4,-move/2, 0,
 		//	-move / 4,-move, 0,
@@ -170,7 +196,6 @@ namespace game {
 		//as->instanceBuffer.setData(6, fi);
 		//as->vertexArray->selectBuffer(1, as->instanceBuffer);
 		//as->vertexArray.draw(&as->indexBuffer, 2);
-
 		//float fa[]{
 		//	-move/2+0.f,0,
 		//	-move/6 + 0.15f,move,
@@ -180,15 +205,6 @@ namespace game {
 		//VAO.selectBuffer(1, &VBO2);
 		//VAO.draw(&IBO,3);
 
-		//shad->SetVec4("uColor", 1, 1, 0, 1);
-
-		//TBO->Draw();
-
-		// Render custom things like items dragged by the mouse
-		//ui::Render(2);
-
-		//pipeShader->bind();
-		//pipeShader->setVec2("uWindow", {1000,1000});
 	}
 	void GameApp::onClose(engone::Window* window) {
 
@@ -197,9 +213,6 @@ namespace game {
 	// ##########################
 	//  Test scenes, ui and more
 	// ##########################
-	engone::VertexBuffer VBO;
-	engone::IndexBuffer IBO;
-	engone::VertexArray VAO;
 	void GameApp::TestScene() {
 			using namespace engone;
 
@@ -290,9 +303,9 @@ namespace game {
 				*/
 
 			//Player* player = new Player();
-			m_player = new Player();
-			AddEntity(m_player);
-			AddSystem(m_player);
+			//m_player = new Player();
+			//AddEntity(m_player);
+			//AddSystem(m_player);
 
 			//Goblin* goblin = new Goblin();
 			//AddEntity(goblin);
@@ -326,8 +339,8 @@ namespace game {
 
 			//game::SetPlayer(player);
 
-			DirLight* l = new DirLight({ 2,-4,1 });
-			AddLight(l);
+			//DirLight* l = new DirLight({ 2,-4,1 });
+			//AddLight(l);
 
 			//float fArray[]{
 			//	0,0,1, 0,1,1, 0,0,0,
@@ -346,29 +359,29 @@ namespace game {
 	}
 	void GameApp::IntroScreen() {
 		using namespace engone;
-		float time = GetAppTime();
+		//float time = GetAppTime();
 
 		const float black = 2, fade = black + .5, intro = fade + 2, introOut = intro + .5, gameIn = introOut + .5;
-
-		if (time < black) { // black 2s
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f });
-		} else if (time < fade) { // fade 0.5s
-			float alpha = 1 - (time - black) / .5f;
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
-			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
-		} else if (time < intro) { // intro 2s
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
-			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
-		} else if (time < introOut) { // fade 0.5s
-			float alpha = (time - intro) / .5f;
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
-			ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
-		} else if (time < gameIn) { // fade 0.5s
-			float alpha = 1 - (time - introOut) / .5f;
-			ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
-		}
+		
+		//if (time < black) { // black 2s
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f });
+		//} else if (time < fade) { // fade 0.5s
+		//	float alpha = 1 - (time - black) / .5f;
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+		//	ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		//} else if (time < intro) { // intro 2s
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+		//	ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+		//} else if (time < introOut) { // fade 0.5s
+		//	float alpha = (time - intro) / .5f;
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 1.f, 1.f, 1.f });
+		//	ui::Draw({ GetAsset<Texture>("textures/intro"), 0.f, 0.f, GetWidth(), GetHeight() });
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		//} else if (time < gameIn) { // fade 0.5s
+		//	float alpha = 1 - (time - introOut) / .5f;
+		//	ui::Draw({ 0.f, 0.f, GetWidth(), GetHeight(), 0.f,0.f,0.f, alpha });
+		//}
 
 		/*IElement* cover = new IElement("darkCover", 9999);
 		cover->CenterX(0)->CenterY(0)->Width(1.f)->Height(1.f)->Color({ 0.f });
@@ -397,9 +410,9 @@ namespace game {
 		AddElement(blank);
 		AddElement(cover);*/
 	}
-	engone::ui::TextBox editText = { "012345",50,100,50 };
-	std::string hey = "Okay then";
-	int indexing = hey.length();
+	//engone::ui::TextBox editText = { "012345",50,100,50 };
+	//std::string hey = "Okay then";
+	//int indexing = hey.length();
 	void GameApp::UiTest() {
 		using namespace engone;
 		//editText.y += 0.05;
@@ -418,14 +431,14 @@ namespace game {
 		/*ui::Draw({50,100,100,100,1,0,0});
 		ui::Draw({GetAsset<Texture>("textures/wall"), 500, 100, 400, 400});*/
 
-		/*ui::Box fullscreen = {100+2,100,100,100,1.f,1.f,0};
-		ui::Box windowed = {100,400,100,100,1.f,0,0};
-		ui::Box borderless = {100,600,100,100,1.f,0,1.f};*/
+		//ui::Box fullscreen = {100+2,100,100,100,1.f,1.f,0};
+		//ui::Box windowed = {100,400,100,100,1.f,0,0};
+		//ui::Box borderless = {100,600,100,100,1.f,0,1.f};
 
 		//float w = editText.font->getWidth(editText.text, editText.h);
-		////ui::Draw({editText.x,editText.y,w,editText.h,1.f,0,0});
+		//ui::Draw({editText.x,editText.y,w,editText.h,1.f,0,0});
 
-		////ui::Draw(fullscreen);
+		//ui::Draw(fullscreen);
 		///*ui::Draw(windowed);
 		//ui::Draw(borderless);*/
 		//if (ui::Hover(editText)) {
@@ -476,17 +489,17 @@ namespace game {
 				}*/
 			}
 			if (engone::IsKeybindingDown(KeyPause)) {
-				if (engone::CheckState(GameState::Paused)) {
-					engone::SetState(GameState::Paused, false);
-					engone::GetActiveWindow()->lockCursor(true);
-				} else {
-					engone::SetState(GameState::Paused, true);
-					engone::GetActiveWindow()->lockCursor(false);
-				}
+				//if (engone::CheckState(GameState::Paused)) {
+				//	engone::SetState(GameState::Paused, false);
+				//	engone::GetActiveWindow()->lockCursor(true);
+				//} else {
+				//	engone::SetState(GameState::Paused, true);
+				//	engone::GetActiveWindow()->lockCursor(false);
+				//}
 			}
 		}
 		//}
-		return engone::EventType::None;
+		return engone::EventNone;
 	}
 	engone::EventType OnMouse(engone::Event& e) {
 		//bug::out < elementName < (elementName=="uiFade")<bug::end;
@@ -497,6 +510,6 @@ namespace game {
 				}
 			}
 		}*/
-		return engone::EventType::None;
+		return engone::EventNone;
 	}
 }

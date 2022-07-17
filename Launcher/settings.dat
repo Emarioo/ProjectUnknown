@@ -1,0 +1,3 @@
+port=5492
+ip=host
+isServer=true

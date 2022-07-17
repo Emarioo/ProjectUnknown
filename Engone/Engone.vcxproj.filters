@@ -15,132 +15,111 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Engone\Objects\Camera.h">
+    <ClInclude Include="include\Engone\Rendering\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Light.h">
+    <ClInclude Include="include\Engone\Rendering\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Renderer.h">
+    <ClInclude Include="include\Engone\RenderModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Utility\GameOptions.h">
+    <ClInclude Include="include\Engone\Engone.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Engone.h">
+    <ClInclude Include="include\Engone\Utilities\Utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Objects\GameObject.h">
+    <ClInclude Include="include\Engone\Rendering\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Utility\Utilities.h">
+    <ClInclude Include="include\Engone\Sound\SoundBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\FrameBuffer.h">
+    <ClInclude Include="include\Engone\Sound\SoundSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Sound\SoundBuffer.h">
+    <ClInclude Include="include\Engone\Sound\SoundStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Sound\SoundSource.h">
+    <ClInclude Include="include\Engone\SoundModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Sound\SoundStream.h">
+    <ClInclude Include="include\Engone\Rendering\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\vendor\Libaudio.h">
+    <ClInclude Include="include\Engone\EventModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\MetaComponent.h">
+    <ClInclude Include="include\Engone\AssetModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\SoundModule.h">
+    <ClInclude Include="include\Engone\NetworkModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\GameState.h">
+    <ClInclude Include="include\Engone\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Rendering\Buffer.h">
+    <ClInclude Include="include\gonpch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\EventModule.h">
+    <ClInclude Include="include\Engone\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\AssetModule.h">
+    <ClInclude Include="include\Engone\Components\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\NetworkModule.h">
+    <ClInclude Include="include\Engone\Application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Logger.h">
+    <ClInclude Include="include\Engone\Networking\Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gonpch.h">
+    <ClInclude Include="include\Engone\Networking\Sender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Window.h">
+    <ClInclude Include="include\Engone\Networking\MessageBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\Entity.h">
+    <ClInclude Include="include\Engone\Networking\NetEvent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\EntitySystem.h">
+    <ClInclude Include="include\Engone\Networking\Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\Component.h">
+    <ClInclude Include="include\Engone\EngoneFlag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\System.h">
+    <ClInclude Include="include\Engone\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Components\Collider.h">
+    <ClInclude Include="..\..\ScriptRuntime\ScriptRuntime\include\script\MemAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\ScriptingModule.h">
+    <ClInclude Include="include\Engone\Utilities\MemAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Application.h">
+    <ClInclude Include="include\Engone\Tests\BasicRendering.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Networking\Server.h">
+    <ClInclude Include="include\Engone\vendor\Libaudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engone\Networking\Sender.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Networking\MessageBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Networking\NetEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Networking\Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Scripting\Script.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engone\Collision.h">
+    <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engone\Objects\GameObject.cpp">
+    <ClCompile Include="src\Engone\Rendering\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Objects\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utility\GameOptions.cpp">
+    <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Engone.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utility\Utilities.cpp">
+    <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp">
@@ -155,16 +134,10 @@
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\vendor\Libaudio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Components\MetaComponent.cpp">
+    <ClCompile Include="src\Engone\vendor\Libaudio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\GameState.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gonpch.cpp">
@@ -191,29 +164,17 @@
     <ClCompile Include="src\Engone\Rendering\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Components\Entity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Components\EntitySystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Components\Component.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Components\System.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Scripting\ScriptingModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Collision.cpp">
+    <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\Engone\Shaders\renderer.glsl" />
+    <ClCompile Include="include\Engone\LoopInfo.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

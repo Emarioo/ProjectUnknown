@@ -1,7 +1,7 @@
 
-#include "EntitySystem.h"
+#include "Engone/Components/EntitySystem.h"
 
-#include "../Logger.h"
+#include "Engone/Logger.h"
 
 namespace engone {
 
@@ -14,18 +14,19 @@ namespace engone {
 	static uint64_t entityCount;
 	
 	//-- Components
-	static size_t sizeOfComponents[32]{ sizeof(Transform), sizeof(Physics), sizeof(ModelRenderer), sizeof(Animator), sizeof(MeshRenderer), sizeof(Collision) };
-	static size_t componentEnumCount=32;
+	static size_t sizeOfComponents[8]{ sizeof(Animator), sizeof(CollisionBody),sizeof(MeshRenderer),sizeof(ModelRenderer),sizeof(RigidBody)};
+	static size_t componentEnumCount=8;
 
 	//-- System
-	static std::vector<System*> systems;
+	//static std::vector<System*> systems;
 	
 	//-- Methods
 	bool EntityStack::add(Entity* entity) {
 		if (data == nullptr) {
+			ComponentMask eMask = entity->getMask();
 			for (size_t i = 0; i < componentEnumCount;i++) {
 				componentSizes[i] = entitySize;
-				if (has((ComponentEnum)(i+1))) {
+				if (eMask&(1<<(i))) {
 					entitySize += sizeOfComponents[i];
 				}
 			}
@@ -74,20 +75,6 @@ namespace engone {
 
 		entity->componentSizes = componentSizes;
 		
-		//-- Component specific
-		if (entity->has(Transform::ID)) {
-			entity->getComponent<Transform>()->scale = {1,1,1};
-		}
-		if (entity->has(ModelRenderer::ID)) {
-			entity->getComponent<ModelRenderer>()->visible = true;
-		}
-		if (entity->has(MeshRenderer::ID)) {
-			entity->getComponent<MeshRenderer>()->visible = true;
-		}
-		if (entity->has(Physics::ID)) {
-			entity->getComponent<Physics>()->gravity = -9.81f;
-		}
-		
 		entity->Init();
 		return true;
 	}
@@ -116,29 +103,29 @@ namespace engone {
 		// find entity stack
 		EntityStack* stack=nullptr;
 		for (size_t i = 0; i < entityStacks.size();++i) {
-			if (entityStacks[i]->same(entity)) {
+			if (entityStacks[i]->getMask()==entity->getMask()) {
 				stack = entityStacks[i];
 				break;
 			}
 		}
 		// create stack
 		if (stack==nullptr) {
-			stack = new EntityStack(entity);
+			stack = new EntityStack(entity->getMask());
 			entityStacks.push_back(stack);
 			
 			for (size_t i = 0; i < stackCollections.size(); ++i) {
-				if (stackCollections[i]->has(stack)) {
+				if (stackCollections[i]->getMask()&stack->getMask()) {
 					stackCollections[i]->push(stack);
 				}
 			}
 		}
-
-		return stack->add(entity);
+		bool yes = stack->add(entity);
+		return yes;
 	}
 	bool RemoveEntity(Entity* entity) {
 		EntityStack* stack = nullptr;
 		for (size_t i = 0; i < entityStacks.size(); ++i) {
-			if (entityStacks[i]->same(entity)) {
+			if (entityStacks[i]->getMask()==entity->getMask()) {
 				stack = entityStacks[i];
 				break;
 			}
@@ -151,32 +138,27 @@ namespace engone {
 		log::out << log::RED << "Cannot delete entity\n";
 		return false;
 	}
-	void AddSystem(System* system) {
-		systems.push_back(system);
-	}
-	bool RemoveSystem(System* system) {
-		for (size_t i = 0; i < systems.size(); ++i) {
-			if (systems[i] == system) 				{
-				systems.erase(systems.begin()+i);
-				return true;
-			}
-		}
-		return false;
-	}
-	void RunUpdateSystems(float delta) {
-		for (System* system : systems) {
-			system->OnUpdate(delta);
-		}
-	}
-	void RunCollisionSystems(Collider& c1, Collider& c2) {
-		for (System* system : systems) {
-			system->OnCollision(c1,c2);
-		}
-	}
+	//void AddSystem(System* system) {
+	//	systems.push_back(system);
+	//}
+	//bool RemoveSystem(System* system) {
+	//	for (size_t i = 0; i < systems.size(); ++i) {
+	//		if (systems[i] == system) 				{
+	//			systems.erase(systems.begin()+i);
+	//			return true;
+	//		}
+	//	}
+	//	return false;
+	//}
+	//void RunUpdateSystems(float delta) {
+	//	for (System* system : systems) {
+	//		system->OnUpdate(delta);
+	//	}
+	//}
 	EntityIterator GetEntityIterator(ComponentMask mask){
 		// If collection exists
 		for (size_t i = 0; i < stackCollections.size(); ++i) {
-			if (stackCollections[i]->same(mask)) {
+			if (stackCollections[i]->getMask()==mask) {
 				return stackCollections[i];
 			}
 		}
@@ -187,7 +169,7 @@ namespace engone {
 		// Fill collection
 		for (size_t i = 0; i < entityStacks.size(); ++i) {
 			EntityStack* stack = entityStacks[i];
-			if (stack->has(mask)) {
+			if (stack->getMask()&mask) {
 				stackCollections.back()->push(stack);
 			}
 		}

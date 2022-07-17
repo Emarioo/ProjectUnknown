@@ -1,91 +1,15 @@
 
 #include "Engone/EventModule.h"
-#include "Engone/Logger.h"
-
 #include "Engone/Window.h"
 
 namespace engone {
-	struct Input {
-		int code;
-		bool down = false;
-		int pressed = false;
-	};
-	static float mouseX, mouseY;
-	static float scrollX, scrollY;
 	static std::unordered_map<uint16_t, Keybinding> keybindings;
-	static std::vector<Listener*> listeners;
-	static std::vector<Event> events;
-	static std::vector<Input> inputs;
 
-	EventType operator|(EventType a, EventType b) {
-		return (EventType)((char)a | (char)b);
-	}
-	bool operator==(EventType a, EventType b) {
-		return ((char)a & (char)b) > 0;
-	}
-
-	Listener::Listener(EventType eventTypes, std::function<EventType(Event&)> f)
+	Listener::Listener(EventTypes eventTypes, std::function<EventTypes(Event&)> f)
 		: eventTypes(eventTypes), run(f) {}
-	Listener::Listener(EventType eventTypes, int priority, std::function<EventType(Event&)> f)
+	Listener::Listener(EventTypes eventTypes, int priority, std::function<EventTypes(Event&)> f)
 		: eventTypes(eventTypes), run(f), priority(priority) {}
-	void SetInput(int code, bool down) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			if (inputs[i].code == code) {
-				if (down) {
-					if (!inputs[i].down) {
-						inputs[i].down = down;
-						inputs[i].pressed++;
-						return;
-					}
-				} else {
-					inputs[i].down = false;
-				}
-				break;
-			}
-		}
-		if (down)
-			inputs.push_back({ code, down, 1 });
-	}
-	void ExecuteListeners() {
-		for (size_t j = 0; j < events.size(); ++j) {
-			char breaker = 0; // if a flag is simular it will break
-			for (size_t i = 0; i < listeners.size(); ++i) {
-				if ((char)listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
-					continue;
 
-				if ((char)listeners[i]->eventTypes == (char)events[j].eventType) {
-					EventType types = listeners[i]->run(events[j]);
-					if ((char)types != 0)
-						breaker = (char)(breaker | (char)listeners[i]->eventTypes);
-				}
-			}
-		}
-		while (events.size() > 0)
-			events.pop_back();
-	}
-	static size_t charCount = 0;
-	static size_t readIndex = 0;
-	static const size_t ARRAY_SIZE = 20;
-	static uint32_t charArray[ARRAY_SIZE];
-	void CharCallback(GLFWwindow* window, uint32_t chr) {
-		//log::out << (char)chr << "\n";
-		if (readIndex != 0) {
-			for (size_t i = readIndex; i < charCount; ++i)
-				charArray[i - readIndex] = charArray[readIndex];
-			charCount = charCount - readIndex;
-			readIndex = 0;
-			ZeroMemory(charArray + charCount, ARRAY_SIZE - charCount);
-		}
-		if (charCount < ARRAY_SIZE) {
-			charArray[charCount++] = chr;
-		}
-	}
-	static std::vector<std::string> pathDrops;
-	void DropCallback(GLFWwindow* window, int count, const char** paths) {
-		for (size_t i = 0; i < (size_t)count; ++i) {
-			pathDrops.push_back(paths[i]);
-		}
-	}
 	std::string PollClipboard() {
 		return glfwGetClipboardString(GetActiveWindow()->glfw());
 	}
@@ -93,169 +17,44 @@ namespace engone {
 		return glfwSetClipboardString(GetActiveWindow()->glfw(), str);
 	}
 	std::string PollPathDrop() {
-		if (pathDrops.size() == 0) return "";
-		std::string path = pathDrops.back();
-		pathDrops.pop_back();
-		return path;
+		Window* win = GetActiveWindow();
+		if (win) return win->pollPathDrop();
+		else return "";
 	}
 	uint32_t PollChar() {
-		if (readIndex < ARRAY_SIZE) {
-			if (charArray[readIndex] != 0) {
-				return charArray[readIndex++];
-			}
-		}
-		return 0;
+		Window* win = GetActiveWindow();
+		if (win) return win->pollChar();
+		else return 0;
 	}
-	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-		Window* win = GetMappedWindow(window);
-		if (!win) {
-			log::out << "Window isn't mapped\n";
-			return;
-		}
-		if (!win->hasFocus()) return;
-
-		Event e{ EventType::Key };
-		e.key = key;
-		e.scancode = scancode;
-		e.action = action;
-		events.push_back(e);
-
-		SetInput(key, action != 0);
-
-		if (action != 0 && (key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_DELETE || key == GLFW_KEY_ENTER || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT)) {
-			CharCallback(window, key);
-		}
-
-		ExecuteListeners();
+	float GetMouseX() {
+		Window* win = GetActiveWindow();
+		if (win) return win->getMouseX();
+		return -1;
 	}
-	void MouseCallback(GLFWwindow* window, int button, int action, int mods) {
-		Window* win = GetMappedWindow(window);
-		if (!win) {
-			log::out << "Window isn't mapped\n";
-			return;
-		}
-		if (!win->hasFocus()) return;
-
-		Event e{ EventType::Click };
-		e.button = button;
-		e.action = action;
-		e.mx = mouseX;
-		e.my = mouseY;
-		events.push_back(e);
-		SetInput(button, action == 1);
-		ExecuteListeners();
+	float GetMouseY() {
+		Window* win = GetActiveWindow();
+		if (win) return win->getMouseY();
+		return -1;
 	}
-	void CursorPosCallback(GLFWwindow* window, double mx, double my) {
-		Window* win = GetMappedWindow(window);
-		if (!win) {
-			log::out << "Window isn't mapped\n";
-			return;
-		}
-		if (!win->hasFocus()) return;
-
-		mouseX = (float)mx;
-		mouseY = (float)my;
-		Event e{ EventType::Move };
-		e.mx = (float)mx;
-		e.my = (float)my;
-		events.push_back(e);
-		ExecuteListeners();
-	}
-	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-		Window* win = GetMappedWindow(window);
-		if (!win) {
-			log::out << "Window isn't mapped\n";
-			return;
-		}
-		if (!win->hasFocus()) return;
-
-		Event e{ EventType::Scroll };
-		e.scrollX = (float)xoffset;
-		e.scrollY = (float)yoffset;
-		e.mx = (float)mouseX;
-		e.my = (float)mouseY;
-		events.push_back(e);
-		//std::cout << xoffset << " " << yoffset << "\n";
-		scrollX = (float)xoffset;
-		scrollY = (float)yoffset;
-		ExecuteListeners();
-	}
-	void InitEvents(GLFWwindow* window) {
-		glfwSetKeyCallback(window, KeyCallback);
-		glfwSetMouseButtonCallback(window, MouseCallback);
-		glfwSetCursorPosCallback(window, CursorPosCallback);
-		glfwSetScrollCallback(window, ScrollCallback);
-		glfwSetCharCallback(window, CharCallback);
-		glfwSetDropCallback(window, DropCallback);
-
-		ZeroMemory(charArray, sizeof(charArray));
-
-		/*
-		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus) {
-			Event e(EventType::Focus);
-			e.focused = focus;
-			events.push_back(e);
-			ExecuteListeners();
-			});
-		glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-			Event e(EventType::Resize);
-			e.width = width;
-			e.height = height;
-			events.push_back(e);
-			ExecuteListeners();
-			});
-		*/
-	}
-	void AddListener(Listener* listener) {
-		// Prevent duplicates
-		for (size_t i = 0; i < listeners.size(); ++i) {
-			if (listener == listeners[i]) {
-				return;
-			}
-		}
-		// Priorities
-		for (size_t i = 0; i < listeners.size(); ++i) {
-			if (listener->priority > listeners[i]->priority) {
-				listeners.insert(listeners.begin() + i, listener);
-				return;
-			}
-		}
-		listeners.push_back(listener);
-	}
-	float GetMouseX() { return mouseX; }
-	float GetMouseY() { return mouseY; }
 	float IsScrolledY() {
-		if (scrollY != 0)
-			return scrollY;
-
+		Window* win = GetActiveWindow();
+		if (win) return win->getScrollX();
 		return 0;
 	}
 	float IsScrolledX() {
-		if (scrollX != 0)
-			return scrollX;
+		Window* win = GetActiveWindow();
+		if (win) return win->getScrollY();
 		return 0;
 	}
 	bool IsKeyDown(int code) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			if (inputs[i].code == code)
-				return inputs[i].down;
-		}
-		return false;
+		Window* win = GetActiveWindow();
+		if (win) return win->isKeyDown(code);
+		return 0;
 	}
 	bool IsKeyPressed(int code) {
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			if (inputs[i].code == code)
-				return inputs[i].pressed > 0;
-		}
-		return false;
-	}
-	void ResetEvents() {
-		scrollX = 0;
-		scrollY = 0;
-		for (size_t i = 0; i < inputs.size(); ++i) {
-			if (inputs[i].pressed > 0)
-				inputs[i].pressed--;
-		}
+		Window* win = GetActiveWindow();
+		if (win) return win->isKeyPressed(code);
+		return 0;
 	}
 	bool IsKeybindingDown(uint16_t id) {
 		if (keybindings.count(id)) {
@@ -296,7 +95,7 @@ namespace engone {
 			return 0;
 		}
 		file.seekg(0, file.end);
-		size_t size = (size_t)file.tellg();
+		uint32_t size = (uint32_t)file.tellg();
 		file.seekg(0, file.beg);
 
 		struct keyset {

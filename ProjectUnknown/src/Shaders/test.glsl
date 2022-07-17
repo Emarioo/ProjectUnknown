@@ -10,6 +10,7 @@ uniform mat4 uTransform;
 void main()
 {
 	gl_Position = uProj * uTransform * vec4(vPos, 1);
+	//gl_Position = vec4(vPos,0, 1);
 };
 
 #shader fragment

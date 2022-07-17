@@ -1,14 +1,16 @@
 #include "Engone/SoundModule.h"
+#ifndef ENGONE_NO_SOUND
+
 #include "AL/al.h"
 #include "AL/alc.h"
 
 namespace engone {
 
 	// Add Debug option? sound_device_list
-	void list_audio_devices(const ALCchar* devices)
+	void list_audio_devices(const char* devices)
 	{
 		const ALCchar* device = devices, * next = devices + 1;
-		size_t len = 0;
+		uint32_t len = 0;
 
 		std::cout << "Devices list:" << std::endl;;
 		while (device && *device != '\0' && next && *next != '\0') {
@@ -73,3 +75,29 @@ namespace engone {
 		alCall(alcCloseDevice(device));
 	}
 }
+#else
+namespace engone {
+
+	// Add Debug option? sound_device_list
+	void list_audio_devices(const char* devices) {
+	
+	}
+	// Switch to vec3
+	void ListenerPosition(float x, float y, float z) {
+		
+	}
+	void ListenerVelocity(float x, float y, float z) {
+		
+	}
+	void ListenerRotation(float x, float y, float z, float x1, float y1, float z1) {
+		
+	}
+	bool InitSound() {
+		
+		return true;
+	}
+	void UninitSound() {
+		
+	}
+}
+#endif

@@ -4,20 +4,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectUnknown", "ProjectUnknown\ProjectUnknown.vcxproj", "{497A2588-E2DA-44F3-8F83-06A9A1BB3408}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3612C9F6-C23C-3B68-8174-C542BD73FC13} = {3612C9F6-C23C-3B68-8174-C542BD73FC13}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engone", "Engone\Engone.vcxproj", "{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}"
-	ProjectSection(ProjectDependencies) = postProject
-		{3612C9F6-C23C-3B68-8174-C542BD73FC13} = {3612C9F6-C23C-3B68-8174-C542BD73FC13}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "V8Testing", "..\V8\V8Testing\V8Testing.vcxproj", "{2A44472F-D40B-4780-AC1F-F1D72E111A00}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw", "..\GLFW3\GLFW3\build\src\glfw.vcxproj", "{3612C9F6-C23C-3B68-8174-C542BD73FC13}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reactphysics3d", "..\ReactPhysics\build\reactphysics3d.vcxproj", "{6A1D5CE4-4A31-3D97-85D1-C5CEEEFA9529}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Launcher", "Launcher\Launcher.vcxproj", "{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827} = {DCE4A99C-5733-4F0A-A6DA-33D4B1644827}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,22 +60,6 @@ Global
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x64.Build.0 = Release|x64
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
 		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x86.Build.0 = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Debug|x64.ActiveCfg = Debug|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Debug|x64.Build.0 = Debug|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Debug|x86.ActiveCfg = Debug|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Debug|x86.Build.0 = Debug|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.MinSizeRel|x64.ActiveCfg = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.MinSizeRel|x64.Build.0 = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.MinSizeRel|x86.ActiveCfg = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.MinSizeRel|x86.Build.0 = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Release|x64.ActiveCfg = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Release|x64.Build.0 = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Release|x86.ActiveCfg = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.Release|x86.Build.0 = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.RelWithDebInfo|x64.Build.0 = Release|x64
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
-		{2A44472F-D40B-4780-AC1F-F1D72E111A00}.RelWithDebInfo|x86.Build.0 = Release|Win32
 		{3612C9F6-C23C-3B68-8174-C542BD73FC13}.Debug|x64.ActiveCfg = Debug|Win32
 		{3612C9F6-C23C-3B68-8174-C542BD73FC13}.Debug|x64.Build.0 = Debug|Win32
 		{3612C9F6-C23C-3B68-8174-C542BD73FC13}.Debug|x86.ActiveCfg = Debug|Win32
@@ -111,6 +92,22 @@ Global
 		{6A1D5CE4-4A31-3D97-85D1-C5CEEEFA9529}.RelWithDebInfo|x64.Build.0 = RelWithDebInfo|Win32
 		{6A1D5CE4-4A31-3D97-85D1-C5CEEEFA9529}.RelWithDebInfo|x86.ActiveCfg = RelWithDebInfo|Win32
 		{6A1D5CE4-4A31-3D97-85D1-C5CEEEFA9529}.RelWithDebInfo|x86.Build.0 = RelWithDebInfo|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x64.ActiveCfg = Debug|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x64.Build.0 = Debug|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x86.ActiveCfg = Debug|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x86.Build.0 = Debug|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x64.ActiveCfg = Debug|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x64.Build.0 = Debug|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x86.ActiveCfg = Debug|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x86.Build.0 = Debug|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x64.ActiveCfg = Release|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x64.Build.0 = Release|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x86.ActiveCfg = Release|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x86.Build.0 = Release|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x64.ActiveCfg = Release|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x64.Build.0 = Release|x64
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x86.ActiveCfg = Release|Win32
+		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

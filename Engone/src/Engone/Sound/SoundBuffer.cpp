@@ -1,9 +1,12 @@
+
 #include "Engone/Sound/SoundBuffer.h"
 
-#include "Engone/Utility/Utilities.h"
+#include "Engone/Utilities/Utilities.h"
+
+#ifndef ENGONE_NO_SOUND
 #include "AL/al.h"
 #include "AL/alc.h"
-#include <vendor/Libaudio.h>
+#include "Engone/vendor/Libaudio.h"
 
 bool al_check_error() {
 	ALenum err = alGetError();
@@ -33,10 +36,6 @@ namespace engone {
 			return -1;
 		}
 	}
-
-	SoundBuffer::SoundBuffer() {
-
-	}
 	SoundBuffer::~SoundBuffer() {
 		if (isInitialized)
 			alCall(alDeleteBuffers(1, &id));
@@ -60,4 +59,17 @@ namespace engone {
 		}
 	}
 }
-//#endif
+#else
+bool al_check_error() {
+	return false;
+}
+
+namespace engone {
+	SoundBuffer::~SoundBuffer() {
+		
+	}
+	void SoundBuffer::Init(const char* path) {
+		
+	}
+}
+#endif

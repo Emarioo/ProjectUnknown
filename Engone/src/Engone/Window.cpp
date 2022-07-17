@@ -1,23 +1,12 @@
-#include "Engone/Rendering/Renderer.h"
 #include "Engone/Window.h"
 
 #include "Engone/EventModule.h"
 
 #include "Engone/Application.h"
+#include "Engone/Utilities/Utilities.h"
+#include "Engone/Engone.h"
 
 namespace engone {
-
-	static Window* activeWindow=nullptr;
-	Window* GetActiveWindow() {
-		return activeWindow;
-	}
-	float GetWidth() {
-		return activeWindow->getWidth();
-	}
-	float GetHeight() {
-		return activeWindow->getHeight();
-	}
-
 	static bool glfwIsActive = false;
 	static float glfwFreezeTime = 0;
 	void InitializeGLFW() {
@@ -30,8 +19,8 @@ namespace engone {
 				}
 			}
 			std::cerr << "GLFW has frozen... ";
-			glfwFreezeTime = GetSystemTime();
-			});
+			glfwFreezeTime = engone::GetSystemTime();
+		});
 
 		if (!glfwInit()) {
 			std::cout << "Glfw Init error!" << std::endl;
@@ -44,126 +33,346 @@ namespace engone {
 		glfwIsActive = true;
 		tempThread.join();
 	}
+	static Window* activeWindow=nullptr;
+	static Window* mainWindow=nullptr;
+	Window* GetActiveWindow() {
+		return activeWindow;
+	}
+	float GetWidth() {
+		return activeWindow->getWidth();
+	}
+	float GetHeight() {
+		return activeWindow->getHeight();
+	}
 	static std::unordered_map<GLFWwindow*, Window*> windowMapping;
 	Window* GetMappedWindow(GLFWwindow* window) {
-		if (windowMapping.count(window)) {
-			return windowMapping[window];
-		}
+		auto win = windowMapping.find(window);
+		if (win != windowMapping.end())
+			return win->second;
 		return nullptr;
 	}
+	void CharCallback(GLFWwindow* window, uint32_t chr) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		if (win->m_readIndex != 0) {
+			for (uint32_t i = win->m_readIndex; i < win->m_charCount; ++i)
+				win->m_charArray[i - win->m_readIndex] = win->m_charArray[win->m_readIndex];
+			win->m_charCount = win->m_charCount - win->m_readIndex;
+			win->m_readIndex = 0;
+			ZeroMemory(win->m_charArray + win->m_charCount, Window::CHAR_ARRAY_SIZE - win->m_charCount);
+		}
+		if (win->m_charCount < Window::CHAR_ARRAY_SIZE) {
+			win->m_charArray[win->m_charCount++] = chr;
+		}
+	}
+	void DropCallback(GLFWwindow* window, int count, const char** paths) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		for (uint32_t i = 0; i < (uint32_t)count; ++i) {
+			win->m_pathDrops.push_back(paths[i]);
+		}
+	}
+	void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		Event e{ EventKey };
+		e.key = key;
+		e.scancode = scancode;
+		e.action = action;
+		e.window = win;
+		win->addEvent(e);
+
+		win->setInput(key, action != 0); // if not 0 means if pressed or repeating
+
+		if (action != 0 && (key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_DELETE || key == GLFW_KEY_ENTER || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT)) {
+			CharCallback(window, key);
+		}
+		win->runListeners();
+	}
+	void MouseCallback(GLFWwindow* window, int button, int action, int mods) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		// Position needs updating
+		double mx, my;
+		glfwGetCursorPos(window, &mx, &my);
+		win->setMouseX((float)mx);
+		win->setMouseY((float)my);
+		win->setInput(button, action != 0);
+
+		Event e{ EventClick };
+		e.button = button;
+		e.action = action;
+		e.mx = (float)mx;
+		e.my = (float)my;
+		e.window = win;
+		win->addEvent(e);
+		win->runListeners();
+	}
+	void CursorPosCallback(GLFWwindow* window, double mx, double my) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		win->setMouseX((float)mx);
+		win->setMouseY((float)my);
+		Event e{ EventMove };
+		e.mx = (float)mx;
+		e.my = (float)my;
+		e.window = win;
+		win->addEvent(e);
+		win->runListeners();
+	}
+	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+		Window* win = GetMappedWindow(window);
+		if (!win) {
+			log::out << "Window isn't mapped\n";
+			return;
+		}
+		win->setScrollX((float)xoffset);
+		win->setScrollY((float)yoffset);
+
+		Event e{ EventScroll };
+		e.scrollX = (float)xoffset;
+		e.scrollY = (float)yoffset;
+		e.mx = win->getMouseX();
+		e.my = win->getMouseY();
+		e.window = win;
+		win->addEvent(e);
+		win->runListeners();
+	}
 	static void FocusCallback(GLFWwindow* window, int focused) {
-		auto win = windowMapping.find(window);
-		if (win != windowMapping.end()) {
-			win->second->m_focus = focused;
-			//if (focused)
-				//activeWindow = win->second;
+		Window* win = GetMappedWindow(window);
+		if (win) {
+			win->m_focus = focused;
 		}
 	}
 	static void ResizeCallback(GLFWwindow* window, int width, int height) {
-		auto win = windowMapping.find(window);
-		if (win != windowMapping.end()) {
-			win->second->m_width = (float)width;
-			win->second->m_height = (float)height;
+		Window* win = GetMappedWindow(window);
+		if (win) {
+			win->w = (float)width;
+			win->h = (float)height;
 		}
 	}
 	static void CloseCallback(GLFWwindow* window) {
-		auto win = windowMapping.find(window);
-		if (win != windowMapping.end()) {
-			if (win->second->m_parentApplication) {
-				win->second->m_parentApplication->onClose(win->second);
+		Window* win = GetMappedWindow(window);
+		if (win) {
+			if (win->m_parent) {
+				win->m_parent->onClose(win);
 			}
+			if (mainWindow == win)
+				mainWindow = nullptr;
 		}
 	}
-	Window::Window(WindowMode mode) {
-		// setup
-		if (!glfwIsActive) {
-			InitializeGLFW();
+	static void PosCallback(GLFWwindow* window, int x, int y) {
+		Window* win = GetMappedWindow(window);
+		if (win) {
+			win->x = (float)x;
+			win->y = (float)y;
 		}
+	}
+	Window::Window(Application* application, WindowDetail detail) {
+		// setup
+		if(!glfwIsActive) InitializeGLFW();
+		
+		// Minor setup stuff
+		m_parent = application;
+		m_renderer.m_parent = this;
 
+		// Window related setup
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
 		
-		x = (float)vidmode->width / 6.0f;
-		y = (float)vidmode->height / 6.0f;
-		w = (float)vidmode->width / 1.5f;
-		h = (float)vidmode->height / 1.5f;
+		if (detail.x == -1) x = (float)vidmode->width / 6.0f;
+		else x = (float)detail.x;
+		if (detail.y == -1) y = (float)vidmode->height / 6.0f;
+		else y = (float)detail.y;
+		if (detail.w == -1) w = (float)vidmode->width / 1.5f;
+		else w = (float)detail.w;
+		if (detail.h == -1) h = (float)vidmode->height / 1.5f;
+		else h = (float)detail.h;
 
-		setMode(mode);
-
-		GLenum err = glewInit();
-		if (err != GLEW_OK) {
-			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
-			return;
-		}
-	}
-	Window::Window(int width, int height, WindowMode mode) {
-		// setup
-		if (!glfwIsActive) {
-			InitializeGLFW();
-		}
-
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
-
-		w = (float)width;
-		h = (float)height;
-		x = (float)vidmode->width / 2.0f-w/2.0f;
-		y = (float)vidmode->height / 2.0f-h/2.0f;
-
-		setMode(mode);
-
-		GLenum err = glewInit();
-		if (err != GLEW_OK) {
-			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
-			return;
-		}
-	}
-	Window::Window(int x, int y, int width, int height, WindowMode mode) {
-		// setup
-		if (!glfwIsActive) {
-			InitializeGLFW();
-		}
-
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* vidmode = glfwGetVideoMode(monitor);
-
-		this->x = (float)x;
-		this->y = (float)y;
-		w = (float)width;
-		h = (float)height;
-
-		setMode(mode);
-
-		GLenum err = glewInit();
-		if (err != GLEW_OK) {
-			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
-			return;
-		}
+		setMode(detail.mode);
+		windowMapping[m_glfwWindow] = this;
+		setActiveContext();
+		m_renderer.init();
 	}
 	Window::~Window() {
+		// we need to set window as active context before deleting buffers.
+		setActiveContext();
+		windowMapping.erase(m_glfwWindow);
 		if (activeWindow == this) {
-			if (windowMapping.size() > 0) {
-				activeWindow = windowMapping.begin()->second;
-			} else {
-				log::out << "Bad crash " << __FILE__ << " " << (int)__LINE__ << "\n";
-			}
+			activeWindow = nullptr;
 		}
-		windowMapping.erase(m_window);
-		glfwDestroyWindow(m_window);
+		// deleting context will delete buffers to. If you are sharing any unexepected things might happen
+		glfwDestroyWindow(m_glfwWindow);
 	}
 	void Window::setTitle(const std::string title) {
 		m_title = title;
-		glfwSetWindowTitle(m_window, title.c_str());
+		glfwSetWindowTitle(m_glfwWindow, title.c_str());
 	}
 	void Window::setActiveContext() {
-		glfwMakeContextCurrent(m_window);
+		//if(m_renderer)
+		m_renderer.setActiveRenderer();
+		// no need to do this if window already is active
+		if (activeWindow == this) return;
+
+		glfwMakeContextCurrent(m_glfwWindow);
+		activeWindow = this;
 		int wid;
 		int hei;
-		glfwGetWindowSize(m_window, &wid, &hei);
-		m_width = (float)wid;
-		m_height = (float)hei;
+		glfwGetWindowSize(m_glfwWindow, &wid, &hei);
+		GLenum err = glewInit();
+		if (err != GLEW_OK) {
+			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
+			return;
+		}
+
+		//m_width = (float)wid;
+		//m_height = (float)hei;
 		glViewport(0, 0, wid, hei);
-		activeWindow = this;
+
+		//m_renderer.init();
+		// 
+		//if (mainWindow == nullptr)
+			//mainWindow = this;
+	}
+	void Window::setPosition(float x, float y) {
+		glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
+		PosCallback(m_glfwWindow, (int)x, (int)y);
+	}
+	void Window::setInput(int code, bool down) {
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].code == code) {
+				if (down) {
+					if (!m_inputs[i].down) {
+						m_inputs[i].down = true;
+						m_inputs[i].pressed++;
+						return;
+					}
+				} else {
+					m_inputs[i].down = false;
+				}
+				break;
+			}
+		}
+		if (down)
+			m_inputs.push_back({ code, down, 1 });
+	}
+	void Window::attachListener(Listener* listener) {
+		// Prevent duplicates
+		for (uint32_t i = 0; i < m_listeners.size(); ++i) {
+			if (listener == m_listeners[i]) {
+				return;
+			}
+		}
+		// Priorities
+		for (uint32_t i = 0; i < m_listeners.size(); ++i) {
+			if (listener->priority > m_listeners[i]->priority) {
+				m_listeners.insert(m_listeners.begin() + i, listener);
+				return;
+			}
+		}
+		m_listeners.push_back(listener);
+	}
+	std::string Window::pollPathDrop() {
+		if (m_pathDrops.size() == 0) return "";
+		std::string path = m_pathDrops.back();
+		m_pathDrops.pop_back();
+		return path;
+	}
+	uint32_t Window::pollChar() {
+		if (m_readIndex < CHAR_ARRAY_SIZE) {
+			if (m_charArray[m_readIndex] != 0) {
+				return m_charArray[m_readIndex++];
+			}
+		}
+		return 0;
+	}
+	bool Window::isKeyDown(int code) {
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].code == code)
+				return m_inputs[i].down;
+		}
+		return false;
+	}
+	bool Window::isKeyPressed(int code) {
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].code == code)
+				return m_inputs[i].pressed > 0;
+		}
+		return false;
+	}
+	void Window::resetEvents() {
+		m_scrollX = 0;
+		m_scrollY = 0;
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].pressed > 0)
+				m_inputs[i].pressed--;
+		}
+	}
+	void Window::runListeners() {
+		for (uint32_t j = 0; j < m_events.size(); ++j) {
+			EventTypes breaker = EventNone; // if a flag is simular it will break
+			for (uint32_t i = 0; i < m_listeners.size(); ++i) {
+				if (m_listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
+					continue;
+
+				if (m_listeners[i]->eventTypes & m_events[j].eventType) {
+					EventTypes types = m_listeners[i]->run(m_events[j]);
+					if (types != EventNone)
+						breaker = (breaker | m_listeners[i]->eventTypes);
+				}
+			}
+		}
+		m_events.clear();
+	}
+	static float lastMouseX = -1, lastMouseY = -1;
+	static float cameraSensitivity = 0.1f;
+	EventType FirstPerson(Event& e) {
+		if (lastMouseX != -1) {
+			Camera* camera = e.window->getRenderer()->getCamera();
+			if (GetActiveWindow()->isCursorLocked() && camera != nullptr) {
+				camera->rotation.y -= (e.mx - lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				camera->rotation.x -= (e.my - lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				if (camera->rotation.x > glm::pi<float>() / 2) {
+					camera->rotation.x = glm::pi<float>() / 2;
+				}
+				if (camera->rotation.x < -glm::pi<float>() / 2) {
+					camera->rotation.x = -glm::pi<float>() / 2;
+				}
+			}
+		}
+		lastMouseX = e.mx;
+		lastMouseY = e.my;
+		return EventNone;
+	}
+	void Window::enableFirstPerson() {
+		attachListener(new Listener(EventMove, 9998, FirstPerson));
+	}
+	static void SetCallbacks(GLFWwindow* window) {
+		glfwSetKeyCallback(window, KeyCallback);
+		glfwSetMouseButtonCallback(window, MouseCallback);
+		glfwSetCursorPosCallback(window, CursorPosCallback);
+		glfwSetScrollCallback(window, ScrollCallback);
+		glfwSetWindowFocusCallback(window, FocusCallback);
+		glfwSetWindowSizeCallback(window, ResizeCallback);
+		glfwSetWindowCloseCallback(window, CloseCallback);
+		glfwSetWindowPosCallback(window, PosCallback);
+		glfwSetCharCallback(window, CharCallback);
+		glfwSetDropCallback(window, DropCallback);
 	}
 	void Window::setMode(WindowMode winMode) {
 		//if (m_windowMode == winMode) return;
@@ -176,234 +385,79 @@ namespace engone {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		if (!m_window) {
-			//x = mode->width / 6;
-			//y = mode->height / 6;
-			//w = mode->width / 1.5;
-			//h = mode->height / 1.5;
+		if (!m_glfwWindow) {
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
-			if (winMode == WindowMode::Windowed) {
+			GLFWwindow* sharing = NULL;
+			if (mainWindow)
+				sharing = mainWindow->glfw();
+			if (winMode == WindowedMode) {
 				glfwWindowHint(GLFW_DECORATED, true);
-				m_window = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, NULL);
-				glfwSetWindowPos(m_window, (int)x, (int)y);
+				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, sharing);
+				glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
 				//glfwSetWindowMonitor(m_window, NULL, x, y, w, h, mode->refreshRate);
-			} else if (winMode == WindowMode::Fullscreen) {
+			} else if (winMode == FullscreenMode) {
 				glfwWindowHint(GLFW_DECORATED, true);
-				m_window = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), monitor, NULL);
-			} else if (winMode == WindowMode::BorderlessFullscreen) {
+				m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), monitor, sharing);
+			} else if (winMode == BorderlessMode) {
 				glfwWindowHint(GLFW_DECORATED, false);
 				//glfwWindowHint(GLFW_FLOATING, true);
-				m_window = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), NULL, NULL);
-				glfwSetWindowPos(m_window, 0, 0);
+				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, sharing);
+				glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
+				//glfwSetWindowMonitor(m_window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
+			} else if (winMode == BorderlessFullscreenMode) {
+				glfwWindowHint(GLFW_DECORATED, false);
+				//glfwWindowHint(GLFW_FLOATING, true);
+				m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), NULL, sharing);
+				glfwSetWindowPos(m_glfwWindow, 0, 0);
 				//glfwSetWindowMonitor(m_window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
 			}
-			windowMapping[m_window] = this;
-
-			glfwSetWindowFocusCallback(m_window, FocusCallback);
-			glfwSetWindowSizeCallback(m_window, ResizeCallback);
-			glfwSetWindowCloseCallback(m_window, CloseCallback);
-			InitEvents(m_window);
+			SetCallbacks(m_glfwWindow);
+			ZeroMemory(m_charArray, CHAR_ARRAY_SIZE);
 		} else {
-			if (winMode == WindowMode::Windowed) {
+			if (winMode == WindowedMode) {
 				glfwWindowHint(GLFW_DECORATED, true);
-				glfwWindowHint(GLFW_FLOATING, false);
-				glfwSetWindowMonitor(m_window, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
-			} else if (winMode == WindowMode::Fullscreen) {
+				//glfwWindowHint(GLFW_FLOATING, false);
+				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
+			} else if (winMode == FullscreenMode) {
 				glfwWindowHint(GLFW_DECORATED, true);
-				glfwWindowHint(GLFW_FLOATING, false);
-				glfwSetWindowMonitor(m_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-			} else if (winMode == WindowMode::BorderlessFullscreen) {
+				//glfwWindowHint(GLFW_FLOATING, false);
+				glfwSetWindowMonitor(m_glfwWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			} else if (winMode == BorderlessMode) {
 				glfwWindowHint(GLFW_DECORATED, false);
-				glfwWindowHint(GLFW_FLOATING, true);
-				glfwSetWindowMonitor(m_window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
+				//glfwWindowHint(GLFW_FLOATING, true);
+				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
+			} else if (winMode == BorderlessFullscreenMode) {
+				glfwWindowHint(GLFW_DECORATED, false);
+				//glfwWindowHint(GLFW_FLOATING, true);
+				glfwSetWindowMonitor(m_glfwWindow, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
 			}
 		}
 		m_focus = true;
 
 		m_windowMode = winMode;
-
-		setActiveContext();
 	}
-	WindowMode Window::getMode() {
-		return m_windowMode;
-	}
-	float Window::getWidth() {
-		return m_width;
-	}
-	float Window::getHeight() {
-		return m_height;
-	}
-	bool Window::hasFocus() {
-		return m_focus;
-	}
-	bool Window::isCursorVisible() {
-		return m_cursorVisible;
+	void Window::close() {
+		glfwSetWindowShouldClose(m_glfwWindow, true);
+		CloseCallback(m_glfwWindow);
 	}
 	void Window::setCursorVisible(bool visible) {
 		m_cursorVisible = visible;
-		if (visible) glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		else glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-	}
-	bool Window::isCursorLocked() {
-		return m_cursorLocked;
+		if (visible) glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		else glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 	}
 	void Window::lockCursor(bool locked) {
 		m_cursorLocked = locked;
 		if (locked) {
-			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			if (glfwRawMouseMotionSupported())
-				glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+				glfwSetInputMode(m_glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		} else {
 			setCursorVisible(isCursorVisible());
 			if (glfwRawMouseMotionSupported())
-				glfwSetInputMode(m_window, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
+				glfwSetInputMode(m_glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 	}
 	bool Window::isActive() {
-		return !glfwWindowShouldClose(m_window);
+		return !glfwWindowShouldClose(m_glfwWindow);
 	}
-
-	static std::string title = "Unnamed";
-
-	// relevant if windowed, stores the coordinates when going from windowed->fullscreen->windowed
-	static int x=0, y=0, w=0, h=0;
-
-	static bool isCursorVisible = true, isCursorLocked = false, hasFocus = true;
-	/*
-	void InitWindow(const std::string& title) {
-		// Temporary, should be loaded from a settings file
-		{
-			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-			x = mode->width / 6;
-			y = mode->height / 6;
-			w = mode->width / 1.5;
-			h = mode->height / 1.5;
-			windowType = WindowType::Windowed;
-		}
-		MakeWindow(windowType);
-
-		SetTitle(title);
-	}
-	void SetTitle(const std::string& title) {
-		glfwSetWindowTitle(glfwWindow, title.c_str());
-	}
-	void MakeWindow(WindowType type) {
-		windowType = type;
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-		if (glfwWindow != nullptr) {
-			glfwDestroyWindow(glfwWindow);
-		}
-
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-		if (type == WindowType::Windowed) {
-			glfwWindowHint(GLFW_DECORATED, true);
-			glfwWindow = glfwCreateWindow(w, h, "Unnamed", NULL, NULL);
-
-		}
-		else if (type == WindowType::Fullscreen) {
-			glfwWindowHint(GLFW_DECORATED, true);
-			glfwWindow = glfwCreateWindow(mode->width, mode->height, "Unnamed", monitor, NULL);
-
-		}
-		else if (type == WindowType::BorderlessFullscreen) {
-			glfwWindowHint(GLFW_DECORATED, false);
-			glfwWindow = glfwCreateWindow(mode->width, mode->height, "Unnamed", NULL, NULL);
-		}
-		else {
-			std::cout << "WindowType is None" << std::endl;
-			return;
-		}
-		if (!glfwWindow) {
-			glfwTerminate();
-			std::cout << "Terminate Window!" << std::endl;
-			return;
-		}
-		glfwMakeContextCurrent(glfwWindow);
-	}
-	void SetActiveContext() {
-		glfwMakeContextCurrent(glfwWindow);
-	}
-	void SetType(WindowType type) {
-		if (type == windowType) return;
-
-		if (glfwWindow == nullptr) {
-			windowType = type;
-			return;
-		}
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
-		if (windowType == WindowType::Windowed && type == WindowType::Fullscreen) {
-			glfwSetWindowMonitor(glfwWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-		}
-		else if (windowType == WindowType::Windowed && type == WindowType::BorderlessFullscreen) {
-			MakeWindow(type);
-		}
-		else if (windowType == WindowType::Fullscreen && type == WindowType::Windowed) {
-			glfwSetWindowMonitor(glfwWindow, NULL, x, y, w, h, mode->refreshRate);
-		}
-		else if (windowType == WindowType::Fullscreen && type == WindowType::BorderlessFullscreen) {
-			MakeWindow(type);
-		}
-		else if (windowType == WindowType::BorderlessFullscreen && type == WindowType::Windowed) {
-			MakeWindow(type);
-		}
-		else if (windowType == WindowType::BorderlessFullscreen && type == WindowType::Fullscreen) {
-			MakeWindow(type);
-		}
-		windowType = type;
-		int wid;
-		int hei;
-		glfwGetWindowSize(glfwWindow, &wid, &hei);
-		glViewport(0, 0, wid, hei);
-	}
-	WindowType GetType() {
-		return windowType;
-	}
-	float GetWidth() {
-		int temp;
-		glfwGetWindowSize(glfwWindow, &temp, nullptr);
-		return temp;
-	}
-	float GetHeight() {
-		int temp;
-		glfwGetWindowSize(glfwWindow, nullptr, &temp);
-		return temp;
-	}
-	bool HasFocus() {
-		return hasFocus;
-	}
-	bool IsCursorVisible() {
-		return isCursorVisible;
-	}
-	bool IsCursorLocked() {
-		return isCursorLocked;
-	}
-	void SetCursorVisible(bool visible) {
-		isCursorVisible = visible;
-		if (visible) glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		else glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-	}
-	void LockCursor(bool locked) {
-		isCursorLocked = locked;
-		if (locked) {
-			glfwSetInputMode(glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			if (glfwRawMouseMotionSupported())
-				glfwSetInputMode(glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-		}
-		else {
-			SetCursorVisible(isCursorVisible);
-			if (glfwRawMouseMotionSupported())
-				glfwSetInputMode(glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
-		}
-	}
-	bool IsOpen() {
-		return !glfwWindowShouldClose(glfwWindow);
-	}*/
 }

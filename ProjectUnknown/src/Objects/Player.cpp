@@ -3,100 +3,85 @@
 
 #include "Engone/EventModule.h"
 #include "Keybindings.h"
-
-#include "GameStateEnum.h"
+#include "Engone/Window.h"
 
 #include "GLFW/glfw3.h"
 
-void Player::Init() {
-	engone::ModelRenderer* r = getComponent<engone::ModelRenderer>();
-	r->asset = engone::GetAsset<engone::ModelAsset>("PlayerAttack/PlayerAttack");
-
-	engone::Animator* a = getComponent<engone::Animator>();
-	a->asset = r->asset;
-
-	engone::Physics* p = getComponent<engone::Physics>();
-	p->movable = true;
-	p->renderCollision = true;
-}
-void Player::OnUpdate(float delta) {
-	engone::Animator* a = getComponent<engone::Animator>();
-	engone::ModelRenderer* r = getComponent<engone::ModelRenderer>();
-	engone::Transform* t = getComponent<engone::Transform>();
-	if (a) {
-		if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-			a->Enable("PlayerAttack", "SwingAnim", { false, 1, 1 });
-		}
-		a->Update(delta);
-	}
-
-	//t->rotation.y = engone::GetCamera()->rotation.y;
-
-	Movement(delta);
-
-	if (engone::IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-		//engone::log::out << "ding\n";
-		// do animation
-		// activate collider
-		
-	}
-}
-void Player::OnCollision(engone::Collider& my, engone::Collider& their) {
-	// if sword collider hit a body deal damage to gameobject if possible
-	if (my.asset->baseName=="Damage"&&their.asset->baseName=="Target") {
-		//engone::log::out << "Big damage\n";
-	}
-}
-glm::vec3 Player::Movement(float delta) {
-	using namespace engone;
-	Camera* camera = GetCamera();
-	if (camera == nullptr)
-		return glm::vec3(0);
-
-	Physics* physics = getComponent<Physics>();
-	Transform* transform = getComponent<Transform>();
-
-	glm::vec3 move = glm::vec3(0, 0, 0);
-
-	if (IsKeyPressed(GLFW_KEY_F)) {
-		flight = !flight;
-	}
-	if (IsKeyPressed(GLFW_KEY_H)) {
-		thirdPerson = !thirdPerson;
-	}
-
-	if (physics->velocity.y > lastVelocity) {
-		onGround = true;
-	}
-	lastVelocity = physics->velocity.y;
-
-	float speed = walkSpeed;
-	if (flight) {
-		speed = flySpeed;
-		if (IsKeybindingDown(KeySprint))
-			speed = flyFastSpeed;
-
-		if (IsKeybindingDown(KeyJump)) {
-			move.y += speed;
-		}
-		if (IsKeybindingDown(KeyCrouch)) {
-			move.y -= speed;
-		}
-		physics->gravity = 0;
-		physics->velocity = { 0,0,0 };
-	} else {
-		physics->gravity = -9.81f;
-		if (IsKeybindingDown(KeySprint))
-			speed = sprintSpeed;
-
-		if (IsKeybindingDown(KeyJump)) {
-			if (onGround) {
-				physics->velocity.y = 5;
-				onGround = false;
+Player::Player(engone::Engone* engone) : GameObject(engone) {
+	
+	rp3d::Transform t;
+	rigidBody = engone->m_pWorld->createRigidBody(t);
+	rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
+	//rigidBody->setLinearLockAxisFactor({ 1,0,1 });
+	rigidBody->enableGravity(false);
+	rigidBody->setLinearDamping(10.f);
+	engone::Assets* assets = engone::GetActiveWindow()->getAssets();
+	modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody");
+	//rigidBody->setMass(10);
+	for (auto& inst : modelAsset->instances) {
+		if (inst.asset->type == engone::ColliderAsset::TYPE) {
+			engone::ColliderAsset* asset = inst.asset->cast<engone::ColliderAsset>();
+			if (asset->colliderType == engone::ColliderAsset::Type::Cube) {
+				glm::vec3 scale2 = asset->cube.size;
+				
+				rp3d::Vector3 scale = *(rp3d::Vector3*)&asset->cube.size;
+				rp3d::BoxShape* box = engone->m_pCommon->createBoxShape(scale);
+				
+				rp3d::Transform tr;
+				tr.setFromOpenGL((float*)&inst.localMat);
+				rigidBody->addCollider(box, tr);
+				auto col = rigidBody->getCollider(rigidBody->getNbColliders() - 1);
+				col->getMaterial().setFrictionCoefficient(3.f);
+				col->getMaterial().setBounciness(0.5f);
 			}
 		}
 	}
+}
+void Player::update(engone::UpdateInfo& info) {
+	Movement(info.timeStep);
+}
 
+void Player::Movement(float delta) {
+	using namespace engone;
+	Camera* camera = engone::GetActiveWindow()->getRenderer()->getCamera();
+	if (!camera)
+		return;
+
+	glm::vec3 move = glm::vec3(0, 0, 0);
+
+	if (IsKeyPressed(GLFW_KEY_G)) {
+		rigidBody->enableGravity(!rigidBody->isGravityEnabled());
+		if (rigidBody->isGravityEnabled()) {
+			rigidBody->setLinearDamping(0.f);
+		} else {
+			rigidBody->setLinearDamping(10.f);
+		}
+	}
+	// This is supposed to disable collision and still allow movement.
+	// For the bit change to work, you need to step away from other colliders.
+	if (IsKeyPressed(GLFW_KEY_C)) {
+		if (rigidBody->getNbColliders() != 0) {
+			
+			rp3d::Collider* col = rigidBody->getCollider(0);
+			uint16_t bits = col->getCollideWithMaskBits();
+			bits = bits^1;
+			col->setCollideWithMaskBits(bits);
+		}
+	}
+
+	float speed = 20;
+	if (rigidBody->isGravityEnabled()) {
+		speed = 150; // Needs some more power when doing applyForce
+	}
+	if (IsKeybindingDown(KeySprint))
+		speed *= 5;
+
+	if (IsKeybindingDown(KeyJump)) {
+		move.y += speed;
+	}
+	if (IsKeybindingDown(KeyCrouch)) {
+		move.y -= speed;
+	}
 	if (IsKeybindingDown(KeyForward)) {
 		move.z -= speed;
 	}
@@ -109,89 +94,40 @@ glm::vec3 Player::Movement(float delta) {
 	if (IsKeybindingDown(KeyLeft)) {
 		move.x -= speed;
 	}
+	float scroll = IsScrolledY();
+	if (scroll) {
+		zoomOut -= scroll;
+		if (zoomOut < 0) zoomOut = 0;
+	}
 
-	// Rough way of calculation look vector and movement
-	glm::vec3 nmove(move.z * glm::sin(camera->rotation.y) + move.x * glm::sin(camera->rotation.y + glm::half_pi<float>()), move.y,
-		move.z * glm::cos(camera->rotation.y) + move.x * glm::cos(camera->rotation.y + glm::half_pi<float>()));
+	rp3d::Vector3 vect = { move.z * glm::sin(camera->rotation.y) + move.x * glm::sin(camera->rotation.y + glm::half_pi<float>()), move.y,
+		move.z * glm::cos(camera->rotation.y) + move.x * glm::cos(camera->rotation.y + glm::half_pi<float>()) };
 
-	transform->position += nmove * delta;
-	//camera->position += physics.velocity*delta;
+	float length = vect.lengthSquare();
 
-	return nmove;
-}
-	/*
-	if (GetDimension() != nullptr) {
-		float terHeight = GetDimension()->TerHeightAtPlayer();
-		if (terHeight > collision.sideY(false)) {
-			onGround = true;
-			position.y = terHeight - collision.y + (collision.h / 2);
-			nmove.y = 0;
+	if (rigidBody) {
+		rp3d::Transform tr = rigidBody->getTransform();
+		tr.setOrientation(rp3d::Quaternion::fromEulerAngles({0,camera->rotation.y,0}));
+		rigidBody->setTransform(tr);
+		
+		if (length != 0) {
+			if (!rigidBody->isGravityEnabled()) {
+				rigidBody->setLinearVelocity(vect);
+			} else {
+				rp3d::Vector3 moveDir = rigidBody->getLinearVelocity();
+				vect.y = moveDir.y;
+				rp3d::Vector3 lookDir = vect;
+				vect -= moveDir;
+				float cosTheta = lookDir.dot(moveDir)/moveDir.length()/lookDir.length();
+
+				float lookVelocity = cosTheta * moveDir.length();
+
+				if (lookVelocity < 20) {
+
+					// Math to change how much force i can apply.
+					rigidBody->applyWorldForceAtCenterOfMass(vect);
+				}
+			}
 		}
 	}
 }
-//	std::vector<GameObject*> colL = collision.IsCollidingL();
-//	for (GameObject* o : colL) {
-//		MetaStrip* ms = o->metaData.GetMeta(Velocity, Pos, None);
-//		float velocity[3]{ 0,0,0 };
-//		if (ms != nullptr) {
-//			for (int j = 0; j < 3; j++) {
-//				velocity[j] = ms->floats[j];
-//				//std::cout << velocity[j] << std::endl;
-//			}
-//		}
-//
-//		// TODO: If nmove[0]==0 and nmove[2]==0 and velocity[0]==0 and move[2]==0 then only check y axel. Saves on performance
-//
-//		// Calculation Potential Colliding sides
-//		bool top[]{ nmove.x < 0,nmove.y < 0,nmove.z < 0 };
-//
-//		bool istop[]{ o->collision.center(0) < collision.center(0),
-//					o->collision.center(1) < collision.center(1),
-//					o->collision.center(2) < collision.center(2) };
-//		for (int i = 0; i < 3; i++) {
-//			if (istop[i]) {
-//				if (velocity[i] > 0 && nmove[i] > 0 || velocity[i] < 0 && nmove[i]>0) {
-//					top[i] = 1;
-//				} else if (nmove[i] == 0 && velocity > 0) {
-//					top[i] = 1;
-//				}
-//			} else {
-//				if (velocity[i] < 0 && nmove[0] < 0 || velocity[i]>0 && nmove[i] < 0) {
-//					top[i] = 0;
-//				} else if (nmove[i] == 0 && velocity < 0) {
-//					top[i] = 0;
-//				}
-//			}
-//		}
-//		//std::cout << top[0] << " " << top[1] << " " << top[2] << std::endl;
-//
-//		float travelX = (o->collision.sideX(top[0]) - collision.sideX(!top[0])) / (nmove.x + velocity[0]);
-//		float travelY = (o->collision.sideY(top[1]) - collision.sideY(!top[1])) / (nmove.y + velocity[1]);
-//		float travelZ = (o->collision.sideZ(top[2]) - collision.sideZ(!top[2])) / (nmove.z + velocity[2]);
-//
-//		//if(o->GetName() == "red")
-//		//	std::cout << travelX << " " << travelY << " " << travelZ << std::endl;;
-//
-//		int axis = -1;
-//		if (abs(travelX) < abs(travelY) && abs(travelX) < abs(travelZ))
-//			axis = 0;
-//		else if (abs(travelY) < abs(travelX) && abs(travelY) < abs(travelZ))
-//			axis = 1;
-//		else if (abs(travelZ) < abs(travelX) && abs(travelZ) < abs(travelY))
-//			axis = 2;
-//
-//		if (axis == 0) {
-//			position.x = o->collision.sideX(top[0]) - collision.x + (collision.w / 2)*(top[0] ? 1 : -1);
-//			*velX = velocity[0];
-//		} else if (axis == 1) {
-//			position.y = o->collision.sideY(top[1]) - collision.y + (collision.h / 2)*(top[1] ? 1 : -1);
-//			*velX = velocity[0];
-//			*velY = velocity[1];
-//			*velZ = velocity[2];
-//			onGround = true;
-//		} else if (axis == 2) {
-//			position.z = o->collision.sideZ(top[2]) - collision.z + (collision.d / 2)*(top[2] ? 1 : -1);
-//			*velZ = velocity[2];
-//		}
-//	}*/
-//}
