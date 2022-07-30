@@ -7,6 +7,7 @@
 #include "Engone/Engone.h"
 
 namespace engone {
+	TrackerId Window::trackerId="Window";
 	static bool glfwIsActive = false;
 	static float glfwFreezeTime = 0;
 	void InitializeGLFW() {
@@ -34,7 +35,7 @@ namespace engone {
 		tempThread.join();
 	}
 	static Window* activeWindow=nullptr;
-	static Window* mainWindow=nullptr;
+	//static Window* mainWindow=nullptr;
 	Window* GetActiveWindow() {
 		return activeWindow;
 	}
@@ -172,8 +173,8 @@ namespace engone {
 			if (win->m_parent) {
 				win->m_parent->onClose(win);
 			}
-			if (mainWindow == win)
-				mainWindow = nullptr;
+			//if (mainWindow == win)
+			//	mainWindow = nullptr;
 		}
 	}
 	static void PosCallback(GLFWwindow* window, int x, int y) {
@@ -183,6 +184,7 @@ namespace engone {
 			win->y = (float)y;
 		}
 	}
+
 	Window::Window(Application* application, WindowDetail detail) {
 		// setup
 		if(!glfwIsActive) InitializeGLFW();
@@ -218,6 +220,16 @@ namespace engone {
 		}
 		// deleting context will delete buffers to. If you are sharing any unexepected things might happen
 		glfwDestroyWindow(m_glfwWindow);
+
+		for (Listener* l : m_listeners) {
+			if (l->m_ownedByWindow) {
+				GetTracker().untrack(l);
+				delete l;
+			}
+		}
+
+		// then we set it to nullptr
+		activeWindow = nullptr;
 	}
 	void Window::setTitle(const std::string title) {
 		m_title = title;
@@ -227,21 +239,22 @@ namespace engone {
 		//if(m_renderer)
 		m_renderer.setActiveRenderer();
 		// no need to do this if window already is active
-		if (activeWindow == this) return;
-
-		glfwMakeContextCurrent(m_glfwWindow);
+		if (activeWindow != this) {
+			glfwMakeContextCurrent(m_glfwWindow);
+			if (!initializedGLEW) {
+				initializedGLEW = true;
+				GLenum err = glewInit();
+				if (err != GLEW_OK) {
+					std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
+					return;
+				}
+			}
+		}
 		activeWindow = this;
 		int wid;
 		int hei;
 		glfwGetWindowSize(m_glfwWindow, &wid, &hei);
-		GLenum err = glewInit();
-		if (err != GLEW_OK) {
-			std::cout << "GLEW Error: " << glewGetErrorString(err) << std::endl;
-			return;
-		}
 
-		//m_width = (float)wid;
-		//m_height = (float)hei;
 		glViewport(0, 0, wid, hei);
 
 		//m_renderer.init();
@@ -259,7 +272,8 @@ namespace engone {
 				if (down) {
 					if (!m_inputs[i].down) {
 						m_inputs[i].down = true;
-						m_inputs[i].pressed++;
+						m_inputs[i].tickPressed++;
+						m_inputs[i].framePressed++;
 						return;
 					}
 				} else {
@@ -269,7 +283,35 @@ namespace engone {
 			}
 		}
 		if (down)
-			m_inputs.push_back({ code, down, 1 });
+			m_inputs.push_back({ code, down, 1, 1 });
+	}
+	float  Window::getScrollX() const {
+		if (m_parent->isRenderingWindow()) {
+			return m_frameScrollX;
+		} else {
+			return m_tickScrollX;
+		}
+	}
+	float  Window::getScrollY() const {
+		if (m_parent->isRenderingWindow()) {
+			return m_frameScrollY;
+		} else {
+			return m_tickScrollY;
+		}
+	}
+	void Window::attachListener(EventTypes eventTypes, std::function<EventTypes(Event&)> func) {
+		Listener* l = new Listener(eventTypes, func);
+		if (!l) return;
+		GetTracker().track(l);
+		l->m_ownedByWindow = true;
+		attachListener(l);
+	}
+	void Window::attachListener(EventTypes eventTypes, int priority, std::function<EventTypes(Event&)> func) {
+		Listener* l = new Listener(eventTypes, priority, func);
+		if (!l) return;
+		GetTracker().track(l);
+		l->m_ownedByWindow = true;
+		attachListener(l);
 	}
 	void Window::attachListener(Listener* listener) {
 		// Prevent duplicates
@@ -310,17 +352,36 @@ namespace engone {
 	}
 	bool Window::isKeyPressed(int code) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
-			if (m_inputs[i].code == code)
-				return m_inputs[i].pressed > 0;
+			if (m_inputs[i].code == code) {
+				if (m_parent->isRenderingWindow()) {
+					if (m_inputs[i].framePressed > 0) {
+						return true;
+					}
+				} else {
+					if (m_inputs[i].tickPressed > 0) {
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 		return false;
 	}
 	void Window::resetEvents() {
-		m_scrollX = 0;
-		m_scrollY = 0;
-		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
-			if (m_inputs[i].pressed > 0)
-				m_inputs[i].pressed--;
+		if (m_parent != nullptr) {
+			if (m_parent->isRenderingWindow()) {
+				m_frameScrollX = 0;
+				m_frameScrollY = 0;
+				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+					m_inputs[i].framePressed = 0;
+				}
+			} else {
+				m_tickScrollX = 0;
+				m_tickScrollY = 0;
+				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+					m_inputs[i].tickPressed = 0;
+				}
+			}
 		}
 	}
 	void Window::runListeners() {
@@ -345,14 +406,18 @@ namespace engone {
 		if (lastMouseX != -1) {
 			Camera* camera = e.window->getRenderer()->getCamera();
 			if (GetActiveWindow()->isCursorLocked() && camera != nullptr) {
-				camera->rotation.y -= (e.mx - lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
-				camera->rotation.x -= (e.my - lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
-				if (camera->rotation.x > glm::pi<float>() / 2) {
-					camera->rotation.x = glm::pi<float>() / 2;
+				glm::vec3 rot = camera->getRotation(); // get a copy of rotation
+				rot.y -= (e.mx - lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				rot.x -= (e.my - lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				if (rot.x > glm::pi<float>() / 2) {
+					rot.x = glm::pi<float>() / 2;
 				}
-				if (camera->rotation.x < -glm::pi<float>() / 2) {
-					camera->rotation.x = -glm::pi<float>() / 2;
+				if (rot.x < -glm::pi<float>() / 2) {
+					rot.x = -glm::pi<float>() / 2;
 				}
+				rot.x = remainder(rot.x, glm::pi<float>()*2);
+				rot.y = remainder(rot.y, glm::pi<float>() * 2);
+				camera->setRotation(rot); // set the new rotation
 			}
 		}
 		lastMouseX = e.mx;
@@ -360,7 +425,7 @@ namespace engone {
 		return EventNone;
 	}
 	void Window::enableFirstPerson() {
-		attachListener(new Listener(EventMove, 9998, FirstPerson));
+		attachListener(EventMove, 9998, FirstPerson);
 	}
 	static void SetCallbacks(GLFWwindow* window) {
 		glfwSetKeyCallback(window, KeyCallback);
@@ -388,8 +453,8 @@ namespace engone {
 		if (!m_glfwWindow) {
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 			GLFWwindow* sharing = NULL;
-			if (mainWindow)
-				sharing = mainWindow->glfw();
+			//if (mainWindow)
+			//	sharing = mainWindow->glfw();
 			if (winMode == WindowedMode) {
 				glfwWindowHint(GLFW_DECORATED, true);
 				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, sharing);
@@ -457,7 +522,7 @@ namespace engone {
 				glfwSetInputMode(m_glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 	}
-	bool Window::isActive() {
+	bool Window::isOpen() {
 		return !glfwWindowShouldClose(m_glfwWindow);
 	}
 }

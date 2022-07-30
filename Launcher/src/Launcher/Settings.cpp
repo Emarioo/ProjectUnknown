@@ -15,35 +15,21 @@ namespace launcher {
 		return load();
 	}
 	bool Settings::load() {
-		std::ifstream file(m_path, std::ios::binary);
-		if (file) {
-			file.seekg(0, file.end);
-			int fileSize = file.tellg();
-			file.seekg(0, file.beg);
-			char* data = new char[fileSize];
-			file.read(data, fileSize);
-			std::string key, value;
-			bool readingKey = true;
-			for (int i = 0; i < fileSize; i++) {
-				char chr = data[i];
-				if (readingKey) {
-					if (chr == '=') {
-						readingKey = false;
-					} else {
-						key += chr;
-					}
-				} else {
-					if (chr == '\n' || i == fileSize - 1) {
-						readingKey = true;
-						m_map[key] = value;
-						key.clear();
-						value.clear();
-					} else {
-						value += chr;
+		using namespace engone;
+		FileReader reader(m_path);
+		if (reader) {
+			try {
+				std::vector<std::string> list = reader.readLines();
+				for (int i = 0; i < list.size(); i++) {
+					std::vector<std::string> split = SplitString(list[i], "=");
+					if (split.size() == 2) {
+						m_map[split[0]] = split[1];
 					}
 				}
+			} catch (FileError err) {
+				log::out << "Setting::load - " << err << "\n";
+				return false;
 			}
-			delete[] data;
 			if (m_map.find("port") == m_map.end()) {
 				m_map["port"] = Settings::PORT;
 			}

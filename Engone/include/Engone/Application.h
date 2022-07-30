@@ -3,6 +3,7 @@
 #include "Engone/Window.h"
 #include "Engone/AssetModule.h"
 #include "Engone/LoopInfo.h"
+#include "Engone/Utilities/RuntimeStats.h"
 
 namespace engone {
 
@@ -13,12 +14,21 @@ namespace engone {
 	class Application {
 	public:
 		Application(Engone* engone) : m_engone(engone) {}
+		virtual ~Application() {
+			for (int i = 0; i < m_windows.size();i++) {
+				GetTracker().untrack(m_windows[i]);
+				delete m_windows[i];
+			}
+			m_windows.clear();
+		}
 
-		virtual void update(UpdateInfo& info) = 0;
-		virtual void render(RenderInfo& info) = 0;
+		// these virtual functions should be = 0 but for test purposes they are not.
+
+		virtual void update(UpdateInfo& info) {};
+		virtual void render(RenderInfo& info) {};
 
 		// will be called when a window closes.
-		virtual void onClose(Window* window) = 0;
+		virtual void onClose(Window* window) {};
 
 		// will close all windows.
 		void stop();
@@ -30,6 +40,7 @@ namespace engone {
 		// Window will be deleted when needed.
 		inline Window* createWindow(WindowDetail detail = {}) {
 			Window* win = new Window(this,detail);
+			GetTracker().track(win);
 			m_windows.push_back(win);
 			return win;
 		}
@@ -48,10 +59,15 @@ namespace engone {
 			return nullptr;
 		}
 
+		bool isRenderingWindow() const { return m_renderingWindows; }
+
+		static TrackerId trackerId;
 	private:
 		std::vector<Window*> m_windows;
+		bool m_renderingWindows=false;
 		Engone* m_engone=nullptr;
 		friend class Engone;
 		friend class Window;
+
 	};
 }

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Engone/EngoneFlag.h"
 #include "Engone/RenderModule.h"
+#include "Engone/EngoneFlag.h"
 #include "Engone/Application.h"
 #include "Engone/Window.h"
 
@@ -15,75 +15,71 @@
 
 #include "Engone/Rendering/Camera.h"
 
-#include "reactphysics3d/reactphysics3d.h"
+#include "Engone/Utilities/rp3d.h"
 #include "Engone/GameObject.h"
+#include "Engone/Utilities/RuntimeStats.h"
 
 namespace engone {
-	struct EngineStats {
-		double startTime=0;// what the epoch time was when engine started
-
-		uint64_t totalFrames=0;
-		uint64_t totalUpdates=0;
-
-		uint32_t skippedUpdates=0;
-
-		void print() {
-			std::string time = FormatTime(GetSystemTime() - startTime, false,FormatTimeUS|FormatTimeMS|FormatTimeS|FormatTimeM|FormatTimeH);
-			log::out << "Running Time: "<<time<<"\n";
-			log::out << "Total frames/updates: "<<totalFrames<<" / "<<totalUpdates<<"\n";
-			log::out << "Skipped updates: "<<skippedUpdates<<" (potentially missed isKeyPressed)\n";
-		}
-	};
 	class Engone {
 	public:
-		Engone(EngoneFlag flags=EngoneFlagNone);
+		Engone();
 		~Engone();
 
 		// Will create an application in the engine.
+		// The created app will be tracked which means it requires TrackerId. I would recommend looking at an Application example.
 		template<class T>
 		T* createApplication() {
 			T* app = new T(this);
+			GetTracker().track(app);
 			m_applications.push_back(app);
+			m_appSizes.push_back(sizeof(T));
+			m_appIds.push_back(T::trackerId);
 			return app;
 		}
+		// See other overloaded function.
 		template<class T, typename A>
 		T* createApplication(const A& arg) {
-			T* app = new T(this,arg);
+			T* app = new T(this, arg);
+			GetTracker().track(app);
+
 			m_applications.push_back(app);
+			m_appSizes.push_back(sizeof(T));
+			m_appIds.push_back(T::trackerId);
 			return app;
 		}
-		// I wouldn't recommend adding or removing apps from the vector
-		// Instead use createApplication or Application::stop if you want to add or remove applications.
+		// I wouldn't recommend adding or removing apps from the vector.
+		// Instead use createApplication or Application::stop if you want to add or remove an app.
 		std::vector<Application*>& getApplications() { return m_applications; }
 
 		/*
 		Start the engine loop which will run applications until their windows are closed.
 		*/
 		void start();
-		// don't add nullptr
+		// don't add nullptr, object is assumed to be valid.
 		void addObject(GameObject* object);
 
-		inline double getEngineTime() const { return GetSystemTime()-m_engineStats.startTime; }
-
+		// the run time of stats
+		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
+#ifndef ENGONE_NO_PHYSICS
 		rp3d::PhysicsCommon* m_pCommon=nullptr;
 		rp3d::PhysicsWorld* m_pWorld=nullptr;
-
+#endif
 		void addLight(Light* l);
 		void removeLight(Light* l);
 
-		const EngineStats& getStats() const { return m_engineStats; }
+		RuntimeStats& getStats() { return m_runtimeStats; }
 
+		static TrackerId trackerId;
 	private:
-		EngineStats m_engineStats;
+		RuntimeStats m_runtimeStats;
 
-		int buf1[5];
 		std::vector<GameObject*> m_objects;
-		int buf2[5];
 		std::vector<Light*> m_lights;
 		bool m_loadedDefault=false;
 
 		std::vector<Application*> m_applications;
-		EngoneFlag m_flags;
+		std::vector<uint16_t> m_appSizes; // used for tracker
+		std::vector<TrackerId> m_appIds; // used for tracker
 
 		VertexBuffer instanceBuffer;
 

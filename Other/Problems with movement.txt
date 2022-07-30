@@ -1,0 +1,12 @@
+Problems with movement
+
+Attempt 1
+	Apply force in the direction the player is looking at
+	acceleration is fast but the player's velocity has a maximum
+	using high friction and low bounce to stop the player.
+	damping would effect gravity which isn't what i want.
+Issues:
+	Cannot go up slopes very well.
+	How to fix. if touch slope boost up a bit? increase bounce?
+	Works, but that boost is maintained once you've reached the top
+	which causes you to fly up in the air.

@@ -61,10 +61,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon.ico">
+    <Image Include="res\consolas42.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="consolas42.png">
+    <Image Include="res\icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

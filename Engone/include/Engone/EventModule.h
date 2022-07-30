@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engone/Utilities/Tracker.h"
+
 namespace engone {
 	
 	class Window;
@@ -18,7 +20,8 @@ namespace engone {
 	struct EventInput {
 		int code=0;
 		bool down = false;
-		int pressed = false;
+		uint8_t tickPressed = 0;
+		uint8_t framePressed = 0;
 	};
 	struct Event {
 		EventType eventType=EventNone;
@@ -38,6 +41,12 @@ namespace engone {
 		std::function<EventTypes(Event&)> run;
 		int priority = 0;
 		EventTypes eventTypes=EventNone;
+
+		static TrackerId trackerId;
+	private:
+		bool m_ownedByWindow = false; // when true, window is responsible for deleting listener.
+
+		friend class Window;
 	};
 	std::string PollClipboard();
 	void SetClipboard(const char* str);

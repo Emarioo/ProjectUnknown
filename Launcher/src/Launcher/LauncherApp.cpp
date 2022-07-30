@@ -9,99 +9,39 @@ namespace launcher {
 		LauncherClientFiles, // the files the client has
 		LauncherServerSendFile, // the files the client has
 		LauncherServerFinished, // server has sent all files
+		LauncherServerError,
 	};
-
-	static wchar_t buffer[256]{};
-	std::wstring convert(const std::string& in) {
-		ZeroMemory(buffer, 256);
-		for (int i = 0; i < in.length();i++) {
-			buffer[i] = in[i];
-		}
-		return buffer;
-	}
-	bool startGame(const std::string& path) {
-		if (!engone::FindFile(path)) {
-			return false;
-		}
-
-		// additional information
-		STARTUPINFO si;
-		PROCESS_INFORMATION pi;
-
-		// set the size of the structures
-		ZeroMemory(&si, sizeof(si));
-		si.cb = sizeof(si);
-		ZeroMemory(&pi, sizeof(pi));
-		
-		int slashIndex = path.find_last_of("\\");
-
-		std::string workingDir = path.substr(0,slashIndex);
-
-#ifdef NDEBUG
-		std::wstring exeFile = convert(path);
-		std::wstring workDir = convert(workingDir);
-#else
-		const std::string& exeFile = path;
-		std::string& workDir = workingDir;
-#endif
-		//CreateProcess(path.c_str(),   // the path
-		//	NULL,        // Command line
-		//	NULL,           // Process handle not inheritable
-		//	NULL,           // Thread handle not inheritable
-		//	FALSE,          // Set handle inheritance to FALSE
-		//	0,              // No creation flags
-		//	NULL,           // Use parent's environment block
-		//	workingDir.c_str(),   // starting directory 
-		//	&si,            // Pointer to STARTUPINFO structure
-		//	&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-		//);
-		CreateProcess(exeFile.c_str(),   // the path
-			NULL,        // Command line
-			NULL,           // Process handle not inheritable
-			NULL,           // Thread handle not inheritable
-			FALSE,          // Set handle inheritance to FALSE
-			0,              // No creation flags
-			NULL,           // Use parent's environment block
-			workDir.c_str(),   // starting directory 
-			&si,            // Pointer to STARTUPINFO structure
-			&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-		);
-
-		// Close process and thread handles. 
-		CloseHandle(pi.hProcess);
-		CloseHandle(pi.hThread);
-		return true;
-	}
+	enum StreamState : uint8_t {
+		StreamStart = 1,
+		StreamEnd = 2,
+	};
+	typedef uint8_t StreamStates;
 	LauncherApp::LauncherApp(engone::Engone* engone, const std::string& settings) : Application(engone) {
 		using namespace engone;
 		m_window = createWindow({ WindowMode::BorderlessMode,600,150 });
 		m_window->setTitle("Launcher");
 
+		//m_window->close();
 		//consolas = getAssets()->set<Font>("consolas", "fonts/consolas42");
 
-		// Windows stuff
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(IDB_PNG1), "PNG");
-		HGLOBAL hg = LoadResource(NULL, hs);
-		void* ptr = LockResource(hg);
-		DWORD size = SizeofResource(NULL, hs);
-		const char* txtBuffer="4\n35";
-		consolas = getAssets()->set<Font>("consolas", new Font((char*)ptr,size,txtBuffer,strlen(txtBuffer), getAssets()));
+		PNG png = LoadPNG(IDB_PNG1);
+		const char* txtBuffer = "4\n35";
+
+		consolas = getAssets()->set<Font>("consolas", new Font(png.data, png.size, txtBuffer, strlen(txtBuffer)));
 
 		bool yes = m_settings.load(settings);
-		if (yes) {
-			address.text = m_settings.get("ip") + ":" + m_settings.get("port");
-		}
+
 		m_cache.load();
 
-		m_server.setOnEvent([this](NetEvent e, uint32_t uuid) {
+		m_server.setOnEvent([this](NetEvent e, UUID uuid) {
 			if (NetEvent::Connect == e) {
-				launcherMessage = "Connect "+std::to_string(uuid);
+				//launcherMessage = "Connect "+std::to_string(uuid);
 			} else if (NetEvent::Stopped == e) {
-				launcherMessage = "Stopped server";
+				//launcherMessage = "Stopped server";
 			}
 			return true;
 		});
-		m_server.setOnReceive([this](MessageBuffer buf, uint32_t uuid) {
+		m_server.setOnReceive([this](MessageBuffer buf, UUID uuid) {
 			LauncherNetType type;
 			buf.pull(&type);
 			if (type == LauncherClientFiles) {
@@ -109,7 +49,7 @@ namespace launcher {
 				std::vector<FileInfo> sentFiles;
 				uint32_t size;
 				buf.pull(&size);
-				for (int i = 0; i < size;i++) {
+				for (int i = 0; i < size; i++) {
 					FileInfo f;
 					buf.pull(f.path);
 					buf.pull(&f.time);
@@ -118,18 +58,20 @@ namespace launcher {
 
 				struct FileSend {
 					std::string fullPath;// where server finds the file
-					std::string path; // path where client should put file
+					std::string path; // where client should put file
 					uint64_t time;
 				};
 				std::vector<FileSend> sendFiles;
-				
-				auto gameFiles = LoadGameFiles();				
 
-				for (int i = 0; i < gameFiles.size();i++) {
+				auto gameFiles = LoadGameFiles();
+
+				bool ohNo = false;
+
+				for (int i = 0; i < gameFiles.size(); i++) {
 					std::string& origin = gameFiles[i].originPath;
 					std::string& endPath = gameFiles[i].path;
 
-					bool isDir = std::filesystem::is_directory(origin);
+					bool isDir = std::filesystem::is_directory(origin); // if origin is invalid, this will be false.
 
 					if (!isDir) {
 						if (i == 0) {
@@ -155,7 +97,9 @@ namespace launcher {
 								sendFiles.push_back({ origin,endPath,time });
 							}
 						} else {
-							log::out <<log::RED<< "file not found\n";
+							log::out << log::RED << "file not found\n";
+							ohNo = true;
+							break;
 						}
 					} else {
 						std::filesystem::recursive_directory_iterator itera(origin);
@@ -165,7 +109,7 @@ namespace launcher {
 							std::string filePath = entry.path().generic_string(); // THIS MAY BE BAD CASTING PATH
 							FormatPath(filePath);
 
-							std::string partPath = endPath+filePath.substr(origin.size()); // THIS MAY BE BAD CASTING PATH
+							std::string partPath = endPath + filePath.substr(origin.size()); // THIS MAY BE BAD CASTING PATH
 							uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(entry.last_write_time().time_since_epoch()).count();
 							bool sendFile = true;
 							for (int i = 0; i < sentFiles.size(); i++) {
@@ -185,65 +129,85 @@ namespace launcher {
 						}
 					}
 				}
-				
-				for (int i = 0; i < sendFiles.size();i++) {
+
+				for (int i = 0; i < sendFiles.size(); i++) {
 					FileSend& f = sendFiles[i];
-					//std::cout << f.path << "\n";
 					std::ifstream file(f.fullPath, std::ios::binary);
 					if (file) {
 						file.seekg(0, file.end);
 						uint32_t fileSize = file.tellg();
 						file.seekg(0, file.beg);
 
-						MessageBuffer sendBuf(LauncherServerSendFile);
-						sendBuf.push(f.path);
-						sendBuf.push(f.time);
-						sendBuf.push(fileSize);
-						char* data = sendBuf.pushBuffer(fileSize);
-						file.read(data, fileSize);
+						//log::out << "SEND "<<f.path << "\n";
 
-						m_server.send(sendBuf,uuid);
+						UUID fileUuid = UUID::New();
+						uint32_t bytesLeft = fileSize;
+						while (bytesLeft!=0) {
+							MessageBuffer sendBuf(LauncherServerSendFile);
+							sendBuf.push(fileUuid);
+							StreamStates state = 0;
+							if (bytesLeft == fileSize) state = state|StreamStart;
+							if (bytesLeft <= m_server.getTransferLimit()) state = state|StreamEnd;
+
+							sendBuf.push(state);
+							if (state&StreamStart) {
+								sendBuf.push(f.path);
+								sendBuf.push(f.time);
+							}
+
+							uint32_t headerSize = sendBuf.size() + sizeof(uint32_t); // <- for transferBytes in pushBuffer
+
+							uint32_t transferBytes = std::min(bytesLeft,m_server.getTransferLimit()-headerSize);
+							
+							char* data = sendBuf.pushBuffer(transferBytes);
+							file.read(data, transferBytes);
+
+							//log::out << "Size " << sendBuf.size() << "\n";
+
+							m_server.send(sendBuf, uuid);
+
+							bytesLeft -= transferBytes;
+						}
 						file.close();
 					}
 				}
-				if (sendFiles.size() == 0) {
-					log::out << "Server: client is up to date\n";
+				// Make a log of messages. infoText will show how the last connection went but not the rest since infoText will override that info.
+				if (ohNo) {
+					infoText.text = "GameFile Paths are probably wrong";
+					MessageBuffer sendBuf(LauncherServerError);
+					m_server.send(sendBuf, uuid);
+				} else {
+					infoText.text = "";
+					if (sendFiles.size() == 0) {
+						//log::out << "Server: client is up to date\n";
+					}
+					MessageBuffer sendBuf(LauncherServerFinished);
+					m_server.send(sendBuf, uuid);
 				}
-				MessageBuffer sendBuf(LauncherServerFinished);
-				m_server.send(sendBuf, uuid);
-				//for (std::string& path : paths) {
-				//	std::filesystem::directory_iterator iter(path);
-				//	for (auto const& entry : iter) {
-				//		for (int i = 0; i < files.size();i++) {
-				//			
-				//		}
-				//		//entry.is_directory()
-				//	}
-				//}
-
-				// client has file, server does not - Send delete message for all files to delete
-				// client has file, server has file - if client file time is different server file time, send file.
-				// server has file, client does not - server send file
+			} else {
+				log::out << log::RED << "Received invalid type\n";
 			}
 
 			return true;
 		});
 		m_client.setOnEvent([this](NetEvent e) {
 			if (NetEvent::Connect == e) {
-				launcherMessage = "Connected";
+				switchState(LauncherDownloading);
+				delayDownloadFailed.start(8);
 
 				std::vector<FileInfo>& files = m_cache.getFiles();
 
 				MessageBuffer buf(LauncherClientFiles);
 				buf.push((uint32_t)files.size());
-				for (int i = 0; i < files.size();i++) {
+				for (int i = 0; i < files.size(); i++) {
 					buf.push(files[i].path);
 					buf.push(files[i].time);
 				}
 
 				m_client.send(buf);
-			} else if (NetEvent::Failed==e) {
-				launcherMessage = "Network Failed";
+			} else if (NetEvent::Failed == e) {
+				switchInfoText = "Could not connect\n";
+				switchState(LauncherSetting);
 			}
 			return true;
 		});
@@ -251,94 +215,148 @@ namespace launcher {
 			LauncherNetType type;
 			buf.pull(&type);
 			if (type == LauncherServerSendFile) {
-				std::string path;
-				std::string fullPath;
-				uint64_t time;
-				uint32_t fileSize;
-				buf.pull(path);
-				buf.pull(&time);
-				buf.pull(&fileSize);
-				char* data = buf.pullBuffer(&fileSize);
+				UUID fileUuid;
+				buf.pull(&fileUuid);
+				StreamStates state;
+				buf.pull(&state);
+				FileWriter* writer = nullptr;
+				if (state&StreamStart) {
+					std::string path;
+					buf.pull(path);
+					uint64_t time;
+					buf.pull(&time);
 
-				log::out << fullPath << "\n";
+					std::string fullPath = root + path;
+					try {
+						std::filesystem::create_directories(fullPath.substr(0, fullPath.find_last_of(PATH_DELIM)));
+					} catch (std::filesystem::filesystem_error err) {
+						log::out << log::RED << err.what() << "\n";
+					}
 
-				fullPath = root + path;
-
-				//if (!FindFile(fullPath)) {
-				try {
-					std::filesystem::create_directories(fullPath.substr(0, fullPath.find_last_of(PATH_DELIM)));
-				} catch (std::filesystem::filesystem_error err) {
-					log::out<<log::RED << err.what() << "\n";
-				}
-				//}
-				//int find = fullPath.find("wall.png");
-				//if (find!=-1) {
-				//	log::out << "int " << fullPath.find_last_of("eaeeaf");
-				//	//int ea=16;
-				//}
-				std::ofstream file(fullPath,std::ios::binary);
-				if (file) {
-					file.write(data, fileSize);
-					launcherMessage = path;
-					m_cache.set({ path, time });
-					file.close();
+					writer = new FileWriter(fullPath,true);
+					GetTracker().track(writer);
+					if (writer->isOpen()) {
+						lastDownloadedFile = path;
+						fileDownloads[fileUuid] = writer;
+						m_cache.set({ path, time });
+					} else {
+						delete writer;
+						GetTracker().untrack(writer);
+						int index = fullPath.find_last_of(".exe");
+						if (index != -1) {
+							log::out << log::RED << "Failed writing " << fullPath << ". Is the game running? \n";
+						} else {
+							log::out << log::RED << "Failed writing " << fullPath << " \n";
+						}
+						return true;
+					}
 				} else {
-					log::out << log::RED << " Failed\n";
+					auto find = fileDownloads.find(fileUuid);
+					if (find != fileDownloads.end()) {
+						writer = find->second;
+					} else {
+						// error message is already logged.
+						return true;
+					}
 				}
+
+				uint32_t transferedBytes;
+				char* data = buf.pullBuffer(&transferedBytes);
+
+				writer->write(data, transferedBytes);
+
+				if (state &StreamEnd) { // last package
+					GetTracker().untrack(writer);
+					delete writer; // this will also close writer
+
+					fileDownloads.erase(fileUuid);
+				}
+
+				delayDownloadFailed.start(5);
+				if (infoText.text.length() != 0)
+					infoText.text = "Or not...";
+
 			} else if (type == LauncherServerFinished) {
 				// download is done, save to cache
 				m_cache.save();
 				std::string exePath;
-				
+				delayDownloadFailed.stop();
 
-				if (m_cache.getFiles().size()!=0) {
+				if (m_cache.getFiles().size() != 0) {
 					if (m_cache.getFiles()[0].path.find_last_of(".exe") != -1) {
 						exePath = root + m_cache.getFiles()[0].path;
 					}
 				}
-				log::out << "Client: finished ," << exePath << "\n";
+				//log::out << "Client: finished ," << exePath << "\n";
 				if (!exePath.empty()) {
-					startGame(exePath);
+					//StartProgram(exePath);
+
+					m_window->close();
 				} else {
-					log::out << log::RED << "First file was not executable\n";
+					//log::out << log::RED << "First file was not executable\n";
+					infoText.text = "Developer messed up which order to send files\n";
 				}
+			} else if (type == LauncherServerError) {
+				m_client.disconnect();
+				switchInfoText = "Server didn't want to cooperate";
+				switchState(LauncherSetting);
 			}
 			return true;
 		});
 
 		// This makes the top area of the window draggable
-		m_window->attachListener(new Listener((EventClick | EventMove), [this](Event& e) {
-			if (e.eventType==EventClick) {
+		m_window->attachListener(EventClick | EventMove, [this](Event& e) {
+			if (e.eventType == EventClick) {
 				if (e.button == GLFW_MOUSE_BUTTON_1) {
 					if (e.action == 1) {
-						if (e.my < 15&&m_window->hasFocus()) {
+						if (e.my < 25 && m_window->hasFocus()) {
 							draggingWindow = true;
 							diffMX = e.mx;
 							diffMY = e.my;
 						}
-					} else if(e.action==0) {
+					} else if (e.action == 0) {
 						draggingWindow = false;
 					}
 				}
-			} else if(e.eventType==EventMove) {
+			} else if (e.eventType == EventMove) {
 				if (draggingWindow) {
 					float x = m_window->getX() + e.mx;
 					float y = m_window->getY() + e.my;
-					m_window->setPosition(x-diffMX, y-diffMY);
+					m_window->setPosition(x - diffMX, y - diffMY);
 				}
 			}
 			return EventNone;
-		}));
+		});
+		// ISSUE: without this, the app doesn't act how i want. it says connecting... when it's not even trying to.
+		//doAction(true);
 	}
 
 	void LauncherApp::update(engone::UpdateInfo& info) {
-
+		loadingTime += info.timeStep;
+		if (delaySwitch.run(info)) {
+			switchState(LauncherSetting);
+		}
+		if (delayDownloadFailed.run(info)) {
+			infoText.text = "Sorry to break it to you, but downloading failed\n";
+		}
 	}
 	void LauncherApp::render(engone::RenderInfo& info) {
 		using namespace engone;
 
-		ui::Box quitBack = { GetWidth() - 25,0,25,25,{0.5,0.05,0.1,1} };
-		ui::TextBox quit = { "X", quitBack.x+5,3,20,consolas,{1,1,1,1}};
+		float width = GetWidth(), height = GetHeight();
+
+		Font* font = consolas;
+
+		ui::Color backColor = { 52 / 255.f,23 / 255.f,109 / 255.f,1 };
+		ui::Color lightBackColor = { 52 / 255.f * 1.2,23 / 255.f * 1.2,109 / 255.f * 1.2,1 };
+		ui::Color white = { 1,1,1,1 };
+		ui::Color gray = { 0.7,0.7,0.7,1 };
+
+		ui::Box background = { 0,0,width,height, backColor };
+		ui::Draw(background);
+		
+		ui::Box quitBack = { width - 25,0,25,25,{0.5,0.05,0.1,1} };
+		ui::TextBox quit = { "X", quitBack.x+5,3,20,font,{1,1,1,1}};
 
 		if (ui::Hover(quitBack)) {
 			quitBack.rgba.r = 0.7;
@@ -351,88 +369,232 @@ namespace launcher {
 			m_window->close();
 		}
 
-		ui::Color inputBack = { 0.7,0.7,0.7,1 };
-		ui::Box boxAddress = { 5,15,500,40,inputBack };
-		ui::Draw(boxAddress);
+		if (state == LauncherConnecting) {
+			// Launcher name
+			ui::TextBox launcherText = { launcherName,0,0,30,font,white };
+			launcherText.x = width / 2 - font->getWidth(launcherName, launcherText.h) / 2;
+			launcherText.y = height / 2 - launcherText.h / 2;
+			ui::Draw(launcherText);
 
-		ui::Color textColor = { 0.05,0.05,0.05,1 };
+			// Connecting info, should also show other info, like connection failed
+			infoText.text = "Connecting";
+			infoText.y = launcherText.y + launcherText.h;
+			infoText.h = launcherText.h * 0.7;
+			infoText.x = width / 2 - font->getWidth("Connecting..", infoText.h) / 2;
+			infoText.font = font;
+			infoText.rgba = gray;
+			float timeDiff = 0.5;
+			int dots = (int)(loadingTime / timeDiff) % 6;
+			if (dots > 3)
+				dots = 6 - dots;
+			for (int i = 0; i < dots; i++) {
+				infoText.text += '.';
+			}
+			ui::Draw(infoText);
+		} else if (state == LauncherDownloading) {
+			// Download text
+			ui::TextBox download = { "Downloading",0,height * 0.3,30,font,white };
+			float timeDiff = 0.5;
+			int dots = (int)(loadingTime / timeDiff) % 6;
+			if (dots > 3)
+				dots = 6 - dots;
+			for (int i = 0; i < dots; i++) {
+				download.text += '.';
+			}
+			download.x = width / 2 - font->getWidth("Downloading..", download.h) / 2;
+			ui::Draw(download);
 
-		address.x = boxAddress.x;
-		address.y = boxAddress.y;
-		address.h = boxAddress.h;
-		address.font = consolas;
-		address.rgba = textColor;
+			// Last downloaded file
+			ui::TextBox lastFile = { lastDownloadedFile,0,download.y + download.h,download.h * 0.9,font,gray };
+			lastFile.x = width / 2 - font->getWidth(lastDownloadedFile, lastFile.h) / 2;
+			ui::Draw(lastFile);
 
-		if (ui::Clicked(boxAddress)) {
-			address.editing = true;
-		} else if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-			address.editing = false;
-		}
-		bool editBefore = address.editing;
-		ui::Edit(&address);
-		ui::Draw(address);
+			if (infoText.text.length() != 0) {
+				infoText.h = lastFile.h * 0.8;
+				infoText.font = font;
+				infoText.rgba = gray;
+				infoText.y = lastFile.y + lastFile.h + height * 0.08;
+				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
+				ui::Draw(infoText);
+			}
+		} else if (state == LauncherSetting) {
+			ui::TextBox serverText = { "Address",0,0,30,font,white };
+			serverText.x = width / 2 - font->getWidth(serverText.text, serverText.h)/2;
+			serverText.y = height * 0.25-serverText.h/2;
+			ui::Draw(serverText);
 
-		// Changing settings based on input
-		if (address.editing != editBefore && editBefore) {
-			std::vector<std::string> split = SplitString(address.text, ":");
+			ui::Box addressBack = { 0,0,0,40,lightBackColor };
+			addressBack.w = width*0.9;
+			addressBack.y = serverText.y + serverText.h+height*0.03;
+			addressBack.x = width/2 -addressBack.w/2;
+			ui::Draw(addressBack);
 
-			if (split.size() == 0) {
-				launcherMessage = "Address is empty";
-			} else if (split.size()<=2) {
-				if (split[0] == "host") {
-					m_settings.set("isServer", "true");
-				} else {
-					m_settings.remove("isServer");
-				}
-				m_settings.set("ip", split[0]);
-				if (split.size() == 2) {
-					m_settings.set("port", split[1]);
-				} else {
-					m_settings.set("port", Settings::PORT);
-				}
+
+			bool editBefore = addressText.editing;
+			if (ui::Clicked(addressBack)) {
+				addressText.editing = true;
+				editBefore = true;
+			} else if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)||!info.window->hasFocus()) {
+				addressText.editing = false;
+			}
+
+			// prevent some characters like # $, or rather, only allow a-Z, 0-9 and .
+			ui::Edit(&addressText);
+			
+			ui::TextBox suggestText = { "",0,addressBack.y,addressBack.h,font,gray };
+
+			int index = addressText.text.find_last_of(':');
+			if (addressText.editing) {
+				if (index == -1)
+					suggestText.text = ":" + Settings::PORT;
+				else if (index == addressText.text.length() - 1)
+					suggestText.text = Settings::PORT;
+			}
+
+			addressText.h = addressBack.h;
+			addressText.x = addressBack.x+addressBack.w/2-font->getWidth(addressText.text+suggestText.text,addressText.h)/2;
+			addressText.y = addressBack.y;
+			addressText.font = font;
+			addressText.rgba = white;
+
+			ui::Draw(addressText);
+
+			if (addressText.editing) {
+				suggestText.x = addressText.x + font->getWidth(addressText.text, addressText.h);
+				ui::Draw(suggestText);
+			}
+
+			// Changing settings based on input
+			if (addressText.editing != editBefore && editBefore) {
+				interpretAddress();
 				doAction();
-			} else {
-				launcherMessage = "Format should be ip:port";
+			}
+
+			if (infoText.text.length() != 0) {
+				infoText.h = addressText.h * 0.5;
+				infoText.font = font;
+				infoText.rgba = gray;
+				infoText.y = addressBack.y + addressBack.h + height * 0.08;
+				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
+				ui::Draw(infoText);
+			}
+		} else if (state == LauncherServerSide) {
+			ui::TextBox serverTitle = { "Server connections:"+std::to_string(m_server.getConnectionCount()),0,height * 0.07,35,font,white };
+			serverTitle.x = width / 2 - font->getWidth(serverTitle.text, serverTitle.h) / 2;
+			ui::Draw(serverTitle);
+
+			const uint32_t bufferSize = 150;
+			char infoBuffer[bufferSize];
+			ZeroMemory(infoBuffer, bufferSize);
+			uint32_t write = 0;
+			
+			write+=snprintf(infoBuffer, bufferSize, "Bytes S/R: %llu/%llu\nMsgs S/R: %llu/%llu", m_server.sentBytes(), m_server.receivedBytes(),m_server.sentMessages(), m_server.receivedMessages());
+			infoBuffer[bufferSize - 1] = 0;
+			ui::TextBox connectInfo = { infoBuffer,0,serverTitle.y + serverTitle.h,serverTitle.h * 0.7,font,white};
+			float wid = font->getWidth(connectInfo.text, connectInfo.h);
+			connectInfo.x = width / 2-wid / 2;
+			ui::Draw(connectInfo);
+			
+			// Add more info here, like how many bytes server received and sent.
+
+			if (infoText.text.length() != 0) {
+				infoText.h = serverTitle.h * 0.5;
+				infoText.y = connectInfo.y + connectInfo.h*2 + height * 0.08;
+				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
+				infoText.font = font;
+				infoText.rgba = gray;
+				ui::Draw(infoText);
 			}
 		}
-
-		// Launcher message
-		ui::Box boxInfo = { 5,boxAddress.y + boxAddress.h + 5,500,20,inputBack };
-		ui::Draw(boxInfo);
-		engone::ui::TextBox launcherInfo = { launcherMessage,boxInfo.x,boxInfo.y,boxInfo.h,consolas,textColor };
-		ui::Draw(launcherInfo);
+	}
+	void LauncherApp::interpretAddress() {
+		std::vector<std::string> split = engone::SplitString(addressText.text, ":");
+		if (split.size() == 0) {
+		} else if (split.size() <= 2) {
+			if (split[0] == "host") {
+				m_settings.set("isServer", "true");
+			} else {
+				m_settings.remove("isServer");
+			}
+			m_settings.set("ip", split[0]);
+			if (split.size() == 2) {
+				if (split[1].length() != 0)
+					m_settings.set("port", split[1]);
+				else
+					m_settings.set("port", Settings::PORT);
+			} else {
+				m_settings.set("port", Settings::PORT);
+			}
+		}
+	}
+	void LauncherApp::switchState(LauncherState newState) {
+		state = newState;
+		loadingTime = 0;
+		infoText.text = switchInfoText;
+		switchInfoText = "";
+		if (state == LauncherSetting) {
+			std::string ip = m_settings.get("ip");
+			std::string port = m_settings.get("port");
+			if (ip.length() != 0) {
+				if (port.length() != 0 && port != Settings::PORT) {
+					addressText.text = ip + ":" + port;
+				} else {
+					addressText.text = ip;
+				}
+			} else {
+				if (port.length() != 0 && port != Settings::PORT) {
+					addressText.text = ":" + port;
+				} else {
+					addressText.text = "";
+				}
+			}
+		}
 	}
 	void LauncherApp::onClose(engone::Window* window) {
+		interpretAddress();
 		m_settings.save();
 
 		m_server.stop();
 		m_client.disconnect();
 	}
-	void LauncherApp::doAction() {
-
+	void LauncherApp::doAction(bool delay) {
+		using namespace engone;
 		std::string ip = m_settings.get("ip");
 		std::string port = m_settings.get("port");
 		std::string isServer = m_settings.get("isServer");
 		if (isServer == "true") {
 			if (m_server.isRunning()) {
-				launcherMessage = "Server already started";
+				log::out << "Server is already running\n";
 			} else {
 				if (m_client.isRunning())
 					m_client.disconnect();
-				m_server.start(port);
-				launcherMessage = "Server started";
+				if (!m_server.start(port)) {
+					switchInfoText = "Invalid Port";
+					if (delay)
+						delaySwitch.start(1);
+					else
+						switchState(LauncherSetting);
+				} else {
+					switchState(LauncherServerSide);
+				}
 			}
 		} else {
-			if (ip.length() != 0) {
-				if (m_client.isRunning()) {
-					launcherMessage = "Already connected";
-				} else{
-					if (m_server.isRunning())
-						m_server.stop();
-					m_client.connect(ip, port);
-				}
+			if (m_client.isRunning()) {
+				log::out << "Client is already running\n";
 			} else {
-				launcherMessage = "Missing IP";
+				if (m_server.isRunning())
+					m_server.stop();
+				if (!m_client.connect(ip, port)) {
+					// infoText can be ambiguous, was the ip invalid because the server didn't exist and the client couldn't connect or
+					// because the ip wasn't a correctly formatted ip address. 12#515Ar <- this would be an invalid ip.
+					switchInfoText= "Invalid IP/Port";
+					if (delay) {
+						delaySwitch.start(1);
+					} else
+						switchState(LauncherSetting);
+				} else {
+					switchState(LauncherConnecting);
+				}
 			}
 		}
 	}

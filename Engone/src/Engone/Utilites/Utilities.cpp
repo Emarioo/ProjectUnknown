@@ -1,41 +1,27 @@
 
 #include "Engone/Utilities/Utilities.h"
 
-#include <GLFW/glfw3.h>
-
 namespace engone {
+	TrackerId ItemVector::trackerId="ItemVector";
+	TrackerId FileWriter::trackerId="FileWriter";
+	TrackerId FileReader::trackerId="FileReader";
+
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
 		unsigned int at = 0;
 		while ((at = text.find(delim)) != std::string::npos) {
 			std::string push = text.substr(0, at);
-			if (push.size() > 0) {
+			//if (push.size() > 0) {
 				out.push_back(push);
-			}
+			//}
 			text.erase(0, at + delim.length());
 		}
 		if(text.size()!=0)
 			out.push_back(text);
 		return out;
 	}
-	char SanitizedChars[64]{
-		'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-		'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-		'0','1','2','3','4','5','6','7','8','9','_','-'
-	};
-	std::string SanitizeString(std::string s) {
-		std::string out;
-		for (uint32_t i = 0; i < s.size(); ++i) {
-			for (uint32_t j = 0; j < 64; ++j) {
-				if (s.at(i) == SanitizedChars[j]) {
-					out += s.at(i);
-					break;
-				}
-			}
-		}
-		return out;
-	}
+
 	/*
 	void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
 		ar[ind] = f0;
@@ -51,6 +37,16 @@ namespace engone {
 	}
 	float distance(float x, float y, float x1, float y1) {
 		return (float)sqrt(pow(x1 - x, 2) + pow(y1 - y, 2));
+	}
+	float AngleDifference(float a, float b) {
+		float d = a - b;
+		if (d > glm::pi<float>()) {
+			d -= glm::pi<float>()*2;
+		}
+		if (d < -glm::pi<float>()) {
+			d += glm::pi<float>() * 2;
+		}
+		return d;
 	}
 	/*
 	void insert(float* ar, int off, int len, float* data) { // carefull with going overboard
@@ -87,17 +83,155 @@ namespace engone {
 		//std::cout << std::chrono::system_clock::now().time_since_epoch().count() <<" "<< (std::chrono::system_clock::now().time_since_epoch().count() / 10000000) << "\n";
 		//return (double)(std::chrono::system_clock::now().time_since_epoch().count() / 10000000);
 	}
-	// how do this
-	static std::mt19937 utility_mt19937_random;
-	static std::uniform_real_distribution utility_uniform_distrubtion;
-	static bool once = false;
-	float GetRandom() {
-		if (!once) {
-			utility_mt19937_random.seed((uint32_t)GetSystemTime());
-			once = true;
+	
+	ItemVector::ItemVector(int size) {
+		if (size != 0) {
+			resize(size); // may fail but it's fine
 		}
-		return (float)utility_uniform_distrubtion(utility_mt19937_random);
 	}
+	ItemVector::~ItemVector() {
+		cleanup();
+	}
+	char ItemVector::readType() {
+		if (m_writeIndex < m_readIndex + sizeof(char)) {
+			return 0;
+		}
+
+		char type = *(m_data + m_readIndex);
+		m_readIndex += sizeof(char);
+		return type;
+	}
+	bool ItemVector::empty() const {
+		return m_writeIndex == 0;
+	}
+	void ItemVector::clear() {
+		m_writeIndex = 0;
+		m_readIndex = 0;
+	}
+	void ItemVector::cleanup() {
+		resize(0); // <- this will also set write and read to 0
+	}
+	bool ItemVector::resize(uint32_t size) {
+		if (size == 0) {
+			if (m_data) {
+				alloc::_free(m_data, m_maxSize);
+				GetTracker().subMemory<ItemVector>(m_maxSize);
+				m_data = nullptr;
+				m_maxSize = 0;
+				m_writeIndex = 0;
+				m_readIndex = 0;
+			}
+		} else {
+			if (!m_data) {
+				char* newData = (char*)alloc::_malloc(size);
+				if (!newData) {
+					log::out << log::RED << "ItemVector failed allocation memory\n";
+					return false;
+				}
+				GetTracker().addMemory<ItemVector>(size);
+				m_data = newData;
+				m_maxSize = size;
+			} else {
+				char* newData = (char*)alloc::_realloc(m_data, m_maxSize, size);
+				if (!newData) {
+					log::out << log::RED << "ItemVector failed reallocating memory\n";
+					return false;
+				}
+				GetTracker().addMemory<ItemVector>(size - m_maxSize);
+				m_data = newData;
+				m_maxSize = size;
+				if (m_writeIndex > m_maxSize)
+					m_writeIndex = m_maxSize;
+				if (m_readIndex > m_maxSize)
+					m_readIndex = m_maxSize;
+			}
+		}
+		return true;
+	}
+	void Sleep(double seconds) {
+		std::this_thread::sleep_for((std::chrono::microseconds)((uint64_t)(seconds*1000000)));
+	}
+	//-- Random stuff
+	static std::mt19937 randomGenerator;
+	static uint32_t randomSeed=0;
+	static bool seedonce = false;
+	static void initGenerator() {
+		if (!seedonce) {
+			SetRandomSeed((uint32_t)GetSystemTime());
+		}
+	}
+	static std::uniform_real_distribution<double> random_standard(0.0,1.0);
+	static std::uniform_int_distribution<uint32_t> random_32(0, -1);
+	void SetRandomSeed(uint32_t seed) {
+		seedonce = true;
+		randomSeed=seed;
+		randomGenerator.seed(seed);
+	}
+	uint32_t GetRandomSeed() {
+		return randomSeed;
+	}
+	double GetRandom() {
+		initGenerator();
+		return random_standard(randomGenerator);
+	}
+	uint32_t Random32() {
+		initGenerator();
+		return random_32(randomGenerator);
+	}
+	uint64_t Random64() {
+		initGenerator();
+		return ((uint64_t)random_32(randomGenerator)<<32)
+			|(uint64_t)random_32(randomGenerator);
+	}
+	UUID UUID::New(){
+		uint64_t out[2];
+		for (int i = 0; i < 2; i++) {
+			out[i] = Random64();
+		}
+		return *(UUID*)&out;
+	}
+	UUID::UUID(const int num) {
+		// Uncomment debugbreak, run program, check stackframe.
+		if (num != 0) DebugBreak();
+		assert(("UUID was created from non 0 int which is not allowed. Put a breakpoint here and check stackframe.", num == 0));
+		memset(this, 0, sizeof(UUID));
+	}
+	bool UUID::operator==(const UUID& uuid) const {
+		for (int i = 0; i < 2; i++) {
+			if (data[i] != uuid.data[i])
+				return false;
+		}
+		return true;
+	}
+	bool UUID::operator!=(const UUID& uuid) const {
+		return !(*this==uuid);
+	}
+	char toHex(uint8_t num) {
+		if (num < 10) return '0' + num;
+		else return 'A' + num - 10;
+	}
+	std::string UUID::toString(bool fullVersion) const {
+		char out[2*sizeof(UUID)+4+1]; // maximum hash string, four dashes, 1 null
+		
+		uint8_t* bytes = (uint8_t*)this;
+
+		int write = 0;
+		for (int i = 0; i < sizeof(UUID);i++) {
+			if (i == sizeof(UUID) / 2&& !fullVersion)
+				break;
+			if (i == 4||i==6||i==8||i==10)
+				out[write++] = '-';
+			out[write++] = toHex(bytes[i]&15);
+			out[write++] = toHex(bytes[i] >> 4);
+		}
+		out[write] = 0; // finish with null terminated char
+		return out;
+	}
+	log::logger operator<<(log::logger log, UUID uuid) {
+		log << uuid.toString();
+		return log;
+	}
+
 	std::string GetClock() {
 		time_t t;
 		time(&t);
@@ -146,7 +280,7 @@ namespace engone {
 			write += snprintf(out + write, outSize - write, "%u ", num[i]);
 			if (compact) {
 				out[write++] = lit[i][0];
-				if (i > 4)
+				if (i < 3)
 					out[write++] = 's';
 			} else {
 				memcpy(out + write, lit[i], strlen(lit[i]));
@@ -212,45 +346,93 @@ namespace engone {
 	}
 	// In seconds
 	uint64_t GetFileLastModified(const std::string& path) {
-		auto some = std::filesystem::last_write_time(path);
 		if (std::filesystem::exists(path))
 			return std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(path).time_since_epoch()).count();
 		//log::out << log::RED << "getTime - path not valid\n";
 		return 0;
 	}
-
-
-	// memory tracker
-	static uint32_t allocatedMemory = 0;
-	void* _malloc(uint32_t size) {
-		if (size == 0) return nullptr;
-		void* ptr = malloc(size);
-		if (ptr) allocatedMemory += size;
-		return ptr;
-	}
-	void* _realloc(void* ptr, uint32_t oldSize, uint32_t newSize) {
-		if (newSize == 0) {
-			_free(ptr, oldSize);
-			return nullptr;
+	static wchar_t buffer[256]{};// Will this hardcoded size be an issue?
+	std::wstring convert(const std::string& in) {
+		ZeroMemory(buffer, 256);
+		for (int i = 0; i < in.length(); i++) {
+			buffer[i] = in[i];
 		}
-		void* newPtr = realloc(ptr, newSize);
-		if (newPtr) {
-			allocatedMemory += newSize - oldSize;
-			return newPtr;
-		} else {
+		return buffer;
+	}
+	bool StartProgram(const std::string& path) {
+		if (!FindFile(path)) {
+			return false;
+		}
+
+		// additional information
+		STARTUPINFO si;
+		PROCESS_INFORMATION pi;
+
+		// set the size of the structures
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		ZeroMemory(&pi, sizeof(pi));
+
+		int slashIndex = path.find_last_of("\\");
+
+		std::string workingDir = path.substr(0, slashIndex);
+
+#ifdef NDEBUG
+		std::wstring exeFile = convert(path);
+		std::wstring workDir = convert(workingDir);
+#else
+		const std::string& exeFile = path;
+		std::string& workDir = workingDir;
+#endif
+		CreateProcess(exeFile.c_str(),   // the path
+			NULL,        // Command line
+			NULL,           // Process handle not inheritable
+			NULL,           // Thread handle not inheritable
+			FALSE,          // Set handle inheritance to FALSE
+			0,              // No creation flags
+			NULL,           // Use parent's environment block
+			workDir.c_str(),   // starting directory 
+			&si,            // Pointer to STARTUPINFO structure
+			&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+		);
+
+		// Close process and thread handles. 
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		return true;
+	}
+
+	PNG LoadPNG(int id) {
+		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
+		HGLOBAL hg = LoadResource(NULL, hs);
+		void* ptr = LockResource(hg);
+		DWORD size = SizeofResource(NULL, hs);
+		return { ptr, size };
+	}
+
+	// Currently the same as normal malloc, realloc and free.
+	namespace alloc {
+		void* _malloc(uint64_t size) {
+			if (size == 0) return nullptr;
+			void* ptr = malloc(size);
 			return ptr;
 		}
-	}
-	void _free(void* ptr, uint32_t size) {
-		if (!ptr) return;
-		allocatedMemory -= size;
-		free(ptr);
-	}
-	void _logMemory() {
-		std::cout << "Memory: " << allocatedMemory << "\n";
-	}
-	uint32_t _getMemory() {
-		return allocatedMemory;
+		void* _realloc(void* ptr, uint64_t oldSize, uint64_t newSize) {
+			if (newSize == 0) {
+				_free(ptr,oldSize);
+				return nullptr;
+			}
+			void* newPtr = realloc(ptr, newSize);
+			if (newPtr) {
+				return newPtr;
+			} else {
+				return ptr;
+			}
+		}
+		void _free(void* ptr, uint64_t size) {
+			if (!ptr) return;
+			free(ptr);
+		}
 	}
 
 	// FILE

@@ -117,7 +117,7 @@ namespace input
 	}
 	void AddListener(Listener* listener)
 	{
-		// Prevent duplicates
+		// Prevent duplciations
 		for (int i = 0; i < listeners.size(); i++) {
 			if (listener == listeners[i]) {
 				return;

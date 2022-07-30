@@ -66,7 +66,7 @@ namespace engone {
 		if (asset != nullptr) {
 			AnimationAsset* anim = nullptr;
 			for (AnimationAsset* a : asset->animations) {
-				if (a->baseName == animationName) {
+				if (a->getBaseName() == animationName) {
 					anim = a;
 					break;
 				}

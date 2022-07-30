@@ -5,9 +5,6 @@
 void runApp() {
 	using namespace engone;
 
-	engone::SoundBuffer buf;
-	buf.Init("assets/sounds/melody");
-
 	//std::string str = std::filesystem::current_path().generic_string();
 	//std::cout << "hello "<<str << "\n";
 	//double time = 1.001;

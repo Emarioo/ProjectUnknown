@@ -9,23 +9,26 @@ namespace engone {
 	class Client : public Sender {
 	public:
 		// Constructor does nothing
-		Client() = default;
+		Client();
 		~Client();
 		// lambda should return false to deny connection, true to accept
 		void setOnEvent(std::function<bool(NetEvent)> onEvent);
 		// lambda should return false to close connection
 		void setOnReceive(std::function<bool(MessageBuffer)> onReceive);
 		/*
-		set on events before connecting
+		set on events before connecting.
+		returns false if ip or port were invalid.
+		returns true if client already is connected/connecting or has started connecting.
 		*/
-		void connect(const std::string& ip, const std::string& port);
+		bool connect(const std::string& ip, const std::string& port);
 		// Called by you, will call close on connection.
 		void disconnect();
 		// uuid and ignore is not relevant for client
-		void send(MessageBuffer& msg, uint32_t uuid = -1, bool ignore = false) override;
+		void send(MessageBuffer& msg, UUID uuid = 0, bool ignore = false) override;
 
 		inline bool isRunning() { return keepRunning; }
 
+		static TrackerId trackerId;
 	private:
 		bool keepRunning = false;
 		Connection* m_connection = nullptr;

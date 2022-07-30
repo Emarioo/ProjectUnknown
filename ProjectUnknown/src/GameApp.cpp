@@ -6,6 +6,13 @@
 #include "Objects/Player.h"
 #include "Objects/Sword.h"
 
+/*
+FEATURE: you know when you buy new technology or software. Sometime you need to choose some settings and let it install. THAT is very nice.
+	Seeing the percentage bar go up, a graph changing, loading bar finishing. Having that sense of excitement when you play the game for the first time
+	could be a fun way to hype up the player. Altough to much hype means greater potential for dissapointment so keep it reasonable.
+	Also not sure how appropriate it is for the game I am making.
+*/
+
 namespace game {
 
 	//-- Shaders
@@ -19,6 +26,30 @@ namespace game {
 	#include "Shaders/test.glsl"
 	};
 
+	void GameApp::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
+		int size = callbackData.getNbContactPairs();
+		for (int i = 0; i < size; i++) {
+			auto pair = callbackData.getContactPair(i);
+			rp3d::RigidBody* body=nullptr;
+
+			if (pair.getBody1() == player->rigidBody)
+				body = (rp3d::RigidBody*)pair.getBody1();
+			if (pair.getBody2() == player->rigidBody)
+				body = (rp3d::RigidBody*)pair.getBody2();
+			if (body) {
+				//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit) {
+				//	//player->collisionNormal = { 0,100,0 };
+				//} else {
+					int contacts = pair.getNbContactPoints();
+					for (int j = 0; j < contacts; j++) {
+						auto point = pair.getContactPoint(j);
+						player->collisionNormal = *(glm::vec3*)&point.getWorldNormal();
+						return;
+					}
+				//}
+			}
+		}
+	}
 	engone::EventType OnKey(engone::Event& e);
 	engone::EventType OnMouse(engone::Event& e);
 	GameApp::GameApp(engone::Engone* engone) : Application(engone) {
@@ -39,22 +70,24 @@ namespace game {
 		assets->set<Font>("consolas", "fonts/consolas42");
 
 		//-- Event and game loop functions
-		m_window->attachListener(new Listener(EventKey, OnKey));
-		m_window->attachListener(new Listener(EventClick, OnMouse));
+		m_window->attachListener(EventKey, OnKey);
+		m_window->attachListener(EventClick, OnMouse);
 
 		if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
 		}
 
-		engone->m_pCommon = new rp3d::PhysicsCommon();
+		engone->m_pCommon = new rp3d::PhysicsCommon(); // needs to be moved inside engine
 		engone->m_pWorld = engone->m_pCommon->createPhysicsWorld();
 
 		engone->m_pWorld->setIsDebugRenderingEnabled(true);
 		rp3d::DebugRenderer& debugRenderer = engone->m_pWorld->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+
+		getEngine()->m_pWorld->setEventListener(this);
 
 		sword = new Sword(engone);
 		engone->addObject(sword);
@@ -81,22 +114,36 @@ namespace game {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
 		}
+		//engone::log::out << "reset\n";
+		//player->collisionNormal = {0,0,0};
+		//if (player) {
+		//	if (player->rigidBody) {
+		//		//glm::vec3 pos = player->getTransform()[3];
+		//		glm::vec3 pos = { 0,0,0 };
+		//		Camera* cam = m_window->getRenderer()->getCamera();
+		//		if (player->zoomOut!=0) {
+		//			glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(cam->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
+		//			cam->position = mat[3];
+		//		} else {
+		//			cam->position = pos + glm::vec3(0, 3.f, 0);
+		//		}
+		//	}
+		//}
+	}
+	void GameApp::render(engone::RenderInfo& info) {
+		using namespace engone;
 		if (player) {
 			if (player->rigidBody) {
 				glm::vec3 pos = player->getTransform()[3];
 				Camera* cam = m_window->getRenderer()->getCamera();
-				if (player->zoomOut!=0) {
-					glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(cam->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
-					cam->position = mat[3];
+				if (player->zoomOut != 0) {
+					glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
+					cam->setPosition(mat[3]);
 				} else {
-					cam->position = pos + glm::vec3(0, 3.f, 0);
+					cam->setPosition(pos + glm::vec3(0, 3.f, 0));
 				}
 			}
 		}
-	}
-	void GameApp::render(engone::RenderInfo& info) {
-		using namespace engone;
-
 		//ui::Box box = { 20,30,100,100,{1,1,1,1} };
 		//ui::Draw(box);
 

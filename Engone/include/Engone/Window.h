@@ -12,6 +12,7 @@ namespace engone {
 		BorderlessFullscreenMode,
 	};
 	class Application;
+	// mode, w, h, x, y
 	struct WindowDetail {
 		WindowMode mode = WindowedMode;
 		int w = -1, h = -1;
@@ -45,11 +46,17 @@ namespace engone {
 		// True if cursor is visible.
 		inline bool isCursorVisible() const { return m_cursorVisible; }
 
-		inline Application* getParent() const { return m_parent; }
+		inline Application* getParent() { return m_parent; }
 		inline Assets* getAssets() { return &m_assets; }
 		inline Renderer* getRenderer() { return &m_renderer; }
 
+		 //will create a new listener which the window has ownership of. Meaning listener will be destroyed when window is.
+		void attachListener(EventTypes eventTypes, std::function<EventTypes(Event&)> func);
+		 //will create a new listener which the window has ownership of. Meaning listener will be destroyed when window is.
+		void attachListener(EventTypes eventTypes, int priority, std::function<EventTypes(Event&)> func);
+		 //Window will not destroy listener
 		void attachListener(Listener* listener);
+
 		void addEvent(Event& e) { m_events.push_back(e); }
 		void runListeners();
 
@@ -57,10 +64,10 @@ namespace engone {
 		float getMouseY() const { return m_mouseY; }
 		void setMouseX(float x) { m_mouseX=x; }
 		void setMouseY(float y) { m_mouseY=y; }
-		float getScrollX() const { return m_scrollX; }
-		float getScrollY() const { return m_scrollY; }
-		void setScrollX(float x) { m_scrollX = x; }
-		void setScrollY(float y) { m_scrollY = y; }
+		float getScrollX() const;
+		float getScrollY() const;
+		void setScrollX(float x) { m_frameScrollY = x; m_tickScrollY = x;}
+		void setScrollY(float y) { m_frameScrollY = y; m_tickScrollY = y; }
 
 		void setInput(int code, bool down);
 
@@ -69,6 +76,7 @@ namespace engone {
 
 		bool isKeyDown(int code);
 		bool isKeyPressed(int code);
+
 		void resetEvents();
 
 		void enableFirstPerson();
@@ -80,12 +88,14 @@ namespace engone {
 		inline bool isCursorLocked() const { return m_cursorLocked;}
 		// If true, the cursor will be made invisible and locked to the window. Use this when you want the player to lock around.
 		void lockCursor(bool locked);
-		// true if window isn't closed
-		bool isActive();
+		// true if window is open, or should be open
+		bool isOpen();
 
+		static TrackerId trackerId;
 	private:
 		Window(Application* application, WindowDetail detail);
-		// Deleting window will delete renderer's buffers.
+		// Deleting window will delete renderer's buffers. To do this this window becomes the active one. This means that you sohuldn't call delete on the window.
+		// The game loop will delete a window that should close because it nows when the window is being rendered to and not. Deleting a window while it is being rendered to is bad.
 		// if this window shares buffers with another unexepected things might happen.
 		~Window();
 
@@ -98,13 +108,16 @@ namespace engone {
 		std::vector<EventInput> m_inputs;
 		std::vector<std::string> m_pathDrops;
 
+		bool initializedGLEW = false;
+
 		uint32_t m_charCount = 0;
 		uint32_t m_readIndex = 0;
 		static const uint32_t CHAR_ARRAY_SIZE = 20;
 		uint32_t m_charArray[CHAR_ARRAY_SIZE];
 
-		float m_mouseX, m_mouseY;
-		float m_scrollX, m_scrollY;
+		float m_mouseX = 0, m_mouseY = 0;
+		float m_tickScrollX=0, m_tickScrollY = 0;
+		float m_frameScrollX = 0, m_frameScrollY = 0;
 
 		WindowMode m_windowMode = WindowedMode;
 		bool m_cursorVisible = true, m_cursorLocked = false, m_focus = true;
@@ -126,6 +139,7 @@ namespace engone {
 	void InitializeGLFW();
 	Window* GetMappedWindow(GLFWwindow* window);
 
+	// May be nullptr
 	Window* GetActiveWindow();
 	// Inner width of active window
 	float GetWidth();

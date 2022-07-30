@@ -2,7 +2,7 @@
 
 #include "Engone/Logger.h"
 #include "Engone/AssetModule.h"
-#include "reactphysics3d/reactphysics3d.h"
+#include "Engone/Utilities/rp3d.h"
 
 namespace engone {
 
@@ -63,20 +63,20 @@ namespace engone {
 		}
 	};
 
-	class CollisionBody : public Component {
-	public:
-		static const ComponentMask ID = ComponentCollisionBody;
-		CollisionBody() = default;
+	//class CollisionBody : public Component {
+	//public:
+	//	static const ComponentMask ID = ComponentCollisionBody;
+	//	CollisionBody() = default;
 
-		rp3d::CollisionBody* collisionBody;
-	};
-	class RigidBody : public Component {
-	public:
-		static const ComponentMask ID = ComponentRigidBody;
-		RigidBody() = default;
+	//	rp3d::CollisionBody* collisionBody;
+	//};
+	//class RigidBody : public Component {
+	//public:
+	//	static const ComponentMask ID = ComponentRigidBody;
+	//	RigidBody() = default;
 
-		rp3d::RigidBody* rigidBody;
-	};
+	//	rp3d::RigidBody* rigidBody;
+	//};
 	class ModelRenderer : public Component {
 	public:
 		static const ComponentMask ID = ComponentModel;

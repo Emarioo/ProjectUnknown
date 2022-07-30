@@ -7,13 +7,15 @@ const char* test2dGLSL = {
 #include "Engone/Tests/test2d.glsl"
 };
 #include "Engone/Tests/BasicRendering.h"
-//#include "Engone/Collision.h"
+
+// used to get the sizeof context because it affects getMemory
+#include "asio.hpp"
 
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
 }
-
 namespace engone {
+	TrackerId Engone::trackerId = "Engone";
 
 	static const char* guiShaderSource = {
 #include "Engone/Shaders/gui.glsl"
@@ -30,34 +32,231 @@ namespace engone {
 
 #define INSTANCE_LIMIT 1000u
 
-	Engone::Engone(EngoneFlag flags) {
-		m_flags = flags;
+	Engone::Engone() {
 	}
 	Engone::~Engone() {
-		DestroyIOContext();
+		for (int i = 0; i < m_applications.size();i++) {
+			delete m_applications[i];
+		}
+		m_applications.clear();
+		for (int i = 0; i < m_objects.size(); i++) {
+			delete m_objects[i];
+		}
+		m_objects.clear();
+		for (int i = 0; i < m_lights.size(); i++) {
+			delete m_lights[i];
+		}
+		m_lights.clear();
+		//DestroyIOContext();
 	}
 	void Engone::start() {
-		m_engineStats.startTime = GetSystemTime();
-		if (m_applications.size() == 0) {
-			log::out << log::RED << "No applications added\n";
-			return;
-		}
+		//if (m_applications.size() == 0) {
+		//	log::out << log::RED << "No applications added\n";
+		//	return;
+		//}
+		//m_runtimeStats.startTime = GetSystemTime();
+		//for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+		//	Application* app = m_applications[appIndex];
+		//	app->getStats().startTime = m_runtimeStats.startTime;
+		//}
+
+		// FEATURE: note style in code, FEATURE:, ISSUE:, NOTE: are tags in the code which you can search for and see comments
+		// This is useful if I need to write things down and don't have internet. I can write notes, and keep track of them.
+		// This feature should be documented in the engine. or somewhere in obsidian.
+		
+		// FEATURE: memory tracking flag. if enabled, changes in memory will be printed every frame
+		uint64_t lastMemory=0;
 
 		float statPrintTime = 0;
 		// Some game loop concept comes from ReactPhysics user manual.
-		const float timeStepConst = 1.0f / 60.0f;
+		//while (true) {
+		//	double loopStart = GetSystemTime();
+		//	for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+		//		Application* app = m_applications[appIndex];
+
+		//		double startTime = GetSystemTime();
+
+		//		double updateTime = app->getStats().updateTime / m_applications.size();
+		//		double frameTime = app->getStats().frameTime / m_applications.size();
+
+		//		// Close window and applications if needed.
+		//		for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+		//			Window* win = app->getWindow(winIndex);
+		//			// Potentially close window
+		//			if (!win->isActive()) {
+		//				delete win;
+		//				tracker::addMemory(-(int64_t)sizeof(Window));
+
+		//				app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
+		//				--winIndex;
+		//				continue;
+		//			}
+		//		}
+		//		if (app->getAttachedWindows().size() == 0) {
+		//			// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
+		//			// app should be safe to delete
+
+		//			delete m_applications[appIndex];
+		//			tracker::addMemory(-(int64_t)m_appSizes[appIndex]);
+
+		//			m_applications.erase(m_applications.begin() + appIndex);
+		//			m_appSizes.erase(m_appSizes.begin() + appIndex);
+		//			--appIndex;
+		//			continue;
+		//		}
+		//		int limit = 1; // used when debugging so that the while update loop doesn't continue forever.
+
+		//		// This loop runs at full speed which uses a lot of cpu. but that isn't really needed so how can you slow it down? thread sleep?
+
+		//		// Write some documentation on how the loop works.
+		//		// update can be skipped, and so will not be called for every frame. you should therefore
+		//		// not change the rotation/position of the camera in update do that in renderer
+
+		//		Window* mainWindow = app->getWindow(0);
+		//		if (mainWindow)
+		//			mainWindow->setActiveContext();
+
+		//		bool skippedUpdate=true;
+		//		//log::out << "while "<<(accumulator)<<"\n";
+		//		while (app->getStats().update_accumulator >= updateTime
+		//			//&& limit-- != 0
+		//			) {
+		//			skippedUpdate = false;
+		//			m_runtimeStats.incrUpdates();
+		//			app->getStats().incrUpdates();
+		//			//log::out << "update "<<accumulator<<"\n";
+		//			UpdateInfo info = { updateTime, app };
+		//		
+		//			update(info);
+		//			app->update(info);
+
+		//			app->getStats().update_accumulator -= updateTime;
+
+		//			// update reset for all windows.
+		//			// The global variable IsKeyPressed only works for the active window
+		//			// which is mainWindow which is the first window attached to application.
+		//			// If you want isKeyPressed for a specific window you do
+		//			// window->isKeyPressed instead where window is you window of choice.
+		//			for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+		//				app->getWindow(winIndex)->resetEvents();
+		//			}
+		//		}
+		//		
+		//		//if(tracker::getMemory()!=lastMemory) tracker::logMemory();
+		//		lastMemory = tracker::getMemory();
+
+		//		if (app->getStats().frame_accumulator >= frameTime) {
+		//			app->getStats().frame_accumulator -= frameTime;
+		//			app->m_renderingWindows = true;
+		//			m_runtimeStats.incrFrames();
+		//			app->getStats().incrFrames();
+		//			for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+		//				Window* win = app->getWindow(winIndex);
+		//				if (!win->isActive()) continue;
+		//				float interpolation = app->getStats().update_accumulator / frameTime; // Note: update accumulator should be there.
+		//				RenderInfo info = { interpolation,win };
+
+		//				win->setActiveContext();
+		//				// Important setup
+		//				// DONE IN Window::setActiveContext
+		//				glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
+		//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//				glDepthFunc(GL_LESS);
+		//				glEnable(GL_CULL_FACE);
+		//				glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+		//				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//				// 3d stuf
+		//				win->getRenderer()->setProjection(GetWidth() / GetHeight());
+
+		//				app->render(info);
+		//				win->getRenderer()->updateViewMatrix(0);
+		//				render(info);
+
+		//				GetActiveRenderer()->render(info);
+		//				//std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		//				glfwSwapInterval(0); // turning off vsync?
+		//				glfwSwapBuffers(win->glfw());
+
+		//				// frame reset
+		//				win->resetEvents();
+		//				char endChr;
+		//				while (endChr = win->pollChar()) {
+		//					//log::out << "endpoll " << endChr << "\n";
+		//				}
+		//			}
+		//			app->m_renderingWindows = false;
+		//		} else {
+		//			std::this_thread::sleep_for(std::chrono::milliseconds((int)((frameTime-app->getStats().frame_accumulator)*1000.0)));
+		//		}
+		//		double delta = GetSystemTime() - startTime;
+		//		app->getStats().update_accumulator += delta;
+		//		app->getStats().frame_accumulator += delta;
+		//		app->getStats().runtime += delta;
+
+		//		// This may not work properly if there is a slight change in time.
+		//		//app->getStats().real_fps = 1/delta;
+		//		//app->getStats().real_ups -= updateTime;
+
+		//		statPrintTime += delta;
+		//	}
+		//	glfwPollEvents();
+		//	if (statPrintTime > 0.5) {
+		//		statPrintTime -= 0.5;
+		//		m_runtimeStats.print(true);
+		//		log::out << "\n";
+		//		for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+		//			Application* app = m_applications[appIndex];
+		//			log::out << "APPLICATION " << appIndex << "\n";
+		//			app->getStats().print();
+		//			log::out << "\n";
+		//		}
+		//	}
+		//	double loopDelta = GetSystemTime()-loopStart;
+		//	m_runtimeStats.runtime += loopDelta;
+
+		//	//m_runtimeStats.real_fps -= 1/m_runtimeStats.frameTime*loopDelta;
+
+		//	//for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+		//	//	Application* app = m_applications[appIndex];
+		//	//	RuntimeStats& stats = app->getStats();
+		//	//	//stats.acc_second += loopDelta;
+		//	//	//if (stats.acc_second > 1) {
+		//	//	//	stats.finishSample();
+		//	//	//}
+		//	//}
+
+		//	if (m_applications.size() == 0)
+		//		break;
+		//}
+		GetTracker().printMemory();
+		GetTracker().printInfo();
 		double lastTime = GetSystemTime();
-		double accumulator = 0;
 		while (true) {
-			// multiple applications would probably mess up this loop.
+			double now = GetSystemTime();
+			double delta = now - lastTime;
+			lastTime = now;
+
+			// high delta will cause a series consecuative updates which will freeze the apps. This is unwanted.
+			// Limit delta to fix it.
+			double limit = 8 * m_runtimeStats.updateTime;
+			if (delta > limit) delta = limit;
+
+			statPrintTime += delta;
+			m_runtimeStats.runTime += delta;
+			m_runtimeStats.update_accumulator += delta;
+			m_runtimeStats.frame_accumulator += delta;
+
+			m_runtimeStats.nextSample(delta);
+
 			for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 				Application* app = m_applications[appIndex];
-
 				// Close window and applications if needed.
 				for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-					Window* win = app->getAttachedWindows()[winIndex];
+					Window* win = app->getWindow(winIndex);
 					// Potentially close window
-					if (!win->isActive()) {
+					if (!win->isOpen()) {
+						GetTracker().untrack(win);
 						delete win;
 						app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
 						--winIndex;
@@ -65,84 +264,142 @@ namespace engone {
 					}
 				}
 				if (app->getAttachedWindows().size() == 0) {
-					// if you store any buffers in the application they should have been destroyed by the window.
+					// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 					// app should be safe to delete
-					delete m_applications[appIndex];
+					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
+					delete app;
+					// FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
 					m_applications.erase(m_applications.begin() + appIndex);
-					break;
-				}
-				// number applications won't be zero 
-				float timeStep = timeStepConst/m_applications.size();
-
-				double now = GetSystemTime();
-				double delta = now - lastTime;
-				lastTime = now;
-				accumulator += delta;
-				int limit = 1; // used when debugging so that the while update loop doesn't continue forever.
-				bool skipped=true;
-
-				statPrintTime += delta;
-				//log::out << "while "<<(accumulator)<<"\n";
-				while (accumulator >= timeStep
-					//&& limit != 0
-					) {
-					m_engineStats.totalUpdates++;
-					skipped = false;
-					//log::out << "update "<<accumulator<<"\n";
-					UpdateInfo info = { timeStep, app };
-					Window* win = GetActiveWindow();
-				
-					update(info);
-					app->update(info);
-
-					accumulator -= timeStep;
-					limit--;
-				}
-				if (skipped) {
-					m_engineStats.skippedUpdates++;
-				}
-				if (statPrintTime>3) {
-					statPrintTime = 0;
-					//m_engineStats.print();
-				}
-				for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-					Window* win = app->getAttachedWindows()[winIndex];
-					if (!win->isActive()) continue;
-					m_engineStats.totalFrames++;
-					float interpolation = accumulator / timeStep;
-					RenderInfo info = { interpolation,win };
-
-					win->setActiveContext();
-					// Important setup
-					//glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight()); // DONE IN Window::setActiveContext
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glDepthFunc(GL_LESS);
-					glEnable(GL_CULL_FACE);
-					glClearColor(0.15f, 0.18f, 0.18f, 1.f);
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-					
-					// 3d stuf
-					win->getRenderer()->setProjection(GetWidth() / GetHeight());
-					win->getRenderer()->updateViewMatrix(0);
-					render(info);
-					
-					app->render(info);
-
-					GetActiveRenderer()->render(info);
-
-					glfwSwapBuffers(win->glfw());
-
-					win->resetEvents();
-					while (win->pollChar());
+					m_appSizes.erase(m_appSizes.begin() + appIndex);
+					m_appIds.erase(m_appIds.begin() + appIndex);
+					--appIndex;
+					continue;
 				}
 			}
-			glfwPollEvents();
+			// NOTE: if you close one application and lets say a player object uses a camera inside it's update function. Since the camera exists in the renderer of a window which was deleted
+			//   because one application closed, THEN the update function would crash because the camera is invalid. This doesn't happen if you use GetActiveWindow and check if it's nullptr
+			//   but if you have a specific reference to a window that was closed wiered stuff could happen. And this only happens if you have two applications running at some point.
+			//   Because if you have one then the code below will just break and the update function won't be called.
 
-			if (m_applications.size() == 0)
+			if (m_applications.size() == 0) // might as well quit
 				break;
+
+			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime) {
+				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
+
+				//m_runtimeStats.print(RuntimeStats::PrintSamples);
+				//m_runtimeStats.print(RuntimeStats::PrintTime);
+
+				//log::out << m_runtimeStats.update_accumulator << " - " << m_runtimeStats.frame_accumulator << "\n";
+
+				m_runtimeStats.incrUpdates();
+				UpdateInfo info = { m_runtimeStats.updateTime, nullptr };
+				update(info);
+				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+					Application* app = m_applications[appIndex];
+					info.app = app;
+
+					// IsKeyPressed should work on current app and the first window.
+					if (app->getWindow(0))
+						app->getWindow(0)->setActiveContext();
+
+					app->update(info);
+
+					// update reset for all windows.
+					// The global variable IsKeyPressed only works for the active window
+					// which is mainWindow which is the first window attached to application.
+					// If you want isKeyPressed for a specific window you do
+					// window->isKeyPressed instead where window is you window of choice.
+					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+						app->getWindow(winIndex)->resetEvents();
+					}
+				}
+			}
+
+			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime) {
+				m_runtimeStats.frame_accumulator -= m_runtimeStats.frameTime;
+
+				m_runtimeStats.incrFrames();
+				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
+					Application* app = m_applications[appIndex];
+					app->m_renderingWindows = true;
+
+					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+						Window* win = app->getWindow(winIndex);
+						if (!win->isOpen()) continue;
+						float interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
+						RenderInfo info = { interpolation,win };
+
+						win->setActiveContext();
+						// Important setup
+						// DONE IN Window::setActiveContext
+						glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glDepthFunc(GL_LESS);
+						glEnable(GL_CULL_FACE);
+						glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+						// 3d stuf
+						win->getRenderer()->setProjection(GetWidth() / GetHeight());
+
+						app->render(info);
+
+						render(info);
+						GetActiveRenderer()->render(info);
+
+						glfwSwapInterval(0); // turning off vsync?
+						glfwSwapBuffers(win->glfw());
+
+						// frame reset
+						win->resetEvents();
+						char endChr;
+						while (endChr = win->pollChar()) {
+							//log::out << "endpoll " << endChr << "\n";
+						}
+					}
+					app->m_renderingWindows = false;
+				}
+			} else {
+				int sleepTime = (int)((m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator) * 1000000.0);
+				m_runtimeStats.sleepTime += (double)sleepTime / 1000000.0; // conversion is necessary to keep things accurate.
+				std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+			}
+			m_runtimeStats.totalLoops++;
+			//log::out << "loop " << m_runtimeStats.totalLoops << "\n";
+			glfwPollEvents();
+			if (m_applications.size() != 0) {
+				if (m_applications[0]->getAttachedWindows().size() != 0) {
+					if (!m_applications[0]->getWindow(0)->isOpen()) {
+						//DebugBreak();
+					}
+				}
+			}
 		}
 		glfwTerminate();
-		log::out << "All applications are closed\n";
+		// You would preferably want to destroy io_context so that the final memory IS 0. but asio doesn't like it.
+		//DestroyIOContext();
+		 
+		// doesn't have to be a memory leak, it depends on the users code.
+		// they may have allocated memory in global scope and never deleted it. But only if they used the tracker functions.
+		//GetTracker().clear();
+		
+		GetTracker().printInfo(); // this may show Tracks/Untracks 16/14, but this is expected because io_context and std::thread are left.
+		log::out << "Note that io_context and std::thread are left.\n";
+		// this means that the Memory usage is somewhat high because of io_context
+
+		uint32_t expectedMem = 0;
+		if(HasIOContext())
+			expectedMem=sizeof(asio::io_context) + sizeof(std::thread);
+		if (GetTracker().getMemory() > expectedMem) {
+			log::out << "Memory leak? "<<GetTracker().getMemory()<<" expected "<<expectedMem << "\n";
+			GetTracker().printMemory();
+			std::cin.get();
+		} else {
+			log::out << "No tracked memory leak\n";
+		}
+
+		//DestroyIOContext();
 	}
 
 
@@ -229,12 +486,12 @@ namespace engone {
 		m_objects.push_back(object);
 	}
 	void Engone::update(UpdateInfo& info) {
+#ifndef ENGONE_NO_PHYSICS
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
-
-		UpdateInfo _info = { 0,0 };
+#endif
 		for (int i = 0; i < m_objects.size(); i++) {
-			m_objects[i]->update(_info);
+			m_objects[i]->update(info);
 		}
 		//UpdateTimers(info.timeStep);
 	}
@@ -305,20 +562,25 @@ namespace engone {
 		//DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
 
 		// Physics debug
+#ifndef ENGONE_NO_PHYSICS
 		if (m_pWorld) {
 			if (m_pWorld->getIsDebugRenderingEnabled()) {
 				rp3d::DebugRenderer& debugRenderer = m_pWorld->getDebugRenderer();
-
+				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
 				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
 					auto& line = debugRenderer.getLinesArray()[i];
 					info.window->getRenderer()->DrawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
 				}
+				//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
+				//shad->bind();
+				//shad->setVec3("uColor", { 0.9,0.2,0.2 });
 				for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
 					auto& tri = debugRenderer.getTrianglesArray()[i];
 					info.window->getRenderer()->DrawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
 				}
 			}
 		}
+#endif
 	}
 	bool warnNoLights = false;
 	void Engone::renderObjects(RenderInfo& info) {
@@ -395,8 +657,8 @@ namespace engone {
 		if (!shader->error) {
 			shader->bind();
 			renderer->updateProjection(shader);
-			shader->setVec3("uCamera", camera->position);
-			glm::vec3 camPos = camera->position;
+			shader->setVec3("uCamera", camera->getPosition());
+			glm::vec3 camPos = camera->getPosition();
 
 			bindLights(shader, { 0,0,0 });
 			shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
@@ -425,7 +687,7 @@ namespace engone {
 		if (!shader->error) {
 			shader->bind();
 			renderer->updateProjection(shader);
-			shader->setVec3("uCamera", camera->position);
+			shader->setVec3("uCamera", camera->getPosition());
 
 			for (int i = 0; i < m_objects.size(); ++i) {
 				GameObject* obj = m_objects[i];

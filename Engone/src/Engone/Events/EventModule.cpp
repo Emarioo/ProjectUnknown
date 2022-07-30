@@ -3,6 +3,8 @@
 #include "Engone/Window.h"
 
 namespace engone {
+	TrackerId Listener::trackerId="Listener";
+
 	static std::unordered_map<uint16_t, Keybinding> keybindings;
 
 	Listener::Listener(EventTypes eventTypes, std::function<EventTypes(Event&)> f)
@@ -36,12 +38,12 @@ namespace engone {
 		if (win) return win->getMouseY();
 		return -1;
 	}
-	float IsScrolledY() {
+	float IsScrolledX() {
 		Window* win = GetActiveWindow();
 		if (win) return win->getScrollX();
 		return 0;
 	}
-	float IsScrolledX() {
+	float IsScrolledY() {
 		Window* win = GetActiveWindow();
 		if (win) return win->getScrollY();
 		return 0;

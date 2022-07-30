@@ -27,8 +27,8 @@ public:
 					tr.setFromOpenGL((float*)&inst.localMat);
 					rigidBody->addCollider(map, tr);
 					auto col = rigidBody->getCollider(rigidBody->getNbColliders() - 1);
-					col->getMaterial().setFrictionCoefficient(3.f);
-					col->getMaterial().setBounciness(0.1f);
+					col->getMaterial().setFrictionCoefficient(0.6f);
+					col->getMaterial().setBounciness(0.03f);
 				}
 			}
 		}

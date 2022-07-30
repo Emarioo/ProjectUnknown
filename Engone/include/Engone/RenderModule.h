@@ -13,9 +13,11 @@ namespace engone {
 	
 	class Renderer;
 	namespace ui {
+		// r,g,b,a
 		struct Color {
 			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
 		};
+		// x,y,w,h,color
 		struct Box {
 			//public:
 				//Box() = default;
@@ -23,6 +25,7 @@ namespace engone {
 			float x = 0, y = 0, w = 0, h = 0;
 			Color rgba;
 		};
+		// texture,x,y,w,h,u,v,uw,vh,color
 		struct TexturedBox {
 			//TexturedBox() = default;
 			//TexturedBox(Texture* texture, float x, float y, float w, float h, Color rgba) : Box(x,y,w,h,rgba), texture(texture) {}
@@ -31,6 +34,7 @@ namespace engone {
 			float u = 0, v = 0, uw = 1.f, vh = 1.f;
 			Color rgba;
 		};
+		// text,x,y,h,font,color
 		// edited needs to be true for the at cursor to be shown
 		struct TextBox {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
@@ -46,6 +50,7 @@ namespace engone {
 		void Draw(TexturedBox box);
 		void Draw(TextBox& box);
 
+		void Edit(std::string& str, int& at, bool& editing, bool stopEditWithEnter=true);
 		void Edit(std::string& str);
 		void Edit(TextBox* text, bool stopEditWithEnter = true);
 
@@ -70,7 +75,7 @@ namespace engone {
 		Camera* getCamera();
 		glm::mat4& getLightProj();
 		void setProjection(float ratio);
-		void updateViewMatrix(double lag);
+		//void updateViewMatrix(double lag);
 		void updateProjection(Shader* shader);
 
 		/*
@@ -101,7 +106,7 @@ namespace engone {
 
 		glm::mat4 lightProjection{};
 		glm::mat4 projMatrix{};
-		glm::mat4 viewMatrix{};
+		//glm::mat4 viewMatrix{};
 		float fov = 90.f, zNear = 0.1f, zFar = 400.f;
 		
 		Window* m_parent=nullptr;
@@ -140,7 +145,7 @@ namespace engone {
 		ItemVector uiObjects{};
 		std::vector<std::string> uiStrings;
 
-		Camera engine_camera{};
+		Camera camera;
 
 		friend void ui::Draw(ui::Box box);
 		friend void ui::Draw(ui::TexturedBox box);

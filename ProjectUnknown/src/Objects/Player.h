@@ -8,10 +8,13 @@ public:
 	Player(engone::Engone* engone);
 
 	void update(engone::UpdateInfo& info) override;
-	void Movement(float delta);
+	void Movement(engone::UpdateInfo& info);
 
 	// Movement and camera
 	float zoomOut = 0;
+
+	glm::vec3 collisionNormal = {0,0,0};
+	glm::vec3 lastForce = {0,0,0};
 
 	bool sprintMode = false;
 	bool crouchMode = false;

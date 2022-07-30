@@ -85,6 +85,13 @@ namespace engone {
 
 		setProjection(GetWidth()/GetHeight());
 
+		// ISSUE: how to deal with tracking of assets, when window is destroyed, free assets.
+		//	What if you have added an asset twice with different names
+		//  Freeing assets not allocate with tracker would give negative memoray allocations.
+		//  Either the user needs to define some flag?
+		//  Maybe track with addMemory event if assets are added twice it would be fine?
+		//  maybe use tracker inside constructors, You can't have inside constructors because a stack allocated class would be tracked.
+
 		// Line pipeline
 		assets->set<Shader>("lines3d", new Shader(linesGLSL));
 		pipe3lines.reserve(PIPE3_LINE_RESERVE*6);
@@ -135,7 +142,7 @@ namespace engone {
 		assets->set<Shader>("object", new Shader(objectSource));
 		assets->set<Shader>("armature", new Shader(armatureSource));
 		MaterialAsset* mat = new MaterialAsset();
-		mat->baseName = "defaultMaterial";
+		mat->setBaseName("defaultMaterial");
 		assets->set<MaterialAsset>("defaultMaterial", mat);
 
 		//instanceBuffer.setData(INSTANCE_LIMIT * 16, nullptr);
@@ -158,7 +165,7 @@ namespace engone {
 		glEnable(GL_DEPTH_TEST);
 	}
 	Camera* Renderer::getCamera() {
-		return &engine_camera;
+		return &camera;
 	}
 	glm::mat4& Renderer::getLightProj() {
 		return lightProjection;
@@ -168,16 +175,16 @@ namespace engone {
 		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
 	// Should be done once in the render loop, currently done in Engone::render
-	void Renderer::updateViewMatrix(double lag) {
-		viewMatrix = glm::inverse(
-			glm::translate(glm::mat4(1.0f), getCamera()->position) *
-			glm::rotate(getCamera()->rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(getCamera()->rotation.x, glm::vec3(1, 0, 0))
-		);
-	}
+	//void Renderer::updateViewMatrix(double lag) {
+	//	viewMatrix = glm::inverse(
+	//		glm::translate(glm::mat4(1.0f), getCamera()->position) *
+	//		glm::rotate(getCamera()->rotation.y, glm::vec3(0, 1, 0)) *
+	//		glm::rotate(getCamera()->rotation.x, glm::vec3(1, 0, 0))
+	//	);
+	//}
 	void Renderer::updateProjection(Shader* shader) {
 		if (shader != nullptr)
-			shader->setMat4("uProj", projMatrix * viewMatrix);
+			shader->setMat4("uProj", projMatrix * camera.getViewMatrix());
 	}
 	static void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
 		ar[ind] = f0;
@@ -536,6 +543,8 @@ namespace engone {
 		};
 		void Draw(Box box) {
 			if (!GetActiveRenderer()) return;
+			if (box.x + box.w < 0 || box.x>GetWidth()||box.y+box.h<0||box.y>GetHeight())
+				return; // out of bounds
 			GetActiveRenderer()->uiObjects.writeMemory<Box>('B', &box);
 		}
 		void Draw(TexturedBox box) {
@@ -543,6 +552,8 @@ namespace engone {
 				return;
 			}
 			if (!GetActiveRenderer()) return;
+			if (box.x + box.w < 0 || box.x>GetWidth() || box.y + box.h<0 || box.y>GetHeight())
+				return; // out of bounds
 			GetActiveRenderer()->uiObjects.writeMemory<TexturedBox>('T', &box);
 		}
 		void Draw(TextBox& box) {
@@ -550,7 +561,9 @@ namespace engone {
 				box.at = -1;
 			}
 			if (!GetActiveRenderer()) return;
-
+			// ISSUE: width of str is used.  ( box.x+box.w<0 )
+			if (box.x>GetWidth() || box.y + box.h<0 || box.y>GetHeight())
+				return; // out of bounds
 			PipeTextBox a;
 			GetActiveRenderer()->uiStrings.push_back(box.text);
 			a.text_index = GetActiveRenderer()->uiStrings.size()-1;
@@ -567,7 +580,7 @@ namespace engone {
 		void Edit(std::string& str, int& at,bool& editing, bool stopEditWithEnter) {
 			if (at < 0) at = str.length();
 			if (at > str.length()) at = str.length();
-			uint32_t chr;
+			uint32_t chr=0;
 			if (IsKeyDown(GLFW_KEY_LEFT_CONTROL) && IsKeyPressed(GLFW_KEY_V)) {
 				std::string tmp = PollClipboard();
 				//str.insert(str.begin() + at, tmp);
@@ -609,7 +622,10 @@ namespace engone {
 			bool editing=false;
 			Edit(str, at,editing,true);
 		}
-		// will only edit if box->editing is true
+		// will only edit if box->editing is true.
+		// the TextBox need to store it's editing value for next frame/update.
+		// either make your own isEditing variable and then box->editing=isEditing.
+		// or have TextBox in a class or as a static global variable. It's up to you.
 		void Edit(TextBox* box,bool stopEditWithEnter) {
 			if (box->editing) {
 				Edit(box->text, box->at,box->editing, stopEditWithEnter);
@@ -690,7 +706,7 @@ namespace engone {
 		if (shad) {
 			shad->bind();
 			updateProjection(shad);
-			shad->setVec3("uCamera", getCamera()->position);
+			shad->setVec3("uCamera", camera.getPosition());
 			uint32_t drawnCubes = 0;
 			uint32_t cubeCount = 0;
 
@@ -710,7 +726,8 @@ namespace engone {
 			shad->bind();
 			updateProjection(shad);
 			glLineWidth(1.f);
-			shad->setVec3("uColor", { 0.3,0.8,0.3 });
+			//shad->setVec3("uColor", { 0.3,0.8,0.3 });
+			shad->setVec3("uColor", { 0.9,0.2,0.2 });
 
 			uint32_t drawnLines = 0;
 
@@ -814,7 +831,7 @@ namespace engone {
 				guiShad->setVec2("uPos", { box->x, box->y });
 				guiShad->setVec2("uSize", { 1, 1 });
 				guiShad->setVec4("uColor", box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a);
-				DrawString(box->font, uiStrings[box->text_index], false, box->h, 9999, box->h, box->at);
+				DrawString(box->font, uiStrings[box->text_index], false, box->h, 9999, 9999, box->at);
 
 				// don't continue with other stuff
 				continue;

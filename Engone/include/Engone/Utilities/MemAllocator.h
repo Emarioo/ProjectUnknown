@@ -42,7 +42,7 @@ namespace engone {
 		// See Allocator's allocate
 		virtual char* allocate(uint32_t size) override {
 			if (size == 0) return nullptr;
-			char* ptr = (char*)_malloc(size);
+			char* ptr = (char*)alloc::_malloc(size);
 			if (ptr) {
 				realAllocation += size;
 				dreamAllocation += size;
@@ -60,7 +60,7 @@ namespace engone {
 				deallocate(ptr, oldSize);
 				return nullptr;
 			}
-			char* newPtr = (char*)_realloc(ptr, oldSize, newSize);
+			char* newPtr = (char*)alloc::_realloc(ptr, oldSize, newSize);
 			if (newPtr) {
 				realAllocation -= oldSize;
 				realAllocation += newSize;
@@ -77,7 +77,7 @@ namespace engone {
 			if (!ptr || size == 0) return;
 			realAllocation -= size;
 			dreamAllocation -= size;
-			_free(ptr,size);
+			alloc::_free(ptr,size);
 		}
 		template<class T>
 		inline void deallocate(T* ptr) { deallocate(ptr, sizeof(T)); };
@@ -184,7 +184,7 @@ namespace engone {
 		bool resize(int size, bool nullify = false) {
 			if (m_allocation) {
 				if (nullify || size == 0) {
-					_free(m_data,size);
+					alloc::_free(m_data,size);
 					m_data = nullptr;
 					m_size = 0;
 					realAllocation = 0;
@@ -192,14 +192,14 @@ namespace engone {
 					if (size == 0) return true; // returns true because the intention was successful.
 				}
 				if (!m_data) {
-					m_data = (char*)_malloc(size);
+					m_data = (char*)alloc::_malloc(size);
 					if (!m_data) return false;
 					m_size = size;
 					realAllocation = size;
 					m_write = 0;
 					return true;
 				} else if (m_canResize) {
-					char* data = (char*)_realloc(m_data, m_size, size);
+					char* data = (char*)alloc::_realloc(m_data, m_size, size);
 					if (!data) return false;
 					m_data = data;
 					m_size = size;

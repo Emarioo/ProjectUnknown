@@ -22,6 +22,10 @@
     <ClInclude Include="..\..\ScriptRuntime\ScriptRuntime\include\script\MemAllocator.h" />
     <ClInclude Include="include\Engone\Application.h" />
     <ClInclude Include="include\Engone\GameObject.h" />
+    <ClInclude Include="include\Engone\Utilities\rp3d.h" />
+    <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
+    <ClInclude Include="include\Engone\Utilities\Tracker.h" />
+    <ClInclude Include="include\Engone\World\Playground.h" />
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
     <ClInclude Include="include\Engone\vendor\Libaudio.h" />
@@ -63,6 +67,8 @@
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
+    <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\gonpch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -72,7 +78,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Camera.cpp" />
     <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
@@ -87,20 +92,20 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</ProjectGuid>
     <RootNamespace>Engone</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.20348.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
     <ProjectName>Engone</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -175,7 +180,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;libOpenAL32.dll.a;glew32s.lib;glfw3.lib;reactphysics3d.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -187,7 +192,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND;ENGONE_NO_PHYSICS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -205,7 +210,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;libOpenAL32.dll.a;glew32s.lib;glfw3.lib;reactphysics3d_debug.lib</AdditionalDependencies>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -215,7 +220,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -231,7 +236,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -243,7 +248,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ASIO</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_NO_SOUND;ENGONE_NO_PHYSICS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -261,7 +266,7 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib</AdditionalDependencies>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

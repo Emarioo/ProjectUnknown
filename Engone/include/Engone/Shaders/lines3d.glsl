@@ -9,6 +9,7 @@ uniform mat4 uProj;
 void main()
 {
 	gl_Position = uProj * vec4(vPos, 1);
+	
 };
 
 #shader fragment

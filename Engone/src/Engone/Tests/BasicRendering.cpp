@@ -57,7 +57,6 @@ namespace engone {
 			EnableBlend();
 			shader3->bind();
 			Renderer* renderer = info.window->getRenderer();
-			renderer->updateViewMatrix(0);
 			renderer->updateProjection(shader3);
 			VAO.draw(&IBO);
 		}

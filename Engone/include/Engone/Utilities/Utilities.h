@@ -1,70 +1,54 @@
 #pragma once
 
 #include "Engone/Logger.h"
+#include "Engone/LoopInfo.h"
+#include "Engone/Utilities/Tracker.h"
 
 namespace engone {
+
+	// A context where data is stored
 	std::vector<std::string> SplitString(std::string text, std::string delim);
-	std::string SanitizeString(std::string s);
+	//std::string SanitizeString(std::string s);
 	float lerp(float a, float b, float c);
 	float inverseLerp(float min, float max, float x);
 	float distance(float x, float y, float x1, float y1);
 	//void insert(float* ar, int off, int len, float* data);
 	float bezier(float x, float xStart, float xEnd);
 	//std::string Crypt(const std::string& word,const std::string& key, bool encrypt);
-
+	// differnce between two angles, if difference is large clockwise then difference will be negative.
+	float AngleDifference(float a, float b);
 	//void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3);
 	//The time since epoch in seconds
 	double GetSystemTime();
 
+	namespace alloc {
+		void* _malloc(uint64_t size);
+		void* _realloc(void* ptr, uint64_t oldSize, uint64_t newSize);
+		void _free(void* ptr, uint64_t size);
+	}
+
 	// A vector but you can have differently sized classes and structs.
 	class ItemVector {
 	public:
-		ItemVector(int size = 0) {
-			if (size != 0) {
-				m_data = (char*)malloc(size);
-				if (m_data)
-					m_maxSize = size;
-				else
-					log::out << log::RED << "failed allocating memory\n";
-			}
-		}
+		ItemVector(int size = 0);
+		~ItemVector();
 
 		template<class T>
 		void writeMemory(char type, void* ptr) {
 			int itemSize = sizeof(T);
 			if (m_maxSize < m_writeIndex + sizeof(char) + itemSize) {
-				if (m_maxSize == 0)
-					m_maxSize = 5;
-
-				if(m_maxSize*2< m_writeIndex+sizeof(char)+itemSize) {
-					m_maxSize += (sizeof(char) + itemSize)*2;
-				} else {
-					m_maxSize *= 2;
-				}
-
-				char* newPtr = (char*)realloc(m_data, m_maxSize);
-				if (newPtr) {
-					m_data = newPtr;
-				} else {
-					m_maxSize = 0;
-					log::out << log::RED << "failed reallocating memory\n";
+				if (!resize((m_maxSize + sizeof(char) + itemSize) * 2)) {
 					return;
 				}
 			}
+
 			*(m_data + m_writeIndex) = type;
-			std::memcpy(m_data + m_writeIndex + sizeof(char), ptr, itemSize);
-			m_writeIndex += sizeof(char) + itemSize;
+			m_writeIndex += sizeof(char);
+			memcpy_s(m_data + m_writeIndex, m_maxSize - m_writeIndex, ptr, itemSize);
+			m_writeIndex += itemSize;
 		}
 		// Returns 0 if end is reached
-		char readType() {
-			if (m_writeIndex < m_readIndex + sizeof(char)) {
-				return 0;
-			}
-
-			char type = *(m_data + m_readIndex);
-			m_readIndex += sizeof(char);
-			return type;
-		}
+		char readType();
 		template<class T>
 		T* readItem() {
 			if (m_writeIndex < m_readIndex + sizeof(T)) {
@@ -76,19 +60,21 @@ namespace engone {
 			m_readIndex += sizeof(T);
 			return (T*)ptr;
 		}
-		// true if there are items
-		bool empty() {
-			return m_writeIndex==0;
-		}
-		void clear() {
-			m_writeIndex = 0;
-			m_readIndex = 0;
-		}
+		// true if there are NO items
+		bool empty() const;
+		// reset read and write index.
+		void clear();
+		// will reset the class making it as good as new.
+		void cleanup();
+
+		static TrackerId trackerId;
 	private:
 		char* m_data = nullptr;
 		uint32_t m_maxSize = 0;
 		uint32_t m_writeIndex = 0;
 		uint32_t m_readIndex = 0;
+
+		bool resize(uint32_t size);
 	};
 
 	//class Timer {
@@ -104,6 +90,34 @@ namespace engone {
 	//	std::string name;
 	//	int id = 0;
 	//};
+
+	// start will activate the class, run should be inside update loop which will update
+	// the class's inner timer. Once reached, run will return true once otherwise false.
+	// use start again to restart.
+	class DelayCode {
+	public:
+		DelayCode() = default;
+
+		void start(double waitInSeconds) { waitTime = waitInSeconds; running = true; }
+		void stop() { running = false; }
+		// info is here incase you want to slow down the entire app.
+		// Without info, this class would not be affected.
+		bool run(UpdateInfo& info) {
+			if (running) { 
+				time += info.timeStep;
+				if (time >= waitTime) {
+					running = false;
+					return true;
+				} 
+			}
+			return false; 
+		}
+
+	private:
+		bool running = false;
+		double time = 0;
+		double waitTime = 0;
+	};
 
 	//#define TIMER(str) Timer str = Timer(#str,__LINE__*strlen(__FILE__))
 	
@@ -132,30 +146,57 @@ namespace engone {
 	
 	// the time of your computer clock, i think 
 	std::string GetClock();
-	float GetRandom();
+
+	// instead std::this_thread::sleep_for, microsecond precision
+	void Sleep(double seconds);
+
+	// A random seet is set by default.
+	void SetRandomSeed(uint32_t seed);
+	uint32_t GetRandomSeed();
+	// between 0 and 1
+	double GetRandom();
+	uint32_t Random32();
+	uint64_t Random64();
+
+	// random uuid of 16 bytes in total, use UUID::New to create one.
+	class UUID {
+	public:
+		// memory is not initialized.
+		UUID()=default;
+		static UUID New();
+		bool operator==(const UUID& uuid) const;
+		bool operator!=(const UUID& uuid) const;
+
+		// only intended for 0.
+		UUID(const int num);
+
+		// fullVersion as true will print the whole 16 bytes
+		// otherwise the first 8 will be printed
+		std::string toString(bool fullVersion=false) const;
+
+	private:
+		uint64_t data[2];
+
+		friend struct std::hash<engone::UUID>;
+	};
+	log::logger operator<<(log::logger log,UUID uuid);
 
 	//void CountingTest(int times, int numElements, std::function<int()> func);
 
-	template<typename Base, typename T>
-	inline bool instanceof(const T*) {
-		return std::is_base_of<Base, T>::value;
-	}
-
-	template<typename Base, typename T>
-	inline Base instance(const T*) {
-		return std::is_base_of<Base, T>;
-	}
 	bool FindFile(const std::string& path);
 	std::vector<std::string> GetFiles(const std::string& path);
 	// In seconds
 	uint64_t GetFileLastModified(const std::string& path);
 
-	// MEMORY
-	void* _malloc(uint32_t size);
-	void* _realloc(void* ptr, uint32_t oldSize, uint32_t newSize);
-	void _free(void* ptr, uint32_t size);
-	void _logMemory();
-	uint32_t _getMemory();
+	struct PNG {
+		void* data=nullptr;
+		uint32_t size=0;
+	};
+	// load png resource.
+	PNG LoadPNG(int id);
+
+	// Starts an exe at path. Uses CreateProcess from windows.h
+	bool StartProgram(const std::string& path);
 
 	// FILE
 	enum FileError : char {
@@ -178,34 +219,34 @@ namespace engone {
 				close();
 			}
 		}
-
-		bool binaryForm = false;
-		int writeHead = 0;
-		std::ofstream file;
-		std::string path;
-		FileError error = FileErrorNone;
-
-		std::vector<std::string> readNumbers;
-
-		bool operator!() {
-			return error != FileErrorNone;
+		~FileWriter() {
+			close();
 		}
-		operator bool() {
+
+		bool isOpen() const {
 			return error == FileErrorNone;
+		}
+		bool operator!() const {
+			return !isOpen();
+		}
+		operator bool() const {
+			return isOpen();
 		}
 		void close() {
 			if (file.is_open())
 				file.close();
 		}
+		const std::string& getPath() const { return path; }
+		FileError getError() const { return error; }
 		/*
-		T has to be convertable to a string std::to_string(T)
+		T has to be convertable to a string std::to_string(T), otherwise cast T* to char* and multiply size by sizeof(T).
 		*/
 		template <typename T>
-		void write(T* var, uint32_t size = 1) {
+		void write(const T* var, uint32_t size = 1) {
 			if (error != FileErrorNone || var == nullptr || size == 0)
 				throw error;
 			if (binaryForm) {
-				file.write(reinterpret_cast<char*>(var), size * (uint32_t)sizeof(T));
+				file.write(reinterpret_cast<const char*>(var), size * (uint32_t)sizeof(T));
 				writeHead += size * sizeof(T);
 			} else {
 				std::string out;
@@ -219,16 +260,16 @@ namespace engone {
 				file.write("\n", 1);
 			}
 		}
-		void write(glm::vec3* var, uint32_t size = 1) {
-			write((float*)var, size * 3);
+		void write(const glm::vec3* var, uint32_t size = 1) {
+			write((const float*)var, size * 3);
 		}
-		void write(glm::mat4* var, uint32_t size = 1) {
-			write((float*)var, size * 16);
+		void write(const glm::mat4* var, uint32_t size = 1) {
+			write((const float*)var, size * 16);
 		}
 		/*
 		256 characters is the current max size.
 		*/
-		void write(std::string* var) {
+		void write(const std::string* var) {
 			if (error == FileErrorMissing)
 				throw error;
 			if (binaryForm) {
@@ -248,6 +289,15 @@ namespace engone {
 				file.write("\n", 1);
 			}
 		}
+		static TrackerId trackerId;
+
+	private:
+		bool binaryForm = false;
+		int writeHead = 0;
+		std::ofstream file;
+		std::string path;
+		FileError error = FileErrorNone;
+
 	};
 	class FileReader {
 	public:
@@ -265,20 +315,14 @@ namespace engone {
 			close();
 		}
 
-		bool binaryForm = false;
-		uint32_t readHead = 0;
-		uint32_t fileSize = 0;
-		std::ifstream file;
-		std::string path;
-		FileError error = FileErrorNone;
-
-		std::vector<std::string> readNumbers;
-
-		bool operator!() {
-			return error != FileErrorNone;
-		}
-		operator bool() {
+		bool isOpen() const {
 			return error == FileErrorNone;
+		}
+		bool operator!() const {
+			return !isOpen();
+		}
+		operator bool() const {
+			return isOpen();
 		}
 		uint32_t size() const {
 			return fileSize;
@@ -287,6 +331,9 @@ namespace engone {
 			if (file.is_open())
 				file.close();
 		}
+		
+		const std::string& getPath() const { return path; }
+		FileError getError() const { return error; }
 		/*
 		T has to be convertable to int or float. Can also be char short and most of them. Maybe not long or double
 		*/
@@ -416,26 +463,6 @@ namespace engone {
 				log::out << log::RED << "readAll with binary is not implemented" << "\n";
 				error = FileErrorCorrupted;
 				throw error;
-				//if (readHead - 1 + 1 > fileSize) {
-				//	error = CorruptedData;
-				//	throw CorruptedData;
-				//}
-				//uint8_t length;
-				//file.read(reinterpret_cast<char*>(&length), 1);
-				//readHead++;
-
-				//if (length == 0)
-				//	return;
-
-				//if (readHead - 1 + length > fileSize) {
-				//	error = CorruptedData;
-				//	throw CorruptedData;
-				//}
-
-				//*var = std::string(length, ' ');
-
-				//file.read(reinterpret_cast<char*>(var->data()), length);
-				//readHead += length;
 			} else {
 				std::string line;
 				while (true) {
@@ -463,26 +490,6 @@ namespace engone {
 				log::out << log::RED << "readLines with binary is not implemented" << "\n";
 				error = FileErrorCorrupted;
 				throw error;
-				//if (readHead - 1 + 1 > fileSize) {
-				//	error = CorruptedData;
-				//	throw CorruptedData;
-				//}
-				//uint8_t length;
-				//file.read(reinterpret_cast<char*>(&length), 1);
-				//readHead++;
-
-				//if (length == 0)
-				//	return;
-
-				//if (readHead - 1 + length > fileSize) {
-				//	error = CorruptedData;
-				//	throw CorruptedData;
-				//}
-
-				//*var = std::string(length, ' ');
-
-				//file.read(reinterpret_cast<char*>(var->data()), length);
-				//readHead += length;
 			} else {
 				std::vector<std::string> list;
 				std::string line;
@@ -507,5 +514,22 @@ namespace engone {
 				return list;
 			}
 		}
+		static TrackerId trackerId;
+	private:
+		bool binaryForm = false;
+		uint32_t readHead = 0;
+		uint32_t fileSize = 0;
+		std::ifstream file;
+		std::string path;
+		FileError error = FileErrorNone;
+
+		std::vector<std::string> readNumbers;
 	};
 }
+
+template<>
+struct std::hash<engone::UUID> {
+	std::size_t operator()(const engone::UUID& u) const {
+		return std::hash<uint64_t>{}(u.data[0]) ^ (std::hash<uint64_t>{}(u.data[1]) << 1);
+	}
+};
