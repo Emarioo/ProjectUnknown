@@ -59,6 +59,7 @@
     <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\Application.cpp" />
     <ClCompile Include="src\Engone\Components\Component.cpp" />
+    <ClCompile Include="src\Engone\GameObject.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
@@ -99,13 +100,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -179,7 +180,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
@@ -209,7 +210,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
@@ -235,7 +236,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>
@@ -265,7 +266,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <ProjectReference>

@@ -51,6 +51,19 @@ from mathutils import Vector
 
 # Used to switch the axis (Y-up instead of Z-up)
 
+from bpy_extras.io_utils import axis_conversion
+
+axisConvert = axis_conversion(from_forward="-Y",from_up="Z",to_forward="Z",to_up="Y").to_4x4()
+axisIConvert = axisConvert.inverted()
+#rotConvert = axisConvert.to_quaternion().to_matrix().to_4x4()
+#irotConvert = rotConvert.to_4x4().inverted()
+
+#print(axisConvert)
+#print(rotConvert)
+#print(irotConvert)
+
+#print(axisConvert@irotConvert)
+
 logState="INFO"
 infoLog=[]
 warningLog=[]
@@ -224,6 +237,10 @@ def WriteMesh(path,original):
     bpy.context.scene.collection.objects.link(object)
     object.select_set(True)
     bpy.context.view_layer.objects.active=object
+    
+    object.matrix_world = axisConvert @ object.matrix_world
+    object.data.transform(axisConvert)
+    object.matrix_world = object.matrix_world @ axisIConvert
     
     #print(bpy.context.object)
     
@@ -643,6 +660,9 @@ def GetColliderType(object):
         return "SPHERE"
     elif object.data.name[:3]=="MAP":
         return "MAP"
+    elif object.data.name[:7]=="CAPSULE":
+        return "CAPSULE"
+    Logging('ERROR',"Invalid collider type "+str(object.data.name))
     return False
 
 def rounding(x):
@@ -651,24 +671,30 @@ def rounding(x):
 # cube collider does not use original.data
 def WriteCollider(path,original):
     colliderType = GetColliderType(original)
+    if not colliderType:
+        return
     original["dataName"]=original.name+"_"+colliderType
     file = FileWriter(path+original["dataName"]+".collider")
     if file.error:
         return
-    
-    # object does not have any modifiers which needs to be applied so we don't need to make a copy
-    object=original
-    #bpy.ops.object.select_all(action="DESELECT")
+        
+    bpy.ops.object.select_all(action="DESELECT")
     # Make a copy of the object and apply modifiers
-    #object=original.copy()
-    #object.data=original.data.copy()
-    #bpy.context.scene.collection.objects.link(object)
-    #object.select_set(True)
-    #bpy.context.view_layer.objects.active=object
+    object=original.copy()
+    object.data=original.data.copy()
+    bpy.context.scene.collection.objects.link(object)
+    object.select_set(True)
+    bpy.context.view_layer.objects.active=object
+
+    object.matrix_world = axisConvert @ object.matrix_world
+    object.data.transform(axisConvert)
+    object.matrix_world = object.matrix_world @ axisIConvert
+    
 
     # CUBE 0
     # SPEHRE 1
     # MAP 2
+    # CAPSULE 3
     
     file.writeComment("Type")
     if colliderType=="CUBE":
@@ -766,7 +792,15 @@ def WriteCollider(path,original):
             Logging('INFO',original.name)
         else:
             Logging('ERROR',"Height map is not square!")
+    
+    elif colliderType=="CAPSULE":
+        file.writeUChar(3)
+        file.writeComment("Radius")
+        file.writeFloat(math.sqrt(object.dimensions[0]*object.dimensions[0]/4+object.dimensions[2]*object.dimensions[2]/4))
+        file.writeComment("Height")
+        file.writeFloat(object.dimensions[1]/2)
         
+        Logging('INFO',original.name)
         
     elif colliderType=="MESH":
         file.writeUChar(2)
@@ -808,7 +842,7 @@ def WriteCollider(path,original):
    
     # Cleanup
     file.close()
-    #bpy.ops.object.delete()
+    bpy.ops.object.delete()
 
 def WriteModel(path,name,meshes,armatures,colliders,animations):
     file = FileWriter(path+name+".model")
@@ -822,8 +856,44 @@ def WriteModel(path,name,meshes,armatures,colliders,animations):
         general.append(o)
     for o in colliders:
         general.append(o)
-    
+    #print(general)
+    #for x in general:
+    #    print(x.name,general.index(x.parent) if x.parent else -1)
     sort = sorted(general,key=lambda x: general.index(x.parent) if x.parent else -1)
+    
+    sort = []
+    # add the root
+    for o in general:
+        if o.parent==None:
+            sort.append(o)
+            general.remove(o)
+            break
+        
+    index = 0
+    limit = len(general) # safety feature
+    while len(general)>0 and limit>0:
+       # print("index ",index)
+       
+        i=0
+        while i<len(general):
+            o = general[i]
+            #print(o.name)
+            if o.parent==None:
+                continue
+            parIndex = sort.index(o.parent)
+            #print(" ",parIndex)
+            if index == parIndex:
+                sort.append(o)
+                general.remove(o)
+                i-=1
+            
+            i+=1
+        
+        index+=1
+        limit-=1
+    #Logging("WARNING","Instance sorting"
+    
+    print(sort)
     
     file.writeComment("Instance count")
     file.writeUChar(len(sort))
@@ -832,9 +902,15 @@ def WriteModel(path,name,meshes,armatures,colliders,animations):
         parentIndex = sort.index(o.parent) if o.parent else -1
         
         localMatrix=o.matrix_local
+        #if parentIndex==-1:
+        localMatrix=axisConvert@localMatrix@axisIConvert
+        
+        #object.matrix_world = axisConvert * object.matrix_local
+        # object.data.transform(rotConvert)
+        #object.matrix_world *= irotConvert
         
         #if parentIndex==-1:
-       #     local_matrix = local_matrix.Translation(local_matrix[3])
+            #local_matrix = local_matrix.Translation(local_matrix[3])
         
         type = 0
         if o in meshes:
@@ -847,18 +923,19 @@ def WriteModel(path,name,meshes,armatures,colliders,animations):
             type=2
             colliders.remove(o)
         
-        # ignore scale
-        if type==2:
-            localMatrix = Matrix.LocRotScale(localMatrix.to_translation(),localMatrix.to_quaternion(),None)
+        # ignore scale actually keep
+        #if type==2:
+        #    localMatrix = Matrix.LocRotScale(localMatrix.to_translation(),localMatrix.to_quaternion(),None)
         
         file.writeString(o.name)
-        file.writeComment("Instance Type")
+        #file.writeComment("Instance Type")
         file.writeUChar(type)
         
         file.writeString(o["dataName"])
             
         file.writeShort(parentIndex)
-        file.writeMatrix(localMatrix.transposed())
+        localMatrix=localMatrix.transposed()
+        file.writeMatrix(localMatrix)
     
     file.writeComment("Animation count")
     file.writeUShort(len(animations))
@@ -881,7 +958,9 @@ def LoadFiles(assetPath):
         
         export_objects=bpy.context.selected_objects
         for rootObject in export_objects: 
-            if rootObject.parent==None:
+            if not rootObject.parent==None:
+                Logging("ERROR","Selected object has a parent!")
+            else:
           
                 objectPath=assetPath+rootObject.name+"\\"
                     

@@ -9,34 +9,35 @@ public:
 
 	void update(engone::UpdateInfo& info) override;
 	void Movement(engone::UpdateInfo& info);
+	void Input(engone::UpdateInfo& info);
 
 	// Movement and camera
 	float zoomOut = 0;
 
-	glm::vec3 collisionNormal = {0,0,0};
-	glm::vec3 lastForce = {0,0,0};
+	//glm::vec3 collisionNormal = {0,0,0};
+	//glm::vec3 lastForce = {0,0,0};
 
-	bool sprintMode = false;
-	bool crouchMode = false;
+	//bool sprintMode = false;
+	//bool crouchMode = false;
 
-	float walkSpeed = 4.0f;
-	float sprintSpeed = 7.0f;
-	float flySpeed = 2.0f*5;
-	float flyFastSpeed = 13.0f*10;
-	float jumpForce = 10.0f;
+	engone::GameObject* inventorySword = nullptr;
+	engone::GameObject* heldWeapon = nullptr;
+	rp3d::Joint* weaponJoint = nullptr;
+	void setWeapon(engone::GameObject* weapon);
 
-	float lastVelocity = 0;
+	bool noclip = false;
+
+	float walkSpeed = 6.f;
+	float sprintSpeed = 12.f;
+	float jumpForce = 0.5f;
+
+	engone::Camera testCam;
+
+	//float lastVelocity = 0;
 	bool onGround = false;
 
-	// Stats
-	float health = 20;
-	float maxHealth = 100;
-	float stamina = 20;
-	float maxStamina = 60;
-	float hunger = 80;
-	float maxHunger = 100;
-	float mana = 9;
-	float maxMana = 20;
+	// a little odd to have it here the class needs it when making joints
+	engone::Engone* engone=nullptr;
 
 private:
 	float animBlending = 0;

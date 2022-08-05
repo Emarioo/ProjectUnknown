@@ -336,7 +336,8 @@ namespace engone {
 		enum class Type : char {
 			Cube=0,
 			Sphere=1,
-			HeightMap=2
+			HeightMap=2,
+			Capsule=3
 		};
 		// Height map
 		std::vector<glm::vec3> points;
@@ -356,6 +357,9 @@ namespace engone {
 				glm::vec3 scale;
 				std::vector<float> heights;
 			} heightMap;
+			struct {
+				float radius=0, height = 0;
+			} capsule;
 		};
 
 		static TrackerId trackerId;
@@ -428,12 +432,12 @@ namespace engone {
 		std::vector<AnimationAsset*> animations;
 		
 		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
-		void getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats);
+		std::vector<glm::mat4> getParentTransforms(Animator* animator);
 
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		void getArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
+		std::vector<glm::mat4> getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
 
 		static TrackerId trackerId;
 	private:

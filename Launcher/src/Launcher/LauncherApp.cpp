@@ -289,7 +289,7 @@ namespace launcher {
 				}
 				//log::out << "Client: finished ," << exePath << "\n";
 				if (!exePath.empty()) {
-					//StartProgram(exePath);
+					StartProgram(exePath);
 
 					m_window->close();
 				} else {
@@ -328,7 +328,7 @@ namespace launcher {
 			return EventNone;
 		});
 		// ISSUE: without this, the app doesn't act how i want. it says connecting... when it's not even trying to.
-		//doAction(true);
+		doAction(true);
 	}
 
 	void LauncherApp::update(engone::UpdateInfo& info) {
