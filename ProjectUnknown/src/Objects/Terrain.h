@@ -5,33 +5,20 @@
 class Terrain : public engone::GameObject {
 public:
 	Terrain(engone::Engone* engone) : GameObject(engone) {
-		 
+		using namespace engone;
 		engone::Assets* assets = engone::GetActiveWindow()->getAssets();
-		modelAsset = assets->set<engone::ModelAsset>("Terrain/Terrain");
+		//modelAsset = assets->set<engone::ModelAsset>("Terrain/Terrain");
+		modelAsset = assets->set<engone::ModelAsset>("C_floor/C_floor");
+		//modelAsset = assets->set<engone::ModelAsset>("C_Test/C_Test");
+		//modelAsset = assets->set<engone::ModelAsset>("C_other/C_other");
+		//modelAsset = assets->set<engone::ModelAsset>("Other/Other");
 
 		rp3d::Transform t;
 		rigidBody = engone->m_pWorld->createRigidBody(t);
 		rigidBody->setType(rp3d::BodyType::STATIC);
+		//rigidBody->setLinearVelocity({0,1,1});
 
-		for (auto& inst : modelAsset->instances) {
-			if (inst.asset->type == engone::ColliderAsset::TYPE) {
-				engone::ColliderAsset* asset = inst.asset->cast<engone::ColliderAsset>();
-				if (asset->colliderType == engone::ColliderAsset::Type::HeightMap) {
-
-					rp3d::HeightFieldShape* map = engone->m_pCommon->createHeightFieldShape(asset->heightMap.gridWidth,
-						asset->heightMap.gridHeight,asset->heightMap.minHeight,asset->heightMap.maxHeight,
-						asset->heightMap.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
-						1,1,*(rp3d::Vector3*)&asset->heightMap.scale);
-				
-					rp3d::Transform tr;
-					tr.setFromOpenGL((float*)&inst.localMat);
-					rigidBody->addCollider(map, tr);
-					auto col = rigidBody->getCollider(rigidBody->getNbColliders() - 1);
-					col->getMaterial().setFrictionCoefficient(0.6f);
-					col->getMaterial().setBounciness(0.03f);
-				}
-			}
-		}
+		loadColliders(engone);
 	}
 
 private:

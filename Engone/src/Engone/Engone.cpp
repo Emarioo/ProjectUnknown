@@ -229,8 +229,8 @@ namespace engone {
 		//	if (m_applications.size() == 0)
 		//		break;
 		//}
-		GetTracker().printMemory();
-		GetTracker().printInfo();
+		//GetTracker().printMemory();
+		//GetTracker().printInfo();
 		double lastTime = GetSystemTime();
 		while (true) {
 			double now = GetSystemTime();
@@ -294,7 +294,7 @@ namespace engone {
 
 				m_runtimeStats.incrUpdates();
 				UpdateInfo info = { m_runtimeStats.updateTime, nullptr };
-				update(info);
+				//update(info);
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 					Application* app = m_applications[appIndex];
 					info.app = app;
@@ -304,6 +304,7 @@ namespace engone {
 						app->getWindow(0)->setActiveContext();
 
 					app->update(info);
+					update(info); // should maybe be moved outside loop?
 
 					// update reset for all windows.
 					// The global variable IsKeyPressed only works for the active window
@@ -341,7 +342,9 @@ namespace engone {
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 						// 3d stuf
-						win->getRenderer()->setProjection(GetWidth() / GetHeight());
+						float ratio = GetWidth() / GetHeight();
+						if(isfinite(ratio))
+							win->getRenderer()->setProjection(ratio);
 
 						app->render(info);
 
@@ -426,62 +429,6 @@ namespace engone {
 
 		return EventNone;
 	}
-
-	//void Initialize(EngoneOption options) {
-	//	SetEngoneOptions(options);
-	//	//InitializeGLFW();
-
-	//	//// gl functions in game loop function
-	//	///*glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//	//glDepthFunc(GL_LESS);
-	//	//glEnable(GL_CULL_FACE);*/
-	//	////glEnable(GL_FRAMEBUFFER_SRGB);
-
-	//	////if (hints & EngoneHint::UI){
-	//	//	AddAsset<Shader>("gui", new Shader(guiShaderSource));
-	//	//	//InitGui();
-	//	//	//InitUIPipeline();
-	//	//	//InitRenderer(EngoneHint::UI);
-	//	////}
-	//	////if (hints & EngoneHint::Game3D) {
-	//	//	AddAsset<Shader>("object", new Shader(objectSource));
-	//	//	AddAsset<Shader>("armature", new Shader(armatureSource));
-	//	//	AddAsset<Shader>("collision", new Shader(collisionSource));
-	//	//	instanceBuffer.setData(100 * 16, nullptr);
-	//	//	InitRenderer(EngoneOption::Game3D);
-	//	//	AddListener(new Listener(EventType::Move, 9998, FirstPerson));
-	//	//	depthBuffer.init();
-	//	//	/*float near_plane = 1.f, far_plane = 20.5f;
-	//	//	lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
-
-	//	//	fov = 90.f;
-	//	//	zNear = 0.1f;
-	//	//	zFar = 400.f;*/
-	//	//	//SetProjection(GetWidth() / GetHeight());
-	//	////}
-	//	////if (hints & EngoneHint::Network) {
-	//	//	
-	//	////}
-	//	////if (hints & EngoneHint::Sound) {
-
-	//	////}
-
-	//	//AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
-	//}
-	/*void SetProjection(float ratio) {
-		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
-	}
-	void UpdateViewMatrix(double lag) {
-		viewMatrix = glm::inverse(
-			glm::translate(glm::mat4(1.0f), GetCamera()->position) *
-			glm::rotate(GetCamera()->rotation.y, glm::vec3(0, 1, 0)) *
-			glm::rotate(GetCamera()->rotation.x, glm::vec3(1, 0, 0))
-		);
-	}
-	void UpdateProjection(Shader* shader) {
-		if (shader != nullptr)
-			shader->setMat4("uProj", projMatrix * viewMatrix);
-	}*/
 	void Engone::addObject(GameObject* object) {
 		m_objects.push_back(object);
 	}
@@ -493,7 +440,6 @@ namespace engone {
 		for (int i = 0; i < m_objects.size(); i++) {
 			m_objects[i]->update(info);
 		}
-		//UpdateTimers(info.timeStep);
 	}
 	float testTime = 0;
 	void Engone::render(RenderInfo& info) {
@@ -551,15 +497,20 @@ namespace engone {
 		}*/
 
 		//-- Debug
-		//EnableBlend();
+		EnableBlend();
 		//Shader* gui = GetAsset<Shader>("gui");
-		//gui->bind();
-		//gui->setVec2("uPos", { 0,0 });
-		//gui->setVec2("uWindow", { GetWidth(), GetHeight() });
-		//gui->setVec2("uSize", { 1,1 });
-		//gui->setVec4("uColor", 1, 1, 1, 1);
-		//gui->setInt("uColorMode", 1);
-		//DrawString(GetAsset<Font>("consolas"), std::to_string(GetCamera()->position.x) + " " + std::to_string(GetCamera()->position.y) + " " + std::to_string(GetCamera()->position.z), false, 50, 300, 50, -1);
+		Shader* gui = info.window->getAssets()->get<Shader>("gui");
+		gui->bind();
+		gui->setVec2("uPos", { 0,0 });
+		gui->setVec2("uWindow", { GetWidth(), GetHeight() });
+		gui->setVec2("uSize", { 1,1 });
+		gui->setVec4("uColor", 1, 1, 1, 1);
+		gui->setInt("uColorMode", 1);
+		Camera* cam = info.window->getRenderer()->getCamera();
+		// Note that this is the camera's location. Not the player's.
+		info.window->getRenderer()->DrawString(info.window->getAssets()->get<Font>("consolas"),
+			std::to_string(cam->getPosition().x) + " " + std::to_string(cam->getPosition().y) + " " +
+			std::to_string(cam->getPosition().z), false, 50, 300, 50, -1);
 
 		// Physics debug
 #ifndef ENGONE_NO_PHYSICS
@@ -598,8 +549,10 @@ namespace engone {
 		for (int i = 0; i < m_objects.size(); ++i) {
 			GameObject* obj = m_objects[i];
 
+			
+			glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 			if (obj->meshAsset) {
-				glm::mat4 modelMatrix = obj->getTransform();
+				//glm::mat4 modelMatrix = obj->getTransform();
 
 				if (obj->meshAsset->meshType == MeshAsset::MeshType::Normal) {
 					if (normalObjects.count(obj->meshAsset) > 0) {
@@ -610,14 +563,13 @@ namespace engone {
 					}
 				}
 			} else if (obj->modelAsset) {
-				glm::mat4 modelMatrix = obj->getTransform();
+				
+				//glm::mat4 modelMatrix = obj->getTransform();
 
 				Animator* animator = &obj->animator;
 
 				// Get individual transforms
-				std::vector<glm::mat4> transforms;
-				if (animator->asset)
-					obj->modelAsset->getParentTransforms(animator, transforms);
+				std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(animator);
 
 				/*
 				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
@@ -637,10 +589,13 @@ namespace engone {
 						if (asset->meshType == MeshAsset::MeshType::Normal) {
 							glm::mat4 out;
 
-							if (animator->asset)
-								out = modelMatrix * transforms[i] * instance.localMat;
-							else
-								out = modelMatrix * instance.localMat;
+							//if (animator->asset)
+							out = modelMatrix * transforms[i] * instance.localMat;
+							//else
+								//out = modelMatrix * instance.localMat;
+							
+
+							//out = glm::rotate(-20 * glm::pi<float>() / 180.f, glm::vec3(1, 0, 0));
 
 							if (normalObjects.count(asset) > 0) {
 								normalObjects[asset].push_back(out);
@@ -694,7 +649,7 @@ namespace engone {
 
 				if (obj->modelAsset) {
 
-					glm::mat4 modelMatrix = obj->getTransform();
+					glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
 					Animator* animator = &obj->animator;
 
@@ -703,7 +658,7 @@ namespace engone {
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
 					if (animator)
-						obj->modelAsset->getParentTransforms(animator, transforms);
+						transforms = obj->modelAsset->getParentTransforms(animator);
 
 					//-- Draw instances
 					AssetInstance* armatureInstance = nullptr;
@@ -729,7 +684,7 @@ namespace engone {
 
 								std::vector<glm::mat4> boneTransforms;
 								if (animator)
-									obj->modelAsset->getArmatureTransforms(animator, boneTransforms, transforms[i], armatureInstance, armatureAsset);
+									boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset);
 
 								for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
 									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);

@@ -62,6 +62,9 @@ namespace engone {
 
 		float getMouseX() const { return m_mouseX; }
 		float getMouseY() const { return m_mouseY; }
+		// raw input from first person
+		float getRawMouseX() const;
+		float getRawMouseY() const;
 		void setMouseX(float x) { m_mouseX=x; }
 		void setMouseY(float y) { m_mouseY=y; }
 		float getScrollX() const;
@@ -79,7 +82,8 @@ namespace engone {
 
 		void resetEvents();
 
-		void enableFirstPerson();
+		void enableFirstPerson(bool yes);
+		bool isFirstPerson() const { return m_enabledFirstPerson; }
 
 		void close();
 		// If true, the cursor will be made visible.
@@ -115,7 +119,11 @@ namespace engone {
 		static const uint32_t CHAR_ARRAY_SIZE = 20;
 		uint32_t m_charArray[CHAR_ARRAY_SIZE];
 
+		bool m_enabledFirstPerson = false;
+
 		float m_mouseX = 0, m_mouseY = 0;
+		float m_lastMouseX = -1, m_lastMouseY=-1;
+		float m_tickRawMouseX = 0, m_tickRawMouseY = 0, m_frameRawMouseX = 0, m_frameRawMouseY = 0;
 		float m_tickScrollX=0, m_tickScrollY = 0;
 		float m_frameScrollX = 0, m_frameScrollY = 0;
 
@@ -127,6 +135,7 @@ namespace engone {
 		friend class Application;
 		friend class Engone;
 
+		friend EventType FirstPerson(Event& e);
 		friend void FocusCallback(GLFWwindow* window, int focused);
 		friend void CloseCallback(GLFWwindow* window);
 		friend void ResizeCallback(GLFWwindow* window, int width, int height);

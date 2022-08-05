@@ -1064,15 +1064,8 @@ namespace engone {
 	}
 	void ColliderAsset::load(const std::string& path) {
 		filePath = path + ".collider";
-		// Reset old data
-		if (colliderType == Type::Cube) {
 
-		}else if (colliderType == Type::Sphere) {
-
-		}else if (colliderType == Type::HeightMap) {
-			//points.clear();
-			//tris.clear();
-		}
+		// maybe reset old data?
 		
 		//ints.push_back(2);
 		//ints.push_back(6);
@@ -1087,28 +1080,27 @@ namespace engone {
 			//log::out << (int)colliderType << " type\n";
 
 			switch (colliderType) {
-			case Type::Cube:
+			case Type::Cube: {
 				file.read(&cube.size);
 				//log::out << cube.scale<<" scale \n";
 				//furthest = glm::length(cube.size);
 				break;
-			case Type::Sphere:
-				//file.read(&sphere.radius);
-				//file.read(&sphere.position);
-				//furthest = sphere.radius;
-				//log::out << cube.scale << " radius \n";
+			}
+			case Type::Sphere:{
+				file.read(&sphere.radius);
 				break;
-			case Type::HeightMap:
+			}
+			case Type::HeightMap: {
 				file.read(&heightMap.gridWidth);
 				file.read(&heightMap.gridHeight);
 				file.read(&heightMap.minHeight);
 				file.read(&heightMap.maxHeight);
 				file.read(&heightMap.scale);
-				uint32_t count= heightMap.gridWidth * heightMap.gridHeight;
+				uint32_t count = heightMap.gridWidth * heightMap.gridHeight;
 				heightMap.heights.resize(count);
 				file.read(heightMap.heights.data(), count);
-				break;
-				
+
+
 				//uint16_t triCount,pointCount;
 				//file.read(&pointCount);
 				//file.read(&triCount);
@@ -1129,6 +1121,12 @@ namespace engone {
 				//}
 
 				break;
+			}
+			case Type::Capsule: {
+				file.read(&capsule.radius);
+				file.read(&capsule.height);
+				break;
+			}
 			}
 		}
 		catch (FileError err) {
@@ -1245,11 +1243,12 @@ namespace engone {
 			//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
 		}
 	}
-	void ModelAsset::getParentTransforms(Animator* animator, std::vector<glm::mat4>& mats) {
-		mats.resize(instances.size());
-
+	std::vector<glm::mat4> ModelAsset::getParentTransforms(Animator* animator) {
+		// NOTE: one vector might be enough.
+		std::vector<glm::mat4> mats(instances.size());
 		std::vector<glm::mat4> modelT(instances.size());
-		//log::out << "go "<< "\n";
+		
+
 		for (uint32_t i = 0; i < instances.size(); ++i) {
 			AssetInstance& instance = instances[i];
 			glm::mat4 loc = instances[i].localMat;
@@ -1262,21 +1261,23 @@ namespace engone {
 
 			short usedChannels = 0;
 
-			for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
-				if (animator->enabledAnimations[i].asset) {
-					AnimatorProperty& prop = animator->enabledAnimations[k];
-					for (uint32_t j = 0; j < animations.size(); ++j) {
-						AnimationAsset* animation = animations[j];
-						//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
-						if (prop.asset == animation &&
-							prop.instanceName == instance.name) {
+			if (animator) {
+				for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
+					if (animator->enabledAnimations[k].asset) {
+						AnimatorProperty& prop = animator->enabledAnimations[k];
+						for (uint32_t j = 0; j < animations.size(); ++j) {
+							AnimationAsset* animation = animations[j];
+							//log::out << "if " << prop.animationName <<" == "<<animation->baseName<<" & "<<prop.instanceName<<" == " <<instance.name<< "\n";
+							if (prop.asset == animation &&
+								prop.instanceName == instance.name) {
 
-							if (animation->objects.count(0) > 0) {// the object/instance uses transform object
+								if (animation->objects.count(0) > 0) {// the object/instance uses transform object
 
-								//log::out << "inst " << i << "\n";
-								animation->objects[0].getValues((int)prop.frame, prop.blend,
-									pos, euler, scale, quater, &usedChannels);
-								//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+									//log::out << "inst " << i << "\n";
+									animation->objects[0].getValues((int)prop.frame, prop.blend,
+										pos, euler, scale, quater, &usedChannels);
+									//log::out << " "<<pos.y <<" " << i << " " << k << " " << j << "\n";
+								}
 							}
 						}
 					}
@@ -1323,14 +1324,17 @@ namespace engone {
 
 			glm::mat4 dostuff = quater;//glm::mat4_cast(quat);
 			*/
-			glm::mat4 ani = glm::translate(glm::mat4(1), pos)
-				* quater
-				//* glm::rotate(euler.x, glm::vec3(1, 0, 0))
-				//* glm::rotate(euler.z, glm::vec3(0, 0, 1))
-				//* glm::rotate(euler.y, glm::vec3(0, 1, 0))
-				* glm::scale(scale)
-				;
 
+			glm::mat4 ani = glm::mat4(1);
+			if (animator) {
+				ani = glm::translate(glm::mat4(1), pos)
+					* quater
+					//* glm::rotate(euler.x, glm::vec3(1, 0, 0))
+					//* glm::rotate(euler.z, glm::vec3(0, 0, 1))
+					//* glm::rotate(euler.y, glm::vec3(0, 1, 0))
+					* glm::scale(scale)
+					;
+			}
 
 			if (instances[i].parent == -1) {
 				modelT[i] = (loc * ani);
@@ -1344,9 +1348,10 @@ namespace engone {
 
 			//mats[i] = (modelT[i]);
 		}
+		return mats;
 	}
-	void ModelAsset::getArmatureTransforms(Animator* animator, std::vector<glm::mat4>& mats, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
-		mats.resize(armature->bones.size());
+	std::vector<glm::mat4> ModelAsset::getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
+		std::vector<glm::mat4> mats(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
 			
@@ -1435,6 +1440,7 @@ namespace engone {
 				mats[i] = (modelT[i] * inv);
 			}
 		}
+		return mats;
 	}
 	Assets::~Assets() {
 		removeAssets<Texture>();

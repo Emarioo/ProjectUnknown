@@ -184,6 +184,40 @@ namespace engone {
 			win->y = (float)y;
 		}
 	}
+	static float cameraSensitivity = 0.1f;
+	EventType FirstPerson(Event& e) {
+		if (e.window->m_lastMouseX != -1) {
+			Camera* camera = e.window->getRenderer()->getCamera();
+			if (GetActiveWindow()->isCursorLocked() && camera != nullptr) {
+				float rawX = -(e.mx - e.window->m_lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				float rawY = -(e.my - e.window->m_lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+
+				e.window->m_tickRawMouseX += rawX;
+				e.window->m_frameRawMouseX += rawX;
+				e.window->m_tickRawMouseY += rawY;
+				e.window->m_frameRawMouseY += rawY;
+
+				if (e.window->m_enabledFirstPerson) {
+					glm::vec3 rot = camera->getRotation(); // get a copy of rotation
+					rot.y += rawX;
+					rot.x += rawY;
+					// clamp up and down directions.
+					if (rot.x > glm::pi<float>() / 2) {
+						rot.x = glm::pi<float>() / 2;
+					}
+					if (rot.x < -glm::pi<float>() / 2) {
+						rot.x = -glm::pi<float>() / 2;
+					}
+					rot.x = remainder(rot.x, glm::pi<float>() * 2);
+					rot.y = remainder(rot.y, glm::pi<float>() * 2);
+					camera->setRotation(rot); // set the new rotation
+				}
+			}
+		}
+		e.window->m_lastMouseX = e.mx;
+		e.window->m_lastMouseY = e.my;
+		return EventNone;
+	}
 
 	Window::Window(Application* application, WindowDetail detail) {
 		// setup
@@ -205,6 +239,8 @@ namespace engone {
 		else w = (float)detail.w;
 		if (detail.h == -1) h = (float)vidmode->height / 1.5f;
 		else h = (float)detail.h;
+
+		attachListener(EventMove, 9998, FirstPerson);
 
 		setMode(detail.mode);
 		windowMapping[m_glfwWindow] = this;
@@ -284,6 +320,20 @@ namespace engone {
 		}
 		if (down)
 			m_inputs.push_back({ code, down, 1, 1 });
+	}
+	float  Window::getRawMouseX() const {
+		if (m_parent->isRenderingWindow()) {
+			return m_frameRawMouseX;
+		} else {
+			return m_tickRawMouseX;
+		}
+	}
+	float  Window::getRawMouseY() const {
+		if (m_parent->isRenderingWindow()) {
+			return m_frameRawMouseY;
+		} else {
+			return m_tickRawMouseY;
+		}
 	}
 	float  Window::getScrollX() const {
 		if (m_parent->isRenderingWindow()) {
@@ -372,12 +422,16 @@ namespace engone {
 			if (m_parent->isRenderingWindow()) {
 				m_frameScrollX = 0;
 				m_frameScrollY = 0;
+				m_frameRawMouseX = 0;
+				m_frameRawMouseY = 0;
 				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 					m_inputs[i].framePressed = 0;
 				}
 			} else {
 				m_tickScrollX = 0;
 				m_tickScrollY = 0;
+				m_tickRawMouseX = 0;
+				m_tickRawMouseY = 0;
 				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 					m_inputs[i].tickPressed = 0;
 				}
@@ -400,32 +454,8 @@ namespace engone {
 		}
 		m_events.clear();
 	}
-	static float lastMouseX = -1, lastMouseY = -1;
-	static float cameraSensitivity = 0.1f;
-	EventType FirstPerson(Event& e) {
-		if (lastMouseX != -1) {
-			Camera* camera = e.window->getRenderer()->getCamera();
-			if (GetActiveWindow()->isCursorLocked() && camera != nullptr) {
-				glm::vec3 rot = camera->getRotation(); // get a copy of rotation
-				rot.y -= (e.mx - lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
-				rot.x -= (e.my - lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
-				if (rot.x > glm::pi<float>() / 2) {
-					rot.x = glm::pi<float>() / 2;
-				}
-				if (rot.x < -glm::pi<float>() / 2) {
-					rot.x = -glm::pi<float>() / 2;
-				}
-				rot.x = remainder(rot.x, glm::pi<float>()*2);
-				rot.y = remainder(rot.y, glm::pi<float>() * 2);
-				camera->setRotation(rot); // set the new rotation
-			}
-		}
-		lastMouseX = e.mx;
-		lastMouseY = e.my;
-		return EventNone;
-	}
-	void Window::enableFirstPerson() {
-		attachListener(EventMove, 9998, FirstPerson);
+	void Window::enableFirstPerson(bool yes) {
+		m_enabledFirstPerson = yes;
 	}
 	static void SetCallbacks(GLFWwindow* window) {
 		glfwSetKeyCallback(window, KeyCallback);

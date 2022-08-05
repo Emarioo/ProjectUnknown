@@ -43,7 +43,7 @@ namespace game {
 					int contacts = pair.getNbContactPoints();
 					for (int j = 0; j < contacts; j++) {
 						auto point = pair.getContactPoint(j);
-						player->collisionNormal = *(glm::vec3*)&point.getWorldNormal();
+						//player->collisionNormal = *(glm::vec3*)&point.getWorldNormal();
 						return;
 					}
 				//}
@@ -59,7 +59,7 @@ namespace game {
 
 		//m_window = new Window(this,1000,800);
 		m_window->setTitle("Project Unknown");
-		m_window->enableFirstPerson();
+		m_window->enableFirstPerson(true);
 
 		//-- Assets
 		Assets* assets = getAssets();
@@ -84,19 +84,30 @@ namespace game {
 		rp3d::DebugRenderer& debugRenderer = engone->m_pWorld->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
 		getEngine()->m_pWorld->setEventListener(this);
 
 		sword = new Sword(engone);
 		engone->addObject(sword);
 		player = new Player(engone);
-		player->setTransform({ 0,10,0 });
+		player->setTransform({ 0,0,0 });
+		sword->setTransform({ 2,0,0 });
 		engone->addObject(player);
+
+		player->inventorySword = sword;
+
+		//rp3d::Vector3 anchor(1, 1, 1);
+		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
+		//rp3d::Joint* joint = engone->m_pWorld->createJoint(fixedInfo);
+
+		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
+		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
+
 		terrain = new Terrain(engone);
 		engone->addObject(terrain);
-		//terrain->setTransform({ 0,-2,0 });
+		terrain->setTransform({ 0,-2,0 });
 
 		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
@@ -104,8 +115,6 @@ namespace game {
 	float tempTime = 0;
 	void GameApp::update(engone::UpdateInfo& info) {
 		using namespace engone;
-		sword->setTransform(glm::translate(glm::mat4(1),glm::vec3(0, 0, tempTime)));
-		//tempTime -= 0.0016;
 
 		if (engone::IsKeybindingPressed(KeyPause)) {
 			if(engone::GetActiveWindow()->isCursorLocked()){
@@ -114,34 +123,19 @@ namespace game {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
 		}
-		//engone::log::out << "reset\n";
-		//player->collisionNormal = {0,0,0};
-		//if (player) {
-		//	if (player->rigidBody) {
-		//		//glm::vec3 pos = player->getTransform()[3];
-		//		glm::vec3 pos = { 0,0,0 };
-		//		Camera* cam = m_window->getRenderer()->getCamera();
-		//		if (player->zoomOut!=0) {
-		//			glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->rotation.y, glm::vec3(0, 1, 0)) * glm::rotate(cam->rotation.x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
-		//			cam->position = mat[3];
-		//		} else {
-		//			cam->position = pos + glm::vec3(0, 3.f, 0);
-		//		}
-		//	}
-		//}
 	}
 	void GameApp::render(engone::RenderInfo& info) {
 		using namespace engone;
 		if (player) {
 			if (player->rigidBody) {
-				glm::vec3 pos = player->getTransform()[3];
+				glm::vec3 pos = player->getPosition();
 				Camera* cam = m_window->getRenderer()->getCamera();
+				float camH = 1.4;
+				glm::mat4 camMat = glm::translate(pos + glm::vec3(0, camH, 0));
 				if (player->zoomOut != 0) {
-					glm::mat4 mat = glm::translate(pos + glm::vec3(0, 3.f, 0)) * glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
-					cam->setPosition(mat[3]);
-				} else {
-					cam->setPosition(pos + glm::vec3(0, 3.f, 0));
+					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
 				}
+				cam->setPosition(camMat[3]);
 			}
 		}
 		//ui::Box box = { 20,30,100,100,{1,1,1,1} };

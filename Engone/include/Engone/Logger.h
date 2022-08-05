@@ -2,8 +2,8 @@
 
 // these are not necessary in programs where you have precompiled header
 // but incase you don't and throw this header inside, it will still work.
-#include <stdint.h>
-#include <string>
+//#include <stdint.h>
+//#include <string>
 
 #ifndef ENGONE_NO_PHYSICS
 #include "Engone/Utilities/rp3d.h"
@@ -60,6 +60,7 @@ namespace engone {
 			logger& operator<<(unsigned int i);
 #ifndef ENGONE_NO_PHYSICS
 			logger& operator<<(const rp3d::Vector3& v);
+			logger& operator<<(const rp3d::Quaternion& v);
 #endif
 #ifndef ENGONE_NO_GLM
 			logger& operator<<(const glm::vec2& v);
@@ -159,6 +160,10 @@ namespace engone {
 #ifndef ENGONE_NO_PHYSICS
 		logger& logger::operator<<(const rp3d::Vector3& v) {
 			std::cout << "[" << v.x << " " << v.y << " " << v.z << "]";
+			return *this;
+		}
+		logger& logger::operator<<(const rp3d::Quaternion& v) {
+			std::cout << "[" << v.x << " " << v.y << " " << v.z <<" "<<v.w <<"]";
 			return *this;
 		}
 #endif
