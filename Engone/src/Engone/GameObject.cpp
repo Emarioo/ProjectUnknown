@@ -12,39 +12,64 @@ namespace engone {
 			log::out << log::RED << "Rigidbody is null\n";
 			return;
 		}
-
 		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
-
+		bool noColliders = true;
 		for (int i = 0; i < modelAsset->instances.size(); i++) {
-			engone::AssetInstance& inst = modelAsset->instances[i];
-			if (inst.asset->type == engone::ColliderAsset::TYPE) {
-				engone::ColliderAsset* asset = inst.asset->cast<engone::ColliderAsset>();
-				glm::mat4 loc = transforms[i] * inst.localMat;
-				rp3d::Transform tr = ToTransform(loc);
+			AssetInstance& inst = modelAsset->instances[i];
+			//log::out << inst.name << "\n";
+			//log::out <<loc << "\n";
+			if (inst.asset->type == ColliderAsset::TYPE) {
+				noColliders = false;
+				ColliderAsset* asset = inst.asset->cast<ColliderAsset>();
+				glm::mat4 loc = transforms[i]*inst.localMat;
+				glm::vec3 matScale;
+				rp3d::Transform tr = ToTransform(loc,&matScale);
 				rp3d::CollisionShape* shape = nullptr;
 
-				if (asset->colliderType == engone::ColliderAsset::Type::HeightMap) {
+				if (asset->colliderType == ColliderAsset::MapType) {
+					glm::vec3 scale = asset->map.scale;
+					scale.x*=matScale.x;
+					scale.y*=matScale.y;
+					scale.z*=matScale.z;
+					shape = engone->m_pCommon->createHeightFieldShape(asset->map.gridColumns,
+						asset->map.gridRows, asset->map.minHeight, asset->map.maxHeight,
+						asset->map.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
+						1, 1, *(rp3d::Vector3*)&scale);
 
-					shape = engone->m_pCommon->createHeightFieldShape(asset->heightMap.gridWidth,
-						asset->heightMap.gridHeight, asset->heightMap.minHeight, asset->heightMap.maxHeight,
-						asset->heightMap.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
-						1, 1, *(rp3d::Vector3*)&asset->heightMap.scale);
-
-				} else if (asset->colliderType == engone::ColliderAsset::Type::Cube) {
+				} else if (asset->colliderType == ColliderAsset::CubeType) {
 					glm::mat4 loc = transforms[i] * inst.localMat;
 					rp3d::Vector3 scale = *(rp3d::Vector3*)&asset->cube.size;
+					scale.x*=matScale.x;
+					scale.y*=matScale.y;
+					scale.z*=matScale.z;
 					shape = engone->m_pCommon->createBoxShape(scale);
-				} else if (asset->colliderType == engone::ColliderAsset::Type::Capsule) {
-					shape = engone->m_pCommon->createCapsuleShape(asset->capsule.radius, asset->capsule.height);
+				}
+				else if (asset->colliderType == ColliderAsset::CapsuleType) {
+					float realHeight = asset->capsule.height - asset->capsule.radius * 2;
+					realHeight *= matScale.y;
+					float radius = asset->capsule.radius;
+					radius *= (matScale.x + matScale.z) / 2;
+					shape = engone->m_pCommon->createCapsuleShape(radius, realHeight);
+				}
+				else if (asset->colliderType == ColliderAsset::SphereType) {
+					float radius = asset->sphere.radius;
+					radius *= (matScale.x + matScale.y + matScale.z) / 3;
+					shape = engone->m_pCommon->createSphereShape(radius);
 				}
 
 				rigidBody->addCollider(shape, tr);
 				auto col = rigidBody->getCollider(rigidBody->getNbColliders() - 1);
-				col->getMaterial().setFrictionCoefficient(0.f);
-				col->getMaterial().setBounciness(0.f);
+				col->getMaterial().setFrictionCoefficient(0.5f);
+				col->getMaterial().setBounciness(0.0f);
 			}
 		}
-		rigidBody->updateLocalCenterOfMassFromColliders();
+		if (noColliders) {
+			// updating center of mass would cause wierd stuff
+			log::out << "Loaded no colliders\n";
+		} else {
+			rigidBody->updateLocalInertiaTensorFromColliders();
+			rigidBody->updateLocalCenterOfMassFromColliders();
+		}
 	}
 	void GameObject::setOnlyTrigger(bool yes) {
 		if (rigidBody) {

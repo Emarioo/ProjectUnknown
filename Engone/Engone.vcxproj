@@ -22,6 +22,7 @@
     <ClInclude Include="..\..\ScriptRuntime\ScriptRuntime\include\script\MemAllocator.h" />
     <ClInclude Include="include\Engone\Application.h" />
     <ClInclude Include="include\Engone\GameObject.h" />
+    <ClInclude Include="include\Engone\ParticleModule.h" />
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
     <ClInclude Include="include\Engone\Utilities\Tracker.h" />
@@ -64,6 +65,7 @@
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
+    <ClCompile Include="src\Engone\ParticleModule.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />

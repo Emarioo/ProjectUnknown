@@ -21,7 +21,7 @@ namespace engone {
 	//	frame(frame), loop(loop), blend(blend), speed(speed) {
 
 	//}
-	void Animator::Update(float delta) {
+	void Animator::update(float delta) {
 		if (asset != nullptr) {
 			for (uint32_t i = 0; i < maxAnimations; ++i) {
 				if (enabledAnimations[i].asset) {
@@ -35,6 +35,7 @@ namespace engone {
 								prop.frame = 0;
 								if (!prop.loop) {
 									enabledAnimations[i].asset = nullptr;
+									
 								}
 								//bug::out < model->animations[j]->frameEnd < " <= " < p.second < " V"< bug::end;
 							} else {
@@ -44,25 +45,26 @@ namespace engone {
 					}
 				}
 			}
+
 		}
 	}
-	void Animator::Blend(const std::string& name, float blend) {
-		for (uint32_t i = 0; i < maxAnimations; ++i) {
-			if (std::strcmp(enabledAnimations[i].instanceName, name.c_str()) == 0)
-				enabledAnimations[i].blend = blend;
-		}
-	}
-	void Animator::Speed(const std::string& name, float speed) {
-		for (uint32_t i = 0; i < maxAnimations; ++i) {
-			if (std::strcmp(enabledAnimations[i].instanceName, name.c_str())==0)
-				enabledAnimations[i].speed = speed;
-		}
-	}
+	//void Animator::setBlend(const std::string& name, float blend) {
+	//	for (uint32_t i = 0; i < maxAnimations; ++i) {
+	//		if (enabledAnimations[i].instanceName== name)
+	//			enabledAnimations[i].blend = blend;
+	//	}
+	//}
+	//void Animator::setSpeed(const std::string& name, float speed) {
+	//	for (uint32_t i = 0; i < maxAnimations; ++i) {
+	//		if (enabledAnimations[i].instanceName== name)
+	//			enabledAnimations[i].speed = speed;
+	//	}
+	//}
 	/*
 	If animation doesn't exist in the model by default. It will try to find the asset and if it does.
 	The animation will be added to the model. This is mainly used for debug purposes.
 	*/
-	void Animator::Enable(const std::string& instanceName, const std::string& animationName, AnimatorProperty prop) {
+	void Animator::enable(const std::string& instanceName, const std::string& animationName, AnimatorProperty prop) {
 		if (asset != nullptr) {
 			AnimationAsset* anim = nullptr;
 			for (AnimationAsset* a : asset->animations) {
@@ -71,15 +73,16 @@ namespace engone {
 					break;
 				}
 			}
-			if (anim&&animationName.length()<20) {
+			if (anim) {
 				for (uint32_t i = 0; i < maxAnimations; ++i) {
 					if (enabledAnimations[i].asset == anim) {
-						if (std::strcmp(enabledAnimations[i].instanceName, instanceName.c_str()) == 0) {
+						if (enabledAnimations[i].instanceName== instanceName) {
+							// return if animation already is enabled
 							return;
 						}
 					}
 				}
-				std::strcpy(prop.instanceName, instanceName.c_str());
+				prop.instanceName = instanceName;
 
 				prop.asset = anim;
 				for (uint32_t i = 0; i < maxAnimations;++i) {
@@ -94,12 +97,28 @@ namespace engone {
 		}
 
 	}
-	void Animator::Disable(const std::string& name) {
+	void Animator::disable(const std::string& instName) {
 		for (int i = 0; i < maxAnimations; i++) { 
-			if (!enabledAnimations[i].asset) {
-				if (enabledAnimations[i].instanceName == name)
+			if (enabledAnimations[i].asset) {
+				if (enabledAnimations[i].instanceName == instName)
 					enabledAnimations[i].asset = nullptr;
 			}
 		}
 	}
+	AnimatorProperty& Animator::getProp(const std::string& instName) {
+		for (uint32_t i = 0; i < maxAnimations; ++i) {
+			if (enabledAnimations[i].instanceName == instName)
+				return enabledAnimations[i];
+		}
+	}
+	bool Animator::isEnabled(const std::string& instName) const {
+		for (uint32_t i = 0; i < maxAnimations; ++i) {
+			if (enabledAnimations[i].asset) {
+				if (enabledAnimations[i].instanceName == instName)
+					return true;
+			}
+		}
+		return false;
+	}
+	
 }

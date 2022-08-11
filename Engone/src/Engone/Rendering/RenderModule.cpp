@@ -25,6 +25,9 @@ static const char* objectSource = {
 static const char* armatureSource = {
 #include "Engone/Shaders/armature.glsl"
 };
+static const char* particleGLSL= {
+#include "Engone/Shaders/particle.glsl"
+};
 
 namespace engone {
 
@@ -33,10 +36,6 @@ namespace engone {
 #endif
 #ifndef PIPE3_LINE_RESERVE
 #define PIPE3_LINE_RESERVE PIPE3_LINE_BATCH_LIMIT
-#endif
-
-#ifndef MAX_CUBE_BATCH
-#define MAX_CUBE_BATCH 100
 #endif
 	static Renderer* g_activeRenderer = nullptr;
 	void Renderer::init() {
@@ -54,15 +53,17 @@ namespace engone {
 			indes[4 + 6 * i] = 3 + 4 * i;
 			indes[5 + 6 * i] = 0 + 4 * i;
 		}
-		textIBO.setData(6 * TEXT_BATCH, indes);
-		textVBO.setData(16 * TEXT_BATCH, nullptr);
+		textIBO.setData(6 * TEXT_BATCH*sizeof(float), indes);
+		textVBO.setData(16 * TEXT_BATCH * sizeof(float), nullptr);
 		textVAO.addAttribute(4, &textVBO);
 
-		// pipeline
 		Assets* assets = m_parent->getAssets();
+
+		// pipeline
+
 		assets->set<Shader>("uiPipeline", new Shader(uiPipelineGLSL));
 
-		boxVBO.setData(4 * VERTEX_SIZE * MAX_BOX_BATCH, nullptr);
+		boxVBO.setData(4 * VERTEX_SIZE * MAX_BOX_BATCH * sizeof(float), nullptr);
 
 		uint32_t intArray[6 * MAX_BOX_BATCH];
 		for (int i = 0; i < MAX_BOX_BATCH; i++) {
@@ -73,7 +74,7 @@ namespace engone {
 			intArray[i * 6 + 4] = i * 4 + 3;
 			intArray[i * 6 + 5] = i * 4 + 0;
 		}
-		boxIBO.setData(6 * MAX_BOX_BATCH, intArray);
+		boxIBO.setData(6 * MAX_BOX_BATCH * sizeof(float), intArray);
 
 		boxVAO.addAttribute(2); // pos
 		boxVAO.addAttribute(2); // uv
@@ -95,12 +96,12 @@ namespace engone {
 		// Line pipeline
 		assets->set<Shader>("lines3d", new Shader(linesGLSL));
 		pipe3lines.reserve(PIPE3_LINE_RESERVE*6);
-		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*6, nullptr);
+		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*6 * sizeof(float), nullptr);
 		uint32_t indLine[PIPE3_LINE_BATCH_LIMIT*2];
 		for (int i = 0; i < PIPE3_LINE_BATCH_LIMIT * 2; i++) {
 			indLine[i] = i;
 		}
-		pipe3lineIB.setData(PIPE3_LINE_BATCH_LIMIT*2, indLine);
+		pipe3lineIB.setData(PIPE3_LINE_BATCH_LIMIT*2 * sizeof(float), indLine);
 		pipe3lineVA.addAttribute(3, &pipe3lineVB);
 
 		assets->set<Shader>("renderer", new Shader(rendererGLSL));
@@ -128,7 +129,7 @@ namespace engone {
 		};
 		cubeIBO.setData(36, i);
 
-		cubeInstanceVBO.setData(MAX_BOX_BATCH * sizeof(Cube)/sizeof(float), nullptr);
+		cubeInstanceVBO.setData(MAX_BOX_BATCH * sizeof(Cube), nullptr);
 		cubeVAO.addAttribute(3);
 		cubeVAO.addAttribute(3, &cubeVBO);
 		cubeVAO.addAttribute(4, 1);
@@ -136,6 +137,8 @@ namespace engone {
 		cubeVAO.addAttribute(4, 1);
 		cubeVAO.addAttribute(4, 1);
 		cubeVAO.addAttribute(3, 1, &cubeInstanceVBO);
+
+		instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 
 		assets->set<Shader>("gui", new Shader(guiShaderSource));
 		
@@ -420,7 +423,7 @@ namespace engone {
 			std::cout << "\n";
 		}*/
 
-		textVBO.setData(16 * TEXT_BATCH, verts);
+		textVBO.setData(16 * TEXT_BATCH * sizeof(float), verts);
 		textVAO.draw(&textIBO);
 
 		//textBuffer.ModifyVertices(0, 16 * TEXT_BATCH, verts);
@@ -700,8 +703,8 @@ namespace engone {
 		if (match != m_parent->glfw()) {
 			log::out << "NOT MATCH\n";
 		}
-
 		EnableDepth();
+
 		Shader* shad = m_parent->getAssets()->get<Shader>("renderer");
 		if (shad) {
 			shad->bind();
@@ -714,7 +717,7 @@ namespace engone {
 				cubeCount = min(MAX_BOX_BATCH, cubeObjects.size() - drawnCubes);
 
 				// Cube only consists of floats which is important. may want to zero memory the last bit of the instance buffer.
-				cubeInstanceVBO.setData(cubeCount * sizeof(Cube) / (sizeof(float)), (float*)(cubeObjects.data() + drawnCubes));
+				cubeInstanceVBO.setData(cubeCount * sizeof(Cube), (cubeObjects.data() + drawnCubes));
 				cubeVAO.selectBuffer(2, &cubeInstanceVBO);
 				cubeVAO.draw(&cubeIBO, cubeCount);
 				drawnCubes += cubeCount;
@@ -735,7 +738,7 @@ namespace engone {
 				if ((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 6 > pipe3lines.size()) {
 					pipe3lines.resize((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 6, 0);
 				}
-				pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT * 6, pipe3lines.data() + drawnLines * 6);
+				pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT * 6 * sizeof(float), pipe3lines.data() + drawnLines * 6);
 				pipe3lineVA.drawLines(&pipe3lineIB);
 				drawnLines += PIPE3_LINE_BATCH_LIMIT;
 			}
@@ -816,7 +819,7 @@ namespace engone {
 					pipeShad->bind();
 				lastShader = 'P';
 
-				boxVBO.setData(MAX_BOX_BATCH * 4 * VERTEX_SIZE, floatArray);
+				boxVBO.setData(MAX_BOX_BATCH * 4 * VERTEX_SIZE * sizeof(float), floatArray);
 				boxVAO.draw(&boxIBO);
 
 				floatIndex = 0;

@@ -1,6 +1,7 @@
 #include "Engone/Rendering/Buffer.h"
 #include "Engone/AssetModule.h"
 #include "Engone/Engone.h"
+#include "Engone/ParticleModule.h"
 
 namespace engone {
 	// Do one test at a time. The tests share resources.
@@ -22,6 +23,7 @@ namespace engone {
 		static bool init_test3d=false;
 		void Test2D(RenderInfo& info) {
 			if (!shader2) {
+
 				shader2 = new Shader(test2dGLSL);
 				float fArray[]{
 					0,0,
@@ -31,8 +33,8 @@ namespace engone {
 				uint32_t iArray[]{
 					0,1,2,
 				};
-				VBO.setData(sizeof(fArray) / sizeof(float), fArray);
-				IBO.setData(sizeof(iArray) / sizeof(uint32_t), iArray);
+				VBO.setData(sizeof(fArray), fArray);
+				IBO.setData(sizeof(iArray), iArray);
 				VAO.addAttribute(2, &VBO);
 			}
 			shader2->bind();
@@ -49,8 +51,8 @@ namespace engone {
 				uint32_t iArray[]{
 					0,1,2,
 				};
-				VBO.setData(sizeof(fArray) / sizeof(float), fArray);
-				IBO.setData(sizeof(iArray) / sizeof(uint32_t), iArray);
+				VBO.setData(sizeof(fArray), fArray);
+				IBO.setData(sizeof(iArray), iArray);
 				VAO.addAttribute(3, &VBO);
 				init_test3d = true;
 			}
@@ -59,6 +61,44 @@ namespace engone {
 			Renderer* renderer = info.window->getRenderer();
 			renderer->updateProjection(shader3);
 			VAO.draw(&IBO);
+		}
+		static const char* particlesGLSL = {
+#include "Engone/Tests/testParticle.glsl"
+		};
+		static ParticleGroup partGroup{};
+		static Shader* shaderPart = nullptr;
+		void TestParticles(RenderInfo& info) {
+			if (!shaderPart) {
+				shaderPart = new Shader(particlesGLSL);
+				partGroup.init(info.window, shaderPart);
+				//partGroup.resize(10000000);
+				uint32_t count = 18*pow(10,6);
+				//log::out << count << "\n";
+				Particle* parts = partGroup.createParticles(count);
+				if (parts) {
+					glm::vec3 bounds = { 100,100,100 };
+					glm::vec3 center = {0,0,0};
+									
+					for (int i = 0; i < count; i++) {
+						float x = GetRandom();
+						float y = GetRandom();
+						float z = GetRandom();
+						//float x = 0;
+						//float y = 0;
+						//float z = 0;
+						parts[i].pos = { center.x+bounds.x*(x-0.5), center.y + bounds.y * (y-0.5), center.z + bounds.z * (z-0.5)};
+						parts[i].vel = { 0, 0, 0 };
+					}
+				}
+			}
+			if (shaderPart) {
+				shaderPart->bind();
+				shaderPart->setVec3("focusPoint", { 0,0,0 });
+				shaderPart->setFloat("delta", 1.f/60.f);
+				//Timer rend("part");
+				partGroup.render(info);
+				//rend.stop();
+			}
 		}
 	}
 }

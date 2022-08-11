@@ -1,0 +1,12 @@
+# Instance count
+1
+Plane
+2
+Plane-CAPSULE
+-1
+1.0 0.0 0.0 0.0
+0.0 1.0 0.0 0.0
+0.0 0.0 1.0 0.0
+0.0 0.0 0.0 1.0
+# Animation count
+0

@@ -90,8 +90,14 @@ namespace engone {
 		float blend;
 		float speed;// multiplier to the default speed
 		float frame;
-		char instanceName[20];
+		std::string instanceName;
 		AnimationAsset* asset;
+
+		float getRemainingSeconds() {
+			float out = asset->frameEnd - frame;
+			out *= speed / asset->defaultSpeed;
+			return out;
+		}
 	};
 	class Animator : public Component {
 	public:
@@ -105,15 +111,19 @@ namespace engone {
 		static const uint32_t maxAnimations = 4;
 		AnimatorProperty enabledAnimations[maxAnimations];
 
-		void Update(float delta);
+		void update(float delta);
 
-		void Blend(const std::string& name, float blend);
-		void Speed(const std::string& name, float speed);
+		// should only be used to set blend, speed, loop or frame. don't mess with the name or asset.
+		AnimatorProperty& getProp(const std::string& instName);
+		//void setBlend(const std::string& name, float blend);
+		//void setSpeed(const std::string& name, float speed);
 		/*
-		Second argument can be done like this: {frame, loop, blend, speed}
+		Anim. Prop. {loop,blend,speed,frame} you should maybe double check it though.
 		*/
-		void Enable(const std::string& instanceName, const std::string& animationName, AnimatorProperty prop);
-		void Disable(const std::string& name);
+		void enable(const std::string& instanceName, const std::string& animationName, AnimatorProperty prop);
+		void disable(const std::string& instName);
+
+		bool isEnabled(const std::string& instName) const;
 	};
 	class MeshRenderer : public Component {
 	public:

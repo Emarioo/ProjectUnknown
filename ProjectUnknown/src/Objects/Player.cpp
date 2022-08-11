@@ -14,102 +14,167 @@ Player::Player(engone::Engone* engone) : GameObject(engone) {
 	rp3d::Transform t;
 	rigidBody = engone->m_pWorld->createRigidBody(t);
 	rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
-	rigidBody->enableGravity(false);
 	rigidBody->setIsAllowedToSleep(false);
-	rigidBody->setLinearDamping(10.f);
+
+	setFlight(true);
 
 	engone::Assets* assets = engone::GetActiveWindow()->getAssets();
-	modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody"); 
-
+	//modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody"); 
+	modelAsset = assets->set<engone::ModelAsset>("Player/Player"); 
+	animator.asset = modelAsset;
 	loadColliders(engone);
 }
 void Player::update(engone::UpdateInfo& info) {
+	animator.update(info.timeStep);
 	Input(info);
 	Movement(info);
+	WeaponUpdate(info);
+}
+void Player::WeaponUpdate(engone::UpdateInfo& info) {
+	using namespace engone;
+
+	if (!heldWeapon) return;
+
+	auto transforms = modelAsset->getParentTransforms(nullptr);
+
+	rp3d::Transform swordTrans;
+
+	glm::mat4 modelMatrix = ToMatrix(rigidBody->getTransform());
+
+	AssetInstance* inst = nullptr;
+	ArmatureAsset* arm = nullptr;
+	glm::mat4 instMat;
+	for (int i = 0; i < modelAsset->instances.size(); i++) {
+		auto& instance = modelAsset->instances[i];
+		if (instance.asset->type == ArmatureAsset::TYPE) {
+			inst = &instance;
+			arm = (ArmatureAsset*)inst->asset;
+			instMat = transforms[i] * inst->localMat;
+		}
+	}
+	if (inst != nullptr) {
+		std::vector<glm::mat4> baseBoneMats;
+		std::vector<glm::mat4> boneMats = modelAsset->getArmatureTransforms(&animator, instMat, inst, arm, &baseBoneMats);
+		Bone& lastBone = arm->bones.back();
+
+		glm::mat4 gripMat = baseBoneMats.back();
+		swordTrans = ToTransform(modelMatrix * gripMat);
+	}
+
+	heldWeapon->rigidBody->setTransform(swordTrans);
+	heldWeapon->rigidBody->enableGravity(rigidBody->isGravityEnabled());
+	if (!weaponJoint) {
+		heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
+		heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
+		heldWeapon->rigidBody->resetForce();
+		heldWeapon->rigidBody->resetTorque();
+	}
+
+	weaponState.sample(heldWeapon);
+}
+void Player::setFlight(bool yes) {
+	flight = yes;
+	rigidBody->enableGravity(!yes);
+	if (!yes)
+		rigidBody->setLinearDamping(0.f);
+	else
+		rigidBody->setLinearDamping(7.f);
+}
+void Player::setNoClip(bool yes) {
+	noclip = yes;
+	setOnlyTrigger(yes);
 }
 void Player::setWeapon(engone::GameObject* weapon) {
 	using namespace engone;
 	if (heldWeapon) {
 		heldWeapon->setOnlyTrigger(false);
-		engone->m_pWorld->destroyJoint(weaponJoint);
+		if(weaponJoint)
+			engone->m_pWorld->destroyJoint(weaponJoint);
+		heldWeapon->rigidBody->setMass(weaponState.mass);
+		heldWeapon->rigidBody->enableGravity(weaponState.gravity);
+
+		heldWeapon->rigidBody->setLinearVelocity(ToRp3dVec3(weaponState.sampledVelocity()));
+
+		weaponState.reset();
+		heldWeapon->rigidBody->getCollider(0)->setUserData(nullptr);
 		weaponJoint = nullptr;
 		heldWeapon = nullptr;
 	}
 	if (!weapon) return; // we just wanted to get rid of the weapon.
+	weaponState.reset();
 
 	// destroy joint to previous weapon.
 	heldWeapon = weapon;
+	// collider should exist for now
+	heldWeapon->rigidBody->getCollider(0)->setUserData(&attackData);
+	weaponState.mass = weapon->rigidBody->getMass();
+	weaponState.gravity = weapon->rigidBody->isGravityEnabled();
 
-	auto transforms = modelAsset->getParentTransforms(nullptr);
+	std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
 
-	rp3d::Transform swordTrans;
 	rp3d::Vector3 anchor;
-	log::out << rigidBody->getTransform().getOrientation()<<"\n";
+	rp3d::Transform swordTrans;
+
 	glm::mat4 modelMatrix = ToMatrix(rigidBody->getTransform());
-	glm::quat rot;
-	DecomposeGlm(modelMatrix, nullptr, &rot, nullptr);
-	glm::mat4 sec = glm::mat4_cast(rot);
-	DecomposeGlm(sec, nullptr, &rot, nullptr);
-	sec = glm::mat4_cast(rot);
-	DecomposeGlm(sec, nullptr, &rot, nullptr);
-	sec = glm::mat4_cast(rot);
-	DecomposeGlm(sec, nullptr, &rot, nullptr);
-	//DecomposeGlm(sec, nullptr, &rot, nullptr);
-	log::out << rot<<"\n";
+
+	AssetInstance* inst = nullptr;
+	ArmatureAsset* arm = nullptr;
+	glm::mat4 instMat;
 	for (int i = 0; i < modelAsset->instances.size(); i++) {
-		auto& inst = modelAsset->instances[i];
-		if (inst.name == "PlayerGrip") {
-			glm::mat4 loc = transforms[i] * inst.localMat;
-			anchor = ToRp3dVec3(loc[3]);
-			swordTrans = ToTransform(modelMatrix*loc);
-			break;
+		auto& instance = modelAsset->instances[i];
+		if (instance.asset->type == ArmatureAsset::TYPE) {
+			inst = &instance;
+			arm = (ArmatureAsset*)inst->asset;
+			instMat = transforms[i] * inst->localMat;
 		}
 	}
-	weapon->setOnlyTrigger(true);
+	if (inst != nullptr) {
+		std::vector<glm::mat4> baseBoneMats;
+		std::vector<glm::mat4> boneMats = modelAsset->getArmatureTransforms(&animator, instMat, inst, arm,&baseBoneMats);
+		Bone& lastBone = arm->bones.back();
+
+		glm::mat4 gripMat = baseBoneMats.back();
+		anchor = ToRp3dVec3(gripMat[3]);
+		swordTrans = ToTransform(modelMatrix * gripMat);
+	}
+
 	rp3d::Vector3 baseVec;
-	weapon->rigidBody->setAngularVelocity(baseVec);
-	weapon->rigidBody->setLinearVelocity(baseVec);
-	weapon->rigidBody->resetForce();
-	weapon->rigidBody->resetTorque();
-	//log::out << engone::ToEuler(swordTrans.getOrientation()) << "\n";
-	//log::out << swordTrans.getOrientation() << "\n";
-	//swordTrans.setPosition(swordTrans.getPosition()+)
-	weapon->rigidBody->setTransform(swordTrans);
-	rp3d::FixedJointInfo fixedInfo(rigidBody, weapon->rigidBody, anchor,baseVec);
-	weaponJoint = engone->m_pWorld->createJoint(fixedInfo);
+	weapon->setOnlyTrigger(true);
+	//heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
+	//heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
+	//weapon->rigidBody->resetForce();
+	//weapon->rigidBody->resetTorque();
+	weapon->rigidBody->setMass(0.00001f); // set minimal mass so the weapon doesn't affect the characters movement.
+	//weapon->rigidBody->setTransform(swordTrans);
+
+	// Joints doesn't work because of animations
+	//rp3d::FixedJointInfo fixedInfo(rigidBody, weapon->rigidBody, anchor,baseVec);
+	//fixedInfo.isCollisionEnabled = false;
+	//weaponJoint = (rp3d::FixedJoint*)engone->m_pWorld->(fixedInfo);
 }
 void Player::Input(engone::UpdateInfo& info) {
 	using namespace engone;
 	if (IsKeyPressed(GLFW_KEY_G)) {
-		rigidBody->enableGravity(!rigidBody->isGravityEnabled());
-		if (rigidBody->isGravityEnabled()) {
-			rigidBody->setLinearDamping(0.f);
-		} else {
-			rigidBody->setLinearDamping(10.f);
-		}
+		setFlight(!flight);
 	}
-	// This is supposed to disable collision and still allow movement.
-	// For the bit change to work, you need to step away from other colliders.
 	if (IsKeyPressed(GLFW_KEY_C)) {
-		noclip = !noclip;
-		setOnlyTrigger(noclip);
-		//if (rigidBody->getNbColliders() != 0) {
-		//	//rp3d::Transform bye;
-		//	//bye.setPosition({ -9999, -9999, -9999 });
-		//	//rp3d::Transform last = rigidBody->getTransform();
-		//	//rigidBody->setTransform(bye);
-		//	rp3d::Collider* col = rigidBody->getCollider(0);
-		//	uint16_t bits = col->getCollideWithMaskBits();
-		//	bits = bits ^ 1;
-		//	col->setCollideWithMaskBits(bits);
-		//	//rigidBody->setTransform(last);
-		//}
+		setNoClip(!noclip);
 	}
 	if (IsKeyPressed(GLFW_KEY_Q)) {
 		if (heldWeapon)
 			setWeapon(nullptr);
 		else
 			setWeapon(inventorySword);
+	}
+	attackData.update(info);
+	if (!animator.isEnabled("Player")) {
+		attackData.attacking = false;
+		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
+			animator.enable("Player", "PlayerStab", { false,1,1,0 });
+			attackData.attacking = true;
+			AnimatorProperty& prop = animator.getProp("Player");
+			attackData.animationTime = prop.getRemainingSeconds();
+		}
 	}
 }
 void Player::Movement(engone::UpdateInfo& info) {
@@ -123,73 +188,127 @@ void Player::Movement(engone::UpdateInfo& info) {
 	if (!camera) return;
 
 	float speed = walkSpeed;
-	if (IsKeybindingDown(KeySprint))
-		speed = sprintSpeed;
+	if(flight)
+		speed = flySpeed;
+	if (IsKeybindingDown(KeySprint)) {
+		if (flight) 
+			speed = flyFastSpeed;
+		else
+			speed = sprintSpeed;
+	}
 
-	glm::vec3 inputDir = { 0,0,0 };
+	glm::vec3 flatInput = { 0,0,0 };
 	if (IsKeybindingDown(KeyForward)) {
-		inputDir.z += 1;
+		flatInput.z += 1;
 	}
 	if (IsKeybindingDown(KeyLeft)) {
-		inputDir.x -= 1;
+		flatInput.x -= 1;
 	}
 	if (IsKeybindingDown(KeyBack)) {
-		inputDir.z -= 1;
+		flatInput.z -= 1;
 	}
 	if (IsKeybindingDown(KeyRight)) {
-		inputDir.x += 1;
+		flatInput.x += 1;
+	}
+	float zoomAcc = 0.1+5 *abs(zoomSpeed);
+	if (zoomSpeed > 0) {
+		zoomSpeed -= zoomAcc * info.timeStep;
+		if (zoomSpeed < 0)
+			zoomSpeed = 0;
+	}
+	else if (zoomSpeed < 0) {
+		zoomSpeed += zoomAcc * info.timeStep;
+		if (zoomSpeed > 0)
+			zoomSpeed = 0;
+	}
+	float minZoom = 1.3;
+	zoom += zoomSpeed * info.timeStep;
+	if (zoom < 0) {
+		zoom = 0;
+		zoomSpeed = 0;
+	} else if (zoom!=0&&zoom < minZoom) {
+		zoom = minZoom;
 	}
 	float scroll = IsScrolledY();
 	if (scroll) {
-		zoomOut -= scroll;
-		if (zoomOut < 0) zoomOut = 0;
+		if (zoom == minZoom)
+			zoom = 0;
+		zoomSpeed -= scroll*(0.8+zoom*0.3);
 	}
+	//log::out << "speed: " << zoomSpeed << " "<<zoom<<"\n";
 
-	glm::vec3 moveDir{};
-	if (glm::length(inputDir) != 0) {
-		moveDir = speed * glm::normalize(camera->getFlatLookVector() * inputDir.z + camera->getRightVector() * inputDir.x);
+	glm::vec3 flatMove{};
+	if (glm::length(flatInput) != 0) {
+		flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
 	}
-	if (IsKeybindingDown(KeyJump)) {
-		moveDir.y += jumpForce;
+	glm::vec3 moveDir = flatMove;
+	if (flight) {
+		if (IsKeybindingDown(KeyJump)) {
+			moveDir.y += speed;
+		}
+		if (IsKeybindingDown(KeyCrouch)) {
+			moveDir.y -= speed;
+		}
+	} else {
+		if (IsKeybindingPressed(KeyJump)) {
+			moveDir.y += jumpForce;
+		}
+		if (IsKeybindingPressed(KeyCrouch)) {
+			moveDir.y -= jumpForce;
+		}
 	}
 
 	if (rigidBody) {
 		rp3d::Vector3 rot = ToEuler(rigidBody->getTransform().getOrientation());
-		float ry = rot.y;
-		float diff = AngleDifference(camera->getRotation().y, ry);
-		float velRotY = diff / info.timeStep - rigidBody->getAngularVelocity().y;
-		rp3d::Vector3 torque = { 0,velRotY / info.timeStep,0 };
-		//torque *= 0.5; // if you want to weaken it.
-		//log::out << "\n";
-		//log::out << "ry: "<<ry << "\n";
-		//log::out << "diff: " << diff <<" camY: "<< camera->getRotation().y<<" ang: "<<rigidBody->getAngularVelocity().y << "\n";
-		//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
-		//log::out << torque << "\n";
-		//log::out << rigidBody->getTransform().getOrientation()<<"\n";
-		// this will sometimes crash the game if z and x axis aren't locked. quaternion will become 0 for some reason.
-		// the reason is because the torque is increased.
-		// to fix this there is a limit to how much torque.
+		float realY = rot.y;
+		float wantY = realY;
 
-		if(torque.length()<10000)
-			rigidBody->applyLocalTorque(torque);
+		if (IsKeybindingDown(KeyMoveCamera)||zoom==0) {
+			wantY = camera->getRotation().y-glm::pi<float>();
+		} else if(glm::length(flatMove)!=0) {
+			wantY = std::atan2(flatMove.x, flatMove.z);
+		}
+
+		float dv = AngleDifference(wantY, realY)/(info.timeStep);
+		dv *= 0.3; // snap speed
+		float velRotY = dv - rigidBody->getAngularVelocity().y;
+		// inertia tensor needs to be accounted for when applying torque.
+		
+		//rp3d::Vector3 newVel = rigidBody->getAngularVelocity();
+		//newVel.y += velRotY;
+		rp3d::Vector3 newVel = {0,dv,0};
+		rigidBody->setAngularVelocity(newVel);
+
+		//log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
+		//log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
+		//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
 
 		glm::vec3 bodyVel = ToGlmVec3(rigidBody->getLinearVelocity());
 		float keepY = bodyVel.y;
 		float moveDirY = moveDir.y;
-		moveDir.y = 0;
-		bodyVel.y = 0;
-
+		if (!flight) {
+			moveDir.y = 0;
+			bodyVel.y = 0;
+		}
 		glm::vec3 flatVelDiff = moveDir - bodyVel;
-		//log::out << moveDir << " "<<bodyVel << " "<<flatVelDiff<<"\n";
-		float tolerance = 0.0001;
-		if (glm::length(flatVelDiff) < tolerance) {
-			glm::vec3 other = { 0,keepY + moveDirY,0 };
-			rigidBody->setLinearVelocity(ToRp3dVec3(other));
-		} else {
-			flatVelDiff *= 0.25; // weaken acceleration
-			flatVelDiff.y = moveDirY;
-			flatVelDiff /= info.timeStep;
-			rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
+		bool dontMove = false;
+		if (!rigidBody->isGravityEnabled()&&glm::length(moveDir)==0) {
+			dontMove = true;
+		}
+		if (!dontMove) {
+			float tolerance = 0.0001;
+			if (glm::length(flatVelDiff) < tolerance&&!flight) {
+				glm::vec3 other{};
+				if (!flight)
+					other.y = keepY + moveDirY;
+				rigidBody->setLinearVelocity(ToRp3dVec3(other));
+			} else {
+				flatVelDiff *= 0.25;
+				if(!flight)
+					flatVelDiff.y = moveDirY;
+				flatVelDiff /= info.timeStep;
+				rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
+			}
 		}
 	}
 }

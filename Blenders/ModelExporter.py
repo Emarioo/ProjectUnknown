@@ -12,6 +12,7 @@ bl_info = {
 import bpy
 import struct
 import math
+import traceback
 import os
 import shutil
 from mathutils import Matrix
@@ -46,87 +47,57 @@ from mathutils import Vector
 #  When exporting, if there is a keyframe two keyframes forward that is different from the original.
 #  Then ignore the keyframe after. Especially if a curve has two keyframes with the same value.
 
-# Important
-# X = X, Y = Z, Z = -Y
 
 # Used to switch the axis (Y-up instead of Z-up)
 
 from bpy_extras.io_utils import axis_conversion
 
+# WriteAnimation can't use this matrix, so it switches z and y manually.
 axisConvert = axis_conversion(from_forward="-Y",from_up="Z",to_forward="Z",to_up="Y").to_4x4()
 axisIConvert = axisConvert.inverted()
-#rotConvert = axisConvert.to_quaternion().to_matrix().to_4x4()
-#irotConvert = rotConvert.to_4x4().inverted()
 
-#print(axisConvert)
-#print(rotConvert)
-#print(irotConvert)
-
-#print(axisConvert@irotConvert)
-
-logState="INFO"
-infoLog=[]
-warningLog=[]
-errorLog=[]
-
-
-# Logger
-
-def ResetLog():
-    global logState
-    global infoLog
-    global warningLog
-    global errorLog
+class ExportLog:
+    def __init__(self):
+        self.errors=[]
+        self.warnings=[]
+        self.infos=[]
+        
+    def print(self,type,msg):
+        if type=="ERROR":
+            self.errors.append(msg)
+        elif type=="WARNING":
+            self.warnings.append(msg)
+        elif type=="INFO":
+            self.infos.append(msg)
     
-    logState="INFO"
-    infoLog=[]
-    warningLog=[]
-    errorLog=[]
-
-def Logging(state,msg):
-    global logState
-    global infoLog
-    global warningLog
-    global errorLog
-    
-    if state=="INFO":
-        infoLog.append(msg)
+    def getMessage(self):
+        lvl = self.getLevel()
         
-    elif state=="WARNING":
-        if not logState=="ERROR":
-            logState="WARNING"
-        warningLog.append(msg)
+        msgs = None
+        if lvl=="ERROR":
+            msgs = self.errors
+        elif lvl=="WARNING":
+            msgs = self.warnings
+        elif lvl=="INFO":
+            msgs = self.infos
         
-    elif state=="ERROR":
-        logState="ERROR"
-        errorLog.append(msg)
-        
-def FinalLog():
-    if logState=="INFO":
-        msg="Loaded "
-        for i in range(0,len(infoLog)):
-            if not i==0:
-                msg+=", "
-            msg+=infoLog[i]
-        return msg
-    elif logState=="WARNING":
         msg=""
-        for i in range(0,len(warningLog)):
+        for i in range(0,len(msgs)):
             if not i==0:
                 msg+=", "
-            msg+=warningLog[i]
+            msg+=msgs[i]
         return msg
-    elif logState=="ERROR":
-        msg=""
-        for i in range(0,len(errorLog)):
-            if not i==0:
-                msg+=", "
-            msg+=errorLog[i]
-        return msg
+        
+    def getLevel(self):
+        if len(self.errors):
+            return "ERROR"
+        if len(self.warnings):
+            return "WARNING"
+        return "INFO"
 
 # File functions
 binaryForm=False
-class FileWriter():
+class FileWriter:
     def __init__(self,path):
         try:
             if binaryForm:
@@ -222,40 +193,8 @@ class FileWriter():
             return
         self.file.close()
     
-def WriteMesh(path,original):
-    original["dataName"]=original.data.name+original["MESHTYPE"]
-    file = FileWriter(path+original["dataName"]+".mesh")
-    if file.error:
-        return
-    
-    #print(original.data.name)
-    
-    bpy.ops.object.select_all(action="DESELECT")
-    # Make a copy of the object and apply modifiers
-    object=original.copy()
-    object.data=original.data.copy()
-    bpy.context.scene.collection.objects.link(object)
-    object.select_set(True)
-    bpy.context.view_layer.objects.active=object
-    
-    object.matrix_world = axisConvert @ object.matrix_world
-    object.data.transform(axisConvert)
-    object.matrix_world = object.matrix_world @ axisIConvert
-    
-    #print(bpy.context.object)
-    
-    if object.modifiers.find("Triangulate")==-1:
-        object.modifiers.new("Triangulate",'TRIANGULATE')
-        #object.modifiers["Triangulate"].quad_method="SHORTEST_DIAGONAL"
-    
-    useArmature=False
-    if original["MESHTYPE"]=="-B":
-        useArmature=True
-                                
-    for mod in object.modifiers:
-        if not mod.type=='ARMATURE':
-            bpy.ops.object.modifier_apply(modifier=mod.name)
-    
+def WriteMesh(log,file,object,isBoned,originName):
+
     triC=0
     for poly in object.data.polygons:
         if len(poly.vertices)==4:
@@ -312,13 +251,14 @@ def WriteMesh(path,original):
     
     uniqueWeight=[]
     indexWeight=[]
-    if useArmature:
+    if isBoned:
         for ve in object.data.vertices:
             weight=[0,0,0,0,0,0]
             # Grab the most important weights
             for gr in ve.groups:
                 lowW=gr.weight
-                lowB=original.modifiers["Armature"].object.data.bones.find(object.vertex_groups[gr.group].name)
+                # object.modifiers <- original.mod...
+                lowB=object.modifiers["Armature"].object.data.bones.find(object.vertex_groups[gr.group].name)
                 for i in range(0,3):
                     if lowW>weight[3+i]:
                         temp=[weight[i],weight[3+i]]
@@ -350,10 +290,9 @@ def WriteMesh(path,original):
     
     # Write Mesh Information
     
-    
     file.writeComment("MeshType")
-    file.writeUChar(1 if useArmature else 0)
-    file.writeComment("Vertex Count")
+    file.writeUChar(1 if isBoned else 0)
+    file.writeComment("Position Count")
     file.writeUShort(verC)# Vertex Count (Maximum 65536)
     file.writeComment("Color Count")
     file.writeUShort(colorC)
@@ -363,7 +302,7 @@ def WriteMesh(path,original):
     for mat in object.data.materials:
         file.writeString(mat.name)
         
-    if useArmature:
+    if isBoned:
         file.writeComment("Weight Count")
         file.writeUShort(weightC)
     file.writeComment("Triangle count")
@@ -371,7 +310,7 @@ def WriteMesh(path,original):
     #print("Points "+str(verC)+" Textures "+str(colorC)+" Triangles" +str(triC)+" Mats "+str(len(object.data.materials)))
     
     # Write Mesh Data
-    file.writeComment("Vertex data")
+    file.writeComment("Positions")
     for ver in object.data.vertices:
         v = Vector((ver.co[0],ver.co[1],ver.co[2],0))
         #v = Vector((ver.co[0],ver.co[2],-ver.co[1],0))
@@ -379,24 +318,24 @@ def WriteMesh(path,original):
         #    v = Vector((ver.co[0],ver.co[1],ver.co[2],0))
         file.writeFloat(v[0],v[1],v[2])# SWITCH Y Z
     
-    file.writeComment("Color data")
+    file.writeComment("Colors")
     for c in uniqueColor:
         file.writeFloat(c[0],c[1],c[2])
        # file.writeFloat(c[0],c[1],c[2])
             
-    if useArmature:
-        file.writeComment("Weight data")
+    if isBoned:
+        file.writeComment("Weights")
         for w in uniqueWeight:
             leng=w[3]+w[4]+w[5]
             file.writeUChar(w[0],w[1],w[2])
             file.writeFloat(w[3]/leng,w[4]/leng,w[5]/leng)
   
     # Write index information for Triangles
-    file.writeComment("Triangle data")
+    file.writeComment("Triangles")
     for poly in object.data.polygons:
         v = poly.vertices
         lo = poly.loop_indices
-        if not useArmature:
+        if not isBoned:
             if len(v)==3:
                 l=[indexColor[lo[0]],indexColor[lo[1]],indexColor[lo[2]]]
                 #print(v[1],l[1],v[2],l[2],v[0],l[0])
@@ -407,7 +346,7 @@ def WriteMesh(path,original):
 #                file.write(struct.pack("=HHHHHH",v[1],l[1],v[2],l[2],v[0],l[0]))
 #                file.write(struct.pack("=HHHHHH",v[2],l[2],v[3],l[3],v[0],l[0]))
             else:
-                Logging('WARNING',"Triangulate failed in "+original.name)
+                log.print('WARNING',"Triangulate failed in "+originName)
                 #print("Cannot have more than five vertices per quad!")
         else:
             if len(v)==3:
@@ -420,21 +359,13 @@ def WriteMesh(path,original):
 #                file.write(struct.pack("=HHHHHHHHH",v[1],l[1],w[1],v[2],l[2],w[2],v[0],l[0],w[0]))
 #                file.write(struct.pack("=HHHHHHHHH",v[2],l[2],w[2],v[3],l[3],w[3],v[0],l[0],w[0]))
             else:
-                Logging('WARNING',"Triangulate failed in "+original.name)
+                log.print('WARNING',"Triangulate failed in "+originName)
                 #print("Cannot have more than five vertices per quad!")
     
-    Logging('INFO',original.data.name)
+    log.print('INFO',originName)
+
+def WriteAnimation(log, file, object, action):
     
-    # Cleanup
-    file.close()
-    bpy.ops.object.delete()
-
-def WriteAnimation(path, action, object):
-    # animation does not need dataName
-    file = FileWriter(path+action.name+".animation")
-    if file.error:
-        return
-
     # Write Anim Information
     fstart = int(action.frame_range[0])
     fend = int(action.frame_range[1])
@@ -506,6 +437,11 @@ def WriteAnimation(path, action, object):
             else:
                 con=con+curve.array_index
             
+            if con%3==1 and not curve.array_index==3: # y to z
+                con+=1
+            elif con%3==2:# z to y
+                con-=1
+            
             curves[con]=1
             
        # channelType=""        
@@ -543,9 +479,13 @@ def WriteAnimation(path, action, object):
                 else:
                     con=con+curve.array_index
                 
+                if con%3==1 and not curve.array_index==3: # y to z
+                    con+=1
+                elif con%3==2:# z to y
+                    con-=1
+                
                 if not con==i:
                     continue
-                
                 
                 file.writeComment("Frames for "+temp[i])
                 file.writeUShort(len(curve.keyframe_points))
@@ -563,19 +503,16 @@ def WriteAnimation(path, action, object):
                     file.writeComment("Frame");
                     file.writeUChar(pol)
                     file.writeUShort(int(key.co[0]))
-                    file.writeFloat(key.co[1])
+                    
+                    if con%3==2: # -y to z
+                        file.writeFloat(-key.co[1])
+                    else:
+                        file.writeFloat(key.co[1])
     
-    Logging('INFO',action.name)
+    log.print('INFO',action.name)
+
+def WriteMaterial(log,file,material):
     
-    # Cleanup
-    file.close()
-
-def WriteMaterial(path,material):
-    # material is special and does not have dataName
-    file = FileWriter(path+material.name+".material")
-    if file.error:
-        return
-
     textureName=""
     color = material.diffuse_color
     if material.use_nodes:
@@ -604,27 +541,24 @@ def WriteMaterial(path,material):
     file.writeComment("Intensity")
     file.writeFloat(material.specular_intensity)
     
-    Logging('INFO',material.name)
-    
-    # Cleanup
-    file.close()
+    log.print('INFO',material.name)
 
-def WriteArmature(path, original):
-    original["dataName"]=original.data.name
-    file = FileWriter(path+original["dataName"]+".armature")
-    if file.error:
-        return
-    
-    bpy.ops.object.select_all(action="DESELECT")
-    # Make a copy of the object and apply modifiers
-    object=original.copy()
-    object.data=original.data.copy()
-    bpy.context.scene.collection.objects.link(object)
-    object.select_set(True)
-    bpy.context.view_layer.objects.active=object
-                       
-    for mod in object.modifiers:
-        bpy.ops.object.modifier_apply(modifier=mod.name)
+def WriteArmature(log, file, object, originName):
+#    original["dataName"]=original.data.name
+#    file = FileWriter(path+original["dataName"]+".armature")
+#    if file.error:
+#        return
+#    
+#    bpy.ops.object.select_all(action="DESELECT")
+#    # Make a copy of the object and apply modifiers
+#    object=original.copy()
+#    object.data=original.data.copy()
+#    bpy.context.scene.collection.objects.link(object)
+#    object.select_set(True)
+#    bpy.context.view_layer.objects.active=object
+#                       
+#    for mod in object.modifiers:
+#        bpy.ops.object.modifier_apply(modifier=mod.name)
     
     # Loading data
     file.writeComment("Bone count")
@@ -632,26 +566,25 @@ def WriteArmature(path, original):
     file.writeComment("Bone data")
     for bone in object.data.bones:
         parentIndex = object.data.bones.find(bone.parent.name) if bone.parent else 0 # the first bone will not use the parent index
-        #print(index)
-        #if bone.parent:
-        #    print(str(object.data.bones.find(bone.parent.name)) + " " +bone.parent.name)
-        # axisConvert to switch Y-axis and Z-axis which is done in the model.
-        #  applying axisConvert to root bone will apply it to all other bones as well
-        local_matrix = bone.matrix_local
+
+        localMatrix=bone.matrix_local
+        invModelMatrix = localMatrix.inverted()
+        
         if bone.parent:
-            local_matrix = (bone.parent.matrix_local).inverted() @ bone.matrix_local
-       
-        local_matrix = local_matrix.transposed()
-        inv_model_matrix = bone.matrix_local.inverted().transposed()
+            parentMatrixLocal = bone.parent.matrix_local
+            localMatrix = parentMatrixLocal.inverted() @ localMatrix
+        
+        localMatrix=axisConvert@localMatrix@axisIConvert
+        invModelMatrix=axisConvert@invModelMatrix@axisIConvert
+        
+        localMatrix = localMatrix.transposed()
+        invModelMatrix = invModelMatrix.transposed()
         
         file.writeUShort(parentIndex)
-        file.writeMatrix(local_matrix)
-        file.writeMatrix(inv_model_matrix)
+        file.writeMatrix(localMatrix)
+        file.writeMatrix(invModelMatrix)
       
-    Logging('INFO',original.data.name)
-    # Cleanup
-    file.close()
-    bpy.ops.object.delete()
+    log.print('INFO',originName)
 
 def GetColliderType(object):
     if object.data.name[:4]=="CUBE":
@@ -662,34 +595,261 @@ def GetColliderType(object):
         return "MAP"
     elif object.data.name[:7]=="CAPSULE":
         return "CAPSULE"
-    Logging('ERROR',"Invalid collider type "+str(object.data.name))
+    print('ERROR',"Invalid collider type "+str(object.data.name))
     return False
+
+def GetMedianPoint(data):
+    median = Vector()
+    for v in data.vertices:
+        median+=v.co
+    median/=len(data.vertices)
+    return median
+
+# function will NOT change original, z is up
+def DecideColliderType(object):
+    data=object.data
+    
+    type=""
+    finished=False
+    
+    if len(data.vertices)==0:
+        finished=True
+        #print("Empty")
+    
+    median = GetMedianPoint(data)
+
+    ## ISSUE: vertices not included in polygons should invalidate the collider because a collision happens on a plane.
+    ##      some colliders require that a mesh is connected even polygons need to be connected
+    ## NOTE: mesh cannot be rotated. cube, capsule, heightmap needs to be aligned to the axis.
+    
+    #### check cube
+    if not finished:
+        if len(data.vertices)==8:
+            # A cube or block requires 90 deg. angles
+            #print("Polygons:",len(data.polygons))
+            tolerance=0.001
+            failed = False
+            
+            # axis aligned
+            for p in data.polygons:
+                count = len(p.vertices)
+                for i in range(0,count):
+                    a = data.vertices[p.vertices[(i-1)%count]].co
+                    b = data.vertices[p.vertices[i]].co
+                    c = data.vertices[p.vertices[(i+1)%count]].co
+                    
+                    ab = a-b
+                    bc = b-c
+                    
+                    ang = ab.dot(bc)
+                    #print(ang)
+                    if math.fabs(ang)>tolerance:
+                        failed=True
+                        break
+                
+                if failed:
+                    break
+            
+            if not failed:
+                aligns=0
+                for v in data.vertices:
+                    f = data.vertices[0]
+                    #print(v,f)
+                    if v==f:
+                        continue
+                    
+                    if v.co.x==f.co.x or v.co.y==f.co.y or v.co.z==f.co.z:
+                        aligns+=1
+                        #print(v.co,f.co)
+                
+                #print("Aligns:",aligns)
+                if aligns<3:
+                    finished=True # mesh is a cube but it is rotate
+                else:
+                    type="CUBE"
+                    finished=True
+        
+    #### Height map
+    if not finished:
+        # ISSUE: Polygons should not be allowed to be disconnected
+        
+        # NOTE: map is not affected by original's scale
+        tolerance=0.001
+        failed=False
+        for p in data.polygons:
+            count = len(p.vertices)
+            for i in range(0,count):
+                a = data.vertices[p.vertices[(i-1)%count]].co
+                b = data.vertices[p.vertices[i]].co
+                c = data.vertices[p.vertices[(i+1)%count]].co
+                
+                ab = a-b
+                bc = b-c
+                
+                ang = ab.x*bc.x+ab.y*bc.y # using y since z is up
+                #print(ang)
+                if math.fabs(ang)>tolerance:
+                    #print("Bad angle:",ang)
+                    failed=True
+                    break
+            
+            if failed:
+                break
+        
+        if not failed:
+            aligns=0
+            p0 = data.polygons[0]
+            
+            for i in p0.vertices:
+                v = data.vertices[i]
+                f = data.vertices[p0.vertices[0]]
+                print(v.co,f.co)
+                if v==f:
+                    continue
+                
+                if v.co.x==f.co.x or v.co.y==f.co.y: # using y since z is up
+                    aligns+=1
+                    #print(v.co,f.co)
+                
+            #print("Aligns:",aligns)
+            if aligns<2:
+                finished=True
+            else:
+                
+                # there can only be 4 vertices which are connected to 2 edges
+                refs=[0]*len(data.vertices)
+                for key in data.edge_keys:
+                    refs[key[0]]+=1
+                    refs[key[1]]+=1
+                
+                vertWith2=0
+                for val in refs:
+                    if val==2:
+                        vertWith2+=1
+                        if vertWith2==5:
+                            break
+                        
+                if vertWith2>4:
+                    finished=True
+                else:
+                    type="MAP"
+                    finished=True
+    
+    #### check sphere
+    if not finished:
+        # Sphere is determined by radius. Because of this, a cube will be seen as a sphere. Check if cube before 
+        minRadius=9999999
+        maxRadius=-1
+        for mv in data.vertices:
+            d = mv.co-median
+            radius = d.x*d.x+d.y*d.y+d.z*d.z
+            if radius<minRadius:
+                minRadius=radius
+            if radius>maxRadius:
+                maxRadius=radius
+        
+        minRadius = math.sqrt(minRadius)
+        maxRadius = math.sqrt(maxRadius)
+        
+        tolerance=0.001
+        radiusDiff = math.fabs(maxRadius-minRadius)
+        if radiusDiff<tolerance:
+            type="SPHERE"
+            finished=True
+            #print(radiusDiff)
+        
+    #### check capsule    
+    if not finished:
+        ## this code is not flaw because of original.dimensions
+        ## note that tolerance is 0.01, uv sphere isn't 100% spherical
+        
+        #dim = Vector()
+        #for i in range(0,3):
+        #    dim[i]=original.dimensions[i]/original.scale[i]
+        dim = object.dimensions.copy()
+        # scaling
+        s=original.scale
+        
+        radius2 = (dim.x+dim.y)/4
+        radius = math.sqrt(radius2)
+        height = dim.z
+        
+        top = median.copy()
+#        top.x*=s.x
+#        top.y*=s.y
+#        top.z*=s.z
+        top.z+=height/2-radius
+        bottom = median.copy()
+#        bottom.x*=s.x
+#        bottom.y*=s.y
+#        bottom.z*=s.z
+        bottom.z+=-height/2+radius
+        
+        tolerance = 0.01
+        
+        #print("Dim",dim)
+        #print("R/H:",radius,height,median)
+        #print("Top",top,"Bot",bottom)
+        
+        failed=False
+        for mv in data.vertices:
+            v = mv.co.copy()
+#            v.x*=s.x
+#            v.y*=s.y
+#            v.z*=s.z
+            d = top-v
+            rt = d.x*d.x+d.y*d.y+d.z*d.z
+            d = bottom-v
+            rb = d.x*d.x+d.y*d.y+d.z*d.z
+            
+            #print(d)
+            #print(rt,rb)
+            
+            diffT = math.fabs(radius2-rt)
+            diffB = math.fabs(radius2-rb)
+            if diffT>tolerance and diffB>tolerance:
+                #print("Diffs:",diffT,diffB)
+                failed=True
+                break
+            
+        if not failed:
+            type="CAPSULE"
+            finished=True
+    
+    if finished:
+        print("Collider type:",type)
+    else:
+        print("Collider type: Unknown")
+        
+    return type
 
 def rounding(x):
     return round(x*1000)/1000
 
 # cube collider does not use original.data
-def WriteCollider(path,original):
-    colliderType = GetColliderType(original)
-    if not colliderType:
-        return
-    original["dataName"]=original.name+"_"+colliderType
-    file = FileWriter(path+original["dataName"]+".collider")
-    if file.error:
-        return
-        
-    bpy.ops.object.select_all(action="DESELECT")
-    # Make a copy of the object and apply modifiers
-    object=original.copy()
-    object.data=original.data.copy()
-    bpy.context.scene.collection.objects.link(object)
-    object.select_set(True)
-    bpy.context.view_layer.objects.active=object
+def WriteCollider(log,file,object,colliderType,originName):
+    #colliderType = GetColliderType(original)
+#    colliderType = DecideColliderType(original)
+#    
+#    original["dataName"]=original.name+"-"+colliderType
+#    if not colliderType:
+#        return
+#    
+#    file = FileWriter(path+original["dataName"]+".collider")
+#    if file.error:
+#        return
+#    
+#    bpy.ops.object.select_all(action="DESELECT")
+#    # Make a copy of the object and apply modifiers
+#    object=original.copy()
+#    object.data=original.data.copy()
+#    bpy.context.scene.collection.objects.link(object)
+#    object.select_set(True)
+#    bpy.context.view_layer.objects.active=object
 
-    object.matrix_world = axisConvert @ object.matrix_world
-    object.data.transform(axisConvert)
-    object.matrix_world = object.matrix_world @ axisIConvert
-    
+#    object.matrix_world = axisConvert @ object.matrix_world
+#    object.data.transform(axisConvert)
+#    object.matrix_world = object.matrix_world @ axisIConvert
 
     # CUBE 0
     # SPEHRE 1
@@ -703,17 +863,17 @@ def WriteCollider(path,original):
         # dimensions is used here to get the size of the cube. Scale would give the wrong value.
         file.writeFloat(object.dimensions[0]/2,object.dimensions[1]/2,object.dimensions[2]/2)
         
-        Logging('INFO',original.name)
+        log.print('INFO',originName)
     elif colliderType=="SPHERE":
         file.writeUChar(0)
         file.writeComment("radius")
-        radius = sqrt(pow(object.dimensions[0]/object.scale[0],2)+pow(object.dimensions[1]/object.scale[1],2)+pow(object.dimensions[2]/object.scale[2],2))/2
+        radius = math.sqrt(pow(object.dimensions[0]/object.scale[0],2)+pow(object.dimensions[1]/object.scale[1],2)+pow(object.dimensions[2]/object.scale[2],2))/2
         file.writeFloat(radius);
         file.writeComment("Position")
-        offset = GetMeshOffset(object)
+        offset = GetMedianPoint(object.data)
         file.writeFloat(offset.x,offset.y,offset.z)
         
-        Logging('INFO',original.name)
+        log.print('INFO',originName)
     elif colliderType=="MAP":
         # HEIGHT MAP ASSUMES SOME STUFF
         # Y is up, this means the map needs to be on it's side
@@ -726,27 +886,40 @@ def WriteCollider(path,original):
             if v.co.y<minHeight:
                 minHeight=v.co.y
         
-        width = math.sqrt(len(object.data.vertices))
+        # mesh can be assumed to be a grid, otherwise the type wouldn't be considered a map
+        # starts with one to account for the base
+        width = 0
+        height = 0
+        base = object.data.vertices[0].co
         
-        if width==int(width):
-            width=int(width)
-            centerPoint = Vector()
-            for v in object.data.vertices:
-                centerPoint += v.co
+        for i in range(0,len(object.data.vertices)):
+         
+            v = object.data.vertices[i].co
+            
+            if v.x==base.x:
+                width+=1
+            
+            if v.z==base.z: # we are using z because y is height
+                height+=1
+        
+        print("W/H/S",width,height,len(object.data.vertices))
+        if not len(object.data.vertices)==width*height:
+            log.print('WARNING',"Height map size was miscalculated!")
+        else:
+            median = GetMedianPoint(object.data);
                 
-            centerPoint/=len(object.data.vertices) # this line may not be needed since i don't need the middle point, i just need to know if the center is at (0,0,0)
-            centerPoint.x=rounding(centerPoint.x)
-            centerPoint.y=rounding(centerPoint.y)
-            centerPoint.z=rounding(centerPoint.z)
+            median.x=rounding(median.x)
+            median.y=rounding(median.y)
+            median.z=rounding(median.z)
            
-            if centerPoint.x==0 and centerPoint.z == 0:
-                print("CenterPoint:",centerPoint)
-                Logging('WARNING',"Height map is not centered or not following grid system!")
+            if not median.x==0 or not median.z == 0:
+                print("CenterPoint:",median)
+                log.print('WARNING',"Height map is not centered!")
                 
             file.writeComment("Width")
             file.writeUShort(width)
             file.writeComment("Height")
-            file.writeUShort(width)
+            file.writeUShort(height)
             
             # this will make sure that the median of min and max is zero.
             if abs(minHeight)<abs(maxHeight):
@@ -754,17 +927,16 @@ def WriteCollider(path,original):
             else:
                 maxHeight=-minHeight
             
-            
             file.writeComment("Min Height")
             file.writeFloat(minHeight)
             file.writeComment("Max Height")
             file.writeFloat(maxHeight)
             # this changes depending on the distance between points, NOT the transform(matrix_local)
             file.writeComment("ScaleXZ")
-            scaleX = original.dimensions.x/(width-1)
-            scaleY = original.scale.y
-            scaleZ = original.dimensions.z/(width-1)
-            print("Scale: ",scaleX,scaleY,scaleZ)
+            scaleX = object.dimensions.x/(width-1)
+            scaleY = object.scale.z
+            scaleZ = object.dimensions.y/(width-1)
+            #print("Scale: ",scaleX,scaleY,scaleZ)
             file.writeFloat(scaleX,scaleY,scaleZ)
             file.writeComment("Height Data")
         
@@ -773,9 +945,9 @@ def WriteCollider(path,original):
             for i in range(0,len(object.data.vertices)):
                 data.append(0) # maybe not the best way to fill an array
             
-            baseX = original.dimensions.x/2
-            baseZ = original.dimensions.z/2
-            print("BaseXZ: ",baseX,baseZ," Width: ",width)
+            baseX = object.dimensions.x/2
+            baseZ = object.dimensions.z/2
+            #print("BaseXZ: ",baseX,baseZ," Width: ",width)
             for v in object.data.vertices:
                 xi = round((baseX+v.co.x)/scaleX)
                 zi = round((baseZ+v.co.z)/scaleZ)
@@ -784,14 +956,12 @@ def WriteCollider(path,original):
                 index = zi*(width)+xi
                 #print("XY: ",v.co.x,v.co.z," Index: ",xi,zi)
                     
-                data[index]=v.co.y
+                data[index]=v.co.yx
             
             for val in data:
                 file.writeFloat(val)
             
-            Logging('INFO',original.name)
-        else:
-            Logging('ERROR',"Height map is not square!")
+            log.print('INFO',originName)
     
     elif colliderType=="CAPSULE":
         file.writeUChar(3)
@@ -800,7 +970,7 @@ def WriteCollider(path,original):
         file.writeComment("Height")
         file.writeFloat(object.dimensions[1]/2)
         
-        Logging('INFO',original.name)
+        log.print('INFO',originName)
         
     elif colliderType=="MESH":
         file.writeUChar(2)
@@ -836,102 +1006,89 @@ def WriteCollider(path,original):
             if len(v)==3:
                 file.writeUShort(v[0],v[1],v[2])
         
-        Logging('INFO',original.name)        
+        log.print('INFO',originName)
     else:
-        Logging('WARNING',"Collider "+colliderType+" is not supported!")
-   
-    # Cleanup
-    file.close()
-    bpy.ops.object.delete()
+        log.print('WARNING',"Collider "+colliderType+" is not supported!")
 
-def WriteModel(path,name,meshes,armatures,colliders,animations):
-    file = FileWriter(path+name+".model")
-    if file.error:
-        return
+def WriteModel(log,file,instances,animations,originName):
     
-    general = []
-    for o in meshes:
-        general.append(o)
-    for o in armatures:
-        general.append(o)
-    for o in colliders:
-        general.append(o)
-    #print(general)
-    #for x in general:
-    #    print(x.name,general.index(x.parent) if x.parent else -1)
-    sort = sorted(general,key=lambda x: general.index(x.parent) if x.parent else -1)
-    
+    instCopy = instances.copy()
+
     sort = []
-    # add the root
-    for o in general:
-        if o.parent==None:
-            sort.append(o)
-            general.remove(o)
+    
+    # add the root, should be the first one but this might change in the future so better be safe
+    for inst in instances:
+        if inst.object.parent==None:
+            sort.append(inst)
+            instCopy.remove(inst)
             break
         
     index = 0
-    limit = len(general) # safety feature
-    while len(general)>0 and limit>0:
-       # print("index ",index)
+    limit = len(instCopy)*len(instCopy) # safety feature
+    while len(instCopy)>0 and limit>0:
+        #print("index ",index)
        
         i=0
-        while i<len(general):
-            o = general[i]
-            #print(o.name)
-            if o.parent==None:
-                continue
-            parIndex = sort.index(o.parent)
+        while i<len(instCopy) and limit>0:
+            inst = instCopy[i]
+            
+            if inst.object.parent==None:
+                continue    
+            
+            parIndex = -1
+            for j in range(0,len(sort)):
+                if inst.object.parent==sort[j].object:
+                    parIndex=j
+                    break
+            
             #print(" ",parIndex)
             if index == parIndex:
-                sort.append(o)
-                general.remove(o)
+                sort.append(inst)
+                instCopy.remove(inst)
                 i-=1
             
             i+=1
+            limit-=1
         
         index+=1
         limit-=1
-    #Logging("WARNING","Instance sorting"
+    #Logging("WARNING","Instance sorting")
     
-    print(sort)
+    #print(sort)
     
     file.writeComment("Instance count")
     file.writeUChar(len(sort))
 
-    for o in sort:
-        parentIndex = sort.index(o.parent) if o.parent else -1
+    for inst in sort:
+        parentIndex = -1
+        for j in range(0,len(sort)):
+            if inst.object.parent==sort[j].object:
+                parentIndex=j
+                break
         
-        localMatrix=o.matrix_local
+        localMatrix=inst.object.matrix_local
         #if parentIndex==-1:
         localMatrix=axisConvert@localMatrix@axisIConvert
         
-        #object.matrix_world = axisConvert * object.matrix_local
-        # object.data.transform(rotConvert)
-        #object.matrix_world *= irotConvert
         
         #if parentIndex==-1:
             #local_matrix = local_matrix.Translation(local_matrix[3])
         
         type = 0
-        if o in meshes:
+        if inst.asset.type=="MESH":
             type=0
-            meshes.remove(o)
-        if o in armatures:
+        elif inst.asset.type=="ARMATURE":
             type=1
-            armatures.remove(o)
-        if o in colliders:
+        elif inst.asset.type=="COLLIDER":
             type=2
-            colliders.remove(o)
         
-        # ignore scale actually keep
-        #if type==2:
-        #    localMatrix = Matrix.LocRotScale(localMatrix.to_translation(),localMatrix.to_quaternion(),None)
-        
-        file.writeString(o.name)
+        # instance name
+        file.writeString(inst.object.name)
         #file.writeComment("Instance Type")
         file.writeUChar(type)
         
-        file.writeString(o["dataName"])
+        # data name (asset name)
+        file.writeString(inst.asset.name)
             
         file.writeShort(parentIndex)
         localMatrix=localMatrix.transposed()
@@ -939,197 +1096,307 @@ def WriteModel(path,name,meshes,armatures,colliders,animations):
     
     file.writeComment("Animation count")
     file.writeUShort(len(animations))
-    for anim in animations:
-        file.writeString(anim.name)
+    for asset in animations:
+        file.writeString(asset.action.name)
     
-    Logging('INFO',name)
-    
-    # Cleanup
-    file.close()
+    log.print('INFO',originName)
 
-def LoadFiles(assetPath):
+class Asset:
+    type=""
+    object=None
+    action=None
+    name=""
+    copy=None
+    
+    def __init__(self,type,object,action=None):
+        self.type=type
+        self.object=object
+        self.action=action
+    
+class Instance:
+    asset=None
+    object=None
+    
+    def __init__(self,asset,object):
+        self.asset=asset
+        self.object=object
+
+def ExportAssets(log,assetPath):
     if not bpy.context.mode=='OBJECT':
-        Logging('ERROR',"Must be in object mode!")
+        log.print('ERROR',"Must be in object mode!")
+        return
     elif len(bpy.context.selected_objects)==0:
-        Logging('ERROR',"Select an object!")
-    else:
-        selectedObjects = bpy.context.selected_objects
-        activeObject = bpy.context.object
-        
-        export_objects=bpy.context.selected_objects
-        for rootObject in export_objects: 
-            if not rootObject.parent==None:
-                Logging("ERROR","Selected object has a parent!")
-            else:
-          
-                objectPath=assetPath+rootObject.name+"\\"
-                    
-                os.makedirs(os.path.dirname(objectPath),exist_ok=True)
-                
-                TYPE_NORMAL="-N"
-                TYPE_BONED="-B"
-                
-                # these are the instances of the assets/objects
-                loadedMeshes = []
-                loadedArmatures = []
-                loadedColliders = []
-                loadedAnimations = []
-                            
-                # model is the term for the root object
-                # mesh is a unique mesh asset
-                # instances are a transform which refers to a mesh
-                # material is the color or texturing of a mesh
-                objectsLeft=[rootObject]
-                while len(objectsLeft)>0:
-                    child=objectsLeft[0]
-                    objectsLeft.remove(child)
-                    
-                    # This bit will ignore hidden objects
-                    if child.hide_get():
-                        continue
-                    
-                    for o in child.children: 
-                        objectsLeft.append(o)
-                    
-                    # Write animation
-                    if not child.animation_data==None:
-                        for track in child.animation_data.nla_tracks:
-                            for strip in track.strips:
-                                action=strip.action
-                        
-                                isLoaded = False
-                                for act in loadedAnimations:
-                                    if act.name == action.name:
-                                        isLoaded=True
-                                        break
-                                
-                                if not isLoaded:
-                                    WriteAnimation(objectPath,action,child)
-                                    loadedAnimations.append(action)
-                                
-                    
-                    # Write mesh and/or collider
-                    if child.type=='MESH':
-                        if child.name[:2]=="C_":
-                            # THIS NEEDS TO CHANGE WHEN DOING MESHES
-                            WriteCollider(objectPath,child)
-                            loadedColliders.append(child)
-                            continue
-                        
-                        meshType = TYPE_NORMAL
-                        
-                        for mod in child.modifiers:
-                            if mod.type=='ARMATURE':
-                                meshType=TYPE_BONED
-                                    
-                        isLoaded=False
-                        for l in loadedMeshes:
-                            if l.data.name==child.data.name:
-                                if l["MESHTYPE"]==meshType:
-                                    isLoaded=True
-                                    break
-                                    
-                        
-                        child["MESHTYPE"]=meshType
-                        if not isLoaded:
-                            WriteMesh(objectPath,child)
-                            for mat in child.data.materials:
-                                WriteMaterial(objectPath,mat)
-                                    
-                        loadedMeshes.append(child)
-                                
-                    # Write Armature    
-                    elif child.type=='ARMATURE':
-                        isLoaded=False
-                        for l in loadedArmatures:
-                            if l.data.name==child.data.name:
-                                isLoaded=True
-                        
-                        if not isLoaded:
-                            WriteArmature(objectPath,child)
-                        
-                        loadedArmatures.append(child)
-                            
-                WriteModel(objectPath,rootObject.name,loadedMeshes,loadedArmatures,loadedColliders,loadedAnimations)   
+        log.print('ERROR',"Select an object!")
+        return
 
-        # select previously selected objects
-        for ob in selectedObjects:
-            bpy.ops.object.select_pattern(pattern=ob.name)
+    activeObject = bpy.context.object
+    selectedObjects = bpy.context.selected_objects.copy()
+    
+    for object in selectedObjects: 
+        if not object.parent==None:
+            log.print("ERROR","Selected object cannot be a child!")
+            return
+    
+    for root in selectedObjects: 
+        modelPath=assetPath+root.name+"\\"
+            
+        os.makedirs(os.path.dirname(modelPath),exist_ok=True)
         
-        if not activeObject==None:
-            bpy.context.view_layer.objects.active=activeObject
+        bpy.ops.object.select_all(action="DESELECT")
+        
+        meshes = []
+        armatures = []
+        colliders = []
+        animations = []
+        materials = []
+        
+        instances = []
+        
+        remaining=[root]
+        while len(remaining)>0:
+            object=remaining[0]
+            remaining.remove(object)
+            
+            # This bit will ignore hidden objects
+            if object.hide_get():
+                continue
+            
+            for o in object.children: 
+                remaining.append(o)
+            
+            # Write animation
+            if not object.animation_data==None:
+                for track in object.animation_data.nla_tracks:
+                    for strip in track.strips:
+                        action=strip.action
+                
+                        found = None
+                        for asset in animations:
+                            if asset.action.name == action.name:
+                                found=asset
+                                break
+                        
+                        if not found:
+                            found = Asset("ANIMATION",object,action)
+                            animations.append(found)
+            
+            # Write mesh or collider
+            if object.type=='MESH':
+                if object.data.name[-2:]=="-C":
+                    found = None
+                    for asset in colliders:
+                        if asset.object.data.name==object.data.name:
+                            found=asset
+                            break
+                    
+                    if not found:
+                        found = Asset("COLLIDER",object)
+                        colliders.append(found)
+                    instances.append(Instance(found,object))
+                    
+                else:
+                    found=None
+                    for asset in meshes:
+                        if asset.object.data.name==object.data.name:
+                            found=asset
+                            break
+                               
+                    if not found:
+                        found = Asset("MESH",object)
+                        meshes.append(found)
+                        for mat in object.data.materials:
+                            found=False
+                            for m in materials:
+                                if m.name==mat.name:
+                                    found=True
+                                    break
+                            
+                            if not found:
+                                materials.append(mat)
+                                
+                    instances.append(Instance(found,object))
+                        
+            # Write Armature    
+            elif object.type=='ARMATURE':
+                found=None
+                for asset in armatures:
+                    if asset.object.data.name==object.data.name:
+                        found=asset
+                        break
+                
+                if not found:
+                    found = Asset("ARMATURE",object)
+                    armatures.append(found)
+                instances.append(Instance(found,object))
+        
+        #print(instances)
+        
+        # skip for now
+        #continue
+
+        for asset in animations:
+            file = FileWriter(modelPath+asset.action.name+".animation")
+            if file.error:
+                continue
+            
+            WriteAnimation(log,file,asset.object,asset.action);
+            
+            file.close()
+            
+        for o in materials:
+            file = FileWriter(modelPath+o.name+".material")
+            if file.error:
+                return
+            
+            WriteMaterial(log,file,o)
+            
+            file.close()
+        
+        
+        assets = meshes+colliders+armatures
+        
+        for asset in assets:
+            objectCopy=asset.object.copy()
+            objectCopy.data=asset.object.data.copy()
+            bpy.context.scene.collection.objects.link(objectCopy)
+            objectCopy.select_set(True)
+            bpy.context.view_layer.objects.active=objectCopy
+            
+            objectCopy.matrix_world = axisConvert @ objectCopy.matrix_world
+            objectCopy.data.transform(axisConvert)
+            objectCopy.matrix_world = objectCopy.matrix_world @ axisIConvert
+            
+            asset.name=asset.object.data.name
+            
+            file = None
+            try:
+                if asset.type=="MESH":
+                    if objectCopy.modifiers.find("Triangulate")==-1:
+                        objectCopy.modifiers.new("Triangulate",'TRIANGULATE')
+                        #object.modifiers["Triangulate"].quad_method="SHORTEST_DIAGONAL"
+                    isBoned = False
+                
+                    for mod in objectCopy.modifiers:
+                        if not mod.type=='ARMATURE':
+                            bpy.ops.object.modifier_apply(modifier=mod.name)
+                        else:
+                            isBoned=True
+                    
+                    file = FileWriter(modelPath+asset.name+".mesh")
+                    if not file.error:
+                        WriteMesh(log,file,objectCopy,isBoned,asset.name)
+                    
+                elif asset.type=="COLLIDER":
+                    colliderType = DecideColliderType(objectCopy)
+                     
+                    for mod in object.modifiers:
+                        bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    # collider name needs to be overwritten
+                    asset.name=asset.object.data.name[:-1]+colliderType
+                    
+                    file = FileWriter(modelPath+asset.name+".collider")
+                    if not file.error:
+                        WriteCollider(log,file,objectCopy,colliderType,asset.name)
+                    
+                elif asset.type=="ARMATURE":
+                    for mod in object.modifiers:
+                        bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    file = FileWriter(modelPath+asset.name+".armature")
+                    if not file.error:
+                        WriteArmature(log,file,objectCopy,asset.name)
+            except:
+                print(traceback.format_exc())
+            
+            if file:
+                file.close()
+            
+            bpy.ops.object.delete()
+        
+        file = None
+        try:
+            file = FileWriter(modelPath+root.name+".model")
+            if not file.error:
+                WriteModel(log,file,instances,animations,root.name)   
+        except Exception:
+            print(traceback.format_exc())
+        
+        if file:
+            file.close()
+        
+    # select previously selected objects
+    for ob in selectedObjects:
+        bpy.ops.object.select_pattern(pattern=ob.name)
+    
+    if not activeObject==None:
+        bpy.context.view_layer.objects.active=activeObject
 
 # The code below is for prefererences
-class MyProperty(bpy.types.PropertyGroup):
-    myProjectPath : bpy.props.StringProperty(name="Project Path")
-    mySubPath : bpy.props.StringProperty(name="Sub Path")
+class EGONEProperty(bpy.types.PropertyGroup):
+    projectPath : bpy.props.StringProperty(name="Project Path")
+    subPath : bpy.props.StringProperty(name="Sub Path")
     
-class MExportPanel(bpy.types.Panel):
-    bl_label = "Model Exporter"
-    bl_idname = "mexport_panel"
+class EGONEPanel(bpy.types.Panel):
+    bl_label = "Engone Exporter"
+    bl_idname = "VIEW3D_PT_egone"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = "Model Exporter"
+    bl_category = "Engone Exporter"
     
     def draw(self,context):
         layout = self.layout
         scene = context.scene
-        mexport = scene.mexport
+        egone = scene.egone
         
-        layout.prop(mexport,"myProjectPath")
-        layout.prop(mexport,"mySubPath")
-        layout.operator("object.mexport_models");
+        layout.prop(egone,"projectPath")
+        layout.prop(egone,"subPath")
+        layout.operator("object.engone_export");
 
 # The code below is for exporting models
-class MExportOperator(bpy.types.Operator):
+class EGONEOperator(bpy.types.Operator):
     bl_label = "Export Models"
-    bl_idname = "object.mexport_models"
+    bl_idname = "object.engone_export"
     
     def execute(self, context):
         scene = context.scene
-        me = scene.mexport
-    
-        ResetLog()
+        egone = scene.egone
         
-        projectPath = me.myProjectPath
+        projectPath = egone.projectPath
+        
+        log = ExportLog()
+        
         # Default path once again
         if projectPath=="":
-            Logging("ERROR","Project path is empty!")
-            #me.myProjectPath="D:\\Development\\VisualStudio\\ProjectUnknown\\ProjectUnknown\\assets\\"
+            log.print("ERROR","Project path is empty!")
         else:
             # No need to worry about ending the with slashes
-            projectPath = me.projectPath if projectPath[-1]=='\\' else projectPath+'\\'
-            if len(me.mySubPath)>0:
-                projectPath = projectPath + (me.mySubPath if me.mySubPath[-1]=='\\' else me.mySubPath+'\\')
-        
-            LoadFiles(projectPath)
+            projectPath = egone.projectPath if projectPath[-1]=='\\' else projectPath+'\\'
+            if len(egone.subPath)>0:
+                projectPath = projectPath + (egone.subPath if egone.subPath[-1]=='\\' else egone.subPath+'\\')
+            
+            ExportAssets(log,projectPath)
         
         global logState
-        msg = FinalLog()
+        msg = log.getMessage()
+        level = log.getLevel()
         
-        self.report({logState}, msg)
+        self.report({level}, msg)
         return {"FINISHED"}
     
-classes = [MyProperty,MExportPanel,MExportOperator]
+classes = [EGONEProperty,EGONEPanel,EGONEOperator]
 
 def register():
     for cls in classes:
         bpy.utils.register_class(cls)
         
-        bpy.types.Scene.mexport = bpy.props.PointerProperty(type=MyProperty)
-        
-    # Default path
-    me = bpy.context.scene.mexport
-   # if me.myProjectPath=="":
-    #    # Example path
-     #   me.myProjectPath="D:\\Development\\VisualStudio\\ProjectUnknown\\ProjectUnknown\\assets\\"
-        
+        bpy.types.Scene.egone = bpy.props.PointerProperty(type=EGONEProperty)
  
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
         
-        del bpy.types.Scene.mexport
+        del bpy.types.Scene.egone
     
 if __name__ == "__main__":
     register()

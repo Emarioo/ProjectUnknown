@@ -58,6 +58,11 @@ namespace engone {
 		if (win) return win->isKeyPressed(code);
 		return 0;
 	}
+	bool IsKeyReleased(int code) {
+		Window* win = GetActiveWindow();
+		if (win) return win->isKeyReleased(code);
+		return 0;
+	}
 	bool IsKeybindingDown(uint16_t id) {
 		if (keybindings.count(id)) {
 			Keybinding& bind = keybindings[id];
@@ -77,6 +82,20 @@ namespace engone {
 			Keybinding& bind = keybindings[id];
 
 			if (!IsKeyPressed(bind.keys[0]))
+				return false;
+			if (bind.keys[1] != -1 && !IsKeyDown(bind.keys[1]))
+				return false;
+			if (bind.keys[2] != -1 && !IsKeyDown(bind.keys[2]))
+				return false;
+			return true;
+		}
+		return false;
+	}
+	bool IsKeybindingReleased(uint16_t id) {
+		if (keybindings.count(id)) {
+			Keybinding& bind = keybindings[id];
+
+			if (!IsKeyReleased(bind.keys[0]))
 				return false;
 			if (bind.keys[1] != -1 && !IsKeyDown(bind.keys[1]))
 				return false;
@@ -122,6 +141,7 @@ namespace engone {
 
 		return numKeys;
 	}
+	// ISSUE: this should be unique to the application
 	bool SaveKeybindings(const std::string& path) {
 		std::ofstream file(path, std::ios::binary);
 		if (!file) {

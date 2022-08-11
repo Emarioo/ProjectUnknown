@@ -640,8 +640,10 @@ namespace engone {
 		else if (slerpT == 1) {
 			quater *= glm::mat4_cast(glm::normalize(glm::slerp(glm::quat(1, 0, 0, 0), q1, blend)));
 		}
-		else // Expensive. Is it possible to optimize?
+		else {// Expensive. Is it possible to optimize?
+			//log::out << "blend "<<q0 << " "<<q1 <<" "<<blend << "\n";
 			quater *= glm::mat4_cast(glm::normalize(glm::slerp(glm::quat(1, 0, 0, 0), glm::slerp(q0, q1, slerpT), blend)));
+		}
 	}
 	Channels& AnimationAsset::get(unsigned short i)
 	{
@@ -795,7 +797,6 @@ namespace engone {
 			file.read(&triangleCount);
 			
 			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
-
 			uint32_t uPointCount = 3 * pointCount;
 			uint32_t uPointSize = sizeof(float)*uPointCount;
 			float* uPoint = (float*)alloc::_malloc(uPointSize);
@@ -1005,8 +1006,8 @@ namespace engone {
 				if ((i + 1) / (3) == (float)(i + 1) / (3))
 					std::cout << std::endl;
 			}*/
-			vertexBuffer.setData((uniqueVertex.size() / uvStride)* vStride, vertexOut);
-			indexBuffer.setData(triangleCount * 3, triangleOut);
+			vertexBuffer.setData((uniqueVertex.size() / uvStride)* vStride * sizeof(float), vertexOut);
+			indexBuffer.setData(triangleCount * 3 * sizeof(float), triangleOut);
 			
 			vertexArray.addAttribute(3);// Position
 			vertexArray.addAttribute(3);// Normal
@@ -1065,41 +1066,37 @@ namespace engone {
 	void ColliderAsset::load(const std::string& path) {
 		filePath = path + ".collider";
 
-		// maybe reset old data?
-		
-		//ints.push_back(2);
-		//ints.push_back(6);
+		map.heights.clear();
+		map.heights.shrink_to_fit();
 
 		FileReader file(filePath);
 		try {
-			//uint8_t movable;
-			//file.read(&movable);
-
 			file.read(&colliderType);
 
 			//log::out << (int)colliderType << " type\n";
 
 			switch (colliderType) {
-			case Type::Cube: {
+			case CubeType: {
 				file.read(&cube.size);
-				//log::out << cube.scale<<" scale \n";
-				//furthest = glm::length(cube.size);
 				break;
 			}
-			case Type::Sphere:{
+			case SphereType:{
 				file.read(&sphere.radius);
 				break;
 			}
-			case Type::HeightMap: {
-				file.read(&heightMap.gridWidth);
-				file.read(&heightMap.gridHeight);
-				file.read(&heightMap.minHeight);
-				file.read(&heightMap.maxHeight);
-				file.read(&heightMap.scale);
-				uint32_t count = heightMap.gridWidth * heightMap.gridHeight;
-				heightMap.heights.resize(count);
-				file.read(heightMap.heights.data(), count);
-
+			case MapType: {
+				file.read(&map.gridColumns);
+				file.read(&map.gridRows);
+				file.read(&map.minHeight);
+				file.read(&map.maxHeight);
+				file.read(&map.scale);
+				uint32_t count = map.gridColumns * map.gridRows;
+				if (count > 1000000){
+					log::out << "Something may be corrupted\n"; // to prevent a corruption from allocating insane amounts of memory.
+					throw FileErrorCorrupted;
+				}
+				map.heights.resize(count);
+				file.read(map.heights.data(), count);
 
 				//uint16_t triCount,pointCount;
 				//file.read(&pointCount);
@@ -1122,7 +1119,7 @@ namespace engone {
 
 				break;
 			}
-			case Type::Capsule: {
+			case CapsuleType: {
 				file.read(&capsule.radius);
 				file.read(&capsule.height);
 				break;
@@ -1133,7 +1130,6 @@ namespace engone {
 			error = err;
 			//Logging({ "AssetManager","Collider",toString(err) + ": " + path }, LogStatus::Error);
 		}
-		//file.close();
 	}
 	void ArmatureAsset::load(const std::string& path){
 		filePath = path + ".armature";
@@ -1244,10 +1240,8 @@ namespace engone {
 		}
 	}
 	std::vector<glm::mat4> ModelAsset::getParentTransforms(Animator* animator) {
-		// NOTE: one vector might be enough.
 		std::vector<glm::mat4> mats(instances.size());
 		std::vector<glm::mat4> modelT(instances.size());
-		
 
 		for (uint32_t i = 0; i < instances.size(); ++i) {
 			AssetInstance& instance = instances[i];
@@ -1350,11 +1344,11 @@ namespace engone {
 		}
 		return mats;
 	}
-	std::vector<glm::mat4> ModelAsset::getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature) {
+	std::vector<glm::mat4> ModelAsset::getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* armature,std::vector<glm::mat4>* boneMats) {
 		std::vector<glm::mat4> mats(armature->bones.size());
 		if (armature != nullptr) {
 			std::vector<glm::mat4> modelT(armature->bones.size());
-			
+
 			for (uint32_t i = 0; i < armature->bones.size(); ++i) {
 				Bone& bone = armature->bones[i];
 				glm::mat4 loc = bone.localMat;
@@ -1374,7 +1368,7 @@ namespace engone {
 							AnimationAsset* animation = animations[j];
 							
 							if (prop.asset == animation &&
-								std::strcmp(prop.instanceName, instance->name.c_str()) == 0) {
+								prop.instanceName == instance->name) {
 
 								if (animation->objects.count((uint16_t)i) > 0u) {
 
@@ -1438,6 +1432,10 @@ namespace engone {
 				}
 
 				mats[i] = (modelT[i] * inv);
+			}
+			if (boneMats) {
+				boneMats->resize(armature->bones.size());
+				memcpy_s(boneMats->data(), boneMats->size() * sizeof(glm::mat4), modelT.data(), modelT.size() * sizeof(glm::mat4));
 			}
 		}
 		return mats;

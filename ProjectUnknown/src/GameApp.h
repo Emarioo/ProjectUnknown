@@ -7,6 +7,8 @@
 
 #include "Engone/World/Playground.h"
 
+#include "Engone/ParticleModule.h"
+
 namespace game {
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:
@@ -16,13 +18,15 @@ namespace game {
 		void render(engone::RenderInfo& info) override;
 		void onClose(engone::Window* window) override;
 
-		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
+		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
 
 		Player* player=nullptr;
 		Terrain* terrain = nullptr;
 
 	private:
 		bool paused = true;
+
+		engone::ParticleGroup* particleGroup;
 
 		engone::Window* m_window=nullptr;
 

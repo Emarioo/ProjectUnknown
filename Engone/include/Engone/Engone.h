@@ -18,6 +18,7 @@
 #include "Engone/Utilities/rp3d.h"
 #include "Engone/GameObject.h"
 #include "Engone/Utilities/RuntimeStats.h"
+#include "Engone/ParticleModule.h"
 
 namespace engone {
 	class Engone {
@@ -58,6 +59,8 @@ namespace engone {
 		// don't add nullptr, object is assumed to be valid.
 		void addObject(GameObject* object);
 
+		void addParticleGroup(ParticleGroup* group);
+
 		// the run time of stats
 		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
 #ifndef ENGONE_NO_PHYSICS
@@ -73,6 +76,8 @@ namespace engone {
 	private:
 		RuntimeStats m_runtimeStats;
 
+		// delta uniform is set in engine loop.
+		std::vector<ParticleGroup*> m_particleGroups;
 		std::vector<GameObject*> m_objects;
 		std::vector<Light*> m_lights;
 		bool m_loadedDefault=false;
@@ -81,15 +86,10 @@ namespace engone {
 		std::vector<uint16_t> m_appSizes; // used for tracker
 		std::vector<TrackerId> m_appIds; // used for tracker
 
-		VertexBuffer instanceBuffer;
-
-		// Render bit
-
 		void update(UpdateInfo& info);
 		// only renders objects at the moment
 		void render(RenderInfo& info);
 		void renderObjects(RenderInfo& info);
-
 
 		void bindLights(Shader* shader, glm::vec3 objectPos);
 

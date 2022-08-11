@@ -20,7 +20,6 @@ namespace engone {
 		rp3d::CollisionBody* collisionBody=nullptr;
 #endif
 		ModelAsset* modelAsset=nullptr;
-		MeshAsset* meshAsset=nullptr;
 		Animator animator;
 
 		// a matrix, without scale

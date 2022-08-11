@@ -333,33 +333,33 @@ namespace engone {
 		~ColliderAsset() {}
 		void load(const std::string& path) override;
 
-		enum class Type : char {
-			Cube=0,
-			Sphere=1,
-			HeightMap=2,
-			Capsule=3
+		enum Type : uint8_t {
+			SphereType=0,
+			CubeType=1,
+			CapsuleType=2,
+			MapType=3,
 		};
 		// Height map
 		std::vector<glm::vec3> points;
 		uint32_t gridWidth=0,gridHeight=0;
 
-		Type colliderType = Type::Cube;
+		Type colliderType = Type::SphereType;
 		union {
-			struct {// cube
-				glm::vec3 size = { 0,0,0 };
-			} cube;
 			struct {// sphere
 				float radius=0;
 			} sphere;
-			struct {
-				uint32_t gridWidth = 0, gridHeight = 0;
-				float minHeight=0, maxHeight=0;
-				glm::vec3 scale;
-				std::vector<float> heights;
-			} heightMap;
+			struct {// cube
+				glm::vec3 size = { 0,0,0 };
+			} cube;
 			struct {
 				float radius=0, height = 0;
 			} capsule;
+			struct {
+				uint32_t gridColumns = 0, gridRows = 0;
+				float minHeight=0, maxHeight=0;
+				glm::vec3 scale;
+				std::vector<float> heights;
+			} map;
 		};
 
 		static TrackerId trackerId;
@@ -434,10 +434,22 @@ namespace engone {
 		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
 		std::vector<glm::mat4> getParentTransforms(Animator* animator);
 
+		// will find the first instance with asset type T
+		//template<typename T>
+		//AssetInstance* findInstance() {
+		//	for (int i = 0; i < instances.size(); i++) {
+		//		auto& inst = instances[i];
+		//		if (inst.asset->type == T::TYPE) {
+		//			return inst.asset;
+		//		}
+		//	}
+		//	return nullptr;
+		//}
+
 		/*
 		@instance: The armature instance. Not the mesh instance
 		*/
-		std::vector<glm::mat4> getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset);
+		std::vector<glm::mat4> getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset,std::vector<glm::mat4>* boneMats=nullptr);
 
 		static TrackerId trackerId;
 	private:
@@ -485,13 +497,13 @@ namespace engone {
 			if (find != list.end()) {
 				return find->second->cast<T>();
 			} else {
-				log::out << log::RED << " asset is nullptr\n";
+				log::out << log::RED << "Assets::get - asset is nullptr\n";
 				return nullptr;
 			}
 		}
 		template<class T>
 		T* set(const std::string& name, const std::string& path, Flag flags = FlagNone) {
-			std::string _path = modifyPath(path);
+			std::string _path = modifyPath<T>(path);
 			if (!(flags & FlagReplace)) { // If we don't want to replace asset, see if asset with name already exists and return it if so.
 				auto& list = m_assets[T::TYPE];
 				auto find = list.find(name);
@@ -524,9 +536,17 @@ namespace engone {
 				list.erase(name);
 			}
 		}
+		template<typename T>
 		std::string modifyPath(const std::string& str) {
-			if (m_baseDir.empty()) return str;
-			return m_baseDir + str;
+			std::string out;
+
+			if (!m_baseDir.empty()) out += m_baseDir;
+			
+			if (T::TYPE == ModelAsset::TYPE)
+				out += "models/";
+
+			out+= str;
+			return out;
 		}
 		const std::string& getBaseDir() const { return m_baseDir; };
 		void setBaseDir(std::string str) { m_baseDir = str; };

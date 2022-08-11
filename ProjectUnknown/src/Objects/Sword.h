@@ -14,6 +14,7 @@ public:
 
 		rigidBody = engone->m_pWorld->createRigidBody(t);
 		rigidBody->setType(rp3d::BodyType::DYNAMIC);
+		rigidBody->setIsAllowedToSleep(false);
 
 		loadColliders(engone);
 	}

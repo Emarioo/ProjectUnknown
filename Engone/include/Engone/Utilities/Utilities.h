@@ -118,6 +118,27 @@ namespace engone {
 		double time = 0;
 		double waitTime = 0;
 	};
+	class Timer {
+	public:
+		Timer(const char* name) : name(name),startTime(GetSystemTime()) {}
+		~Timer() {
+			stop();
+		}
+		void stop() {
+			if (startTime == 0) return;
+			double diff = GetSystemTime()-startTime;
+			startTime = 0;
+			if (name)
+				log::out << name;
+			else
+				log::out << "Time";
+			log::out << ": "<<diff << "\n";
+		}
+
+	private:
+		const char* name=nullptr;
+		double startTime = 0;
+	};
 
 	//#define TIMER(str) Timer str = Timer(#str,__LINE__*strlen(__FILE__))
 	

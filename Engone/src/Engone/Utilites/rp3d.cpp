@@ -1,6 +1,6 @@
 #include "Engone/Utilities/rp3d.h"
 
-//#include "Engone/Logger.h"
+#include "Engone/Logger.h"
 
 #ifndef ENGONE_NO_PHYSICS
 /*
@@ -35,37 +35,30 @@ namespace engone {
 	}
 	glm::mat4 ToMatrix(const rp3d::Transform& t) {
 		glm::mat4 out;
-		t.getOpenGLMatrix((float*) & out);
-		//glm::mat4 mat = glm::translate(ToGlmVec3(t.getPosition())) * glm::mat4_cast(ToGlmQuat(t.getOrientation()));
+		//t.getOpenGLMatrix((float*) & out);
+		
+		out = glm::translate(ToGlmVec3(t.getPosition())) * glm::mat4_cast(ToGlmQuat(t.getOrientation()));
 		return out;
 	}
-	rp3d::Transform ToTransform(const glm::mat4& m) {
-		glm::vec3 skew;
-		glm::vec3 scale;
-		glm::vec4 pers;
+	rp3d::Transform ToTransform(const glm::mat4& m, glm::vec3* scale) {
+		glm::vec3 sca;
 		glm::vec3 pos;
 		glm::quat rot;
-		//log::out << m << "\n";
-		glm::decompose(m, scale, rot, pos, skew, pers);
-		rot = glm::conjugate(rot);
-		//log::out << rot << "\n";
-		glm::mat4 mat = glm::translate(pos) * glm::mat4_cast(rot);
 
-		glm::quat yesh = rot;
-		glm::mat4 matq = glm::mat4_cast(rot);
-		//log::out << matq<<"\n";
-		glm::decompose(matq, scale, rot, pos, skew, pers);
-		rot = glm::conjugate(rot);
-		glm::mat4 mat2 = glm::mat4_cast(rot);
-		//log::out << mat2 << "\n";
-
-		//rot = glm::conjugate(rot);
-		//log::out << rot << "\n";
+		pos = m[3];
+		glm::vec3 matVecs[3];
+		for (int i = 0; i < 3; i++) {
+			sca[i] = glm::length(glm::vec3(m[i]));
+			matVecs[i] = glm::vec3(m[i]) / sca[i];
+		}
+		glm::mat3 rotMtx(matVecs[0], matVecs[1], matVecs[2]);
+		rot = glm::normalize(glm::quat_cast(rotMtx));
 
 		rp3d::Transform tr;
-		tr.setFromOpenGL((float*)&mat);
-		//tr.setPosition(ToRp3dVec3(pos));
-		//tr.setOrientation(ToRp3dQuat(rot));
+		tr.setPosition(ToRp3dVec3(pos));
+		tr.setOrientation(ToRp3dQuat(rot));
+		if(scale)
+			*scale = sca;
 		return tr;
 	}
 	void DecomposeGlm(const glm::mat4& m, glm::vec3* pos, glm::quat* rot, glm::vec3* scale) {

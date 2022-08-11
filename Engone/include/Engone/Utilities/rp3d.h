@@ -15,7 +15,7 @@ namespace engone {
 	// may not work properly
 	rp3d::Vector3 ToEuler(const rp3d::Quaternion& q);
 	// may not work properly
-	rp3d::Transform ToTransform(const glm::mat4& m);
+	rp3d::Transform ToTransform(const glm::mat4& m, glm::vec3* scale=nullptr);
 	glm::mat4 ToMatrix(const rp3d::Transform& t);
 	void DecomposeGlm(const glm::mat4& m, glm::vec3* pos, glm::quat* rot, glm::vec3* scale);
 }

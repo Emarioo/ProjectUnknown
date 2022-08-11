@@ -9,7 +9,7 @@
 namespace engone {
 	TrackerId Window::trackerId="Window";
 	static bool glfwIsActive = false;
-	static float glfwFreezeTime = 0;
+	static double glfwFreezeTime = 0;
 	void InitializeGLFW() {
 		// There is this bug with glfw where it freezes. This will tell you if it has.
 		std::thread tempThread = std::thread([] {
@@ -20,7 +20,7 @@ namespace engone {
 				}
 			}
 			std::cerr << "GLFW has frozen... ";
-			glfwFreezeTime = engone::GetSystemTime();
+			glfwFreezeTime = engone::GetSystemTime()-20*0.1;// systemTime subtract the time the for loop took
 		});
 
 		if (!glfwInit()) {
@@ -314,12 +314,17 @@ namespace engone {
 					}
 				} else {
 					m_inputs[i].down = false;
+					m_inputs[i].tickReleased++;
+					m_inputs[i].frameReleased++;
 				}
 				break;
 			}
 		}
+		// HEY YOU! don't forget to change these when messing about.
 		if (down)
-			m_inputs.push_back({ code, down, 1, 1 });
+			m_inputs.push_back({ code, down, 1, 1, 0, 0 });
+		else
+			m_inputs.push_back({ code, down, 0, 0, 1, 1 });
 	}
 	float  Window::getRawMouseX() const {
 		if (m_parent->isRenderingWindow()) {
@@ -417,6 +422,24 @@ namespace engone {
 		}
 		return false;
 	}
+	bool Window::isKeyReleased(int code) {
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].code == code) {
+				if (m_parent->isRenderingWindow()) {
+					if (m_inputs[i].frameReleased > 0) {
+						return true;
+					}
+				}
+				else {
+					if (m_inputs[i].tickReleased > 0) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		return false;
+	}
 	void Window::resetEvents() {
 		if (m_parent != nullptr) {
 			if (m_parent->isRenderingWindow()) {
@@ -426,6 +449,7 @@ namespace engone {
 				m_frameRawMouseY = 0;
 				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 					m_inputs[i].framePressed = 0;
+					m_inputs[i].frameReleased = 0;
 				}
 			} else {
 				m_tickScrollX = 0;
@@ -434,6 +458,7 @@ namespace engone {
 				m_tickRawMouseY = 0;
 				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 					m_inputs[i].tickPressed = 0;
+					m_inputs[i].tickReleased = 0;
 				}
 			}
 		}
@@ -476,7 +501,7 @@ namespace engone {
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // this was 3 before
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -532,8 +557,9 @@ namespace engone {
 		m_windowMode = winMode;
 	}
 	void Window::close() {
+		if(isOpen())
+			CloseCallback(m_glfwWindow);
 		glfwSetWindowShouldClose(m_glfwWindow, true);
-		CloseCallback(m_glfwWindow);
 	}
 	void Window::setCursorVisible(bool visible) {
 		m_cursorVisible = visible;

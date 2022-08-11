@@ -22,6 +22,8 @@ namespace engone {
 		bool down = false;
 		uint8_t tickPressed = 0;
 		uint8_t framePressed = 0;
+		uint8_t tickReleased = 0;
+		uint8_t frameReleased = 0;
 	};
 	struct Event {
 		EventType eventType=EventNone;
@@ -61,12 +63,17 @@ namespace engone {
 	float IsScrolledX();
 	// virtualKeyCode: glfw virtual key code depending on what you are using.
 	// returns true if the key or mouse button is down.
-	bool IsKeyDown(int virtualKeyCode);	
+	bool IsKeyDown(int code);	
 	// virtualKeyCode: Windows.h or glfw virtual key code depending on what you are using.
 	// returns true if the key was pressed this refresh/frame/update.
-	bool IsKeyPressed(int virtualKeyCode);
+	bool IsKeyPressed(int code);
+	bool IsKeyReleased(int code);
+
 	bool IsKeybindingDown(uint16_t id);
 	bool IsKeybindingPressed(uint16_t id);
+	// if keybinding uses multiple keys then the first one needs to be released and the others down
+	// on order for the function to return true.
+	bool IsKeybindingReleased(uint16_t id);
 	// When using IsKeybindingDown: All of the specified keycodes needs to be down.
 	// When using IsKeybindingPressed: The last two keycodes needs to be down before pressing the first one.
 	// The last two keycodes are optional

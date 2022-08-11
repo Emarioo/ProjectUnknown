@@ -6,8 +6,8 @@ namespace engone {
 	struct RuntimeStats {
 		enum PrintFlag : uint8_t {
 			PrintSamples=1, // fps, ups
-			PrintTotal=2, // total frames and updates
-			PrintTime=4, // time since start.
+			PrintFramesUpdates=2, // total frames and updates
+			PrintEngineTime =4, // time since start and sleep time
 		};
 		typedef uint8_t PrintFlags;
 		RuntimeStats() { setFPSLimit(60); setUPSLimit(60); }
@@ -42,12 +42,12 @@ namespace engone {
 			//	std::string formatBetween = FormatTime(timeDiff, false, FormatTimeMS|FormatTimeS | FormatTimeM | FormatTimeH);
 			//	log::out << "TSS: " << formatBetween << "  ";
 			//}
-			if (flags & PrintTime) {
+			if (flags & PrintEngineTime) {
 				std::string formatRunTime = FormatTime(runTime, true, FormatTimeMS | FormatTimeS | FormatTimeM | FormatTimeH);
 				std::string formatSleepTime = FormatTime(sleepTime, true, FormatTimeMS | FormatTimeS | FormatTimeM | FormatTimeH);
 				log::out << "Run time: " << formatRunTime <<" Sleep time: "<<formatSleepTime<< "\n";
 			}
-			if(flags&PrintTotal)
+			if(flags&PrintFramesUpdates)
 				log::out << "Frames/Updates: " << totalFrames << " / " << totalUpdates << "\n";
 			if(flags&PrintSamples)
 				log::out << "FPS: " << (real_fps) << "  UPS: " << (real_ups) << "\n";

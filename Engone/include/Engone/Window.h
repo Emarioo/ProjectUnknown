@@ -79,6 +79,7 @@ namespace engone {
 
 		bool isKeyDown(int code);
 		bool isKeyPressed(int code);
+		bool isKeyReleased(int code);
 
 		void resetEvents();
 

@@ -52,6 +52,7 @@ namespace engone {
 			logger& operator<<(const std::string& s);
 			logger& operator<<(char c);
 			logger& operator<<(int i);
+			logger& operator<<(bool b);
 			logger& operator<<(int64_t i);
 			logger& operator<<(uint64_t i);
 			logger& operator<<(float f);
@@ -121,6 +122,13 @@ namespace engone {
 			if (c == '\n')
 				setColor(SILVER);
 
+			return *this;
+		}
+		logger& logger::operator<<(bool b) {
+			if (b)
+				std::cout << "true";
+			else
+				std::cout << "false";
 			return *this;
 		}
 		logger& logger::operator<<(int i) {

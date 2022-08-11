@@ -100,6 +100,8 @@ namespace engone {
 		static const int TEXT_BATCH = 40;
 		static const int MAX_BOX_BATCH = 100;
 		static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
+		static const int INSTANCE_BATCH = 1000;
+		static const int PARTICLE_BATCH = 1000;
 	private:
 
 		bool m_initialized = false;
@@ -129,6 +131,8 @@ namespace engone {
 		VertexBuffer cubeVBO{};
 		VertexBuffer cubeInstanceVBO{};
 		IndexBuffer cubeIBO{};
+
+		VertexBuffer instanceBuffer;
 
 		std::vector<Cube> cubeObjects;
 

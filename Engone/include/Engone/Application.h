@@ -30,7 +30,8 @@ namespace engone {
 		// will be called when a window closes.
 		virtual void onClose(Window* window) {};
 
-		// will close all windows.
+		// will close all windows and close the app.
+		// will not delete windows from the list instantly. This is done in the game loop.
 		void stop();
 
 		inline Engone* getEngine() const { return m_engone; }
@@ -61,8 +62,11 @@ namespace engone {
 
 		bool isRenderingWindow() const { return m_renderingWindows; }
 
+		bool isStopped() const { return m_stopped; }
+
 		static TrackerId trackerId;
 	private:
+		bool m_stopped = false;
 		std::vector<Window*> m_windows;
 		bool m_renderingWindows=false;
 		Engone* m_engone=nullptr;

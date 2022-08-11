@@ -3,77 +3,145 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+
+#define CHECK()  {int err = glGetError();if(err) log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";}
+// unknown error can happen if vertex array isn't bound when a vertex buffer is bound
 namespace engone {
 
-	VertexBuffer::~VertexBuffer() {
-		if (id != 0)
-			glDeleteBuffers(1, &id);
-	}
-	void VertexBuffer::setData(uint32_t _floatCount, float* data, uint32_t offset) {
-		if (id == 0)
-			glGenBuffers(1, &id);
+	//static void CHECK() {
+	//	{
+	//		int err = glGetError();
+	//		if (err)
+	//			log::out << log::RED << "GLError: " << err << " " << (const char*)glewGetErrorString(err) << "\n";
+	//	}
+	//}
 
-		glBindBuffer(GL_ARRAY_BUFFER, id);
-		if (floatCount == 0) {
-			glBufferData(GL_ARRAY_BUFFER, _floatCount * sizeof(float), data, GL_DYNAMIC_DRAW);
-			floatCount = _floatCount;
-		} else if (floatCount >= _floatCount) {
-			glBufferSubData(GL_ARRAY_BUFFER, offset, _floatCount * sizeof(float), data);
-		} else {
-			log::out << log::RED << "VertexBuffer: byteSize is limited to " << _floatCount << "\n";
-		}
+
+	void VertexBuffer::bind() const {
+		glBindBuffer(GL_ARRAY_BUFFER, m_id);
+	}
+	void VertexBuffer::unbind() const {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	void VertexBuffer::bind(bool unbind) {
-		if (id == 0)
-			glGenBuffers(1, &id);
-		if (unbind)
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		else
-			glBindBuffer(GL_ARRAY_BUFFER, id);
+	void VertexBuffer::cleanup() const {
+		if (m_id != 0)
+			glDeleteBuffers(1, &m_id);
 	}
+	void VertexBuffer::setData(uint32_t size, void* data, uint32_t offset) {
+		if (m_id == 0)
+			glGenBuffers(1, &m_id);
 
-	IndexBuffer::~IndexBuffer() {
-		if (id != 0)
-			glDeleteBuffers(1, &id);
-	}
-	void IndexBuffer::setData(uint32_t _intCount, uint32_t* data, uint32_t offset) {
-		if (id == 0)
-			glGenBuffers(1, &id);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
-		if (intCount == 0) {
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _intCount * sizeof(uint32_t), data, GL_DYNAMIC_DRAW);
-			intCount = _intCount;
-		} else if (intCount >= _intCount) {
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, _intCount * sizeof(uint32_t), data);
-		} else {
-			log::out << log::RED << "IndexBuffer: byteSize is limited to " << _intCount << "\n";
+		bind();
+		if (size > m_size) {
+			glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+			m_size = size;
 		}
+		else if (size <= m_size) {
+			if (data)
+				glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+		}
+		CHECK();
+		unbind();
+	}
+	void VertexBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
+		if (size == 0) return;
+		bind();
+		glGetBufferSubData(GL_ARRAY_BUFFER, offset, size, outData);
+		CHECK();
+		unbind();
+	}
+	void IndexBuffer::bind() const {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
+	}
+	void IndexBuffer::unbind() const {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		//int num = glGetError();
-		//const GLubyte* okay = glewGetErrorString(num);
-		//std::cout << num << "\n";
 	}
-	void IndexBuffer::bind(bool unbind) {
-		if (id == 0)
-			glGenBuffers(1, &id);
-		if (unbind)
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		else
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
+	void IndexBuffer::cleanup() const {
+		if (m_id != 0)
+			glDeleteBuffers(1, &m_id);
 	}
+	void IndexBuffer::setData(uint32_t size, void* data, uint32_t offset) {
+		if (m_id == 0)
+			glGenBuffers(1, &m_id);
 
-	VertexArray::~VertexArray() {
-		if (id != 0)
-			glDeleteVertexArrays(1, &id);
+		bind();
+		if (size > m_size) {
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+			m_size = size;
+		}
+		else if (size <= m_size) {
+			if (data)
+				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
+		}
+		CHECK();
+		unbind();
+	}
+	void IndexBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
+		if (size == 0) return;
+		bind();
+		glGetBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, outData);
+		unbind();
+	}
+	void ShaderBuffer::bind() const {
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_id);
+	}
+	void ShaderBuffer::unbind() const {
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+	}
+	void ShaderBuffer::cleanup() const {
+		if (m_id != 0) {
+			glDeleteBuffers(1, &m_id);
+			glDeleteVertexArrays(1, &m_vaId);
+		}
+	}
+	void ShaderBuffer::setData(uint32_t size, void* data, uint32_t offset) {
+		if (m_id == 0) {
+			glGenBuffers(1, &m_id);
+			glGenVertexArrays(1, &m_vaId);
+		}
+
+		bind();
+		if (size > m_size) {
+			glBufferData(GL_SHADER_STORAGE_BUFFER, size, data, GL_DYNAMIC_DRAW);
+			m_size = size;
+		}
+		else if (size <= m_size) {
+			if (data)
+				glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
+		}
+		CHECK();
+		unbind();
+	}
+	void ShaderBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
+		if (size == 0) return;
+		if (!initialized()) {
+			log::out << log::RED << "ShaderBuffer::getData - object is uninitialized!\n";
+			return;
+		}
+		bind();
+		glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, outData);
+		CHECK();
+		unbind();
+	}
+	void ShaderBuffer::bindBase(int index) const {
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, index, m_id);
+	}
+	void ShaderBuffer::drawPoints(int count, int bindingIndex) {
+		bind();
+		bindBase(bindingIndex);
+		glBindVertexArray(m_vaId);
+		CHECK();
+		glDrawArrays(GL_POINTS, 0, count);
+		CHECK();
+		unbind();
+		glBindVertexArray(0);
 	}
 	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor) {
-		if (id == 0)
-			glGenVertexArrays(1, &id);
+		if (!initialized())
+			glGenVertexArrays(1, &m_id);
 
 		if (location == 8) {
-			log::out << log::RED << "VertexArray: Limit of 8 locations!\n";
+			log::out << log::RED << "VertexArray::addAttribute Limit of 8 locations!\n";
 			return;
 		}
 
@@ -81,12 +149,16 @@ namespace engone {
 		strides[bufferSection] += floatSize;
 	}
 	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor, VertexBuffer* buffer) {
+		if (!buffer) {
+			log::out << log::RED << "VertexArray::addAttribute - buffer was nullptr\n";
+			return;
+		}
 		addAttribute(floatSize, divisor);
 		if (location == 8)
 			return;
 
 		if (buffer) buffer->bind();
-		glBindVertexArray(id);
+		bind();
 
 		int offset = 0;
 		startLocations[bufferSection] = location;
@@ -107,9 +179,9 @@ namespace engone {
 			location++;
 		}
 		bufferSection++;
-
-		if (buffer) buffer->bind(0);
-		glBindVertexArray(0);
+		CHECK();
+		if (buffer) buffer->bind();
+		unbind();
 	}
 	void VertexArray::addAttribute(uint8_t floatSize) {
 		addAttribute(floatSize, (uint8_t)0);
@@ -118,11 +190,19 @@ namespace engone {
 		addAttribute(floatSize, 0u, buffer);
 	}
 	void VertexArray::selectBuffer(uint8_t location, VertexBuffer* buffer) {
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::selectBuffer - object is uninitialized!\n";
+			return;
+		}
+		if (!buffer) {
+			log::out << log::RED << "VertexArray::selectBuffer - cannot select nullptr\n";
+			return;
+		}
 		buffer->bind();
-		glBindVertexArray(id);
+		bind();
 		uint32_t offset = 0;
 		uint32_t section = 0;
-		while (section < VAO_MAX_BUFFERS) {
+		while (section < MAX_BUFFERS) {
 			if (startLocations[section] >= location)
 				break;
 			section++;
@@ -142,61 +222,116 @@ namespace engone {
 			offset += size;
 			location++;
 		}
-
-		buffer->bind(0);
+		CHECK();
+		buffer->bind(); // buffer is probably an instance buffer which needs to be bound before drawing. I did bind it a few lines up so may not need to bind again.
+		unbind();
+	}
+	void VertexArray::bind() const {
+		glBindVertexArray(m_id);
+	}
+	void VertexArray::unbind() const {
 		glBindVertexArray(0);
 	}
-	void VertexArray::bind(bool unbind) {
-		if (unbind)
-			glBindVertexArray(0);
-		else {
-			glBindVertexArray(id);
-		}
+	void VertexArray::cleanup() const {
+		if (m_id != 0)
+			glDeleteVertexArrays(1, &m_id);
 	}
 	void VertexArray::drawLines(IndexBuffer* indexBuffer) {
-		glBindVertexArray(id);
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			return;
+		}
+		bind();
 
 		if (bufferSection == 0) {
-			log::out << log::RED << "VertexArray: You forgot VBO in addAttribute!\n";
+			log::out << log::RED << "VertexArray::drawLines - You forgot VBO in addAttribute!\n";
 		}
 
 		if (indexBuffer != nullptr) {
-			if (indexBuffer->id != 0) {
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id);
+			if (indexBuffer->initialized()) {
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->m_id);
 
-				glDrawElements(GL_LINES, indexBuffer->intCount, GL_UNSIGNED_INT, nullptr);
+				glDrawElements(GL_LINES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr);
 			}
-		} else {
-			log::out << log::RED << "VertexArray: Must have indexBuffer when drawing!\n";
+			else {
+				log::out << log::RED << "VertexArray::drawLines - buffer is uninitialized!\n";
+			}
 		}
+		else {
+			log::out << log::RED << "VertexArray::drawLines - Must have indexBuffer when drawing!\n";
+		}
+		CHECK();
+		unbind();
+	}
+	void VertexArray::drawPoints(int count) {
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			return;
+		}
+		bind();
+
+		if (bufferSection == 0) {
+			log::out << log::RED << "VertexArray::drawPoints - You forgot VBO in addAttribute!\n";
+		}
+		//if (vertexBuffer != nullptr) {
+		//	if (vertexBuffer->id != 0) {
+		//		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer->id);
+
+		glDrawArrays(GL_POINTS, 0, count);
+		//	}
+		//}
+		//else {
+		//	log::out << log::RED << "VertexArray::drawPoints Must have vertexBuffer when drawing!\n";
+		//}
+		CHECK();
+		unbind();
 	}
 	void VertexArray::draw(IndexBuffer* indexBuffer) {
-		glBindVertexArray(id);
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			return;
+		}
+		bind();
 
 		if (bufferSection == 0) {
-			log::out << log::RED << "VertexArray: You forgot VBO in addAttribute!\n";
+			log::out << log::RED << "VertexArray::draw You forgot VBO in addAttribute!\n";
 		}
 
 		if (indexBuffer != nullptr) {
-			if (indexBuffer->id != 0) {
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id);
-				glDrawElements(GL_TRIANGLES, indexBuffer->intCount, GL_UNSIGNED_INT, nullptr);
-				//int num = glGetError();
-				//const GLubyte* okay = glewGetErrorString(num);
-				//std::cout << okay << "\n";
+			if (indexBuffer->initialized()) {
+				indexBuffer->bind();
+				glDrawElements(GL_TRIANGLES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr);
 			}
-		} else {
-			log::out << log::RED << "VertexArray: Must have indexBuffer when drawing!\n";
+			else {
+				log::out << log::RED << "VertexArray::draw - buffer is uninitialized!\n";
+			}
 		}
+		else {
+			log::out << log::RED << "VertexArray::draw Must have indexBuffer when drawing!\n";
+		}
+		CHECK();
+		unbind();
 	}
 	void VertexArray::draw(IndexBuffer* indexBuffer, uint32_t instanceAmount) {
-		glBindVertexArray(id);
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			return;
+		}
+		bind();
 
 		if (indexBuffer != nullptr) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->id);
-			glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->intCount, GL_UNSIGNED_INT, nullptr, instanceAmount);
-		} else {
-			log::out << log::RED << "VertexArray: indexBuffer required when drawing instances!\n";
+			if (indexBuffer->initialized()) {
+				indexBuffer->bind();
+				glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr, instanceAmount);
+			}
+			else {
+				log::out << log::RED << "VertexArray::draw - buffer is uninitialized!\n";
+			}
 		}
+		else {
+			log::out << log::RED << "VertexArray::draw indexBuffer required when drawing instances!\n";
+		}
+		CHECK();
+		unbind();
 	}
 }

@@ -23,9 +23,6 @@ namespace engone {
 	static const char* objectSource = {
 #include "Engone/Shaders/object.glsl"
 	};
-	static const char* armatureSource = {
-#include "Engone/Shaders/armature.glsl"
-	};
 	static const char* collisionSource = {
 #include "Engone/Shaders/collision.glsl"
 	};
@@ -229,8 +226,12 @@ namespace engone {
 		//	if (m_applications.size() == 0)
 		//		break;
 		//}
+		// 
+	//m_runtimeStats.update_accumulator = 8;
+		// 
 		//GetTracker().printMemory();
 		//GetTracker().printInfo();
+		float printTime = 0;
 		double lastTime = GetSystemTime();
 		while (true) {
 			double now = GetSystemTime();
@@ -242,10 +243,10 @@ namespace engone {
 			double limit = 8 * m_runtimeStats.updateTime;
 			if (delta > limit) delta = limit;
 
-			statPrintTime += delta;
 			m_runtimeStats.runTime += delta;
 			m_runtimeStats.update_accumulator += delta;
 			m_runtimeStats.frame_accumulator += delta;
+			printTime += delta;
 
 			m_runtimeStats.nextSample(delta);
 
@@ -263,7 +264,7 @@ namespace engone {
 						continue;
 					}
 				}
-				if (app->getAttachedWindows().size() == 0) {
+				if (app->isStopped()) {
 					// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 					// app should be safe to delete
 					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
@@ -283,14 +284,11 @@ namespace engone {
 
 			if (m_applications.size() == 0) // might as well quit
 				break;
-
+			//Timer tim("update");
 			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime) {
 				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
 
-				//m_runtimeStats.print(RuntimeStats::PrintSamples);
-				//m_runtimeStats.print(RuntimeStats::PrintTime);
-
-				//log::out << m_runtimeStats.update_accumulator << " - " << m_runtimeStats.frame_accumulator << "\n";
+				//log::out << m_runtimeStats.update_accumulator << "\n";
 
 				m_runtimeStats.incrUpdates();
 				UpdateInfo info = { m_runtimeStats.updateTime, nullptr };
@@ -304,8 +302,9 @@ namespace engone {
 						app->getWindow(0)->setActiveContext();
 
 					app->update(info);
+					//Timer tim("update");
 					update(info); // should maybe be moved outside loop?
-
+					//tim.stop();
 					// update reset for all windows.
 					// The global variable IsKeyPressed only works for the active window
 					// which is mainWindow which is the first window attached to application.
@@ -316,7 +315,8 @@ namespace engone {
 					}
 				}
 			}
-
+			//tim.stop();
+			//Timer timer("frame");
 			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime) {
 				m_runtimeStats.frame_accumulator -= m_runtimeStats.frameTime;
 
@@ -347,13 +347,13 @@ namespace engone {
 							win->getRenderer()->setProjection(ratio);
 
 						app->render(info);
-
 						render(info);
 						GetActiveRenderer()->render(info);
 
 						glfwSwapInterval(0); // turning off vsync?
+						//Timer swapT("glSwapBuffers");
 						glfwSwapBuffers(win->glfw());
-
+						//swapT.stop();
 						// frame reset
 						win->resetEvents();
 						char endChr;
@@ -366,11 +366,21 @@ namespace engone {
 			} else {
 				int sleepTime = (int)((m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator) * 1000000.0);
 				m_runtimeStats.sleepTime += (double)sleepTime / 1000000.0; // conversion is necessary to keep things accurate.
+				//log::out << "sleeping: "<<sleepTime << "\n";
 				std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
 			}
+			//timer.stop();
+
+			if (printTime > 0.7f) {
+				printTime -=0.7f;
+				m_runtimeStats.print(RuntimeStats::PrintSamples);
+			}
+
 			m_runtimeStats.totalLoops++;
 			//log::out << "loop " << m_runtimeStats.totalLoops << "\n";
+			//Timer poll("glPollEvents");
 			glfwPollEvents();
+			//poll.stop();
 			if (m_applications.size() != 0) {
 				if (m_applications[0]->getAttachedWindows().size() != 0) {
 					if (!m_applications[0]->getWindow(0)->isOpen()) {
@@ -432,18 +442,24 @@ namespace engone {
 	void Engone::addObject(GameObject* object) {
 		m_objects.push_back(object);
 	}
+	void Engone::addParticleGroup(ParticleGroup* group) {
+		m_particleGroups.push_back(group);
+	}
 	void Engone::update(UpdateInfo& info) {
+		for (int i = 0; i < m_objects.size(); i++) {
+			m_objects[i]->update(info);
+		}
 #ifndef ENGONE_NO_PHYSICS
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
 #endif
-		for (int i = 0; i < m_objects.size(); i++) {
-			m_objects[i]->update(info);
-		}
 	}
 	float testTime = 0;
 	void Engone::render(RenderInfo& info) {
-
+		//test::TestParticles(info);
+		for (int i = 0; i < m_particleGroups.size(); i++) {
+			m_particleGroups[i]->render(info);
+		}
 		EnableDepth();
 
 		//glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
@@ -549,27 +565,13 @@ namespace engone {
 		for (int i = 0; i < m_objects.size(); ++i) {
 			GameObject* obj = m_objects[i];
 
-			
 			glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
-			if (obj->meshAsset) {
-				//glm::mat4 modelMatrix = obj->getTransform();
-
-				if (obj->meshAsset->meshType == MeshAsset::MeshType::Normal) {
-					if (normalObjects.count(obj->meshAsset) > 0) {
-						normalObjects[obj->meshAsset].push_back(modelMatrix);
-					} else {
-						normalObjects[obj->meshAsset] = std::vector<glm::mat4>();
-						normalObjects[obj->meshAsset].push_back(modelMatrix);
-					}
-				}
-			} else if (obj->modelAsset) {
-				
-				//glm::mat4 modelMatrix = obj->getTransform();
+			if (obj->modelAsset) {
 
 				Animator* animator = &obj->animator;
 
 				// Get individual transforms
-				std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(animator);
+				std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(nullptr);
 
 				/*
 				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
@@ -583,7 +585,7 @@ namespace engone {
 				for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
 					AssetInstance& instance = obj->modelAsset->instances[i];
 					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
-					if (instance.asset->type == AssetMesh) {
+					if (instance.asset->type == MeshAsset::TYPE) {
 						MeshAsset* asset = instance.asset->cast<MeshAsset>();
 
 						if (asset->meshType == MeshAsset::MeshType::Normal) {
@@ -613,7 +615,6 @@ namespace engone {
 			shader->bind();
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
-			glm::vec3 camPos = camera->getPosition();
 
 			bindLights(shader, { 0,0,0 });
 			shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
@@ -626,12 +627,12 @@ namespace engone {
 				uint32_t renderAmount = 0;
 				while (renderAmount < vector.size()) {
 					uint32_t amount = vector.size() - renderAmount;
-					if (amount > INSTANCE_LIMIT) {
-						amount = INSTANCE_LIMIT;
+					if (amount > Renderer::INSTANCE_BATCH) {
+						amount = Renderer::INSTANCE_BATCH;
 					}
-					instanceBuffer.setData(amount * 16, (float*)(vector.data() + renderAmount));
+					renderer->instanceBuffer.setData(amount * sizeof(glm::mat4)/sizeof(float), (float*)(vector.data() + renderAmount));
 
-					asset->vertexArray.selectBuffer(3, &instanceBuffer);
+					asset->vertexArray.selectBuffer(3, &renderer->instanceBuffer);
 
 					asset->vertexArray.draw(&asset->indexBuffer, amount);
 					renderAmount += amount;
@@ -644,8 +645,8 @@ namespace engone {
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
 
-			for (int i = 0; i < m_objects.size(); ++i) {
-				GameObject* obj = m_objects[i];
+			for (int oi = 0; oi < m_objects.size(); ++oi) {
+				GameObject* obj = m_objects[oi];
 
 				if (obj->modelAsset) {
 
@@ -657,8 +658,7 @@ namespace engone {
 
 					// Get individual transforms
 					std::vector<glm::mat4> transforms;
-					if (animator)
-						transforms = obj->modelAsset->getParentTransforms(animator);
+					transforms = obj->modelAsset->getParentTransforms(nullptr);
 
 					//-- Draw instances
 					AssetInstance* armatureInstance = nullptr;
@@ -678,13 +678,19 @@ namespace engone {
 								if (instance.parent == -1)
 									continue;
 
-								/*if (animator->enabledAnimations[0].asset) {
-									log::out << animator->enabledAnimations->frame<<"\n";
-								}*/
-
-								std::vector<glm::mat4> boneTransforms;
-								if (animator)
-									boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset);
+								std::vector<glm::mat4> boneMats;
+								std::vector<glm::mat4> boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset,&boneMats);
+								
+								//-- For rendering bones
+								//glm::mat4 basePos = modelMatrix* transforms[i];
+								//glm::mat4 boneLast;
+								//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
+								//for (int j = 0; j < boneMats.size(); j++) {
+								//	glm::mat4 boneMat = basePos*boneMats[j];
+								//	if(j!=0) // skip first boneLast 
+								//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
+								//	boneLast = boneMat;
+								//}
 
 								for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
 									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
@@ -693,11 +699,7 @@ namespace engone {
 								for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
 									meshAsset->materials[j]->bind(shader, j);
 								}
-								if (animator) {
-									shader->setMat4("uTransform", modelMatrix * transforms[i]);
-								} else {
-									shader->setMat4("uTransform", modelMatrix);
-								}
+								shader->setMat4("uTransform", modelMatrix * transforms[i]);
 								meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
 							}
 						}

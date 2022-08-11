@@ -5,13 +5,11 @@
 #include "Keybindings.h"
 #include "Objects/Player.h"
 #include "Objects/Sword.h"
+#include "Objects/Dummy.h"
 
-/*
-FEATURE: you know when you buy new technology or software. Sometime you need to choose some settings and let it install. THAT is very nice.
-	Seeing the percentage bar go up, a graph changing, loading bar finishing. Having that sense of excitement when you play the game for the first time
-	could be a fun way to hype up the player. Altough to much hype means greater potential for dissapointment so keep it reasonable.
-	Also not sure how appropriate it is for the game I am making.
-*/
+#include "CombatData.h"
+
+#include "Engone/Tests/BasicRendering.h"
 
 namespace game {
 
@@ -19,34 +17,95 @@ namespace game {
 	static const char* experimentGLSL = {
 	#include "Shaders/experiment.glsl"
 	};
+	static const char* particleGLSL = {
+#include "Engone/Shaders/particle.glsl"
+	};
 	static const char* depthGLSL = {
 	#include "Shaders/depth.glsl"
 	};
 	static const char* testGLSL = {
 	#include "Shaders/test.glsl"
 	};
+	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
+	//	using namespace engone;
+	//	//log::out << "COMEON \n";
+	//	for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
+	//		auto pair = callbackData.getContactPair(pairI);
+	//		void* ptr1 = pair.getCollider1()->getUserData();
+	//		void* ptr2 = pair.getCollider2()->getUserData();
+	//		if (!ptr1 || !ptr2) continue;
+	//		UserData* userData1 = (UserData*)ptr1;
+	//		UserData* userData2 = (UserData*)ptr2;
+	//		log::out << userData1 << " " << userData2 << "\n";
+	//		if (userData1->type != userData2->type) {
+	//			if (userData1->type == AttackData::TYPE && userData2->type == DefenseData::TYPE) {
+	//				engone::log::out << "WOW\n";
+	//				DefenseData* atk = (DefenseData*)userData2;
+	//				rp3d::CollisionBody* defBody = pair.getBody2();
+	//				rp3d::Vector3 medNorm{};
+	//				rp3d::Vector3 medPoint{};
+	//				for (int j = 0; j < pair.getNbContactPoints(); j++) {
+	//					auto point = pair.getContactPoint(j);
+	//					medNorm += point.getWorldNormal();
+	//					medPoint += point.getLocalPointOnCollider2();
+	//				}
+	//				medNorm /= (float)pair.getNbContactPoints();
+	//				medPoint /= (float)pair.getNbContactPoints();
+	//				// for now, defense can be assumed to be a rigidbody
+	//				((rp3d::RigidBody*)defBody)->applyWorldForceAtLocalPosition(medNorm, medPoint);
+	//			}
+	//		}
+	//	}
+	//}
+	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
+		using namespace engone;
+		//log::out << "COMEON \n";
+		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
+			auto pair = callbackData.getOverlappingPair(pairI);
 
-	void GameApp::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
-		int size = callbackData.getNbContactPairs();
-		for (int i = 0; i < size; i++) {
-			auto pair = callbackData.getContactPair(i);
-			rp3d::RigidBody* body=nullptr;
+			void* ptr1 = pair.getCollider1()->getUserData();
+			void* ptr2 = pair.getCollider2()->getUserData();
+			if (!ptr1 || !ptr2) continue;
 
-			if (pair.getBody1() == player->rigidBody)
-				body = (rp3d::RigidBody*)pair.getBody1();
-			if (pair.getBody2() == player->rigidBody)
-				body = (rp3d::RigidBody*)pair.getBody2();
-			if (body) {
-				//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit) {
-				//	//player->collisionNormal = { 0,100,0 };
-				//} else {
-					int contacts = pair.getNbContactPoints();
-					for (int j = 0; j < contacts; j++) {
-						auto point = pair.getContactPoint(j);
-						//player->collisionNormal = *(glm::vec3*)&point.getWorldNormal();
-						return;
-					}
-				//}
+			struct Data {
+				Data() : user(nullptr), body(nullptr) {}
+				Data(void* user, rp3d::CollisionBody* body) : user((UserData*)user), body(body) {}
+				UserData* user = nullptr;
+				rp3d::CollisionBody* body = nullptr;
+			};
+			Data data1 = {ptr1,pair.getBody1()};
+			Data data2 = {ptr2,pair.getBody2()};
+			if (data1.user->type != data2.user->type) {
+				Data atk = data1;
+				Data def = data2;
+				if (data1.user->type == DefenseData::TYPE)
+					def = data1;
+				if (data2.user->type == AttackData::TYPE)
+					atk = data2;
+
+				AttackData* atkData = (AttackData*)atk.user;
+				DefenseData* defData = (DefenseData*)def.user;
+
+				//log::out << "cool: "<<defData->hitCooldown << "\n";
+
+				if (!atkData->attacking) continue;
+				if (defData->hitCooldown!=0) continue;
+
+				defData->hitCooldown = atkData->animationTime;
+				// hit cooldown is determined by the attacker's animation time left
+					
+				// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
+				//	Meaning no damage.
+				//rp3d::CollisionBody* atkBody = pair.getBody1();
+				//rp3d::CollisionBody* defBody = pair.getBody2();
+
+				rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
+				//force.y = 1;
+				force *= 60.f*6.f;
+				//log::out << force << "\n";
+				 //for now, defense can be assumed to be a rigidbody
+
+				((rp3d::RigidBody*)def.body)->applyWorldForceAtCenterOfMass(force);
 			}
 		}
 	}
@@ -61,8 +120,37 @@ namespace game {
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
-		//-- Assets
+		Shader* shaderPart = new Shader(particleGLSL);
+		particleGroup = new ParticleGroup();
+		particleGroup->init(m_window, shaderPart);
+		//engone->getParticleModule().init(m_window);
+
 		Assets* assets = getAssets();
+
+		particleGroup->createCube({ 0,0,0 }, {5,5,5}, 1000);
+		engone->addParticleGroup(particleGroup);
+		//part = new Shader(partGlsl);
+		//assets->set("particle", part);
+		//group.init(m_window,part);
+		//group.resize(1000);
+		//Particle* parts = group.createParticles(1000);
+		//for (int i = 0; i < 1000; i++) {
+		//	parts[i].pos = { i / 20,0,0 };
+		//}
+
+		//float arr[6 * 100];
+		//memset(arr, 0, sizeof(arr));
+		////Particle* parts = group.createParticles(1000);
+		//for (int i = 0; i < sizeof(arr) / 6 / 4; i++) {
+		//	arr[6 * i] = i / 20.f;
+		//}
+		//part->bind();
+		//buffer.bind();
+		//buffer.bindBase(0);
+		//buffer.setData(sizeof(arr), arr);
+
+
+		//-- Assets
 		//assets->set("depth")
 		//AddAsset<Shader>("depth", new Shader(depthGLSL));
 		//AddAsset<Shader>("experiment", new Shader(experimentGLSL));
@@ -73,9 +161,11 @@ namespace game {
 		m_window->attachListener(EventKey, OnKey);
 		m_window->attachListener(EventClick, OnMouse);
 
-		if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
+		// ISSUE: if default keybindings change but keybindings.dat exists then the new keybinds won't apply.
+		//		Temp. fix by always creating default bindings.
+		//if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
-		}
+		//}
 
 		engone->m_pCommon = new rp3d::PhysicsCommon(); // needs to be moved inside engine
 		engone->m_pWorld = engone->m_pCommon->createPhysicsWorld();
@@ -89,14 +179,39 @@ namespace game {
 
 		getEngine()->m_pWorld->setEventListener(this);
 
-		sword = new Sword(engone);
-		engone->addObject(sword);
+		//sword = new Sword(engone);
+		//sword->setTransform({ 2,0,0 });
+		//engone->addObject(sword);
+
 		player = new Player(engone);
-		player->setTransform({ 0,0,0 });
-		sword->setTransform({ 2,0,0 });
+		player->setTransform({ 0,0,5 });
+		player->inventorySword = sword;
 		engone->addObject(player);
 
-		player->inventorySword = sword;
+		//part = new Shader(partGlsl);
+		//assets->set("particle",part);
+		////group.init(m_window,part);
+		////group.resize(1000);
+		////Particle* parts = group.createParticles(1000);
+		////for (int i = 0; i < 1000; i++) {
+		////	parts[i].pos = { i / 20,0,0 };
+		////}
+
+		//float arr[6 * 100];
+		//memset(arr, 0, sizeof(arr));
+		////Particle* parts = group.createParticles(1000);
+		//for (int i = 0; i < sizeof(arr)/6/4; i++) {
+		//	arr[6*i] = i/20;
+		//}
+		//part->bind();
+		//buffer.bind();
+		//buffer.bindBase(0);
+		//buffer.setData(sizeof(arr), arr);
+
+
+		//Dummy* dummy = new Dummy(engone);
+		//dummy->setTransform({ 0,0,5 });
+		//engone->addObject(dummy);
 
 		//rp3d::Vector3 anchor(1, 1, 1);
 		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
@@ -105,17 +220,18 @@ namespace game {
 		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
 		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
 
-		terrain = new Terrain(engone);
-		engone->addObject(terrain);
-		terrain->setTransform({ 0,-2,0 });
+		//terrain = new Terrain(engone);
+		//engone->addObject(terrain);
+		//terrain->setTransform({ 0,-2,0 });
 
 		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
 	}
-	float tempTime = 0;
+	//float wantX=500;
+	//float x = 100;
+	//float velX = 0;
 	void GameApp::update(engone::UpdateInfo& info) {
 		using namespace engone;
-
 		if (engone::IsKeybindingPressed(KeyPause)) {
 			if(engone::GetActiveWindow()->isCursorLocked()){
 				engone::GetActiveWindow()->lockCursor(false);
@@ -123,17 +239,44 @@ namespace game {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
 		}
+		//float t = info.timeStep;
+		//float vx = (wantX - x)/t;
+		//vx *= 0.5;
+		//float dvx = vx - velX;
+		//velX += dvx;
+
+		//x += velX*info.timeStep;
+		//
+		//if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
+		//	wantX = GetMouseX();
+		//	velX = 0;
+		//}
 	}
 	void GameApp::render(engone::RenderInfo& info) {
 		using namespace engone;
+
+		Shader* shad = particleGroup->getShader();
+		shad->bind();
+
+		shad->setVec3("focusPoint", player->getPosition());
+		//part->setFloat("delta", 0);
+		//part->setVec3("playerPos", {0,0,0});
+		//buffer.drawPoints(1000,0);
+
+		//group.render(info);
+		//test::TestParticles(info);
+
+		//ui::Box box = {x-25,100,50,50};
+		//ui::Draw(box);
+
 		if (player) {
 			if (player->rigidBody) {
 				glm::vec3 pos = player->getPosition();
 				Camera* cam = m_window->getRenderer()->getCamera();
 				float camH = 1.4;
 				glm::mat4 camMat = glm::translate(pos + glm::vec3(0, camH, 0));
-				if (player->zoomOut != 0) {
-					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoomOut));
+				if (player->zoom != 0) {
+					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoom));
 				}
 				cam->setPosition(camMat[3]);
 			}
@@ -248,7 +391,7 @@ namespace game {
 
 	}
 	void GameApp::onClose(engone::Window* window) {
-
+		stop();
 	}
 
 	// ##########################
