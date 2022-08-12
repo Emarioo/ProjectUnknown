@@ -10,5 +10,6 @@ namespace engone {
 	struct RenderInfo {
 		float interpolation;
 		Window* window;
+		float timeStep;
 	};
 }

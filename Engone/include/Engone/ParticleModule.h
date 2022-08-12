@@ -18,12 +18,13 @@ namespace engone {
 
 		void init(Window* window, Shader* shader);
 
+		void update(engone::UpdateInfo& info);
 		// Will update projection and bind shader
 		void render(engone::RenderInfo& info);
 
 		// will allocate particles for you to change.
 		Particle* createParticles(int count, bool setZero = true);
-		bool createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount);
+		bool createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount, glm::vec3 velocity = {0,0,0});
 
 		// Always call this function when changing particle data. (unless you used createParticles).
 		// The shader changes the data on the gpu side which means 
@@ -34,6 +35,8 @@ namespace engone {
 
 		Shader* getShader() const { return m_shader; }
 
+		void setPointSize(float size) { m_particleSize = size; };
+
 		void clear();
 		void cleanup();
 
@@ -43,6 +46,8 @@ namespace engone {
 	private:
 		Window* m_parent = nullptr;
 
+		float m_particleSize = 1;
+
 		bool m_updateBuffer = false;
 		Shader* m_shader = nullptr;
 		Particle* m_particles = nullptr;
@@ -51,42 +56,4 @@ namespace engone {
 
 		ShaderBuffer m_shaderBuffer{};
 	};
-
-	//class ParticleModule {
-	//public:
-	//	ParticleModule() = default;
-	//	~ParticleModule();
-
-	//	// module will be initialized on specified window.
-	//	void init(Window* window);
-
-	//	void update(engone::UpdateInfo& ínfo);
-	//	// call init function for this to work
-	//	void render(engone::RenderInfo& info);
-
-	//	int getParticleCount() const { return m_count; }
-
-	//	// remove all particles
-	//	void clear();
-
-	//	// free memory
-	//	void cleanup();
-
-	//	static const int PARTICLE_BATCH = 1000000;
-	//private:
-	//	Window* m_parent = nullptr;
-
-	//	bool m_updateBuffer = false;
-	//	Particle* m_particles = nullptr;
-	//	//ParticleInfo* m_particleInfos = nullptr;
-	//	int m_capacity = 0;
-	//	int m_count = 0;
-	//	// count as in particles not bytes
-	//	bool resize(int count);
-
-	//	bool m_initiatedBuffers = false;
-	//	//VertexBuffer m_particleVB{};
-	//	//VertexArray m_particleVA{};
-	//	ShaderBuffer m_particleSB{};
-	//};
 }

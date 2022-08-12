@@ -14,7 +14,7 @@ uniform mat4 uProj;
 uniform vec3 focusPoint;
 uniform float delta;
 
-const float pMass = 0.01;
+const float pMass = 1;
 const float focusMass = 10000000;
 const float G = 6.674e-11;
 
@@ -44,14 +44,14 @@ void main() {
 	vec3 vel = vec3(buf.data[bufStride*gl_VertexID+3],buf.data[bufStride*gl_VertexID+4],buf.data[bufStride*gl_VertexID+5]);
 
 	float velSqr=dot(vel,vel);
-	if(velSqr==0){
-		int range = 5;
-		vel.x = gl_VertexID%range-range/2.0;
-		vel.y = (gl_VertexID/range)%range-range/2.0;
-		vel.z = (gl_VertexID/range/range)%range-range/2.0;
-		vel/=range;
-		velSqr=dot(vel,vel);
-	}
+	//if(velSqr==0){
+		//int range = 5;
+		//vel.x = gl_VertexID%range-range/2.0;
+		//vel.y = (gl_VertexID/range)%range-range/2.0;
+		//vel.z = (gl_VertexID/range/range)%range-range/2.0;
+		//vel/=range;
+		//velSqr=dot(vel,vel);
+	//}
 	//float velDist=sqrt(dot(vel,vel));
 
 	vec3 dFocus = focusPoint-pos;
@@ -66,7 +66,7 @@ void main() {
 	force+=centralForce;
 
 	vec3 gravitationalForce = focusDir*(G*pMass*focusMass/dFocusSqr);
-	force+=gravitationalForce;
+	//force+=gravitationalForce;
 	
 	vel += force/pMass*delta;
 	pos += vel*delta;

@@ -137,7 +137,8 @@ namespace engone {
 		void drawLines(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer, uint32_t instanceAmount);
-
+		void drawTriangleArray(int vertexCount);
+		
 		static const int MAX_LOCATIONS =  8;
 		static const int MAX_BUFFERS =  2;
 	private:

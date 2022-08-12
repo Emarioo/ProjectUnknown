@@ -82,6 +82,10 @@ namespace engone {
 		std::vector<Light*> m_lights;
 		bool m_loadedDefault=false;
 
+		FrameBuffer frameBuffer;
+		VertexBuffer quadBuffer;
+		VertexArray quadArray;
+
 		std::vector<Application*> m_applications;
 		std::vector<uint16_t> m_appSizes; // used for tracker
 		std::vector<TrackerId> m_appIds; // used for tracker

@@ -72,12 +72,13 @@ namespace engone {
 				shaderPart = new Shader(particlesGLSL);
 				partGroup.init(info.window, shaderPart);
 				//partGroup.resize(10000000);
-				uint32_t count = 18*pow(10,6);
+				//uint32_t count = 18*pow(10,6);
+				uint32_t count = 1*pow(10,6);
 				//log::out << count << "\n";
 				Particle* parts = partGroup.createParticles(count);
 				if (parts) {
-					glm::vec3 bounds = { 100,100,100 };
-					glm::vec3 center = {0,0,0};
+					glm::vec3 bounds = { 5,5,5 };
+					glm::vec3 center = {4,0,0};
 									
 					for (int i = 0; i < count; i++) {
 						float x = GetRandom();
@@ -87,7 +88,7 @@ namespace engone {
 						//float y = 0;
 						//float z = 0;
 						parts[i].pos = { center.x+bounds.x*(x-0.5), center.y + bounds.y * (y-0.5), center.z + bounds.z * (z-0.5)};
-						parts[i].vel = { 0, 0, 0 };
+						parts[i].vel = { 0, 0, 1 };
 					}
 				}
 			}

@@ -230,6 +230,7 @@
     <ClInclude Include="src\Items\ItemHandler.h" />
     <ClInclude Include="src\Items\ItemType.h" />
     <ClInclude Include="src\Keybindings.h" />
+    <ClInclude Include="src\Magic\Focals.h" />
     <ClInclude Include="src\Objects\Dummy.h" />
     <ClInclude Include="src\Objects\Player.h" />
     <ClInclude Include="src\Objects\Sword.h" />

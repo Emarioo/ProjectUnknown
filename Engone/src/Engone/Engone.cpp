@@ -329,7 +329,7 @@ namespace engone {
 						Window* win = app->getWindow(winIndex);
 						if (!win->isOpen()) continue;
 						float interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
-						RenderInfo info = { interpolation,win };
+						RenderInfo info = { interpolation,win,delta };
 
 						win->setActiveContext();
 						// Important setup
@@ -449,6 +449,9 @@ namespace engone {
 		for (int i = 0; i < m_objects.size(); i++) {
 			m_objects[i]->update(info);
 		}
+		for (int i = 0; i < m_particleGroups.size(); i++) {
+			m_particleGroups[i]->update(info);
+		}
 #ifndef ENGONE_NO_PHYSICS
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
@@ -457,11 +460,42 @@ namespace engone {
 	float testTime = 0;
 	void Engone::render(RenderInfo& info) {
 		//test::TestParticles(info);
+		EnableDepth();
+		//if (IsKeyDown(GLFW_KEY_K)) {
+			if (frameBuffer.m_id == 0) {
+				frameBuffer.initBlur(GetWidth(), GetHeight());
+			}
+			frameBuffer.bind(false);
+			//glClearColor(0,0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			//glDepthFunc(GL_LESS);
+			//glEnable(GL_CULL_FACE);
+			//EnableDepth();
+		//}
 		for (int i = 0; i < m_particleGroups.size(); i++) {
 			m_particleGroups[i]->render(info);
 		}
-		EnableDepth();
+		//if (IsKeyDown(GLFW_KEY_K)) {
+			frameBuffer.unbind();
 
+			//glClearColor(1, 0, 0, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glDisable(GL_DEPTH_TEST);
+			//EnableBlend();
+			Shader* blur = info.window->getAssets()->get<Shader>("blur");
+			blur->bind();
+			blur->setInt("uTexture", 0);
+			blur->setVec2("uInvTextureSize", { 1.f/frameBuffer.getWidth(), 1.f/frameBuffer.getHeight() });
+			frameBuffer.bindTexture();
+			info.window->getRenderer()->DrawQuad(info);
+
+			EnableDepth();
+
+			frameBuffer.blitDepth();
+
+			//info.window->getRenderer()->DrawQuad(info, 0, 0, GetWidth(), GetHeight());
+		//}
 		//glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 		/*
 		Shader* depth = GetAsset<Shader>("depth");

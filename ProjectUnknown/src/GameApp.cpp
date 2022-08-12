@@ -7,6 +7,8 @@
 #include "Objects/Sword.h"
 #include "Objects/Dummy.h"
 
+#include "Magic/Focals.h"
+
 #include "CombatData.h"
 
 #include "Engone/Tests/BasicRendering.h"
@@ -14,17 +16,21 @@
 namespace game {
 
 	//-- Shaders
-	static const char* experimentGLSL = {
-	#include "Shaders/experiment.glsl"
-	};
+	//static const char* experimentGLSL = {
+	//#include "Shaders/experiment.glsl"
+	//};
 	static const char* particleGLSL = {
 #include "Engone/Shaders/particle.glsl"
+//#include "Engone/Tests/testParticle.glsl"
 	};
-	static const char* depthGLSL = {
-	#include "Shaders/depth.glsl"
-	};
-	static const char* testGLSL = {
-	#include "Shaders/test.glsl"
+	//static const char* depthGLSL = {
+	//#include "Shaders/depth.glsl"
+	//};
+	//static const char* testGLSL = {
+	//#include "Shaders/test.glsl"
+	//};
+	static const char* blurGLSL = {
+#include "Engone/Shaders/blur.glsl"
 	};
 	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
 	//	using namespace engone;
@@ -127,7 +133,12 @@ namespace game {
 
 		Assets* assets = getAssets();
 
-		particleGroup->createCube({ 0,0,0 }, {5,5,5}, 1000);
+		Shader* blur = assets->set("blur", new Shader(blurGLSL));
+		particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 100000, {0,0,0});
+		//particleGroup->createCube({ 5,0,0 }, { 0.2,0.2,0.2 }, 100000, {0,0,5});
+		//Particle* part = particleGroup->createParticles(1);
+		//part->pos = { 0,0,5 };
+		//part->vel = { 3,0,0 };
 		engone->addParticleGroup(particleGroup);
 		//part = new Shader(partGlsl);
 		//assets->set("particle", part);
@@ -184,7 +195,7 @@ namespace game {
 		//engone->addObject(sword);
 
 		player = new Player(engone);
-		player->setTransform({ 0,0,5 });
+		player->setTransform({ 0,0,0 });
 		player->inventorySword = sword;
 		engone->addObject(player);
 
@@ -209,9 +220,10 @@ namespace game {
 		//buffer.setData(sizeof(arr), arr);
 
 
-		//Dummy* dummy = new Dummy(engone);
-		//dummy->setTransform({ 0,0,5 });
-		//engone->addObject(dummy);
+		Dummy* dummy = new Dummy(engone);
+		dummy->setTransform({ 0,0,9 });
+		dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+		engone->addObject(dummy);
 
 		//rp3d::Vector3 anchor(1, 1, 1);
 		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
@@ -257,8 +269,15 @@ namespace game {
 
 		Shader* shad = particleGroup->getShader();
 		shad->bind();
+		
+		float radius = 5;
+		FocalPoint focalPoint(ForceTypeAttractive, player->getPosition(),1,5,999);
+		FocalPoint focalPoint2(ForceTypeRepllent,player->getPosition(),1,0,5);
 
-		shad->setVec3("focusPoint", player->getPosition());
+		focalPoint.bind(shad,0);
+		focalPoint.bind(shad,1);
+		//shad->setInt("uClipping", IsKeyDown(GLFW_KEY_J));
+
 		//part->setFloat("delta", 0);
 		//part->setVec3("playerPos", {0,0,0});
 		//buffer.drawPoints(1000,0);

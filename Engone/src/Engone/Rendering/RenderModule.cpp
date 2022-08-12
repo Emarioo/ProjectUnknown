@@ -105,7 +105,7 @@ namespace engone {
 		pipe3lineVA.addAttribute(3, &pipe3lineVB);
 
 		assets->set<Shader>("renderer", new Shader(rendererGLSL));
-		float v[48]{
+		float cubeVertices[48]{
 			0,0,0, 0,0,0,
 			1,0,0, 0,0,-1,
 			0,1,0, -1,0,0,
@@ -117,9 +117,9 @@ namespace engone {
 			1,1,1, 0,0,0,
 		};
 		for (int i = 0; i < 24; i++)
-			v[i % 3 + (i / 3) * 6] -= 0.5;
-		cubeVBO.setData(48, v);
-		uint32_t i[36]{
+			cubeVertices[i % 3 + (i / 3) * 6] -= 0.5;
+		cubeVBO.setData(48*sizeof(float), cubeVertices);
+		uint32_t cubeIndices[36]{
 			0, 2, 1, 2, 3, 1,
 			0, 1, 4, 1, 5, 4,
 			0, 4, 2, 4, 6, 2,
@@ -127,7 +127,7 @@ namespace engone {
 			1, 3, 5, 3, 7, 5,
 			4, 5, 6, 5, 7, 6,
 		};
-		cubeIBO.setData(36, i);
+		cubeIBO.setData(36 * sizeof(uint32_t), cubeIndices);
 
 		cubeInstanceVBO.setData(MAX_BOX_BATCH * sizeof(Cube), nullptr);
 		cubeVAO.addAttribute(3);
@@ -137,6 +137,26 @@ namespace engone {
 		cubeVAO.addAttribute(4, 1);
 		cubeVAO.addAttribute(4, 1);
 		cubeVAO.addAttribute(3, 1, &cubeInstanceVBO);
+
+		float simpleQuad[]{
+			0,1,0,1,
+			0,0,0,0,
+			1,1,1,1,
+			1,0,1,0,
+			1,1,1,1,
+			0,0,0,0,
+
+			//0,0,0,1,
+			//0,1,0,0,
+			//1,1,1,0,
+			//1,0,1,1,
+		};
+		//uint32_t simpleInd[]{
+		//	0, 1, 2, 2, 3, 0,
+		//};
+		quadVB.setData(sizeof(simpleQuad), simpleQuad);
+		//quadIB.setData(sizeof(uint32_t)*6, simpleInd);
+		quadVA.addAttribute(4,&quadVB);
 
 		instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 
@@ -153,6 +173,21 @@ namespace engone {
 
 		//AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
 		setActiveRenderer();
+	}
+	void Renderer::DrawQuad(RenderInfo& info) {
+		//Assets* assets = info.window->getAssets();
+		//Shader* guiShader = assets->get<Shader>("gui");
+
+		//guiShader->bind();
+		//guiShader->setVec2("uWindow", { GetWidth(), GetHeight() });
+		//guiShader->setVec2("uPos", { x,y });
+		//guiShader->setVec2("uSize", {w,h});
+		//guiShader->setVec4("uColor", 1,1,1,1);
+		//guiShader->setInt("uTextures",0);
+		//guiShader->setInt("uColorMode",texture?1:0);
+
+		//quadVA.draw(&quadIB);
+		quadVA.drawTriangleArray(6);
 	}
 	void TerminateRenderer() {
 		// destroy buffers
@@ -207,6 +242,7 @@ namespace engone {
 			Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
 			if (guiShader != nullptr)
 				guiShader->setInt("uColorMode", 1);
+			//guiShader->setInt("uTextures", 0);
 			font->texture.bind();
 		}
 

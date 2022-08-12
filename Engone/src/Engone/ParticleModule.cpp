@@ -23,12 +23,52 @@ namespace engone {
 			return;
 		}
 	}
+	void ParticleGroup::update(engone::UpdateInfo& info) {
+		//float delta = info.timeStep;
+		//for (int i = 0; i < m_count; i++) {
+		//	Particle& part = m_particles[i];
+
+		//	glm::vec3& pos = part.pos;
+		//	glm::vec3& vel = part.vel;
+		//	glm::vec3& acc = part.acc;
+
+		//	double velDist = sqrt(double(part.vel.x) * double(part.vel.x) + double(part.vel.y) * double(part.vel.y) + double(part.vel.z) * double(part.vel.z));
+		//	////float velDist = glm::length(part.vel);
+
+		//	//glm::vec3 focus = glm::vec3(0, 0, 0) - part.pos;
+		//	//std::setprecision(10);
+		//	//log::out << velDist << "\n";
+
+		//	//double mul = velDist2 / radius2;
+
+		//	//glm::vec3 acc = { focus.x * mul, focus.y * mul, focus.z * mul };
+
+		//	glm::vec3 toFocus = - pos;
+		//	double radius = sqrt(double(toFocus.x) * double(toFocus.x) + double(toFocus.y) * double(toFocus.y) + double(toFocus.z) * double(toFocus.z));
+		//	std::cout << std::setprecision(10) << velDist <<" "<<radius << "\n";
+
+		//	glm::vec3 nextAcc = toFocus * dot(vel, vel) / dot(toFocus, toFocus);
+
+		//	//-- Velocity Verlet
+
+		//	glm::vec3 velHalf = vel + 1 / 2.f * acc * delta;
+		//	glm::vec3 nextPos = pos + velHalf * delta;
+		//	glm::vec3 nextVel = velHalf + 1 /2.f * nextAcc * delta;
+
+		//	part.pos = nextPos;
+		//	part.vel = nextVel;
+		//	part.acc = nextAcc;
+		//	
+		//	m_shaderBuffer.setData(m_count * sizeof(Particle), m_particles);
+		//}
+		//m_updateBuffer = true;
+	}
 	void ParticleGroup::render(engone::RenderInfo& info) {
 		if (m_count == 0 || !m_parent || !m_shader) return;
 		if (!m_shaderBuffer.initialized()) return;
 
-		//EnableDepth();
-		EnableBlend();
+		EnableDepth();
+		//EnableBlend();
 		Assets* assets = m_parent->getAssets();
 		Renderer* renderer = m_parent->getRenderer();
 
@@ -50,10 +90,14 @@ namespace engone {
 		//	m_shaderBuffer.drawPoints(m_count, 0);
 		//	remaining -= drawPoints;
 		//}
+
 		if (m_count != 0) {
 			if (m_updateBuffer) {
 				m_shaderBuffer.setData(m_count * sizeof(Particle), m_particles);
 			}
+			glEnable(GL_PROGRAM_POINT_SIZE);
+			//glEnable(GL_CLIP_DISTANCE0);
+			m_shader->setFloat("uPointSize", m_particleSize);
 			m_shaderBuffer.drawPoints(m_count, 0);
 		}
 
@@ -77,7 +121,7 @@ namespace engone {
 		m_count += count;
 		return out;
 	}
-	bool ParticleGroup::createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount) {
+	bool ParticleGroup::createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount, glm::vec3 velocity) {
 		Particle* parts = createParticles(particleCount);
 		if (parts) {
 			for (int i = 0; i < particleCount; i++) {
@@ -88,7 +132,7 @@ namespace engone {
 				//float y = 0;
 				//float z = 0;
 				parts[i].pos = { position.x + scale.x * (x - 0.5), position.y + scale.y * (y - 0.5), position.z + scale.z * (z - 0.5) };
-				parts[i].vel = { 0, 0, 0 };
+				parts[i].vel = velocity;
 			}
 			return true;
 		}

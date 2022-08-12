@@ -150,8 +150,9 @@ namespace engone {
 	}
 	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor, VertexBuffer* buffer) {
 		if (!buffer) {
-			log::out << log::RED << "VertexArray::addAttribute - buffer was nullptr\n";
-			return;
+			// this is fine incase you use instancing
+			//log::out << log::RED << "VertexArray::addAttribute - buffer was nullptr\n";
+			//return;
 		}
 		addAttribute(floatSize, divisor);
 		if (location == 8)
@@ -251,7 +252,7 @@ namespace engone {
 			if (indexBuffer->initialized()) {
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer->m_id);
 
-				glDrawElements(GL_LINES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr);
+				glDrawElements(GL_LINES, indexBuffer->getSize() / sizeof(uint32_t), GL_UNSIGNED_INT, nullptr);
 			}
 			else {
 				log::out << log::RED << "VertexArray::drawLines - buffer is uninitialized!\n";
@@ -300,9 +301,9 @@ namespace engone {
 		if (indexBuffer != nullptr) {
 			if (indexBuffer->initialized()) {
 				indexBuffer->bind();
-				glDrawElements(GL_TRIANGLES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr);
-			}
-			else {
+				//glDrawElements(GL_TRIANGLES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr);
+				glDrawElements(GL_TRIANGLES, indexBuffer->getSize()/sizeof(uint32_t), GL_UNSIGNED_INT, nullptr);
+			} else {
 				log::out << log::RED << "VertexArray::draw - buffer is uninitialized!\n";
 			}
 		}
@@ -322,7 +323,7 @@ namespace engone {
 		if (indexBuffer != nullptr) {
 			if (indexBuffer->initialized()) {
 				indexBuffer->bind();
-				glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->getSize(), GL_UNSIGNED_INT, nullptr, instanceAmount);
+				glDrawElementsInstanced(GL_TRIANGLES, indexBuffer->getSize() / sizeof(uint32_t), GL_UNSIGNED_INT, nullptr, instanceAmount);
 			}
 			else {
 				log::out << log::RED << "VertexArray::draw - buffer is uninitialized!\n";
@@ -331,6 +332,18 @@ namespace engone {
 		else {
 			log::out << log::RED << "VertexArray::draw indexBuffer required when drawing instances!\n";
 		}
+		CHECK();
+		unbind();
+	}
+	void VertexArray::drawTriangleArray(int vertexCount) {
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			return;
+		}
+		bind();
+
+		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+
 		CHECK();
 		unbind();
 	}

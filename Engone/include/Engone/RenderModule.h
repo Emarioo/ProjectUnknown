@@ -92,6 +92,10 @@ namespace engone {
 		
 		void render(RenderInfo& info);
 
+		// will draw a vertex buffer with two triangles.
+		// Set shader, texture, uniforms before.
+		void DrawQuad(RenderInfo& info);
+
 		Window* getParent() const { return m_parent; }
 
 		// ui::Draw amongst others will use the active renderer.
@@ -101,7 +105,6 @@ namespace engone {
 		static const int MAX_BOX_BATCH = 100;
 		static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
 		static const int INSTANCE_BATCH = 1000;
-		static const int PARTICLE_BATCH = 1000;
 	private:
 
 		bool m_initialized = false;
@@ -131,6 +134,10 @@ namespace engone {
 		VertexBuffer cubeVBO{};
 		VertexBuffer cubeInstanceVBO{};
 		IndexBuffer cubeIBO{};
+
+		VertexBuffer quadVB;
+		IndexBuffer quadIB;
+		VertexArray quadVA;
 
 		VertexBuffer instanceBuffer;
 
