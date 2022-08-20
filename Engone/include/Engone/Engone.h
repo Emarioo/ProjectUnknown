@@ -21,6 +21,11 @@
 #include "Engone/ParticleModule.h"
 
 namespace engone {
+	enum EngoneFlag : uint32_t {
+		EngoneNone = 0,
+		EngoneFixedLoop = 1, // update and frame will be called each game loop iteration. FPS will be used and UPS will be ignored.
+	};
+	typedef uint32_t EngoneFlags;
 	class Engone {
 	public:
 		Engone();
@@ -59,16 +64,23 @@ namespace engone {
 		// don't add nullptr, object is assumed to be valid.
 		void addObject(GameObject* object);
 
-		void addParticleGroup(ParticleGroup* group);
+		void addParticleGroup(ParticleGroupT* group);
 
 		// the run time of stats
 		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
-#ifndef ENGONE_NO_PHYSICS
+#ifdef ENGONE_PHYSICS
 		rp3d::PhysicsCommon* m_pCommon=nullptr;
 		rp3d::PhysicsWorld* m_pWorld=nullptr;
 #endif
 		void addLight(Light* l);
 		void removeLight(Light* l);
+
+		inline EngoneFlags getFlags() const {
+			return m_flags;
+		}
+		inline void setFlags(EngoneFlags flags) {
+			m_flags = flags;
+		}
 
 		RuntimeStats& getStats() { return m_runtimeStats; }
 
@@ -76,8 +88,10 @@ namespace engone {
 	private:
 		RuntimeStats m_runtimeStats;
 
+		EngoneFlags m_flags;
+
 		// delta uniform is set in engine loop.
-		std::vector<ParticleGroup*> m_particleGroups;
+		std::vector<ParticleGroupT*> m_particleGroups;
 		std::vector<GameObject*> m_objects;
 		std::vector<Light*> m_lights;
 		bool m_loadedDefault=false;
@@ -86,9 +100,9 @@ namespace engone {
 		VertexBuffer quadBuffer;
 		VertexArray quadArray;
 
-		std::vector<Application*> m_applications;
-		std::vector<uint16_t> m_appSizes; // used for tracker
-		std::vector<TrackerId> m_appIds; // used for tracker
+		std::vector<Application*> m_applications{};
+		std::vector<uint16_t> m_appSizes{}; // used for tracker
+		std::vector<TrackerId> m_appIds{}; // used for tracker
 
 		void update(UpdateInfo& info);
 		// only renders objects at the moment

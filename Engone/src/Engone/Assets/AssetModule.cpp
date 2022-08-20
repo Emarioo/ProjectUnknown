@@ -20,7 +20,7 @@ namespace engone {
 	TrackerId ArmatureAsset::trackerId="ArmatureAsset";
 	TrackerId ModelAsset::trackerId="ModelAsset";
 
-	std::string toString(AssetType type) {
+	const char* toString(AssetType type) {
 		switch (type) {
 		case AssetTexture: return "Texture";
 		case AssetFont: return "Font";
@@ -34,10 +34,8 @@ namespace engone {
 		}
 		return "";
 	}
-	namespace log {
-		logger operator<<(logger log, AssetType type) {
-			return log << toString(type);
-		}
+	Logger& operator<<(Logger& log, AssetType type) {
+		return log << toString(type);
 	}
 	void Texture::load(const void* inBuffer, uint32_t size) {
 		stbi_set_flip_vertically_on_load(1);
@@ -78,7 +76,6 @@ namespace engone {
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
 
 		if (buffer)
 			stbi_image_free(buffer);
@@ -799,13 +796,13 @@ namespace engone {
 			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 			uint32_t uPointCount = 3 * pointCount;
 			uint32_t uPointSize = sizeof(float)*uPointCount;
-			float* uPoint = (float*)alloc::_malloc(uPointSize);
+			float* uPoint = (float*)alloc::malloc(uPointSize);
 			file.read(uPoint, uPointCount);
 
 			uint32_t uTextureCount = textureCount * 3;
 			uint32_t uTextureSize = sizeof(float)*uTextureCount;
 			
-			float* uTexture = (float*)alloc::_malloc(uTextureSize);
+			float* uTexture = (float*)alloc::malloc(uTextureSize);
 
 			file.read(uTexture, uTextureCount);
 
@@ -813,10 +810,10 @@ namespace engone {
 			uint32_t uWeightS = weightCount * 3;
 
 			int uWeightISize = sizeof(int) * uWeightS;
-			int* uWeightI = (int*)alloc::_malloc(uWeightISize);
+			int* uWeightI = (int*)alloc::malloc(uWeightISize);
 
 			int uWeightFSize = sizeof(float) * uWeightS;
-			float* uWeightF = (float*)alloc::_malloc(uWeightFSize);
+			float* uWeightF = (float*)alloc::malloc(uWeightFSize);
 
 			if (meshType==MeshType::Boned) {
 				char index[3];
@@ -840,7 +837,7 @@ namespace engone {
 			uint32_t trisS = triangleCount * tStride;
 
 			int trisSize = sizeof(uint16_t) * trisS;
-			uint16_t* tris = (uint16_t*)alloc::_malloc(trisSize);
+			uint16_t* tris = (uint16_t*)alloc::malloc(trisSize);
 			//std::cout << "head: "<<file.readHead << "\n";
 
 			//file.file.read(reinterpret_cast<char*>(tris), trisS*2);
@@ -896,7 +893,7 @@ namespace engone {
 			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
 
 			int triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-			uint32_t* triangleOut = (uint32_t*)alloc::_malloc(triangleOutSize);
+			uint32_t* triangleOut = (uint32_t*)alloc::malloc(triangleOutSize);
 
 			uint32_t uvStride = 1 + (tStride) / 3;
 			for (uint32_t i = 0; i < triangleCount; ++i) {
@@ -946,7 +943,7 @@ namespace engone {
 				vStride += 6;
 
 			int vertexOutSize = sizeof(float)*(uniqueVertex.size() / uvStride) * vStride;
-			float* vertexOut = (float*)alloc::_malloc(vertexOutSize);
+			float* vertexOut = (float*)alloc::malloc(vertexOutSize);
 
 			for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 				// Position
@@ -1042,13 +1039,13 @@ namespace engone {
 			//delete[] vertexOut;
 			//delete[] triangleOut;
 
-			alloc::_free(uPoint, uPointSize);
-			alloc::_free(uTexture, uTextureSize);
-			alloc::_free(uWeightI, uWeightISize);
-			alloc::_free(uWeightF, uWeightFSize);
-			alloc::_free(tris, trisSize);
-			alloc::_free(vertexOut, vertexOutSize);
-			alloc::_free(triangleOut, triangleOutSize);
+			alloc::free(uPoint, uPointSize);
+			alloc::free(uTexture, uTextureSize);
+			alloc::free(uWeightI, uWeightISize);
+			alloc::free(uWeightF, uWeightFSize);
+			alloc::free(tris, trisSize);
+			alloc::free(vertexOut, vertexOutSize);
+			alloc::free(triangleOut, triangleOutSize);
 		}
 		catch (FileError err) {/*
 			if (err == MissingData) {

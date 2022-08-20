@@ -1,7 +1,8 @@
+#ifdef ENGONE_SOUND
+
 #include "Engone/Sound/SoundStream.h"
 #include "Engone/Utilities/Utilities.h"
 
-#ifndef ENGONE_NO_SOUND
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "Engone/vendor/Libaudio.h"
@@ -93,17 +94,4 @@ namespace engone {
 		}
 	}
 }
-#else
-
-namespace engone {
-	SoundStream::~SoundStream() {
-		
-	}
-	void SoundStream::Init(const std::string& path) {
-		
-	}
-	void SoundStream::UpdateStream() {
-		
-	}
-}
-#endif
+#endif // ENGONE_SOUND

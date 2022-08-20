@@ -104,7 +104,7 @@ namespace engone {
 		static const int TEXT_BATCH = 40;
 		static const int MAX_BOX_BATCH = 100;
 		static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
-		static const int INSTANCE_BATCH = 1000;
+		static const uint32_t INSTANCE_BATCH = 1000;
 	private:
 
 		bool m_initialized = false;
@@ -113,6 +113,7 @@ namespace engone {
 		glm::mat4 projMatrix{};
 		//glm::mat4 viewMatrix{};
 		float fov = 90.f, zNear = 0.1f, zFar = 400.f;
+		// near and far are constants in some particle shaders. don't forget to change them;
 		
 		Window* m_parent=nullptr;
 

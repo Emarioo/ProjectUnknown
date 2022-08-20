@@ -1,15 +1,15 @@
 
-#include "GameApp.h"
+#include "ProUnk/GameApp.h"
 #include "Engone/EventModule.h"
 
-#include "Keybindings.h"
-#include "Objects/Player.h"
-#include "Objects/Sword.h"
-#include "Objects/Dummy.h"
+#include "ProUnk/Keybindings.h"
+#include "ProUnk/Objects/Player.h"
+#include "ProUnk/Objects/Sword.h"
+#include "ProUnk/Objects/Dummy.h"
 
-#include "Magic/Focals.h"
+#include "ProUnk/Magic/Focals.h"
 
-#include "CombatData.h"
+#include "ProUnk/CombatData.h"
 
 #include "Engone/Tests/BasicRendering.h"
 
@@ -22,6 +22,9 @@ namespace game {
 	static const char* particleGLSL = {
 #include "Engone/Shaders/particle.glsl"
 //#include "Engone/Tests/testParticle.glsl"
+	};
+	static const char* combatParticlesGLSL = {
+#include "ProUnk/Shaders/combatParticles.glsl"
 	};
 	//static const char* depthGLSL = {
 	//#include "Shaders/depth.glsl"
@@ -98,8 +101,24 @@ namespace game {
 				if (defData->hitCooldown!=0) continue;
 
 				defData->hitCooldown = atkData->animationTime;
+
+				glm::vec3 particlePosition = ToGlmVec3(pair.getCollider1()->getLocalToWorldTransform().getPosition() + 
+						pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2.f;
+
+				// spawn particles
 				// hit cooldown is determined by the attacker's animation time left
-					
+
+				CombatParticle* parts = combatParticles->getParticles();
+				for (int i = 0; i < combatParticles->getCount(); i++) {
+					//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
+					float rad = GetRandom()*0.5;
+					glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
+					norm = glm::normalize(norm);
+					parts[i].pos = particlePosition + norm * rad;
+					parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
+					parts[i].lifeTime = 1 + GetRandom() * 3.f;
+				}
+
 				// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
 				//	Meaning no damage.
 				//rp3d::CollisionBody* atkBody = pair.getBody1();
@@ -120,46 +139,35 @@ namespace game {
 	GameApp::GameApp(engone::Engone* engone) : Application(engone) {
 		using namespace engone;
 		
-		m_window = createWindow({ WindowedMode,1000,800 });
+		m_window = createWindow({ ModeWindowed,1000,800 });
 
 		//m_window = new Window(this,1000,800);
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
-		Shader* shaderPart = new Shader(particleGLSL);
-		particleGroup = new ParticleGroup();
-		particleGroup->init(m_window, shaderPart);
-		//engone->getParticleModule().init(m_window);
-
 		Assets* assets = getAssets();
 
 		Shader* blur = assets->set("blur", new Shader(blurGLSL));
-		particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 100000, {0,0,0});
-		//particleGroup->createCube({ 5,0,0 }, { 0.2,0.2,0.2 }, 100000, {0,0,5});
-		//Particle* part = particleGroup->createParticles(1);
-		//part->pos = { 0,0,5 };
-		//part->vel = { 3,0,0 };
-		engone->addParticleGroup(particleGroup);
-		//part = new Shader(partGlsl);
-		//assets->set("particle", part);
-		//group.init(m_window,part);
-		//group.resize(1000);
-		//Particle* parts = group.createParticles(1000);
-		//for (int i = 0; i < 1000; i++) {
-		//	parts[i].pos = { i / 20,0,0 };
-		//}
+		
+		//Shader* shaderPart = new Shader(particleGLSL);
+		//particleGroup = new ParticleGroup<DefaultParticle>();
+		//particleGroup->init(m_window, shaderPart);
+		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
+		//engone->addParticleGroup(particleGroup);
 
-		//float arr[6 * 100];
-		//memset(arr, 0, sizeof(arr));
-		////Particle* parts = group.createParticles(1000);
-		//for (int i = 0; i < sizeof(arr) / 6 / 4; i++) {
-		//	arr[6 * i] = i / 20.f;
-		//}
-		//part->bind();
-		//buffer.bind();
-		//buffer.bindBase(0);
-		//buffer.setData(sizeof(arr), arr);
-
+		Shader* combatPart = new Shader(combatParticlesGLSL);
+		combatParticles = new ParticleGroup<CombatParticle>();
+		combatParticles->init(m_window, combatPart);
+		CombatParticle* parts = combatParticles->createParticles(10000);
+		for (int i = 0; i < combatParticles->getCount();i++) {
+			float rad = 4*glm::pi<float>() * (pow(2,3) - pow(2 * GetRandom(), 3)) / 3.f;
+			glm::vec3 norm = glm::vec3(GetRandom()-0.5f,GetRandom()-0.5f,GetRandom()-0.5f);
+			norm = glm::normalize(norm);
+			parts[i].pos = norm *rad;
+			parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
+			parts[i].lifeTime = 30+GetRandom()*10.f;
+		}
+		engone->addParticleGroup(combatParticles);
 
 		//-- Assets
 		//assets->set("depth")
@@ -190,35 +198,14 @@ namespace game {
 
 		getEngine()->m_pWorld->setEventListener(this);
 
-		//sword = new Sword(engone);
-		//sword->setTransform({ 2,0,0 });
-		//engone->addObject(sword);
+		sword = new Sword(engone);
+		sword->setTransform({ 2,0,0 });
+		engone->addObject(sword);
 
 		player = new Player(engone);
 		player->setTransform({ 0,0,0 });
 		player->inventorySword = sword;
 		engone->addObject(player);
-
-		//part = new Shader(partGlsl);
-		//assets->set("particle",part);
-		////group.init(m_window,part);
-		////group.resize(1000);
-		////Particle* parts = group.createParticles(1000);
-		////for (int i = 0; i < 1000; i++) {
-		////	parts[i].pos = { i / 20,0,0 };
-		////}
-
-		//float arr[6 * 100];
-		//memset(arr, 0, sizeof(arr));
-		////Particle* parts = group.createParticles(1000);
-		//for (int i = 0; i < sizeof(arr)/6/4; i++) {
-		//	arr[6*i] = i/20;
-		//}
-		//part->bind();
-		//buffer.bind();
-		//buffer.bindBase(0);
-		//buffer.setData(sizeof(arr), arr);
-
 
 		Dummy* dummy = new Dummy(engone);
 		dummy->setTransform({ 0,0,9 });
@@ -232,9 +219,9 @@ namespace game {
 		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
 		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
 
-		//terrain = new Terrain(engone);
-		//engone->addObject(terrain);
-		//terrain->setTransform({ 0,-2,0 });
+		terrain = new Terrain(engone);
+		engone->addObject(terrain);
+		terrain->setTransform({ 0,-2,0 });
 
 		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
@@ -267,15 +254,46 @@ namespace game {
 	void GameApp::render(engone::RenderInfo& info) {
 		using namespace engone;
 
-		Shader* shad = particleGroup->getShader();
-		shad->bind();
-		
-		float radius = 5;
-		FocalPoint focalPoint(ForceTypeAttractive, player->getPosition(),1,5,999);
-		FocalPoint focalPoint2(ForceTypeRepllent,player->getPosition(),1,0,5);
+		//Shader* shad = combatParticles->getShader();
+		//shad->bind();
 
-		focalPoint.bind(shad,0);
-		focalPoint.bind(shad,1);
+		
+
+		//Shader* shad = particleGroup->getShader();
+		//shad->bind();
+		//
+		//FocalPoint focalPoint0(ForceTypeAttractive, player->getPosition(),ToGlmVec3(player->rigidBody->getLinearVelocity()), 5, 0, 999);
+		//focalPoint0.bind(shad,0);
+		////FocalPoint focalPoint1(ForceTypeAttractive, player->getPosition(),-2,0,3);
+		////focalPoint1.bind(shad,1);
+
+		//if (!IsKeyDown(GLFW_KEY_F)) {
+		//	//FocalPoint focalPoint2(ForceTypeField, player->getPosition(),ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 2, 4);
+		//	//focalPoint2.bind(shad, 0);
+		//	//FocalPoint focalPoint4(ForceTypeField, player->getPosition(), ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 4, 2);
+		//	//focalPoint4.bind(shad, 3);
+		//	FocalPlane focalPlane0(ForceTypeField, player->getPosition(), {0,1,0}, ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 1);
+		//	focalPlane0.bind(shad, 0);
+		//	//FocalPlane focalPlane1(ForceTypeField, player->getPosition() + glm::vec3(0, 5, 0), { 0,-1,0 }, ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 0, 1);
+		//	//focalPlane1.bind(shad, 1);
+		//}
+		//else {
+		//	FocalPoint focalP;
+		//	//focalP.bind(shad, 0);
+		//	//focalP.bind(shad, 1);
+		//	FocalPlane focalE;
+		//	focalE.bind(shad, 0);
+		//	focalE.bind(shad, 1);
+		//}
+		//FocalPoint focalPoint3(ForceTypeFriction,player->getPosition(),0.7,0,999);
+
+		//FocalPlane focalPlane1(ForceTypeAttractive, player->getPosition(), {1,1,0},1, 0, 999);
+		//FocalPlane focalPlane2(ForceTypeField, player->getPosition(), {1,0,0},1, 0, 1);
+		//FocalPoint focalPlane1(ForceTypeFriction,player->getPosition(),1,0,999);
+
+		//focalPlane1.bind(shad, 0);
+
+		//focalPoint3.bind(shad,2);
 		//shad->setInt("uClipping", IsKeyDown(GLFW_KEY_J));
 
 		//part->setFloat("delta", 0);

@@ -6,7 +6,7 @@
 namespace engone {
 	class Camera {
 	public:
-		Camera() = default;
+		Camera() { refreshViewMatrix(); };
 
 		void setPosition(float x, float y, float z) { position.x = x; position.y = y; position.z = z; refreshViewMatrix(); }
 		void setPosition(glm::vec3 v) { position = v; refreshViewMatrix(); }
@@ -52,9 +52,9 @@ namespace engone {
 		}
 
 	private:
-		glm::vec3 position;
-		glm::vec3 rotation;
-		glm::mat4 viewMatrix;
+		glm::vec3 position{};
+		glm::vec3 rotation{};
+		glm::mat4 viewMatrix{};
 
 		void refreshViewMatrix() {
 			viewMatrix = glm::inverse(

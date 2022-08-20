@@ -1,5 +1,5 @@
+#ifdef ENGONE_SOUND
 #include "Engone/SoundModule.h"
-#ifndef ENGONE_NO_SOUND
 
 #include "AL/al.h"
 #include "AL/alc.h"
@@ -75,29 +75,4 @@ namespace engone {
 		alCall(alcCloseDevice(device));
 	}
 }
-#else
-namespace engone {
-
-	// Add Debug option? sound_device_list
-	void list_audio_devices(const char* devices) {
-	
-	}
-	// Switch to vec3
-	void ListenerPosition(float x, float y, float z) {
-		
-	}
-	void ListenerVelocity(float x, float y, float z) {
-		
-	}
-	void ListenerRotation(float x, float y, float z, float x1, float y1, float z1) {
-		
-	}
-	bool InitSound() {
-		
-		return true;
-	}
-	void UninitSound() {
-		
-	}
-}
-#endif
+#endif  // ENGONE_SOUND

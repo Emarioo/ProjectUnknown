@@ -228,20 +228,37 @@ namespace engone {
 		//}
 		// 
 	//m_runtimeStats.update_accumulator = 8;
-		// 
-		//GetTracker().printMemory();
-		//GetTracker().printInfo();
+		//
+		log::out.consoleFilter() |= log::Disable;
+		GetTracker().printMemory();
+		GetTracker().printInfo();
+		log::out.consoleFilter() ^= log::Disable;
 		float printTime = 0;
 		double lastTime = GetSystemTime();
 		while (true) {
 			double now = GetSystemTime();
 			double delta = now - lastTime;
 			lastTime = now;
+			//const double fixed = 1 / 144.f;
+			//m_runtimeStats.updateTime = fixed;
+			if (m_flags & EngoneFixedLoop) {
+				double sleeping = m_runtimeStats.frameTime - delta;
+				delta = m_runtimeStats.frameTime;
+				if (sleeping > 0) {
+					m_runtimeStats.sleepTime += sleeping;
+					std::this_thread::sleep_for(std::chrono::microseconds((int)(sleeping * 1000000)));
+				}
+			}
+
+			//-- original
+			//double now = GetSystemTime();
+			//double delta = now - lastTime;
+			//lastTime = now;
 
 			// high delta will cause a series consecuative updates which will freeze the apps. This is unwanted.
 			// Limit delta to fix it.
-			double limit = 8 * m_runtimeStats.updateTime;
-			if (delta > limit) delta = limit;
+			//double limit = 8 * m_runtimeStats.updateTime;
+			//if (delta > limit) delta = limit;
 
 			m_runtimeStats.runTime += delta;
 			m_runtimeStats.update_accumulator += delta;
@@ -279,19 +296,26 @@ namespace engone {
 			}
 			// NOTE: if you close one application and lets say a player object uses a camera inside it's update function. Since the camera exists in the renderer of a window which was deleted
 			//   because one application closed, THEN the update function would crash because the camera is invalid. This doesn't happen if you use GetActiveWindow and check if it's nullptr
-			//   but if you have a specific reference to a window that was closed wiered stuff could happen. And this only happens if you have two applications running at some point.
+			//   but if you have a specific reference to a window that was closed wierd stuff could happen. And this only happens if you have two applications running at some point.
 			//   Because if you have one then the code below will just break and the update function won't be called.
+			// 
+			// NOTE: Hello again, a clarification: Window* m_window is variable i usually create inside applications. When the window closes, this pointer points to invalid
+			//	memory. The point here is... don't forget to set m_window to nullptr in onClose.
 
 			if (m_applications.size() == 0) // might as well quit
 				break;
 			//Timer tim("update");
-			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime) {
+			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime|| m_flags & EngoneFixedLoop)
+			{
 				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
-
 				//log::out << m_runtimeStats.update_accumulator << "\n";
 
 				m_runtimeStats.incrUpdates();
 				UpdateInfo info = { m_runtimeStats.updateTime, nullptr };
+				if (m_flags & EngoneFixedLoop)
+					info.timeStep = m_runtimeStats.frameTime;
+				//UpdateInfo info = { delta, nullptr };
+				// 
 				//update(info);
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 					Application* app = m_applications[appIndex];
@@ -314,12 +338,14 @@ namespace engone {
 						app->getWindow(winIndex)->resetEvents();
 					}
 				}
+				if (m_flags & EngoneFixedLoop)
+					break;
 			}
 			//tim.stop();
 			//Timer timer("frame");
-			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime) {
+			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime||m_flags&EngoneFixedLoop) {
+			//if(true){
 				m_runtimeStats.frame_accumulator -= m_runtimeStats.frameTime;
-
 				m_runtimeStats.incrFrames();
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 					Application* app = m_applications[appIndex];
@@ -329,7 +355,11 @@ namespace engone {
 						Window* win = app->getWindow(winIndex);
 						if (!win->isOpen()) continue;
 						float interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
-						RenderInfo info = { interpolation,win,delta };
+						RenderInfo info = { interpolation,win,m_runtimeStats.updateTime };
+						if (m_flags & EngoneFixedLoop) {
+							info.timeStep = m_runtimeStats.frameTime;
+							interpolation = 0;
+						}
 
 						win->setActiveContext();
 						// Important setup
@@ -339,6 +369,7 @@ namespace engone {
 						glDepthFunc(GL_LESS);
 						glEnable(GL_CULL_FACE);
 						glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+						//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 						// 3d stuf
@@ -364,16 +395,15 @@ namespace engone {
 					app->m_renderingWindows = false;
 				}
 			} else {
-				int sleepTime = (int)((m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator) * 1000000.0);
-				m_runtimeStats.sleepTime += (double)sleepTime / 1000000.0; // conversion is necessary to keep things accurate.
-				//log::out << "sleeping: "<<sleepTime << "\n";
-				std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+				double sleepTime = m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator;
+				m_runtimeStats.sleepTime += sleepTime;
+				std::this_thread::sleep_for(std::chrono::microseconds((int)(sleepTime* 1000000.0)));
 			}
 			//timer.stop();
 
 			if (printTime > 0.7f) {
 				printTime -=0.7f;
-				m_runtimeStats.print(RuntimeStats::PrintSamples);
+				//m_runtimeStats.print(RuntimeStats::PrintSamples);
 			}
 
 			m_runtimeStats.totalLoops++;
@@ -442,17 +472,17 @@ namespace engone {
 	void Engone::addObject(GameObject* object) {
 		m_objects.push_back(object);
 	}
-	void Engone::addParticleGroup(ParticleGroup* group) {
+	void Engone::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);
 	}
 	void Engone::update(UpdateInfo& info) {
 		for (int i = 0; i < m_objects.size(); i++) {
 			m_objects[i]->update(info);
 		}
-		for (int i = 0; i < m_particleGroups.size(); i++) {
-			m_particleGroups[i]->update(info);
-		}
-#ifndef ENGONE_NO_PHYSICS
+		//for (int i = 0; i < m_particleGroups.size(); i++) {
+		//	m_particleGroups[i]->update(info);
+		//}
+#ifdef ENGONE_PHYSICS
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
 #endif
@@ -462,39 +492,46 @@ namespace engone {
 		//test::TestParticles(info);
 		EnableDepth();
 		//if (IsKeyDown(GLFW_KEY_K)) {
-			if (frameBuffer.m_id == 0) {
-				frameBuffer.initBlur(GetWidth(), GetHeight());
+		Shader* blur = info.window->getAssets()->get<Shader>("blur");
+		blur = nullptr;
+		if (blur) {
+			float detail = 1 / 3.f;
+			//float detail = 1;
+			glViewport(0, 0, GetWidth() * detail, GetHeight() * detail);
+			if (!frameBuffer.initialized()) {
+				frameBuffer.initBlur(GetWidth() * detail, GetHeight() * detail);
 			}
-			frameBuffer.bind(false);
-			//glClearColor(0,0, 0, 1);
+			frameBuffer.bind();
+			glClearColor(0, 0, 0, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			//glDepthFunc(GL_LESS);
-			//glEnable(GL_CULL_FACE);
-			//EnableDepth();
-		//}
+			////}
+				//glEnable(GL_POINT_SMOOTH);
+		}
+		else {
+		}
+		//EnableBlend(); <- don ine particle render
 		for (int i = 0; i < m_particleGroups.size(); i++) {
 			m_particleGroups[i]->render(info);
 		}
-		//if (IsKeyDown(GLFW_KEY_K)) {
+		//EnableDepth();
+		if (blur) {
+			//glDisable(GL_POINT_SMOOTH);
+			//if (IsKeyDown(GLFW_KEY_K)) {
 			frameBuffer.unbind();
-
-			//glClearColor(1, 0, 0, 1);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glDisable(GL_DEPTH_TEST);
-			//EnableBlend();
+			glViewport(0, 0, GetWidth(), GetHeight());
+			//
 			Shader* blur = info.window->getAssets()->get<Shader>("blur");
 			blur->bind();
 			blur->setInt("uTexture", 0);
-			blur->setVec2("uInvTextureSize", { 1.f/frameBuffer.getWidth(), 1.f/frameBuffer.getHeight() });
+			blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
 			frameBuffer.bindTexture();
+			glDisable(GL_DEPTH_TEST); // these depend on what you want, don't disable if you use fragdepth
 			info.window->getRenderer()->DrawQuad(info);
 
-			EnableDepth();
-
-			frameBuffer.blitDepth();
-
-			//info.window->getRenderer()->DrawQuad(info, 0, 0, GetWidth(), GetHeight());
+			//EnableDepth();
+			frameBuffer.blitDepth(GetWidth(), GetHeight()); // not this if frag depth
+		}
+		EnableDepth();
 		//}
 		//glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
 		/*
@@ -549,21 +586,21 @@ namespace engone {
 		//-- Debug
 		EnableBlend();
 		//Shader* gui = GetAsset<Shader>("gui");
-		Shader* gui = info.window->getAssets()->get<Shader>("gui");
-		gui->bind();
-		gui->setVec2("uPos", { 0,0 });
-		gui->setVec2("uWindow", { GetWidth(), GetHeight() });
-		gui->setVec2("uSize", { 1,1 });
-		gui->setVec4("uColor", 1, 1, 1, 1);
-		gui->setInt("uColorMode", 1);
-		Camera* cam = info.window->getRenderer()->getCamera();
-		// Note that this is the camera's location. Not the player's.
-		info.window->getRenderer()->DrawString(info.window->getAssets()->get<Font>("consolas"),
-			std::to_string(cam->getPosition().x) + " " + std::to_string(cam->getPosition().y) + " " +
-			std::to_string(cam->getPosition().z), false, 50, 300, 50, -1);
+		//Shader* gui = info.window->getAssets()->get<Shader>("gui");
+		//gui->bind();
+		//gui->setVec2("uPos", { 0,0 });
+		//gui->setVec2("uWindow", { GetWidth(), GetHeight() });
+		//gui->setVec2("uSize", { 1,1 });
+		//gui->setVec4("uColor", 1, 1, 1, 1);
+		//gui->setInt("uColorMode", 1);
+		//Camera* cam = info.window->getRenderer()->getCamera();
+		//// Note that this is the camera's location. Not the player's.
+		//info.window->getRenderer()->DrawString(info.window->getAssets()->get<Font>("consolas"),
+		//	std::to_string(cam->getPosition().x) + " " + std::to_string(cam->getPosition().y) + " " +
+		//	std::to_string(cam->getPosition().z), false, 50, 300, 50, -1);
 
 		// Physics debug
-#ifndef ENGONE_NO_PHYSICS
+#ifdef ENGONE_PHYSICS
 		if (m_pWorld) {
 			if (m_pWorld->getIsDebugRenderingEnabled()) {
 				rp3d::DebugRenderer& debugRenderer = m_pWorld->getDebugRenderer();
@@ -585,6 +622,9 @@ namespace engone {
 	}
 	bool warnNoLights = false;
 	void Engone::renderObjects(RenderInfo& info) {
+#ifndef ENGONE_PHYSICS
+		// cannot render objects, not building with physics
+#else
 		Assets* assets = info.window->getAssets();
 		Renderer* renderer = info.window->getRenderer();
 		Camera* camera = renderer->getCamera();
@@ -658,18 +698,16 @@ namespace engone {
 					asset->materials[j]->bind(shader, j);
 				}
 				//}
-				uint32_t renderAmount = 0;
-				while (renderAmount < vector.size()) {
-					uint32_t amount = vector.size() - renderAmount;
-					if (amount > Renderer::INSTANCE_BATCH) {
-						amount = Renderer::INSTANCE_BATCH;
-					}
-					renderer->instanceBuffer.setData(amount * sizeof(glm::mat4)/sizeof(float), (float*)(vector.data() + renderAmount));
+				uint32_t remaining = vector.size();
+				while (remaining > 0) {
+					uint32_t batchAmount = std::min(remaining,Renderer::INSTANCE_BATCH);
+					
+					renderer->instanceBuffer.setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size()-remaining));
 
 					asset->vertexArray.selectBuffer(3, &renderer->instanceBuffer);
 
-					asset->vertexArray.draw(&asset->indexBuffer, amount);
-					renderAmount += amount;
+					asset->vertexArray.draw(&asset->indexBuffer, batchAmount);
+					remaining -= batchAmount;
 				}
 			}
 		}
@@ -763,6 +801,7 @@ namespace engone {
 		//	b.clear();
 		//}
 		//normalObjects.clear();
+#endif
 	}
 	void Engone::addLight(Light* l) {
 		m_lights.push_back(l);

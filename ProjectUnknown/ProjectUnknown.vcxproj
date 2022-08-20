@@ -27,216 +27,102 @@
     <ProjectName>ProjectUnknown</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  
+  <PropertyGroup Label="UserMacros"/>
+  
+  <!-- Output -->
+  <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
-    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)\</IntDir>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  
+  <!-- base -->
+  <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_PHYSICS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;</AdditionalIncludeDirectories>
+       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>propch.h</ForcedIncludeFiles>
+      <PrecompiledHeaderFile>ProUnk/pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>ProUnk/pch.h;Engone/ModuleDefs.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin/Engone/DebPhysWin32
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
+      <AdditionalDependencies>Engone.lib
       </AdditionalDependencies>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  
+  <!-- release -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>propch.h</ForcedIncludeFiles>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin/Engone/RelPhysWin32</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <EntryPointSymbol>
       </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>propch.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>src;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;$(SolutionDir)libs/AL/include;$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>propch.h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>propch.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
-    </Link>
-  </ItemDefinitionGroup>
+  
   <ItemGroup>
-    <ClCompile Include="src\GameApp.cpp" />
-    <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Dungeons\Dungeon.cpp" />
-    <ClCompile Include="src\Items\Container.cpp" />
-    <ClCompile Include="src\Items\CraftingCategory.cpp" />
-    <ClCompile Include="src\Items\CraftingRecipe.cpp" />
-    <ClCompile Include="src\Items\Item.cpp" />
-    <ClCompile Include="src\Items\ItemHandler.cpp" />
-    <ClCompile Include="src\Items\ItemType.cpp" />
-    <ClCompile Include="src\Keybindings.cpp" />
-    <ClCompile Include="src\Objects\Player.cpp" />
-    <ClCompile Include="src\propch.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">propch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">propch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">propch.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">propch.h</PrecompiledHeaderFile>
+    <ClCompile Include="src\ProUnk\GameApp.cpp" />
+    <ClCompile Include="src\ProUnk\main.cpp" />
+    <ClCompile Include="src\ProUnk\Keybindings.cpp" />
+    <ClCompile Include="src\ProUnk\Objects\Player.cpp" />
+    <ClCompile Include="src\ProUnk\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>ProUnk/pch.h</PrecompiledHeaderFile>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="src\CombatData.h" />
-    <ClInclude Include="src\Dungeons\Dungeon.h" />
-    <ClInclude Include="src\GameApp.h" />
-    <ClInclude Include="src\Items\Container.h" />
-    <ClInclude Include="src\Items\CraftingCategory.h" />
-    <ClInclude Include="src\Items\CraftingRecipe.h" />
-    <ClInclude Include="src\Items\Item.h" />
-    <ClInclude Include="src\Items\ItemHandler.h" />
-    <ClInclude Include="src\Items\ItemType.h" />
-    <ClInclude Include="src\Keybindings.h" />
-    <ClInclude Include="src\Magic\Focals.h" />
-    <ClInclude Include="src\Objects\Dummy.h" />
-    <ClInclude Include="src\Objects\Player.h" />
-    <ClInclude Include="src\Objects\Sword.h" />
-    <ClInclude Include="src\Objects\Terrain.h" />
-    <ClInclude Include="src\propch.h" />
-    <ClInclude Include="src\ShaderType.h" />
+    <ClInclude Include="include\ProUnk\CombatData.h" />
+    <ClInclude Include="include\ProUnk\GameApp.h" />
+    <ClInclude Include="include\ProUnk\Keybindings.h" />
+    <ClInclude Include="include\ProUnk\Magic\Focals.h" />
+    <ClInclude Include="include\ProUnk\Objects\Dummy.h" />
+    <ClInclude Include="include\ProUnk\Objects\Player.h" />
+    <ClInclude Include="include\ProUnk\Objects\Sword.h" />
+    <ClInclude Include="include\ProUnk\Objects\Terrain.h" />
+    <ClInclude Include="include\ProUnk\pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ProjectUnknown.rc" />
@@ -249,6 +135,9 @@
     <ProjectReference Include="..\Engone\Engone.vcxproj">
       <Project>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\ProUnk\Shaders\combatParticles.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

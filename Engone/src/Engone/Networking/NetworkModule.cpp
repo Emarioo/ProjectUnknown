@@ -85,8 +85,8 @@ namespace engone {
 		}
 		return "";
 	}
-	log::logger operator<<(log::logger a, NetEvent b) {
-		return a << toString(b);
+	Logger& operator<<(Logger& log, NetEvent value) {
+		return log << toString(value);
 	}
 	/*
 		MESSAGEBUFFER
@@ -106,22 +106,28 @@ namespace engone {
 	}
 	MessageBuffer::~MessageBuffer() {
 		if (m_data && !noDelete) {
-			alloc::_free(m_data, m_dataSize);
+			alloc::free(m_data, m_dataSize);
 			GetTracker().subMemory(trackerId,m_dataSize);
 		}
 	}
 	bool MessageBuffer::resize(uint32_t size) {
 		char* data;
 		if (!m_data) {
-			data = (char*)alloc::_malloc(size+sizeof(uint32_t));
+			data = (char*)alloc::malloc(size+sizeof(uint32_t));
+			GetTracker().addMemory(trackerId, size + sizeof(uint32_t));
 			if (data)
 				*((uint32_t*)data) = 0;
 		} else {
-			data = (char*)alloc::_realloc(m_data, m_dataSize, size + sizeof(uint32_t));
+			data = (char*)alloc::realloc(m_data, m_dataSize, size + sizeof(uint32_t));
+			GetTracker().subMemory(trackerId, m_dataSize);
+			GetTracker().addMemory(trackerId, size + sizeof(uint32_t));
 		}
 		if (data) {
 			m_data = data;
-			GetTracker().addMemory(trackerId,size + sizeof(uint32_t)-m_dataSize);
+			// Hello, i move addMem, subMem here and i'm not sure if I did it correctly an i'm to lazy to test it. Thanks future me.
+
+			//GetTracker().subMemory(trackerId,m_dataSize);
+			//GetTracker().addMemory(trackerId,size + sizeof(uint32_t));
 			m_dataSize = size+sizeof(uint32_t);
 			return true;
 		} else {

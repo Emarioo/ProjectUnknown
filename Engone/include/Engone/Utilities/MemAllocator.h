@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/Utilities/Utilities.h"
+#include "Engone/Utilities/Alloc.h"
 
 namespace engone {
 	// General allocator methods for all types
@@ -42,7 +42,7 @@ namespace engone {
 		// See Allocator's allocate
 		virtual char* allocate(uint32_t size) override {
 			if (size == 0) return nullptr;
-			char* ptr = (char*)alloc::_malloc(size);
+			char* ptr = (char*)alloc::malloc(size);
 			if (ptr) {
 				realAllocation += size;
 				dreamAllocation += size;
@@ -60,7 +60,7 @@ namespace engone {
 				deallocate(ptr, oldSize);
 				return nullptr;
 			}
-			char* newPtr = (char*)alloc::_realloc(ptr, oldSize, newSize);
+			char* newPtr = (char*)alloc::realloc(ptr, oldSize, newSize);
 			if (newPtr) {
 				realAllocation -= oldSize;
 				realAllocation += newSize;
@@ -77,7 +77,7 @@ namespace engone {
 			if (!ptr || size == 0) return;
 			realAllocation -= size;
 			dreamAllocation -= size;
-			alloc::_free(ptr,size);
+			alloc::free(ptr,size);
 		}
 		template<class T>
 		inline void deallocate(T* ptr) { deallocate(ptr, sizeof(T)); };
@@ -184,7 +184,7 @@ namespace engone {
 		bool resize(int size, bool nullify = false) {
 			if (m_allocation) {
 				if (nullify || size == 0) {
-					alloc::_free(m_data,size);
+					alloc::free(m_data,size);
 					m_data = nullptr;
 					m_size = 0;
 					realAllocation = 0;
@@ -192,14 +192,14 @@ namespace engone {
 					if (size == 0) return true; // returns true because the intention was successful.
 				}
 				if (!m_data) {
-					m_data = (char*)alloc::_malloc(size);
+					m_data = (char*)alloc::malloc(size);
 					if (!m_data) return false;
 					m_size = size;
 					realAllocation = size;
 					m_write = 0;
 					return true;
 				} else if (m_canResize) {
-					char* data = (char*)alloc::_realloc(m_data, m_size, size);
+					char* data = (char*)alloc::realloc(m_data, m_size, size);
 					if (!data) return false;
 					m_data = data;
 					m_size = size;
@@ -209,5 +209,83 @@ namespace engone {
 			}
 			return false;
 		}
+	};
+	// Allocates memory as you add data.
+	// Standard data, size, maxSize and resize features. (beneath that is)
+	class StackMemory {
+	public:
+		StackMemory() = delete;
+		~StackMemory() { cleanup(); }
+
+		StackMemory(const StackMemory&) = delete;
+		StackMemory& operator =(const StackMemory&) = delete;
+
+		bool add(const char* data, uint32_t size) {
+			if (m_size + size > m_maxSize) {
+				if (!resize(2 * (m_size + size)))
+					return false;
+			}
+			memcpy_s(m_data + m_size, m_maxSize - m_size, data, size);
+			m_size += size;
+			return true;
+		}
+		// request bytes
+		// nullptr when failed
+		char* request(uint32_t size) {
+			if (m_size + size > m_maxSize) {
+				if (!resize(2 * (m_size + size)))
+					return nullptr;
+			}
+			char* ptr = m_data + m_size;
+			m_size += size;
+			return ptr;
+		}
+
+		// free memory
+		void cleanup() {
+			resize(0);
+		}
+		uint32_t getSize() const {
+			return m_size;
+		}
+		// size needs to be less than maxSize
+		void setSize(uint32_t size) {
+			m_size = size;
+		}
+		uint32_t getMaxSize() const {
+			return m_maxSize;
+		}
+		char* getData() const {
+			return m_data;
+		}
+		bool resize(uint32_t size) {
+			if (size == 0) {
+				alloc::free(m_data, size);
+				m_data = nullptr;
+				m_size = 0;
+				m_maxSize = 0;
+			}
+			if (!m_data) {
+				char* data = (char*)alloc::malloc(size);
+				if (!data) return false;
+				m_data = data;
+				m_maxSize = size;
+				m_size = 0;
+			} else {
+				char* data = (char*)alloc::realloc(m_data, m_size, size);
+				if (!data) return false;
+				m_data = data;
+				m_maxSize = size;
+				if (m_size > m_maxSize) {
+					m_size = m_maxSize;
+				}
+			}
+			return true;
+		}
+
+	protected:
+		char* m_data=nullptr; // char* because i don't like void*
+		uint32_t m_maxSize=0;
+		uint32_t m_size=0;
 	};
 }

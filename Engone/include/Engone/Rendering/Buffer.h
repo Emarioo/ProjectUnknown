@@ -18,7 +18,7 @@ namespace engone {
 
 		virtual void bind() const = 0;
 		virtual void unbind() const = 0;
-		virtual void cleanup() const = 0;
+		virtual void cleanup() = 0;
 
 		constexpr bool initialized() const { return m_id != 0; }
 
@@ -31,10 +31,6 @@ namespace engone {
 	class GLBuffer : public GLObject {
 	public:
 		GLBuffer() = default;
-
-		//virtual void bind() const = 0;
-		//virtual void unbind() const = 0;
-		//virtual void cleanup() const = 0;
 
 		// Will allocate/reallocate buffer if buffer doesn't exist or size is bigger than previous size.
 		// Will replace data in buffer with new data if size is equal or less then previous size.
@@ -60,9 +56,9 @@ namespace engone {
 		//VertexBuffer(const VertexBuffer& ib) = delete;
 		//VertexBuffer& operator=(const VertexBuffer&) = delete;
 
-		void bind() const;
-		void unbind() const;
-		void cleanup() const;
+		void bind() const override;
+		void unbind() const override;
+		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
 		void getData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -78,7 +74,7 @@ namespace engone {
 		//IndexBuffer& operator=(const IndexBuffer&) = delete;
 		void bind() const override;
 		void unbind() const override;
-		void cleanup() const override;
+		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
 		void getData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -100,7 +96,7 @@ namespace engone {
 
 		void bind() const override;
 		void unbind() const override;
-		void cleanup() const override;
+		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
 		void getData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -123,7 +119,7 @@ namespace engone {
 
 		void bind() const override;
 		void unbind() const override;
-		void cleanup() const override;
+		void cleanup() override;
 
 		void addAttribute(uint8_t floatSize);
 		void addAttribute(uint8_t floatSize, VertexBuffer* buffer);
@@ -149,5 +145,41 @@ namespace engone {
 		// Buffer section
 		uint8_t strides[MAX_BUFFERS]{};
 		uint8_t startLocations[MAX_BUFFERS]{};
+	};
+	// Note that the framebuffer doesn't inherit GLBuffer since you link other buffers to it.
+	class FrameBuffer : public GLObject {
+	public:
+		FrameBuffer() = default;
+		~FrameBuffer() { cleanup(); }
+
+		void init();
+		void initBlur(int width, int height);
+
+		void bind() const override;
+		void unbind() const override;
+		void cleanup() override;
+
+		// don't forget view port when drawing
+		//void bind();
+		//void unbind();
+		// will not resize if the size is the same
+		void resize(int width, int height);
+
+		void bindTexture();
+		void bindRenderbuffer();
+
+		// will bind and unbind appropriate buffers and copy depth to default framebuffer.
+		// May not work if this and the default frame buffer have different depth and stencil formats
+		// (uses GL_DEPTH24_STENCIL8)
+		// use texture instead of renderbuffer for depth if this is the case.
+		// width, height of the destination frame buffer.
+		void blitDepth(int width, int height);
+
+		int getWidth()const { return m_width; }
+		int getHeight()const { return m_height; }
+		int m_width = 1024, m_height = 1024;
+
+		unsigned int m_textureId = 0;
+		uint32_t m_renderBufferId = 0;
 	};
 }

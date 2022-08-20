@@ -1,5 +1,6 @@
+#ifdef ENGONE_SOUND
+
 #include "Engone/Sound/SoundSource.h"
-#ifndef ENGONE_NO_SOUND
 #include "AL/al.h"
 #include "AL/alc.h"
 
@@ -65,43 +66,4 @@ namespace engone {
 		return AL_STOPPED;
 	}
 }
-#else
-namespace engone {
-	SoundSource::~SoundSource() {
-	}
-	void SoundSource::Init() {
-
-	}
-	void SoundSource::Loop(bool b) {
-
-	}
-	void SoundSource::Gain(float f) {
-
-	}
-	void SoundSource::Pitch(float f) {
-
-	}
-	void SoundSource::Position(float x, float y, float z) {
-
-	}
-	void SoundSource::Velocity(float x, float y, float z) {
-
-	}
-	void SoundSource::Bind(SoundBuffer & buffer) {
-
-	}
-	void SoundSource::Play() {
-
-	}
-	void SoundSource::Pause() {
-
-	}
-	void SoundSource::Stop() {
-
-	}
-	int SoundSource::GetState() {
-
-		return 0;
-	}
-}
-#endif
+#endif  // ENGONE_SOUND

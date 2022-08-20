@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ENGONE_SOUND
+
 #include "Engone/Sound/SoundSource.h"
 
 namespace engone {
@@ -23,3 +25,5 @@ namespace engone {
 		bool isInitialized = false;
 	};
 }
+
+#endif // ENGONE_SOUND

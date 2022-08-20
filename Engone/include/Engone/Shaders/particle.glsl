@@ -4,15 +4,28 @@ R"(
 
 const int ForceTypeNone=0;
 const int ForceTypeAttractive=1;
-const int ForceTypeRepellent=2;
+const int ForceTypeFriction=2;
+const int ForceTypeField=3;
+
+const int ForceTypeCount=4;
 
 struct FocalPoint {
 	int forceType;
 	vec3 position;
+	vec3 velocity;
 	float strength;
 	float rangeMin;
 	float rangeMax;
-	float rangeBlend; 
+	float rangeBlend;
+};
+struct FocalPlane {
+	int forceType;
+	vec3 position;
+	vec3 velocity;
+	vec3 direction;
+	float strength;
+	float rangeMax;
+	float rangeBlend;
 };
 
 layout(std430, binding = 0) restrict buffer SSBO
@@ -24,18 +37,15 @@ const int bufStride = 3*2;
 out vec4 fColor;
 
 const int maxFocalPoints=5;
+const int maxFocalPlanes=5;
 uniform FocalPoint uFocalPoints[maxFocalPoints];
+uniform FocalPlane uFocalPlanes[maxFocalPlanes];
 
 uniform mat4 uProj;
 uniform float uPointSize;
 uniform int uClipping;
 
-uniform vec3 focusPoint;
 uniform float delta;
-
-const float pMass = 10;
-const float focusMass = 10;
-const float G = 6.674e-11;
 
 // Function from a video on youtube called newtonian particle system. You won't miss it.
 vec3 newtonianColor(vec3 velocity){
@@ -72,97 +82,174 @@ void main() {
 
 	vec3 acc = vec3(0,0,0);
 
+	vec3 debugColor=vec3(0,0,0);
+
+	float velDist = sqrt(dot(vel,vel));
+	vec3 velDir = vel/velDist;
+	if(velDist==0){
+		velDir=vec3(0,0,0);
+	}
+	int checkForceType=1;
 	for(int i=0;i<maxFocalPoints;i++){
-		FocalPoint focal = uFocalPoints[0];
-		if(focal.forceType==ForceTypeNone)
+		FocalPoint focal = uFocalPoints[i]; // i is changed below which makes it unusable except for here.
+		int tempType = checkForceType;
+		if(i==maxFocalPoints-1){
+			checkForceType++;
+			if(checkForceType!=ForceTypeCount){
+				i=-1;
+			}
+		}
+		if(focal.forceType!=tempType){
 			continue;
+		}
 		vec3 toFocal = focal.position-pos;
 		float focalDist = sqrt(dot(toFocal,toFocal));
-		float velDist = sqrt(dot(vel,vel));
+		vec3 focalDir = toFocal/focalDist;
 
-		if(focalDist>focal.rangeMin&&focalDist<focal.rangeMax){
-			//float blend = 1;
-			if(focal.forceType==ForceTypeAttractive){
-				acc+=toFocal/focalDist*focal.strength;
-			}else if(focal.forceType==ForceTypeRepellent){
-				acc-=toFocal/focalDist*focal.strength;
+		vec3 netVel = vel-focal.velocity;
+		float netVelDist = sqrt(dot(netVel,netVel));
+		vec3 netVelDir = netVel/netVelDist;
+		if(netVelDist==0){
+			netVelDir=vec3(0,0,0);
+		}
+
+		if(focalDist==0){
+			focalDir=vec3(0,0,0);
+		}
+		if(focal.forceType==ForceTypeAttractive){
+			if(focalDist>focal.rangeMin&&focalDist<focal.rangeMax){
+				acc+=focalDir*focal.strength;
+			}
+		}else if(focal.forceType==ForceTypeField){
+			if(focal.rangeMax>=focal.rangeMin){
+				if(focalDist>focal.rangeMin&&focalDist<focal.rangeMax){
+					// outwards - uses particle's velocity
+					float againstField = dot(focalDir,netVelDir);
+					if(againstField>0){
+						float mul = dot(velDir,focalDir);
+						vel -= focalDir*mul*velDist;
+
+						vec3 sideDir = (velDir-focalDir*mul);
+						sideDir/=sqrt(dot(sideDir,sideDir));
+						acc -= sideDir*focal.strength;
+
+						pos-=focalDir*(focal.rangeMax-focalDist)*focal.strength;
+					}
+				}
+			}else{
+				if(focalDist>focal.rangeMax&&focalDist<focal.rangeMin){
+					// inwards - uses netVelocity
+					float againstField = dot(focalDir,netVelDir);
+					if(againstField<0){// since field is inwards againstField would be negative
+						float mul = dot(netVelDir,focalDir);
+						vel -= focalDir*mul*netVelDist;
+			
+						vec3 sideDir = (netVelDir-focalDir*mul);
+						sideDir/=sqrt(dot(sideDir,sideDir));
+						acc -= sideDir*focal.strength;
+			
+						pos-=focalDir*(focal.rangeMax-focalDist)*focal.strength*0.1;
+					}
+				}
+			}
+		}else if(focal.forceType==ForceTypeFriction){
+			if(focalDist>focal.rangeMin&&focalDist<focal.rangeMax){
+				vec3 sideDir = (velDir-focalDir*dot(velDir,focalDir));
+				sideDir/=sqrt(dot(sideDir,sideDir)); // need to normalize it
+				acc -= sideDir*focal.strength;
+			}
+		}
+	}
+
+	checkForceType=1;
+	for(int i=0;i<maxFocalPlanes;i++){
+		FocalPlane focal = uFocalPlanes[i];
+		int tempType = checkForceType;
+		if(i==maxFocalPlanes-1){
+			checkForceType++;
+			if(checkForceType!=ForceTypeCount){
+				i=-1;
+			}
+		}
+		if(focal.forceType!=tempType){
+			continue;
+		}
+
+		vec3 netVel = vel-focal.velocity;
+		float netVelDist = sqrt(dot(netVel,netVel));
+		vec3 netVelDir = netVel/netVelDist;
+		if(netVelDist==0){
+			netVelDir=vec3(0,0,0);
+		}
+
+		vec3 toFocalPos = focal.position-pos;
+		vec3 focalPosDir = toFocalPos/sqrt(dot(toFocalPos,toFocalPos)); // direction to focalPosition
+
+		float focalCos = dot(focalPosDir,focal.direction); // negative when plane normal is facing the point
+		vec3 focalDir = focal.direction;
+		if(focalCos<0){
+			focalDir = -focal.direction;
+		}
+		//acc+=focal.direction;
+
+		// direction on the plan, not the normal
+		vec3 planeDir = focalPosDir-focal.direction*focalCos; // direction to collision point
+		planeDir = normalize(planeDir);
+		// planeDir isn't normalized but it doesn't actually need to be.
+		//acc += planeDir;
+
+		float t = 0;
+		/*if(planeDir.x-focal.direction.x!=0){ // prevent infinity
+			t = (pos.x-focal.position.x)/(planeDir.x-focal.direction.x);
+		}*/
+		if(planeDir.y-focal.direction.y!=0){ // prevent infinity
+			t = (pos.y-focal.position.y)/(planeDir.y-focal.direction.y);
+		}
+		float focalDist = 0;
+		if(t!=0){
+			focalDist = sqrt(dot(focalDir*t,focalDir*t));
+		}
+		if(t>0){
+			focalDist=-focalDist;
+			//debugColor=vec3(1,0,0);
+		}
+
+		if(focal.forceType==ForceTypeAttractive){
+			if(focalDist<0&&focalDist<focal.rangeMax){
+				acc+=focalDir*focal.strength;
+			}
+		}else if(focal.forceType==ForceTypeField){
+			// ISSUE: focalDist stands for current position. But it doesn't account for if velocity will change position to inside the field.
+			if(focalDist>0&&focalDist<focal.rangeMax){
+				//debugColor=vec3(1,0,0);
+				float againstField = dot(focal.direction,netVelDir);
+				if(againstField<0){
+					float mul = dot(netVelDir,focal.direction);
+					vel -= focal.direction*mul*netVelDist;
+						
+					//vec3 sideDir = (velDir-focal.direction*mul);
+					//sideDir/=sqrt(dot(sideDir,sideDir));
+					//acc -= sideDir*focal.strength;
+						
+					pos+=focal.direction*(focal.rangeMax-focalDist)*focal.strength;
+				}
+			}
+		}else if(focal.forceType==ForceTypeFriction){
+			if(focalDist>0&&focalDist<focal.rangeMax){
+				vec3 sideDir = (velDir-focalDir*dot(velDir,focalDir));
+				sideDir/=sqrt(dot(sideDir,sideDir)); // need to normalize it
+				acc -= sideDir*focal.strength;
 			}
 		}
 	}
 
 	//-- Euler integration
 	//pos += vel*delta + 0.5f*acc*delta*delta;
-	///vel += acc*delta;
+	//vel += acc*delta;
 
 	//-- Formulas v=at, s=vt
 	vel += acc*delta;
 	pos += vel*delta;
-
-	//float velSqr=dot(vel,vel);
-	//float velDist=sqrt(velSqr);
-	//vec3 velDir = vel/velDist;
-	//if (velDist==0)
-	//	velDir=vec3(0,0,0);
-
-	//if(velSqr==0){
-		//vel=vec3(1,0,0);
-		//velSqr=1;
-		//velDist=1;
-	//	int range = 5;
-	//	vel.x = gl_VertexID%range-range/2.0;
-		//vel.y = (gl_VertexID/range)%range-range/2.0;
-		//vel.z = (gl_VertexID/range/range)%range-range/2.0;
-		//vel/=range;
-		//velSqr=dot(vel,vel);
-	//}
-
-	//vec3 dFocus = focusPoint-pos;
-	//float dFocusSqr = dot(dFocus,dFocus);
-	//float dFocusDist = sqrt(dFocusSqr);
-	//vec3 focusDir = dFocus/dFocusDist;
-	//if(dFocusDist==0)
-	//	focusDir=vec3(0,0,0);
-
-	//vec3 acceleration = vec3(0,0,0);
-
-	//vec3 centralForce = focusDir * (pMass*velDist*velDist/(dFocusDist));
-	//float centDiv = max(dFocusSqr,0.1);
-	//vec3 centralAcc = dFocus*(velSqr/centDiv);
-	//vec3 centralForce = focusDir*pMass*velDist*velDist/dFocusDist;
-	//vec3 centralAcc = focusDir*velDist*velDist/dFocusDist;
-	//vec3 centralAcc = focusDir*velDist*velDist/dFocusDist;
-
-	//float gravDiv=max(dFocusSqr,0.1);// prevent explosion
-	//vec3 gravitationalAcc = focusDir/gravDiv;
-	//vec3 gravitationalAcc = focusDir/gravDiv;
-
-	//vec3 dragAcc = focusDir*10;
-	//vec3 drag2Acc = focusDir*dFocusSqr/40;
-	//vec3 drag3Acc = focusDir*dFocusSqr/40;
-	
-	//float perpenValue = dot(velDir,focusDir)/(1*1);
-	//vec3 frictionAcc = -velDir*(1-perpenValue)*0.08;
-
-	//force+=centralForce;
-
-	//acceleration+=centralAcc;
-	//acceleration+=gravitationalAcc;
-
-	//if(focusPoint.y<0)
-	//	acceleration+=dragAcc;
-	
-	//acceleration+=frictionAcc;
-
-	//const float range=0;
-	//if(dFocusDist<range){
-	//	acceleration=vec3(0,0,0);
-	//	force=vec3(0,0,0);
-	//	vel*=0.8;
-	//	vel-=focusDir*(range-dFocusDist)/delta;
-	//}
-
-	//vel += acceleration*delta;
-	//pos += vel*delta;
 
 	//-- Setting new data
 	buf.data[bufStride*gl_VertexID+0]=pos.x;
@@ -181,6 +268,10 @@ void main() {
 	fColor = vec4(newtonianColor(vel),1);
 	//if(velDist<0.01)
 	//	fColor.w=0;
+
+	if(!(debugColor.x==0&&debugColor.y==0&&debugColor.z==0)){
+		fColor = vec4(debugColor,1);
+	}
 
 	gl_Position = uProj * vec4(pos,1);
 	

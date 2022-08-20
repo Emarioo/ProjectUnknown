@@ -1,9 +1,9 @@
+#ifdef ENGONE_SOUND
 
 #include "Engone/Sound/SoundBuffer.h"
 
 #include "Engone/Utilities/Utilities.h"
 
-#ifndef ENGONE_NO_SOUND
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "Engone/vendor/Libaudio.h"
@@ -59,17 +59,4 @@ namespace engone {
 		}
 	}
 }
-#else
-bool al_check_error() {
-	return false;
-}
-
-namespace engone {
-	SoundBuffer::~SoundBuffer() {
-		
-	}
-	void SoundBuffer::Init(const char* path) {
-		
-	}
-}
-#endif
+#endif // ENGONE_SOUND

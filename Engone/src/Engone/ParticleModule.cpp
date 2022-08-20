@@ -7,7 +7,7 @@ namespace engone {
 //#include "Engone/Shaders/particle.glsl"
 //	};
 
-	void ParticleGroup::init(Window* window, Shader* shader) {
+	void ParticleGroupT::initT(Window* window, Shader* shader, int pSize, int iSize, Flags flags) {
 		if (m_parent) {
 			log::out << log::YELLOW << "ParticleModule::init - cannot initialize twice\n";
 			return;
@@ -22,8 +22,11 @@ namespace engone {
 			log::out << log::RED << "ParticleModule::init - shader was nullptr\n";
 			return;
 		}
+		m_iSize = iSize;
+		m_pSize = pSize;
+		m_flags = flags;
 	}
-	void ParticleGroup::update(engone::UpdateInfo& info) {
+	//void ParticleGroup::update(engone::UpdateInfo& info) {
 		//float delta = info.timeStep;
 		//for (int i = 0; i < m_count; i++) {
 		//	Particle& part = m_particles[i];
@@ -62,19 +65,22 @@ namespace engone {
 		//	m_shaderBuffer.setData(m_count * sizeof(Particle), m_particles);
 		//}
 		//m_updateBuffer = true;
-	}
-	void ParticleGroup::render(engone::RenderInfo& info) {
+	//}
+	void ParticleGroupT::render(engone::RenderInfo& info) {
 		if (m_count == 0 || !m_parent || !m_shader) return;
 		if (!m_shaderBuffer.initialized()) return;
 
-		EnableDepth();
-		//EnableBlend();
+		if(m_flags&AlphaBlend)
+			EnableBlend();
+		else
+			EnableDepth();
 		Assets* assets = m_parent->getAssets();
 		Renderer* renderer = m_parent->getRenderer();
 
 		m_shader->bind();
 		renderer->updateProjection(m_shader);
-		m_shader->setFloat("delta",1/60.f);
+		//m_shader->setFloat("delta", info.timeStep);
+		m_shader->setFloat("delta", info.timeStep);
 
 		//uint32_t batch = m_shaderBuffer.getCount();
 
@@ -92,38 +98,89 @@ namespace engone {
 		//}
 
 		if (m_count != 0) {
-			if (m_updateBuffer) {
-				m_shaderBuffer.setData(m_count * sizeof(Particle), m_particles);
-			}
-			glEnable(GL_PROGRAM_POINT_SIZE);
+			//int* aliveCount = nullptr;
+			//int usedBytes = 0;
+			//if (m_flags & InfoAliveCount) {
+			//	if (m_iSize - usedBytes >= sizeof(int)) {
+			//		aliveCount = (int*)((char*)m_data + usedBytes);
+			//	}
+			//	usedBytes -= sizeof(int);
+			//}
+			//if (aliveCount) {
+			//	if (m_count != *aliveCount) {
+			//		*aliveCount = m_count;
+			//		m_refreshShaderInfo = true;
+			//	}
+			//}
+			//*aliveCount = m_count;
+			//if (m_refreshShaderInfo && m_refreshShaderData) {
+			//	m_shaderBuffer.setData(m_iSize+m_count*m_pSize, m_data);
+			//} else {
+			//	if (m_refreshShaderInfo) {
+			//		m_shaderBuffer.setData(m_iSize, m_data);
+			//	}
+				if (m_refreshShaderData) {
+					m_shaderBuffer.setData(m_count * m_pSize - m_iSize, (char*)m_data + m_iSize, m_iSize);
+				}
+			//}
+			//glEnable(GL_PROGRAM_POINT_SIZE);
 			//glEnable(GL_CLIP_DISTANCE0);
-			m_shader->setFloat("uPointSize", m_particleSize);
+			//m_shader->setFloat("uPointSize", m_pointSize);
+			//log::out << m_count << "\n";
 			m_shaderBuffer.drawPoints(m_count, 0);
+			if (m_iSize != 0) {
+				//m_shaderBuffer.getData(m_iSize,m_data);
+				//m_shaderBuffer.getData(m_capacity,m_data);
+				//if (aliveCount) {
+				//	for (int i = 0; i < m_count;i++) {
+				//		float life = *(float*)((char*)m_data + m_iSize + i * m_pSize+sizeof(float)*6);
+				//		log::out << life << "\n";
+				//	}
+				//	log::out << "alive "<<*aliveCount << "\n";
+				//	//m_count = *aliveCount;
+				//	//log::out << *aliveCount<<"\n";
+				//}
+			}
+			m_refreshData = true;
 		}
 
-		m_updateBuffer = false;
+		m_refreshShaderData = false;
+		m_refreshShaderInfo = false;
 
-		ui::TextBox partCount = { "Particles: " + std::to_string(m_count),10,50,40,assets->get<Font>("consolas"),{1,1,1,1} };
-		ui::Draw(partCount);
+		//ui::TextBox partCount = { "Particles: " + std::to_string(m_count),10,50,40,assets->get<Font>("consolas"),{1,1,1,1} };
+		//ui::Draw(partCount);
 	}
-	Particle* ParticleGroup::createParticles(int count, bool setZero) {
-		if (m_capacity - m_count < count) {
-			bool yes = resize(m_capacity + count); // resize won't grow
-			if (!yes) return nullptr;
+	ParticleGroupT::ret ParticleGroupT::createParticlesT(int count, bool setZero) {
+		if (m_pSize == 0) {
+			log::out << "Particle size is zero, did you forget init?\n";
 		}
-		m_updateBuffer = true;
+		int left = m_capacity - m_iSize - m_count * m_pSize;
+		if (left < count*m_pSize) {
+			bool yes = resize(m_capacity + count*m_pSize); // resize won't grow
+			if (!yes) return { nullptr,nullptr };
+		}
+		m_refreshShaderData = true;
 
-		Particle* out = m_particles + m_count;
+		void* parts = (char*)m_data + m_iSize+m_count * m_pSize;
+		void* info = nullptr;
+		if (m_iSize != 0) {
+			info = m_data;
+			m_refreshShaderInfo = true;
+		}
 
 		if (setZero) {
-			memset(m_particles, 0, count * sizeof(Particle));
+			memset(m_data, 0, m_iSize+count * m_pSize);
 		}
 		m_count += count;
-		return out;
+		return {info,parts};
 	}
-	bool ParticleGroup::createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount, glm::vec3 velocity) {
-		Particle* parts = createParticles(particleCount);
-		if (parts) {
+	bool ParticleGroupT::createCube(glm::vec3 position, glm::vec3 scale, uint32_t particleCount, glm::vec3 velocity) {
+		if (m_pSize < 6) {
+			log::out << log::RED << "ParticleGroup::createCube - struct is to small for two glm::vec3\n";
+			return false;
+		}
+		ret ptrs = createParticlesT(particleCount);
+		if (ptrs.parts) {
 			for (int i = 0; i < particleCount; i++) {
 				float x = GetRandom();
 				float y = GetRandom();
@@ -131,59 +188,78 @@ namespace engone {
 				//float x = 0;
 				//float y = 0;
 				//float z = 0;
-				parts[i].pos = { position.x + scale.x * (x - 0.5), position.y + scale.y * (y - 0.5), position.z + scale.z * (z - 0.5) };
-				parts[i].vel = velocity;
+				//parts[i].pos = {position.x + scale.x * (x - 0.5), position.y + scale.y * (y - 0.5), position.z + scale.z * (z - 0.5)};
+				//parts[i].vel = velocity;
+				*((glm::vec3*)((char*)ptrs.parts+i*m_pSize+0)) = { position.x + scale.x * (x - 0.5), position.y + scale.y * (y - 0.5), position.z + scale.z * (z - 0.5) };
+				*((glm::vec3*)((char*)ptrs.parts + i * m_pSize + sizeof(glm::vec3))) = velocity;
 			}
 			return true;
 		}
 		return false;
 	}
-	Particle* ParticleGroup::getParticles() {
-		m_shaderBuffer.getData(m_capacity * sizeof(Particle), m_particles);
-		m_updateBuffer = true;
-		return m_particles;
+	void* ParticleGroupT::getParticlesT() {
+		if (m_refreshData) {
+			m_shaderBuffer.getData(m_capacity-m_iSize, m_data,m_iSize);
+			m_refreshData = false;
+			m_refreshShaderData = true;
+		}
+		return (char*)m_data+m_iSize;
 	}
-	void ParticleGroup::clear() {
+	void* ParticleGroupT::getInfoT() {
+		if (m_iSize == 0)
+			return nullptr;
+		m_refreshShaderInfo = true;
+		// always updated
+		//if (m_refreshData) {
+		//	m_shaderBuffer.getData(m_capacity-m_iSize, m_data,m_iSize);
+		//	m_refreshData = false;
+		//	m_refreshShader = true;
+		//}
+		return m_data;
+	}
+	void ParticleGroupT::clear() {
 		m_count = 0;
 	}
-	void ParticleGroup::cleanup() {
+	void ParticleGroupT::cleanup() {
 		resize(0);
 	}
-	bool ParticleGroup::resize(int count) {
-		m_updateBuffer = true;
-		if (count == 0) {
-			if (m_particles)
-				free(m_particles);
+	bool ParticleGroupT::resize(int size) {
+		m_refreshShaderData = true;
+		m_refreshShaderInfo = true;
+		if (size == 0) {
+			if (m_data)
+				alloc::free(m_data,m_capacity);
 
 			m_shaderBuffer.cleanup();
 			int capacity = 0;
 			int count = 0;
 
-			m_particles = nullptr;
+			m_data = nullptr;
 		}
 		else {
-			if (!m_particles) {
-				Particle* parts = (Particle*)alloc::_malloc(count * sizeof(Particle));
-				if (!parts) {
+			if (!m_data) {
+				void* newData = (void*)alloc::malloc(size);
+				if (!newData) {
 					log::out << log::RED << "ParticleModule::resize - failed!\n";
 					return false;
 				}
-				m_shaderBuffer.setData(count*sizeof(Particle),nullptr);
+				m_shaderBuffer.setData(size, nullptr);
 
-				m_particles = parts;
-				m_capacity = count;
+				m_data = newData;
+				m_capacity = size;
 				m_count = 0;
 			}
 			else {
-				Particle* parts = (Particle*)alloc::_realloc(m_particles, m_capacity * sizeof(Particle), count * sizeof(Particle));
-				if (!parts) {
+				void* newData = (void*)alloc::realloc(m_data, m_capacity, size);
+				if (!newData) {
 					log::out << log::RED << "ParticleModule::resize - failed!\n";
 					return false;
 				}
-				m_shaderBuffer.setData(count * sizeof(Particle), nullptr);
-				m_particles = parts;
-				m_capacity = count;
+				m_shaderBuffer.setData(size, nullptr);
+				m_data = newData;
+				m_capacity = size;
 
+				int count = (m_capacity - m_iSize)/m_pSize;
 				if (count < m_count)
 					m_count = count;
 			}

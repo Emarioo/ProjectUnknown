@@ -2,7 +2,7 @@
 #include "Engone/Engone.h"
 
 namespace engone {
-
+#ifdef ENGONE_PHYSICS
 	void GameObject::loadColliders(Engone* engone) {
 		if (!modelAsset) {
 			log::out << log::RED << "ModelAsset is null\n";
@@ -79,4 +79,5 @@ namespace engone {
 			}
 		}
 	}
+#endif
 }

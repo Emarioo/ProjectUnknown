@@ -14,5 +14,5 @@ namespace engone {
 		Stopped,
 	};
 	std::string toString(NetEvent t);
-	log::logger operator<<(log::logger a, NetEvent b);
+	Logger& operator<<(Logger& log, NetEvent value);
 }

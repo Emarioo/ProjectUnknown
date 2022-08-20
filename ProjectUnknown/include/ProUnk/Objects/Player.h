@@ -3,7 +3,7 @@
 #include "Engone/Engone.h"
 #include "Engone/GameObject.h"
 
-#include "CombatData.h"
+#include "ProUnk/CombatData.h"
 
 class Player : public engone::GameObject {
 public:

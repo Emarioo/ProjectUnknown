@@ -23,10 +23,8 @@ namespace engone {
 
 		AssetTypeCount,
 	};
-	std::string toString(AssetType t);
-	namespace log {
-		logger operator<<(logger log, AssetType type);
-	}
+	const char* toString(AssetType t);
+	Logger& operator<<(Logger& log, AssetType type);
 
 	class Assets;
 	// Default constructors do not have tracking, they may not be
@@ -497,10 +495,12 @@ namespace engone {
 			if (find != list.end()) {
 				return find->second->cast<T>();
 			} else {
-				log::out << log::RED << "Assets::get - asset is nullptr\n";
+				// causes spam, uncomment for now
+				//log::out << log::RED << "Assets::get - asset is nullptr\n";
 				return nullptr;
 			}
 		}
+		// set<T>(name, path) don't forget the T
 		template<class T>
 		T* set(const std::string& name, const std::string& path, Flag flags = FlagNone) {
 			std::string _path = modifyPath<T>(path);

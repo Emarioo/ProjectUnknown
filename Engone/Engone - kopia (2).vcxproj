@@ -1,0 +1,368 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="DebBase|Win32">
+      <Configuration>DebBase</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebPhys|Win32">
+      <Configuration>DebPhys</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+      <ProjectConfiguration Include="RelBase|Win32">
+      <Configuration>RelBase</Configuration>
+      <Platform>Win32</RelBase>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelPhys|Win32">
+      <Configuration>RelPhys</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebBase|x64">
+      <Configuration>DebBase</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="DebPhys|x64">
+      <Configuration>DebPhys</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+      <ProjectConfiguration Include="RelBase|x64">
+      <Configuration>RelBase</Configuration>
+      <Platform>x64</RelBase>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelPhys|x64">
+      <Configuration>RelPhys</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Engone\Application.h" />
+    <ClInclude Include="include\Engone\Defs\DEFS_PY.h" />
+    <ClInclude Include="include\Engone\Defs\DEFS_BASE.h" />
+    <ClInclude Include="include\Engone\GameObject.h" />
+    <ClInclude Include="include\Engone\Logger.h" />
+    <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\Utilities\Alloc.h" />
+    <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
+    <ClInclude Include="include\Engone\Utilities\LoggingModule.h" />
+    <ClInclude Include="include\Engone\Utilities\RandomUtility.h" />
+    <ClInclude Include="include\Engone\Utilities\rp3d.h" />
+    <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
+    <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
+    <ClInclude Include="include\Engone\Utilities\Tracker.h" />
+    <ClInclude Include="include\Engone\World\Playground.h" />
+    <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
+    <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
+    <ClInclude Include="include\Engone\vendor\Libaudio.h" />
+    <ClInclude Include="include\Engone\Components\Component.h" />
+    <ClInclude Include="include\Engone\EngoneFlag.h" />
+    <ClInclude Include="include\Engone\Networking\Client.h" />
+    <ClInclude Include="include\Engone\Networking\MessageBuffer.h" />
+    <ClInclude Include="include\Engone\Networking\NetEvent.h" />
+    <ClInclude Include="include\Engone\Networking\Sender.h" />
+    <ClInclude Include="include\Engone\Networking\Server.h" />
+    <ClInclude Include="include\Engone\EventModule.h" />
+    <ClInclude Include="include\Engone\Rendering\Buffer.h" />
+    <ClInclude Include="include\Engone\NetworkModule.h" />
+    <ClInclude Include="include\Engone\Engone.h" />
+    <ClInclude Include="include\Engone\AssetModule.h" />
+    <ClInclude Include="include\Engone\Rendering\Camera.h" />
+    <ClInclude Include="include\Engone\Rendering\Light.h" />
+    <ClInclude Include="include\Engone\RenderModule.h" />
+    <ClInclude Include="include\Engone\Sound\SoundBuffer.h" />
+    <ClInclude Include="include\Engone\SoundModule.h" />
+    <ClInclude Include="include\Engone\Sound\SoundSource.h" />
+    <ClInclude Include="include\Engone\Sound\SoundStream.h" />
+    <ClInclude Include="include\Engone\Utilities\Utilities.h" />
+    <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h" />
+    <ClInclude Include="include\Engone\Window.h" />
+    <ClInclude Include="include\Engone\gonpch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="include\Engone\LoopInfo.h" />
+    <ClCompile Include="include\Engone\Utilities\Alloc.cpp" />
+    <ClCompile Include="src\Engone\Application.cpp" />
+    <ClCompile Include="src\Engone\Components\Component.cpp" />
+    <ClCompile Include="src\Engone\GameObject.cpp" />
+    <ClCompile Include="src\Engone\IMPLS.cpp" />
+    <ClCompile Include="src\Engone\Logger.cpp" />
+    <ClCompile Include="src\Engone\Engone.cpp" />
+    <ClCompile Include="src\Engone\Events\EventModule.cpp" />
+    <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
+    <ClCompile Include="src\Engone\ParticleModule.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
+    <ClCompile Include="src\Engone\Rendering\Light.cpp" />
+    <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
+    <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
+    <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
+    <ClCompile Include="src\Engone\Window.cpp" />
+    <ClCompile Include="src\Engone\gonpch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebWithBase|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Engone/gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='DebWithBase|Win32'">Engone/gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebWithBase|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Engone/gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='DebWithBase|x64'">Engone/gonpch.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\RenderModule.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
+    <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Utilities.cpp" />
+    <ClCompile Include="src\Engone\vendor\Libaudio.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{dce4a99c-5733-4f0a-a6da-33d4b1644827}</ProjectGuid>
+    <RootNamespace>Engone</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <ProjectName>Engone</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration.StartsWith(`Rel`))'=='true'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration.StartsWith(`Deb`))'=='true'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  
+  <ImportGroup Label="PropertySheets" Condition="'$(Platform)'=='Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Platform)'=='x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebWithBase|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebWithBase|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebWithPy|Win32'">
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/Defs/DEFS_BASE.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebWithBase|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/DEFS.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/DEFS.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib;reactphysics3d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/Defs/DEFS_BASE.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebWithBase|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/DEFS.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engone/gonpch.h</PrecompiledHeaderFile>
+      <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>Engone/gonpch.h;Engone/DEFS.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)libs\GLFW\lib;$(SolutionDir)libs\AL\lib;$(SolutionDir)libs\GLEW\lib;$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shell32.lib;user32.lib;gdi32.lib;kernel32.lib;winmm.lib;opengl32.lib;glew32s.lib;glfw332.lib;OpenAL32.lib;Advapi32.lib;v8_monolith.lib;Dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebWithPy|Win32'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebWithPy|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)libs\GLFW\include;$(SolutionDir)libs\GLEW\include;$(SolutionDir)libs\AL\include;$(SolutionDir)libs\ASIO\include;$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

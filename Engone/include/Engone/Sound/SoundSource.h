@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef ENGONE_SOUND
+
 #include "Engone/Sound/SoundBuffer.h"
 
 namespace engone {
@@ -28,3 +30,5 @@ namespace engone {
 		friend class SoundStream;
 	};
 }
+
+#endif // ENGONE_SOUND

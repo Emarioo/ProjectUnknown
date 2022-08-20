@@ -242,7 +242,7 @@ namespace engone {
 
 		attachListener(EventMove, 9998, FirstPerson);
 
-		setMode(detail.mode);
+		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
 		setActiveContext();
 		m_renderer.init();
@@ -270,6 +270,10 @@ namespace engone {
 	void Window::setTitle(const std::string title) {
 		m_title = title;
 		glfwSetWindowTitle(m_glfwWindow, title.c_str());
+	}
+	void Window::setIcon(const RawImage& img) {
+		GLFWimage tmp = {img.width,img.height,(uint8_t*)img.data};
+		glfwSetWindowIcon(m_glfwWindow,1,&tmp);
 	}
 	void Window::setActiveContext() {
 		//if(m_renderer)
@@ -494,9 +498,9 @@ namespace engone {
 		glfwSetCharCallback(window, CharCallback);
 		glfwSetDropCallback(window, DropCallback);
 	}
-	void Window::setMode(WindowMode winMode) {
-		//if (m_windowMode == winMode) return;
-		// 
+	void Window::setMode(WindowModes winMode,bool force) {
+		if (m_windowMode == winMode&&!force) return;
+		 
 		// last monitor this window or screen was in
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -505,53 +509,55 @@ namespace engone {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		if (!m_glfwWindow) {
+		if (m_glfwWindow) {
+			GLFWmonitor* mayUseMonitor = NULL;
+			if (winMode & ModeBorderless) {
+
+			} else {
+				mayUseMonitor = monitor;
+			}
+			if (winMode & ModeFullscreen) {
+				if((m_windowMode&ModeFullscreen)==0)
+					saveCoords();
+				glfwSetWindowMonitor(m_glfwWindow, mayUseMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+				PosCallback(m_glfwWindow, (int)0, (int)0);
+				ResizeCallback(m_glfwWindow, (int)mode->width, (int)mode->height);
+			} else {
+				if (m_windowMode & ModeFullscreen)
+					loadCoords();
+				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
+			}
+		} else {
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
 			GLFWwindow* sharing = NULL;
-			//if (mainWindow)
-			//	sharing = mainWindow->glfw();
-			if (winMode == WindowedMode) {
-				glfwWindowHint(GLFW_DECORATED, true);
-				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, sharing);
-				glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
-				//glfwSetWindowMonitor(m_window, NULL, x, y, w, h, mode->refreshRate);
-			} else if (winMode == FullscreenMode) {
-				glfwWindowHint(GLFW_DECORATED, true);
-				m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), monitor, sharing);
-			} else if (winMode == BorderlessMode) {
+			GLFWmonitor* mayUseMonitor = NULL;
+			if (winMode & ModeBorderless) {
 				glfwWindowHint(GLFW_DECORATED, false);
-				//glfwWindowHint(GLFW_FLOATING, true);
-				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, sharing);
+			}
+			else {
+				glfwWindowHint(GLFW_DECORATED, true);
+				mayUseMonitor = monitor;
+			}
+			
+			if ((winMode & ModeFullscreen)==0) {
+				if (m_windowMode & ModeFullscreen)
+					loadCoords();
+				m_glfwWindow = glfwCreateWindow((int)w, (int)h, m_title.c_str(), NULL, NULL);
 				glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
-				//glfwSetWindowMonitor(m_window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
-			} else if (winMode == BorderlessFullscreenMode) {
-				glfwWindowHint(GLFW_DECORATED, false);
-				//glfwWindowHint(GLFW_FLOATING, true);
-				m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), NULL, sharing);
-				glfwSetWindowPos(m_glfwWindow, 0, 0);
-				//glfwSetWindowMonitor(m_window, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
+			} else {
+				if ((m_windowMode & ModeFullscreen) == 0)
+					saveCoords();
+				m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), mayUseMonitor, NULL);
+				//m_glfwWindow = glfwCreateWindow(mode->width, mode->height, m_title.c_str(), NULL, NULL);
+				x = 0;
+				y = 0;
+				w = mode->width;
+				h = mode->height;
 			}
 			SetCallbacks(m_glfwWindow);
 			ZeroMemory(m_charArray, CHAR_ARRAY_SIZE);
-		} else {
-			if (winMode == WindowedMode) {
-				glfwWindowHint(GLFW_DECORATED, true);
-				//glfwWindowHint(GLFW_FLOATING, false);
-				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
-			} else if (winMode == FullscreenMode) {
-				glfwWindowHint(GLFW_DECORATED, true);
-				//glfwWindowHint(GLFW_FLOATING, false);
-				glfwSetWindowMonitor(m_glfwWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-			} else if (winMode == BorderlessMode) {
-				glfwWindowHint(GLFW_DECORATED, false);
-				//glfwWindowHint(GLFW_FLOATING, true);
-				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
-			} else if (winMode == BorderlessFullscreenMode) {
-				glfwWindowHint(GLFW_DECORATED, false);
-				//glfwWindowHint(GLFW_FLOATING, true);
-				glfwSetWindowMonitor(m_glfwWindow, NULL, 0, 0, mode->width, mode->height, mode->refreshRate);
-			}
 		}
+
 		m_focus = true;
 
 		m_windowMode = winMode;

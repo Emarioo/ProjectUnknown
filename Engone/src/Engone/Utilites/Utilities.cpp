@@ -1,11 +1,10 @@
 
 #include "Engone/Utilities/Utilities.h"
 
-namespace engone {
-	TrackerId ItemVector::trackerId="ItemVector";
-	TrackerId FileWriter::trackerId="FileWriter";
-	TrackerId FileReader::trackerId="FileReader";
+#include "Engone/vendor/stb_image/stb_image.h"
 
+namespace engone {
+	TrackerId ItemVector::trackerId = "ItemVector";
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
@@ -13,11 +12,11 @@ namespace engone {
 		while ((at = text.find(delim)) != std::string::npos) {
 			std::string push = text.substr(0, at);
 			//if (push.size() > 0) {
-				out.push_back(push);
+			out.push_back(push);
 			//}
 			text.erase(0, at + delim.length());
 		}
-		if(text.size()!=0)
+		if (text.size() != 0)
 			out.push_back(text);
 		return out;
 	}
@@ -41,7 +40,7 @@ namespace engone {
 	float AngleDifference(float a, float b) {
 		float d = a - b;
 		if (d > glm::pi<float>()) {
-			d -= glm::pi<float>()*2;
+			d -= glm::pi<float>() * 2;
 		}
 		if (d < -glm::pi<float>()) {
 			d += glm::pi<float>() * 2;
@@ -57,6 +56,7 @@ namespace engone {
 		}
 		//std::cout << std::endl;
 	}*/
+	// returned value goes from 0 to 1. x goes from xStart to xEnd. Function does not handle errors like 1/0
 	float bezier(float x, float xStart, float xEnd) {
 		float t = (x - xStart) / (xEnd - xStart);
 		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * (float)pow(t, 2) + (float)pow(t, 3));
@@ -77,13 +77,6 @@ namespace engone {
 		return out;
 	}*/
 
-	// double in seconds, microsecond precision
-	double GetSystemTime() {
-		return (double)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()/1000000.0;
-		//std::cout << std::chrono::system_clock::now().time_since_epoch().count() <<" "<< (std::chrono::system_clock::now().time_since_epoch().count() / 10000000) << "\n";
-		//return (double)(std::chrono::system_clock::now().time_since_epoch().count() / 10000000);
-	}
-	
 	ItemVector::ItemVector(int size) {
 		if (size != 0) {
 			resize(size); // may fail but it's fine
@@ -114,16 +107,17 @@ namespace engone {
 	bool ItemVector::resize(uint32_t size) {
 		if (size == 0) {
 			if (m_data) {
-				alloc::_free(m_data, m_maxSize);
+				alloc::free(m_data, m_maxSize);
 				GetTracker().subMemory<ItemVector>(m_maxSize);
 				m_data = nullptr;
 				m_maxSize = 0;
 				m_writeIndex = 0;
 				m_readIndex = 0;
 			}
-		} else {
+		}
+		else {
 			if (!m_data) {
-				char* newData = (char*)alloc::_malloc(size);
+				char* newData = (char*)alloc::malloc(size);
 				if (!newData) {
 					log::out << log::RED << "ItemVector failed allocation memory\n";
 					return false;
@@ -131,13 +125,15 @@ namespace engone {
 				GetTracker().addMemory<ItemVector>(size);
 				m_data = newData;
 				m_maxSize = size;
-			} else {
-				char* newData = (char*)alloc::_realloc(m_data, m_maxSize, size);
+			}
+			else {
+				char* newData = (char*)alloc::realloc(m_data, m_maxSize, size);
 				if (!newData) {
 					log::out << log::RED << "ItemVector failed reallocating memory\n";
 					return false;
 				}
-				GetTracker().addMemory<ItemVector>(size - m_maxSize);
+				GetTracker().subMemory<ItemVector>(m_maxSize);
+				GetTracker().addMemory<ItemVector>(size);
 				m_data = newData;
 				m_maxSize = size;
 				if (m_writeIndex > m_maxSize)
@@ -147,149 +143,6 @@ namespace engone {
 			}
 		}
 		return true;
-	}
-	void Sleep(double seconds) {
-		std::this_thread::sleep_for((std::chrono::microseconds)((uint64_t)(seconds*1000000)));
-	}
-	//-- Random stuff
-	static std::mt19937 randomGenerator;
-	static uint32_t randomSeed=0;
-	static bool seedonce = false;
-	static void initGenerator() {
-		if (!seedonce) {
-			SetRandomSeed((uint32_t)GetSystemTime());
-		}
-	}
-	static std::uniform_real_distribution<double> random_standard(0.0,1.0);
-	static std::uniform_int_distribution<uint32_t> random_32(0, -1);
-	void SetRandomSeed(uint32_t seed) {
-		seedonce = true;
-		randomSeed=seed;
-		randomGenerator.seed(seed);
-	}
-	uint32_t GetRandomSeed() {
-		return randomSeed;
-	}
-	double GetRandom() {
-		initGenerator();
-		return random_standard(randomGenerator);
-	}
-	uint32_t Random32() {
-		initGenerator();
-		return random_32(randomGenerator);
-	}
-	uint64_t Random64() {
-		initGenerator();
-		return ((uint64_t)random_32(randomGenerator)<<32)
-			|(uint64_t)random_32(randomGenerator);
-	}
-	UUID UUID::New(){
-		uint64_t out[2];
-		for (int i = 0; i < 2; i++) {
-			out[i] = Random64();
-		}
-		return *(UUID*)&out;
-	}
-	UUID::UUID(const int num) {
-		// Uncomment debugbreak, run program, check stackframe.
-		if (num != 0) DebugBreak();
-		assert(("UUID was created from non 0 int which is not allowed. Put a breakpoint here and check stackframe.", num == 0));
-		memset(this, 0, sizeof(UUID));
-	}
-	bool UUID::operator==(const UUID& uuid) const {
-		for (int i = 0; i < 2; i++) {
-			if (data[i] != uuid.data[i])
-				return false;
-		}
-		return true;
-	}
-	bool UUID::operator!=(const UUID& uuid) const {
-		return !(*this==uuid);
-	}
-	char toHex(uint8_t num) {
-		if (num < 10) return '0' + num;
-		else return 'A' + num - 10;
-	}
-	std::string UUID::toString(bool fullVersion) const {
-		char out[2*sizeof(UUID)+4+1]; // maximum hash string, four dashes, 1 null
-		
-		uint8_t* bytes = (uint8_t*)this;
-
-		int write = 0;
-		for (int i = 0; i < sizeof(UUID);i++) {
-			if (i == sizeof(UUID) / 2&& !fullVersion)
-				break;
-			if (i == 4||i==6||i==8||i==10)
-				out[write++] = '-';
-			out[write++] = toHex(bytes[i]&15);
-			out[write++] = toHex(bytes[i] >> 4);
-		}
-		out[write] = 0; // finish with null terminated char
-		return out;
-	}
-	log::logger operator<<(log::logger log, UUID uuid) {
-		log << uuid.toString();
-		return log;
-	}
-
-	std::string GetClock() {
-		time_t t;
-		time(&t);
-		tm tm;
-		localtime_s(&tm, &t);
-		std::string str = std::to_string(tm.tm_hour) + ":" + std::to_string(tm.tm_min) + ":" + std::to_string(tm.tm_sec);
-		return str;
-	}
-	std::string FormatTime(double seconds, bool compact, FormatTimePeriods flags) {
-		bool small = false;
-		for (int i = 0; i < 3;i++) {
-			if (flags & (1 << i))
-				small = true;
-			if (small) seconds *= 1000;
-		}
-		return FormatTime((uint64_t)round(seconds),compact,flags);
-	}
-	std::string FormatTime(uint64_t time, bool compact, FormatTimePeriods flags) {
-		// what is the max amount of characters?
-		const int outSize = 130;
-		char out[outSize]{};
-		int write = 0;
-
-		uint64_t num[8]{};
-		uint64_t divs[8]{ 1,1,1,1,1,1,1,1 };
-		uint64_t divLeaps[8]{ 1000,1000,1000,60,60,24,7,1 };
-		const char* lit[8]{"nanosecond","microsecond","millisecond","second","minute","hour","day","week"};
-
-		uint64_t rest = time;
-
-		bool smallest = false;
-		for (int i = 0; i < 7; i++) {
-			if (flags & (1 << i))
-				smallest = true;
-			if (smallest)
-				divs[i + 1] *= divs[i]*divLeaps[i];
-		}
-
-		for (int i = 7; i >= 0;i--) {
-			if (0==(flags & (1 << i))) continue;
-			num[i] = rest/divs[i];
-			if (num[i] == 0) continue;
-			rest -= num[i] * divs[i];
-
-			if (write != 0) out[write++] = ' ';
-			write += snprintf(out + write, outSize - write, "%u ", num[i]);
-			if (compact) {
-				out[write++] = lit[i][0];
-				if (i < 3)
-					out[write++] = 's';
-			} else {
-				memcpy(out + write, lit[i], strlen(lit[i]));
-				write += strlen(lit[i]);
-				if(num[i]!=1)
-					out[write++] = 's';
-			}
-		}
-		return out;
 	}
 	/*
 	void CountingTest(int times, int numElements, std::function<int()> func) {
@@ -333,24 +186,6 @@ namespace engone {
 	//	log::out << name << " : " << (GetAppTime() - time) << "\n";
 	//	time = 0;
 	//}
-	bool FindFile(const std::string& path) {
-		struct stat buffer;
-		return (stat(path.c_str(), &buffer) == 0);
-	}
-	std::vector<std::string> GetFiles(const std::string& path) {
-		std::vector<std::string> list;
-		for (const auto& entry : std::filesystem::directory_iterator(path)) {
-			list.push_back(entry.path().generic_string());
-		}
-		return list;
-	}
-	// In seconds
-	uint64_t GetFileLastModified(const std::string& path) {
-		if (std::filesystem::exists(path))
-			return std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(path).time_since_epoch()).count();
-		//log::out << log::RED << "getTime - path not valid\n";
-		return 0;
-	}
 	static wchar_t buffer[256]{};// Will this hardcoded size be an issue?
 	std::wstring convert(const std::string& in) {
 		ZeroMemory(buffer, 256);
@@ -402,50 +237,324 @@ namespace engone {
 		return true;
 	}
 
-	PNG LoadPNG(int id) {
+
+	template<>
+	ICO* Image::Convert(PNG* img) {
+		return nullptr;
+	}
+	template<>
+	RawImage* Image::Convert(BMP* img) {
+		if (!img) return nullptr;
+		if (!img->data) return new RawImage();
+
+		RawImage* out = new RawImage();
+
+		char* imgData = img->data + sizeof(BITMAPINFOHEADER);
+
+		out->data = (char*)alloc::malloc(img->header()->biSizeImage);
+		if (!img->data) {
+			log::out << log::RED << "BMP::toRawImage - failed allocation\n";
+			return {};
+		}
+		out->size = img->header()->biSizeImage;
+		out->width = img->header()->biWidth;
+		out->height = img->header()->biHeight / 2; // bmp has double size for and mask
+		out->channels = img->header()->biBitCount / 8;
+		for (int i = 0; i < out->size / 4; i++) {
+			int p = out->size / 4-1 - i;
+			//bgra -> rgba
+			out->data[p * 4 + 2] = imgData[i * 4 + 0];
+			out->data[p * 4 + 1] = imgData[i * 4 + 1];
+			out->data[p * 4 + 0] = imgData[i * 4 + 2];
+			out->data[p * 4 + 3] = imgData[i * 4 + 3];
+		}
+
+		out->flags = Image::OwnerSelf;
+		return out;
+	}
+	template<>
+	BMP* Image::Convert(RawImage* img) {
+		if (!img) return nullptr;
+		if (!img->data) return new BMP();
+	
+		uint32_t andMaskSize = img->width * img->height / 8;
+		//uint32_t andMaskSize = 0;
+		uint32_t total = sizeof(BITMAPINFOHEADER) + img->size + andMaskSize;
+		char* data = (char*)alloc::malloc(total);
+		if (!data) {
+			log::out << log::RED << "BMP image failed allocating memory\n";
+			return {};
+		}
+		BMP* out = new BMP();
+		out->data = data;
+		out->flags = OwnerSelf;
+		out->size = total;
+		memset(out->data, 0, sizeof(BITMAPINFOHEADER));
+		if (andMaskSize != 0)
+			//memset(out->data + total - andMaskSize, 255, andMaskSize);
+			memset(out->data + total - andMaskSize, 0, andMaskSize);
+
+		out->header()->biSize = sizeof(BITMAPINFOHEADER);
+		out->header()->biSizeImage = size;
+		out->header()->biClrUsed = 0;
+		out->header()->biClrImportant = 0;
+		out->header()->biCompression = 0;
+		out->header()->biPlanes = 1;
+		out->header()->biXPelsPerMeter = 0;
+		out->header()->biYPelsPerMeter = 0;
+
+		out->header()->biWidth = img->width;
+		out->header()->biHeight = img->height*2; // double because of and mask
+		out->header()->biBitCount = img->channels * 8;
+
+		//memcpy_s(out->getData(), size, data, size);
+		char* imgData = data;
+		char* dstData = out->data + sizeof(BITMAPINFOHEADER);
+
+		for (int i = 0; i < size / 4; i++) {
+			int p = size / 4 - 1 - i;
+			//rgba -> bgra
+			dstData[p * 4 + 2] = imgData[i * 4 + 0];
+			dstData[p * 4 + 1] = imgData[i * 4 + 1];
+			dstData[p * 4 + 0] = imgData[i * 4 + 2];
+			dstData[p * 4 + 3] = imgData[i * 4 + 3];
+		}
+
+		return out;
+	}
+
+	void Image::writeFile(const char* path) {
+		if (!data) return;
+
+		std::ofstream file(path, std::ios::binary);
+
+		file.write(data, size);
+
+		file.close();
+	}
+	Image::Flags Image::StripInternal(Image::Flags flags) {
+		return flags & (~(OwnerSelf | OwnerStbi));
+	}
+	void Image::cleanup() {
+		if (data) {
+			if (flags & OwnerSelf) {
+				alloc::free(data, size);
+			}
+			else if (flags & OwnerStbi) {
+				stbi_image_free(data);
+			}
+		}
+		data = nullptr;
+		size = 0;
+		flags = 0;
+	}
+	RawImage* RawImage::ReadFromPNG(const char* path, Flags flags) {
+		int channels = 0;
+		if (flags & RGBA)
+			channels = 4;
+		int realChannels;
+		int width, height;
+		stbi_set_flip_vertically_on_load(flags&FlipOnLoad);
+		char* data = (char*)stbi_load(path, &width, &height, &realChannels, channels);
+		if (!data) {
+			return nullptr;
+		}
+		RawImage* img = new RawImage();
+		img->data = data;
+		img->width = width;
+		img->height = height;
+		img->channels = channels;
+		img->size = img->width * img->height * img->channels;
+		img->flags = StripInternal(flags)|OwnerStbi;
+		return img;
+	}
+	RawImage* RawImage::LoadFromPNG(int id, Flags flags) {
 		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
 		HGLOBAL hg = LoadResource(NULL, hs);
 		void* ptr = LockResource(hg);
 		DWORD size = SizeofResource(NULL, hs);
-		return { ptr, size };
-	}
 
-	// Currently the same as normal malloc, realloc and free.
-	namespace alloc {
-		void* _malloc(uint64_t size) {
-			if (size == 0) return nullptr;
-			void* ptr = malloc(size);
-			return ptr;
+		int channels = 0;
+		if (flags & RGBA)
+			channels = 4;
+		int realChannels;
+		int width, height;
+		stbi_set_flip_vertically_on_load(flags & FlipOnLoad);
+		char* data = (char*)stbi_load_from_memory((uint8_t*)ptr, size, &width, &height, &realChannels, channels);
+		if (!data) {
+			return nullptr;
 		}
-		void* _realloc(void* ptr, uint64_t oldSize, uint64_t newSize) {
-			if (newSize == 0) {
-				_free(ptr,oldSize);
-				return nullptr;
-			}
-			void* newPtr = realloc(ptr, newSize);
-			if (newPtr) {
-				return newPtr;
-			} else {
-				return ptr;
-			}
-		}
-		void _free(void* ptr, uint64_t size) {
-			if (!ptr) return;
-			free(ptr);
-		}
+		RawImage* img = new RawImage();
+		img->data = data;
+		img->width = width;
+		img->height = height;
+		img->channels = channels;
+		img->size = img->width * img->height * img->channels;
+		img->flags = StripInternal(flags) | OwnerStbi;
+		return img;
 	}
+	//template<>
+	//BMP* RawImage::toBMP<BMP>() {
+	//	//BMP img = BMP::CreateEmpty(size,width,height*2);
+	//
+	//	BMP img;
+	//	uint32_t andMaskSize = width * height / 8;
+	//	//uint32_t andMaskSize = 0;
+	//	uint32_t total = sizeof(BITMAPINFOHEADER) + size + andMaskSize;
+	//	img.data = (char*)alloc::malloc(total);
+	//	if (!img.data) {
+	//		log::out << log::RED << "BMP image failed allocating memory\n";
+	//		return {};
+	//	}
+	//	img.flags = SelfOwned;
+	//	img.size = total;
+	//	memset(img.data, 0, sizeof(BITMAPINFOHEADER));
+	//	if (andMaskSize != 0)
+	//		//memset(img.data + total - andMaskSize, 255, andMaskSize);
+	//		memset(img.data + total - andMaskSize, 0, andMaskSize);
 
-	// FILE
-	const char* toString(FileError e) {
-		switch (e) {
-		case FileErrorMissing: return "Missing File";
-		case FileErrorCorrupted: return "Corrupted Data";
-		}
-		return "";
+	//	img.header()->biSize = sizeof(BITMAPINFOHEADER);
+	//	img.header()->biSizeImage = size;
+	//	img.header()->biClrUsed = 0;
+	//	img.header()->biClrImportant = 0;
+	//	img.header()->biCompression = 0;
+	//	img.header()->biPlanes = 1;
+	//	img.header()->biXPelsPerMeter = 0;
+	//	img.header()->biYPelsPerMeter = 0;
+
+	//	img.header()->biWidth = width;
+	//	img.header()->biHeight = height*2; // double because of and mask
+	//	img.header()->biBitCount = channels * 8;
+
+	//	//memcpy_s(img.getData(), size, data, size);
+	//	char* imgData = data;
+	//	char* dstData = img.data + sizeof(BITMAPINFOHEADER);
+	//	for (int i = 0; i < size / 4; i++) {
+	//		int p = size / 4 - 1 - i;
+	//		//rgba -> bgra
+	//		dstData[p * 4 + 2] = imgData[i * 4 + 0];
+	//		dstData[p * 4 + 1] = imgData[i * 4 + 1];
+	//		dstData[p * 4 + 0] = imgData[i * 4 + 2];
+	//		dstData[p * 4 + 3] = imgData[i * 4 + 3];
+	//	}
+
+	//	return img;
+	//}
+	PNG* PNG::Load(int id) {
+		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
+		HGLOBAL hg = LoadResource(NULL, hs);
+		void* ptr = LockResource(hg);
+		DWORD size = SizeofResource(NULL, hs);
+		
+		PNG* img = new PNG();
+		img->data = (char*)ptr;
+		img->size = size;
+		img->flags = 0;
+
+		return img;
 	}
-	namespace log {
-		logger operator<<(logger log, FileError err) {
-			return log << toString(err);
+	PNG* PNG::ReadFile(const char* path) {
+		PNG* img = new PNG();
+		Image::ReadFile(path, img);
+		return img;
+	}
+	//RawImage* PNG::toRaw(int channels) {
+	//	RawImage img;
+	//	int realChannels;
+	//	img.data = (char*)stbi_load_from_memory((uint8_t*)data, size, &img.width, &img.height, &realChannels, channels);
+	//	img.channels = channels;
+	//	return img;
+	//}
+	BMP* BMP::ReadFile(const char* path) {
+		BMP* img = new BMP();
+		Image::ReadFile(path, img);
+		return img;
+	}
+	//template<>
+	//ICO BMP::toICO() {
+	//	ICO img = ICO::CreateEmpty(1,size);
+
+	//	ICO::ICONDIRENTRY* e = img.entry(0);
+	//	e->bitsPerPixel = header()->biBitCount;
+	//	e->colorPalette=header()->biClrUsed;
+	//	e->colorPlanes=0;
+	//	//e->colorPlanes=header()->biPlanes;
+	//	e->width = header()->biWidth;
+	//	e->height = header()->biHeight/2;
+	//	e->imageSize = size;
+
+	//	img.autoSetOffsets();
+
+	//	memcpy_s(img.getData(0),e->imageSize,data,size);
+
+	//	return img;
+	//}
+	//RawImage* BMP::toRawImage() {
+	//	RawImage img;
+
+	//	char* imgData = data + sizeof(BITMAPINFOHEADER);
+
+	//	img.data = (char*)alloc::malloc(header()->biSizeImage);
+	//	if (!img.data) {
+	//		log::out << log::RED << "BMP::toRawImage - failed allocation\n";
+	//		return {};
+	//	}
+	//	img.size = header()->biSizeImage;
+	//	img.width = header()->biWidth;
+	//	img.height = header()->biHeight / 2; // bmp has double size for and mask
+	//	img.channels = header()->biBitCount / 8;
+	//	for (int i = 0; i < img.size / 4; i++) {
+	//		int p = img.size / 4-1 - i;
+	//		//bgra -> rgba
+	//		img.data[p * 4 + 2] = imgData[i * 4 + 0];
+	//		img.data[p * 4 + 1] = imgData[i * 4 + 1];
+	//		img.data[p * 4 + 0] = imgData[i * 4 + 2];
+	//		img.data[p * 4 + 3] = imgData[i * 4 + 3];
+	//	}
+
+	//	img.flags = SelfOwned;
+	//	return img;
+	//}
+	ICO* ICO::Load(int id) {
+		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "ICO");
+		HGLOBAL hg = LoadResource(NULL, hs);
+		void* ptr = LockResource(hg);
+		DWORD size = SizeofResource(NULL, hs);
+
+		ICO* img = new ICO();
+		img->data = (char*)ptr;
+		img->size = size;
+		img->flags = 0;
+
+		return img;
+	}
+	ICO* ICO::ReadFile(const char* path) {
+		ICO* img = new ICO();
+		Image::ReadFile(path, img);
+		return img;
+	}
+	ICO* ICO::CreateEmpty(uint32_t imageCount, uint32_t size) {
+		uint32_t total = sizeof(ICONDIR) + imageCount * sizeof(ICONDIRENTRY) + size;
+		char* data = (char*)alloc::malloc(total);
+		if (!data) {
+			log::out << log::RED << "ICO::CreateEmpty - image failed allocating memory\n";
+			return {};
+		}
+		ICO* img=new ICO();
+		img->data = data;
+		img->flags = OwnerSelf;
+		img->size = total;
+		memset(img->data, 0, sizeof(ICONDIR)+imageCount*sizeof(ICONDIRENTRY));
+		img->header()->numImages = imageCount;
+		img->header()->type = 1;
+		return img;
+	}
+	void ICO::autoSetOffsets() {
+		if (!data) return;
+		uint32_t offset=sizeof(ICONDIR)+header()->numImages*sizeof(ICONDIRENTRY);
+		for (int i = 0; i < header()->numImages;i++) {
+			entry(i)->offset = offset;
+			offset += entry(i)->imageSize;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
-#ifndef ENGONE_NO_PHYSICS
+
+#ifdef ENGONE_PHYSICS
 #include "reactphysics3d/reactphysics3d.h"
 /*
 	Some useful functions for ReactPhysics3D

@@ -10,6 +10,15 @@
 #include "Engone/ParticleModule.h"
 
 namespace game {
+
+	struct CombatParticle {
+		glm::vec3 pos;
+		glm::vec3 vel;
+		float lifeTime;
+	};
+	struct CombatParticleInfo {
+		int aliveCount;
+	};
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:
 		GameApp(engone::Engone* engone);
@@ -26,7 +35,9 @@ namespace game {
 	private:
 		bool paused = true;
 
-		engone::ParticleGroup* particleGroup;
+		engone::ParticleGroup<engone::DefaultParticle>* particleGroup;
+
+		engone::ParticleGroup<CombatParticle>* combatParticles=nullptr;
 
 		engone::Window* m_window=nullptr;
 

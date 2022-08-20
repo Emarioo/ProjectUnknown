@@ -1,8 +1,8 @@
+#ifdef ENGONE_PHYSICS
 #include "Engone/Utilities/rp3d.h"
 
 #include "Engone/Logger.h"
 
-#ifndef ENGONE_NO_PHYSICS
 /*
 	Some useful functions for ReactPhysics3D
 */

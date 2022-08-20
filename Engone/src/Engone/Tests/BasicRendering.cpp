@@ -65,7 +65,7 @@ namespace engone {
 		static const char* particlesGLSL = {
 #include "Engone/Tests/testParticle.glsl"
 		};
-		static ParticleGroup partGroup{};
+		static ParticleGroup<DefaultParticle> partGroup{};
 		static Shader* shaderPart = nullptr;
 		void TestParticles(RenderInfo& info) {
 			if (!shaderPart) {
@@ -75,7 +75,7 @@ namespace engone {
 				//uint32_t count = 18*pow(10,6);
 				uint32_t count = 1*pow(10,6);
 				//log::out << count << "\n";
-				Particle* parts = partGroup.createParticles(count);
+				DefaultParticle* parts = partGroup.createParticles(count);
 				if (parts) {
 					glm::vec3 bounds = { 5,5,5 };
 					glm::vec3 center = {4,0,0};

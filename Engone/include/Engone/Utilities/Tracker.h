@@ -1,9 +1,15 @@
-#pragma once
-
-#include "Engone/Logger.h"
-
 //#define ENGONE_DEBUG_TRACKER
 
+// NOTE: turn tracker into a single header file. (ENGONE_TRACKER_IMPL)
+
+#ifdef ENGONE_TRACKER
+
+#ifndef ENGONE_TRACKER_GUARD
+#define ENGONE_TRACKER_GUARD
+
+#ifdef ENGONE_LOGGER
+#include "Engone/Utilities/LoggingModule.h"
+#endif
 namespace engone {
 
 	// Memory Tracker
@@ -31,24 +37,22 @@ namespace engone {
 	// ISSUE: there is a occasional issue where a duplicate index is found.
 	class TrackTree {
 	public:
-		TrackTree() = default;
-		~TrackTree() {
-			resize(0);
-		}
-
 		typedef void* value;
+
+		TrackTree() = default;
+		~TrackTree();
 
 		// returns true if added, false if ptr already exists
 		bool add(value ptr);
 		// returns true if ptr was removed, false if it didn't exist
 		bool remove(value ptr);
 		void print() const;
-		// will clear all data. As good as new.
-		void clear();
+		// free memory
+		void cleanup();
 
 		void printNodes() const;
 
-		TrackInfo& getInfo() { return info; }
+		inline TrackInfo& getInfo() { return info; }
 
 	private:
 
@@ -85,21 +89,27 @@ namespace engone {
 		//friend void TrackTreeTest();
 #endif
 	};
-	// name, color, filter  {"Fruit",log::RED,3}
-	// printing id with color code 0, will use whatever previous color log color.
+	// name, color, filter  {"Fruit",-1,log::RED}
+	// printing id with color code 0, will use the default or current color of logger or whatever.
 	struct TrackerId {
+#ifdef ENGONE_LOGGER
+		typedef log::Color Color;
+#else
+		typedef uint8_t Color;
+#endif
 		TrackerId(const char* name) : name(name) {}
-		TrackerId(const char* name, log::Color color) : name(name), color(color) {}
-		TrackerId(const char* name, log::Color color, uint16_t filter) : name(name), color(color),filter(filter) {}
-		const char* name = "";
-		log::Color color = (log::Color)0;
-		uint16_t filter = -1;
+		TrackerId(const char* name, uint16_t filter) : name(name), filter(filter) {}
 
-		bool operator==(const TrackerId& id) const {
+		TrackerId(const char* name, uint16_t filter, Color color) : name(name), filter(filter), color(color) {}
+		
+		const char* name = "";
+		uint16_t filter = -1;
+		Color color = (Color)0;
+
+		inline bool operator==(const TrackerId& id) const {
 			return name == id.name;
 		}
 	};
-
 }
 template<>
 struct std::hash<engone::TrackerId> {
@@ -108,8 +118,7 @@ struct std::hash<engone::TrackerId> {
 	}
 };
 namespace engone{
-
-	log::logger operator<<(log::logger out, const TrackerId& id);
+	Logger& operator<<(Logger& out, TrackerId id);
 	class TrackNode {
 	public:
 		TrackNode() = default;
@@ -134,11 +143,7 @@ namespace engone{
 	class Tracker {
 	public:
 		Tracker() = default;
-		~Tracker() { 
-			// need to clear the trees before destroying unordered_map since the trees need to untrack tracknodes.
-			clear(true);
-		}
-		//static const TrackerFilter EngoneClasses=-1;
+		~Tracker();
 		struct Info {
 			bool logging = false;
 			int trackQueue = 0;
@@ -148,7 +153,7 @@ namespace engone{
 			int addmems = 0;
 			int submems = 0;
 		};
-		// id, size, ptr, filter, color
+		// id, size, ptr
 		struct TrackClass {
 			TrackerId id;
 			uint16_t size = 0;
@@ -176,82 +181,27 @@ namespace engone{
 		
 		// General track function
 		// Does not allow tracking of TrackNode
-		void track(TrackClass obj) {
-			if (!obj.ptr) return;
-			if (obj.id == TrackNode::trackerId) {
-				log::out << log::RED<<"You cannot track " << TrackNode::trackerId << "!\n";
-				return;
-			}
-			if (!m_trackQueueLocked) {
-				m_info.trackQueue++;
-				m_trackQueue.push_back(obj);
-				handleQueue();
-			} else {
-				log::out << log::RED << "Track queue was locked, could not track "<< obj.id << ":" << obj.ptr << "(id:ptr)\n";
-			}
-		}
+		void track(TrackClass obj);
 		void untrack(TrackerId id, void* ptr) {
 			untrack({id, 0,ptr});
 		}
 		// General untrack function
-		void untrack(TrackClass obj) {
-			if (!obj.ptr) return;
-			if (obj.id == TrackNode::trackerId) {
-				log::out << log::RED << "You cannot untrack " << TrackNode::trackerId << "!\n";
-				return;
-			}
-			if (!m_untrackQueueLocked) {
-				m_info.untrackQueue++;
-				m_untrackQueue.push_back(obj);
-				handleQueue();
-			} else {
-				log::out << log::RED << "Track queue was locked, could not track " << obj.id << ":" << obj.ptr << " (id:ptr)\n";
-			}
-		}
+		void untrack(TrackClass obj);
 	
 		// Total tracked memory
 		// includeTracker as true will add the tracker's internal memory to the total. (you probably want this as false)
-		int32_t getMemory(bool includeTracker=false) const {
-			if(includeTracker)
-				return m_totalMemory;
-
-			int32_t out = m_totalMemory;
-			auto find = m_trackedObjects.find(TrackNode::trackerId);
-			if (find != m_trackedObjects.end()) {
-				const ClassInfo& info = find->second;
-				out-=info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
-			}
-
-			return out;
-		}
+		int32_t getMemory(bool includeTracker = false) const;
 		// Memory used by the tracker itself. (TrackNodes)
-		int32_t getInternalMemory() const {
-			auto find = m_trackedObjects.find(TrackNode::trackerId);
-			if (find != m_trackedObjects.end()) {
-				const ClassInfo& info = find->second;
-				return info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
-			} else {
-				return 0;
-			}
-		}
+		int32_t getInternalMemory() const;
 
 		template<class T>
 		uint32_t getClassMemory() const {
 			return getClassMemory(T::trackerId);
 		}
 		// Memory for both single pointers and floating memory.
-		uint32_t getClassMemory(TrackerId id) const {
-			// cannot use getClassInfo becuse it is not const
-			auto find = m_trackedObjects.find(id);
-			if (find == m_trackedObjects.end()) {
-				return 0;
-			} else {
-				const ClassInfo& info = find->second;
-				return info.tree.head * info.size+info.floatingMemory;
-			}
-		}
+		uint32_t getClassMemory(TrackerId id) const;
 		// Memory tracked by non-class floating memory.
-		int32_t getFloatingMemory() const {
+		inline int32_t getFloatingMemory() const {
 			return m_floatingMemory;
 		}
 		// For specific class
@@ -260,58 +210,24 @@ namespace engone{
 			return getFloatingMemory(T::trackerId);
 		}
 		// For specific class
-		int32_t getFloatingMemory(TrackerId id) const {
-			auto find = m_trackedObjects.find(id);
-			if (find == m_trackedObjects.end()) {
-				return 0;
-			} else {
-				const ClassInfo& info = find->second;
-				return info.floatingMemory;
-			}
-		}
+		int32_t getFloatingMemory(TrackerId id) const;
 
 		// ISSUE: not thread safe
 		template<class T>
 		void addMemory(uint32_t bytes) {
 			addMemory(T::trackerId, bytes);
 		}
-		void addMemory(TrackerId id, uint32_t bytes) {
-			m_info.addmems++;
-			ClassInfo& info = getClassInfo(id);
-			info.floatingMemory += bytes;
-			m_totalMemory += bytes;
-			if (m_info.logging)
-				log::out << "Float " <<id<<" +" << bytes << " " << m_totalMemory << "\n";
-		}
+		void addMemory(TrackerId id, uint32_t bytes);
 		// General memory
-		void addMemory(uint32_t bytes) {
-			m_info.addmems++;
-			m_floatingMemory += bytes;
-			m_totalMemory += bytes;
-			if (m_info.logging)
-				log::out << "Float +" << bytes << " "<<m_totalMemory<<"\n";
-		}
+		void addMemory(uint32_t bytes);
 		// ISSUE: not thread safe
 		template<class T>
 		void subMemory(uint32_t bytes) {
 			subMemory(T::trackerId, bytes);
 		}
-		void subMemory(TrackerId id, uint32_t bytes) {
-			m_info.submems++;
-			ClassInfo& info = getClassInfo(id);
-			info.floatingMemory -= bytes;
-			m_totalMemory -= bytes;
-			if (m_info.logging)
-				log::out << "Float "<<id<<" -" << bytes << " " << m_totalMemory << "\n";
-		}
+		void subMemory(TrackerId id, uint32_t bytes);
 		// General memory
-		void subMemory(uint32_t bytes) {
-			m_info.submems++;
-			m_floatingMemory -=bytes;
-			m_totalMemory -= bytes;
-			if (m_info.logging)
-				log::out << "Float -" << bytes << " " << m_totalMemory << "\n";
-		}
+		void subMemory(uint32_t bytes);
 
 		// prints tracked memory
 		void printMemory();
@@ -319,7 +235,7 @@ namespace engone{
 		// Will clear tracked pointers but not totalMemory or general float memory.
 		// Force as true will clear even if tracker is locked.
 		// Will lock and unlock tracker.
-		void clear(bool force=false);
+		void cleanup(bool force=false);
 
 		void printTree();
 		// debug purpose
@@ -332,15 +248,13 @@ namespace engone{
 		//	return &find->second;
 		//}
 
-		Info& getInfo() { return m_info; }
+		inline Info& getInfo() { return m_info; }
 
 		// Dev NOTE: function cannot be const because function will be creat ClassInfo if it doesn't exist.
 		Tracker::ClassInfo& getClassInfo(TrackerId id);
 
 		// Note that you can't fully rely on these values to see if there are memory leaks. AddMem could be used as SubMem. And you may do multiple AddMem but then one SubMem for all of them.
-		void printInfo() {
-			log::out << "Queues: "<<m_info.trackQueue<<" / "<<m_info.untrackQueue << " Track/Untracks: " << m_info.tracks << " / " << m_info.untracks << "  AddMem/SubMem: " << m_info.addmems << " / " << m_info.submems << "\n";
-		}
+		void printInfo();
 	private:
 		Info m_info;
 
@@ -350,9 +264,9 @@ namespace engone{
 		std::vector<TrackClass> m_trackQueue;
 		std::vector<TrackClass> m_untrackQueue;
 
-		bool m_untrackQueueLocked, m_trackQueueLocked = false; // not sure if queue lock is necessary.
-		bool m_locked = false;
-		bool m_shouldClear = false;
+		//bool m_untrackQueueLocked, m_trackQueueLocked = false; // not sure if queue lock is necessary.
+		//bool m_locked = false;
+		//bool m_shouldClear = false;
 
 		std::unordered_map<TrackerId, ClassInfo> m_trackedObjects;
 
@@ -373,3 +287,13 @@ namespace engone{
 	// global tracker
 	Tracker& GetTracker();
 }
+#endif // ENGONE_TRACKER_GUARD
+
+#ifdef ENGONE_TRACKER_IMPL
+#undef ENGONE_TRACKER_IMPL
+#include "Engone/Utilities/LoggingModule.h"
+// add Tracker.cpp code here
+
+#endif // ENGONE_TRACKER_IMPL
+
+#endif // ENGONE_TRACKER

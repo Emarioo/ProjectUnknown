@@ -5,16 +5,18 @@
 
 namespace engone {
 
+	// note that BorderlessFullscreen is a bitmask of borderless and fullscreen
 	enum WindowMode : uint8_t {
-		WindowedMode=0,
-		FullscreenMode,
-		BorderlessMode,
-		BorderlessFullscreenMode,
+		ModeWindowed = 0,
+		ModeBorderless = 1,
+		ModeFullscreen = 2,
+		ModeBorderlessFullscreen = 3,
 	};
+	typedef uint8_t WindowModes;
 	class Application;
 	// mode, w, h, x, y
 	struct WindowDetail {
-		WindowMode mode = WindowedMode;
+		WindowModes mode = ModeWindowed;
 		int w = -1, h = -1;
 		int x = -1, y = -1;
 	};
@@ -24,12 +26,15 @@ namespace engone {
 
 		inline GLFWwindow* glfw() const { return m_glfwWindow; }
 
+		// can be called before window has been created. Altough window is required to use this function.
 		void setTitle(const std::string title);
+		// 32 bit RGBA. 16x16, 32x32, 48x48 are good sizes.
+		void setIcon(const RawImage& img);
 		// will make this window/context the active one.
 		// will not set window as active if it already is.
 		void setActiveContext();
 
-		void setMode(WindowMode mode);
+		void setMode(WindowModes mode, bool force=false);
 		// May send a EventMove to listeners since the mouse position is relative to window position.
 		void setPosition(float x,float y);
 
@@ -40,7 +45,7 @@ namespace engone {
 		// Inner height of window
 		inline float getHeight() const { return h; }
 
-		inline WindowMode getMode() const { return m_windowMode; }
+		inline WindowModes getMode() const { return m_windowMode; }
 
 		inline bool hasFocus() const { return m_focus; }
 		// True if cursor is visible.
@@ -128,10 +133,17 @@ namespace engone {
 		float m_tickScrollX=0, m_tickScrollY = 0;
 		float m_frameScrollX = 0, m_frameScrollY = 0;
 
-		WindowMode m_windowMode = WindowedMode;
+		WindowModes m_windowMode = ModeWindowed; // can't be -1 because of bit masking
 		bool m_cursorVisible = true, m_cursorLocked = false, m_focus = true;
 		std::string m_title = "Untitled";
-		float x = -1, y = -1, w = -1, h = -1;
+		float x = -1, y = -1, w = -1, h = -1; // direct coordinates of the window (updated through callbacks)
+		float savedCoords[4]{ -1,-1,-1,-1 };// store coords from before fullscreen.
+		void loadCoords() {
+			memcpy_s(&x, sizeof(float) * 4, savedCoords, sizeof(float) * 4);
+		}
+		void saveCoords() {
+			memcpy_s(savedCoords, sizeof(float) * 4, &x, sizeof(float) * 4);
+		}
 
 		friend class Application;
 		friend class Engone;

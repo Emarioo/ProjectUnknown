@@ -1,0 +1,20 @@
+[16:08:17] Memory summary:
+ Total: 25340 (from alloc: 282640)
+ Floating: 0
+ Window:         18192, 1, 0
+ Listener:       168,   3, 0
+ TrackNode:      2640,  0, 2640
+ Shader:         1008,  7, 0
+ ColliderAsset:  576,   4, 0
+ Font:           1196,  1, 0
+ Application:    64,    1, 0
+ ArmatureAsset:  88,    1, 0
+ MaterialAsset:  312,   3, 0
+ MeshAsset:      560,   4, 0
+ AnimationAsset: 120,   1, 0
+ ModelAsset:     416,   4, 0
+[16:08:17] Queues: 47 / 0 Track/Untracks: 30 / 0  AddMem/SubMem: 11 / 0
+[16:08:29] Queues: 47 / 30 Track/Untracks: 30 / 30  AddMem/SubMem: 11 / 0
+[16:08:29] Note that io_context and std::thread are left.
+[16:08:29] No tracked memory leak
+[16:08:29] FrameBuffer:cleanup - not complete!

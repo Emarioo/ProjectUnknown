@@ -30,9 +30,6 @@
     <ClInclude Include="include\Engone\Utilities\Utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\FrameBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Sound\SoundBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -55,12 +52,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\NetworkModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\gonpch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Window.h">
@@ -93,9 +84,6 @@
     <ClInclude Include="include\Engone\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\ScriptRuntime\ScriptRuntime\include\script\MemAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -123,6 +111,36 @@
     <ClInclude Include="include\Engone\ParticleModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\LoggingModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\FileUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\TimeUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Defs\DEFS_BASE.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\RandomUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\ModuleDefs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\ImageUtility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
@@ -132,9 +150,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp">
@@ -150,9 +165,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\gonpch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
@@ -198,6 +210,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\ParticleModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\IMPLS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Engone\Utilities\Alloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

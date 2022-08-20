@@ -1,9 +1,13 @@
-#pragma once
+//#pragma once
 
+#include "Engone/Utilities/LoggingModule.h"
+
+#ifdef GONE
 // these are not necessary in programs where you have precompiled header
 // but incase you don't and throw this header inside, it will still work.
 //#include <stdint.h>
 //#include <string>
+
 
 #ifndef ENGONE_NO_PHYSICS
 #include "Engone/Utilities/rp3d.h"
@@ -225,3 +229,4 @@ namespace engone {
 #endif
 	}
 }
+#endif
