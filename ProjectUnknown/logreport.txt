@@ -1,20 +1,24 @@
-[16:08:17] Memory summary:
- Total: 25340 (from alloc: 282640)
+[16:32:38] Event: Connect UUID: 00000000-0000-0000
+[16:32:38] Server Event: Connect UUID: B5565C86-3063-D2A2
+[16:32:39] AssetProcessor::stop - thread isn't joinable!
+[16:32:39] AssetStorage::cleanup - some assets are not deleted on the opengl context!
+[16:32:41] AssetProcessor::stop - thread isn't joinable!
+[16:32:41] AssetStorage::cleanup - some assets are not deleted on the opengl context!
+[16:32:41] Queues: 60 / 10 Track/Untracks: 60 / 10  AddMem/SubMem: 11 / 0
+[16:32:41] Memory leak? 9392 expected 0
+[16:32:41] Memory summary:
+ Total: 12032 (from alloc: 562908)
  Floating: 0
- Window:         18192, 1, 0
- Listener:       168,   3, 0
- TrackNode:      2640,  0, 2640
- Shader:         1008,  7, 0
- ColliderAsset:  576,   4, 0
- Font:           1196,  1, 0
- Application:    64,    1, 0
- ArmatureAsset:  88,    1, 0
- MaterialAsset:  312,   3, 0
- MeshAsset:      560,   4, 0
- AnimationAsset: 120,   1, 0
- ModelAsset:     416,   4, 0
-[16:08:17] Queues: 47 / 0 Track/Untracks: 30 / 0  AddMem/SubMem: 11 / 0
-[16:08:29] Queues: 47 / 30 Track/Untracks: 30 / 30  AddMem/SubMem: 11 / 0
-[16:08:29] Note that io_context and std::thread are left.
-[16:08:29] No tracked memory leak
-[16:08:29] FrameBuffer:cleanup - not complete!
+ AnimationAsset: 248,  2,  0
+ ModelAsset:     864,  8,  0
+ ArmatureAsset:  184,  2,  0
+ MaterialAsset:  648,  6,  0
+ ShaderAsset:    2128, 14, 0
+ TrackNode:      2640, 0,  2640
+ FontAsset:      2312, 2,  0
+ MeshAsset:      1824, 8,  0
+ ColliderAsset:  1184, 8,  0
+[16:32:41] Event: Disconnect UUID: 00000000-0000-0000
+[16:32:41] Server Event: Disconnect UUID: B5565C86-3063-D2A2
+[16:32:41] Server Event: Stopped UUID: 00000000-0000-0000
+[16:32:41] FrameBuffer:cleanup - not complete!

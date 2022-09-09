@@ -173,31 +173,31 @@ float ShadowCalculation(vec4 fPosLightSpace) {
 	//shadow = projCoords.z - bias > closestDepth ? 1 : 0;
 	//return shadow;
 	
-}
-*/
+}*/
+
 void main()
 {
 	vec3 normal = normalize(fNormal);
 	vec3 result = vec3(0);
 	DirLight dir = DirLight(vec3(0.1f,1.f,0.1f),vec3(0.2,0.2,0.2),vec3(1,1,1),vec3(0,0,0));
 
-	result += CalcDirLight(dir, normal, vec3(0,0,0), 0);
+	//result += CalcDirLight(dir, normal, vec3(0,0,0), 0);
 
-	vec3 cameraToPixel = fPos-uCamera;
-	float x = length(cameraToPixel);
-	result *= 1.1-log(x+1)/5;
+	//vec3 cameraToPixel = fPos-uCamera;
+	//float x = length(cameraToPixel);
+	//result *= 1.1-log(x+1)/5;
 
-	/*
+	
 	vec3 viewDir = normalize(uCamera - fPos);
-	float shadow = ShadowCalculation(fPosLightSpace);
+	//float shadow = ShadowCalculation(fPosLightSpace);
 	if(uLightCount.x==1)
 		result += CalcDirLight(uDirLight, normal, viewDir, 0);
 	for (int i = 0; i < uLightCount.y;i++) {
-		result += CalcPointLight(uPointLights[i], normal, fPos, viewDir, 0);
+		//result += CalcPointLight(uPointLights[i], normal, fPos, viewDir, 0);
 	}
 	for (int i = 0; i < uLightCount.z; i++) {
-		result += CalcSpotLight(uSpotLights[i], normal, fPos, viewDir, 0);
-	}*/
+		//result += CalcSpotLight(uSpotLights[i], normal, fPos, viewDir, 0);
+	}
 
 	result *= fColor;
 	oColor = vec4(result, 1);

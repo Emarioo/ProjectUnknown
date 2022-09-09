@@ -13,7 +13,9 @@ namespace engone {
 		: eventTypes(eventTypes), run(f), priority(priority) {}
 
 	std::string PollClipboard() {
-		return glfwGetClipboardString(GetActiveWindow()->glfw());
+		const char* ptr = glfwGetClipboardString(GetActiveWindow()->glfw());
+		if (ptr == NULL) return "";
+		return ptr;
 	}
 	void SetClipboard(const char* str) {
 		return glfwSetClipboardString(GetActiveWindow()->glfw(), str);

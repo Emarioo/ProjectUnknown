@@ -3,7 +3,8 @@
 
 namespace engone {
 #ifdef ENGONE_PHYSICS
-	void GameObject::loadColliders(Engone* engone) {
+	void GameObject::loadColliders(GameGround* ground) {
+		
 		if (!modelAsset) {
 			log::out << log::RED << "ModelAsset is null\n";
 			return;
@@ -12,7 +13,14 @@ namespace engone {
 			log::out << log::RED << "Rigidbody is null\n";
 			return;
 		}
+		if (!modelAsset->valid()) {
+			pendingColliders = true; // try again in update loop of engine.
+			return;
+		}
+		pendingColliders = false;
+
 		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
+
 		bool noColliders = true;
 		for (int i = 0; i < modelAsset->instances.size(); i++) {
 			AssetInstance& inst = modelAsset->instances[i];
@@ -20,7 +28,7 @@ namespace engone {
 			//log::out <<loc << "\n";
 			if (inst.asset->type == ColliderAsset::TYPE) {
 				noColliders = false;
-				ColliderAsset* asset = inst.asset->cast<ColliderAsset>();
+				ColliderAsset* asset = (ColliderAsset*)inst.asset;
 				glm::mat4 loc = transforms[i]*inst.localMat;
 				glm::vec3 matScale;
 				rp3d::Transform tr = ToTransform(loc,&matScale);
@@ -31,7 +39,7 @@ namespace engone {
 					scale.x*=matScale.x;
 					scale.y*=matScale.y;
 					scale.z*=matScale.z;
-					shape = engone->m_pCommon->createHeightFieldShape(asset->map.gridColumns,
+					shape = ground->m_pCommon->createHeightFieldShape(asset->map.gridColumns,
 						asset->map.gridRows, asset->map.minHeight, asset->map.maxHeight,
 						asset->map.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
 						1, 1, *(rp3d::Vector3*)&scale);
@@ -42,19 +50,19 @@ namespace engone {
 					scale.x*=matScale.x;
 					scale.y*=matScale.y;
 					scale.z*=matScale.z;
-					shape = engone->m_pCommon->createBoxShape(scale);
+					shape = ground->m_pCommon->createBoxShape(scale);
 				}
 				else if (asset->colliderType == ColliderAsset::CapsuleType) {
 					float realHeight = asset->capsule.height - asset->capsule.radius * 2;
 					realHeight *= matScale.y;
 					float radius = asset->capsule.radius;
 					radius *= (matScale.x + matScale.z) / 2;
-					shape = engone->m_pCommon->createCapsuleShape(radius, realHeight);
+					shape = ground->m_pCommon->createCapsuleShape(radius, realHeight);
 				}
 				else if (asset->colliderType == ColliderAsset::SphereType) {
 					float radius = asset->sphere.radius;
-					radius *= (matScale.x + matScale.y + matScale.z) / 3;
-					shape = engone->m_pCommon->createSphereShape(radius);
+					radius *= (matScale.x + matScale.y + matScale.z) / 3.f;
+					shape = ground->m_pCommon->createSphereShape(radius);
 				}
 
 				rigidBody->addCollider(shape, tr);

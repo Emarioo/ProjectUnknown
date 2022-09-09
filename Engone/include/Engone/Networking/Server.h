@@ -4,46 +4,61 @@
 #include "Engone/Networking/Sender.h"
 #include "Engone/Networking/MessageBuffer.h"
 
+//#include <functional>
+//#include <unordered_map>
+//#include <thread>
+
+#ifdef ENGONE_TRACKER
+#include "Engone/Utilities/Tracker.h"
+#endif
+
 namespace engone {
 	class Connection;
 	class Server : public Sender {
 	public:
-		// Constructor sets up IO Context
-		Server();
+		Server() : Sender(true) {}
 		~Server();
-		// lambda should return false to deny connection, true to accept
-		void setOnEvent(std::function<bool(NetEvent, UUID)> onEvent);
-		// lambda should return false to close connection
-		void setOnReceive(std::function<bool(MessageBuffer, UUID)> onReceive);
 
+		// set lambdas before starting.
 		// returns false if port was invalid.
 		// returns true if server started or already running
 		bool start(const std::string& port);
 		// close one connection
 		void disconnect(UUID uuid);
-		// stop server and all connections
+		// stop server and all connections.
+		// does not wait for connections to close. A silent stop.
 		void stop();
-		void send(MessageBuffer& msg, UUID uuid = 0, bool ignore = false) override;
+		void send(MessageBuffer& msg, UUID uuid = 0, bool excludeUUID = false, bool synchronous = false) override;
 
 		uint32_t getConnectionCount() const { return m_connections.size(); }
 
 		inline bool isRunning() { return keepRunning; }
 
+		const std::string& getPort() const { return m_port; }
+
+		// will wait for everything to terminate unlike stop
+		void cleanup();
+
+#ifdef ENGONE_TRACKER
 		static TrackerId trackerId;
+#endif
 	private:
 		bool keepRunning = false;
-		//asio::ip::tcp::acceptor test;
-		void* m_acceptor=nullptr; // asio::ip::tcp::acceptor - using void instead so that you don't need to include asio.hpp
-		//void* m_acceptor; // asio::ip::tcp::acceptor - using void instead so that you don't need to include asio.hpp
 
 		std::unordered_map<UUID, Connection*> m_connections;
-		std::function<bool(NetEvent, UUID)> m_onEvent = nullptr;
-		std::function<bool(MessageBuffer, UUID)> m_onReceive = nullptr;
 
-		// called from within
-		void _disconnect(UUID uuid);
-		bool shutdown(std::error_code ec);
-		void waitForConnection();
+		// void* should be SOCKET, but isn't so that you don't need to include in this header.
+		void* m_socket=nullptr;
+		std::thread m_acceptThread;
+		std::thread m_workerThread;
+
+		std::mutex m_mutex;
+		std::thread::id m_mutexOwner;
+		int mutexDepth = 0;
+		void lock();
+		void unlock();
+
+		std::string m_port;
 
 		friend class Connection;
 	};

@@ -2,20 +2,24 @@
 
 #include "Engone/Utilities/rp3d.h"
 #include "Engone/AssetModule.h"
-#include "Engone/Components/Component.h"
+#include "Engone/Assets/Animator.h"
+#include "Engone/LoopInfo.h"
+#include "Engone/Utilities/RandomUtility.h"
 
 namespace engone {
 	
 	class Engone;
+	class GameGround;
 	class GameObject {
 	public:
 		//GameObject() = default;
-		GameObject(engone::Engone* engone) {};
+		GameObject(GameGround* ground) : m_uuid(UUID::New()) {};
+		GameObject(GameGround* ground, UUID uuid) : m_uuid(uuid) {};
 		virtual ~GameObject() {}
 
 		virtual void update(UpdateInfo& info) {};
 
-		uint64_t getUUID() const { return m_uuid; }
+		UUID getUUID() const { return m_uuid; }
 		ModelAsset* modelAsset=nullptr;
 		Animator animator;
 
@@ -49,12 +53,16 @@ namespace engone {
 			setTransform(glm::translate(glm::mat4(1), vec));
 		}
 		void setOnlyTrigger(bool yes);
+
+		//bool loadedColliders = false;
+		bool pendingColliders = false;
 		// Requires rigidbody and modelAsset to be non-null
-		void loadColliders(Engone* engone);
+		// Will give unexpected results if model hasn't been loaded yet.
+		void loadColliders(GameGround* ground);
 #endif
 
 	private:
-		uint64_t m_uuid=0;
+		UUID m_uuid=0;
 
 		friend class Engone;
 	};

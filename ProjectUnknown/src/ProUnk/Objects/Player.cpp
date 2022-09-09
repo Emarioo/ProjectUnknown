@@ -9,26 +9,30 @@
 
 #include "Engone/Utilities/rp3d.h"
 
-Player::Player(engone::Engone* engone) : GameObject(engone) {
-	this->engone = engone;
+Player::Player(engone::GameGround* ground) : GameObject(ground) {
+	this->ground = ground;
 	rp3d::Transform t;
-	rigidBody = engone->m_pWorld->createRigidBody(t);
+	rigidBody = ground->m_pWorld->createRigidBody(t);
 	rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
 	rigidBody->setIsAllowedToSleep(false);
 
 	setFlight(true);
 
-	engone::Assets* assets = engone::GetActiveWindow()->getAssets();
+	//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
+	engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 	//modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody"); 
-	modelAsset = assets->set<engone::ModelAsset>("Player/Player"); 
+	modelAsset = assets->load<engone::ModelAsset>("Player/Player"); 
+	//modelAsset = assets->set<engone::ModelAsset>("Player/Player"); 
 	animator.asset = modelAsset;
-	loadColliders(engone);
+
+	loadColliders(ground);
 }
 void Player::update(engone::UpdateInfo& info) {
 	animator.update(info.timeStep);
 	Input(info);
 	Movement(info);
 	WeaponUpdate(info);
+
 }
 void Player::WeaponUpdate(engone::UpdateInfo& info) {
 	using namespace engone;
@@ -89,14 +93,17 @@ void Player::setWeapon(engone::GameObject* weapon) {
 	if (heldWeapon) {
 		heldWeapon->setOnlyTrigger(false);
 		if(weaponJoint)
-			engone->m_pWorld->destroyJoint(weaponJoint);
+			ground->m_pWorld->destroyJoint(weaponJoint);
 		heldWeapon->rigidBody->setMass(weaponState.mass);
 		heldWeapon->rigidBody->enableGravity(weaponState.gravity);
 
 		heldWeapon->rigidBody->setLinearVelocity(ToRp3dVec3(weaponState.sampledVelocity()));
 
 		weaponState.reset();
-		heldWeapon->rigidBody->getCollider(0)->setUserData(nullptr);
+
+		if (heldWeapon->rigidBody->getNbColliders() != 0)
+			heldWeapon->rigidBody->getCollider(0)->setUserData(nullptr);
+
 		weaponJoint = nullptr;
 		heldWeapon = nullptr;
 	}
@@ -106,7 +113,10 @@ void Player::setWeapon(engone::GameObject* weapon) {
 	// destroy joint to previous weapon.
 	heldWeapon = weapon;
 	// collider should exist for now
-	heldWeapon->rigidBody->getCollider(0)->setUserData(&attackData);
+	if (heldWeapon->rigidBody->getNbColliders() != 0) {
+		attackData.owner = this;
+		heldWeapon->rigidBody->getCollider(0)->setUserData(&attackData);
+	}
 	weaponState.mass = weapon->rigidBody->getMass();
 	weaponState.gravity = weapon->rigidBody->isGravityEnabled();
 
@@ -172,8 +182,10 @@ void Player::Input(engone::UpdateInfo& info) {
 		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
 			animator.enable("Player", "PlayerStab", { false,1,1,0 });
 			attackData.attacking = true;
-			AnimatorProperty& prop = animator.getProp("Player");
-			attackData.animationTime = prop.getRemainingSeconds();
+			AnimatorProperty* prop = animator.getProp("Player");
+			if (prop) {
+				attackData.animationTime = prop->getRemainingSeconds();
+			}
 		}
 	}
 }

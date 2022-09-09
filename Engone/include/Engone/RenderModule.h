@@ -8,6 +8,7 @@
 #include "Engone/Rendering/Camera.h"
 #include "Engone/AssetModule.h"
 #include "Engone/LoopInfo.h"
+#include "Engone/Utilities/Utilities.h"
 
 namespace engone {
 	
@@ -40,7 +41,7 @@ namespace engone {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
 			std::string text;
 			float x = 0, y = 0, h = 20;
-			Font* font = nullptr;
+			FontAsset* font = nullptr;
 			Color rgba;
 			int at = -1;
 			bool editing = false;
@@ -80,8 +81,14 @@ namespace engone {
 
 		/*
 		set uniforms before. uPos, USize, uColor, uTextured. Make sure Blending is on, make sure uWindows is set.
+		Slower but more sophisticated. Function can center and wrap text in a box.
 		*/
-		void DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar);
+		void DrawString(FontAsset* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar);
+		/*
+		set uniforms before. uPos, USize, uColor, uTextured. Make sure Blending is on, make sure uWindows is set.
+		Quick version of drawing text
+		*/
+		void DrawString(FontAsset* font, const std::string& text, float height, int cursorPosition);
 
 		void DrawCube(glm::mat4 matrix, glm::vec3 scale = { 1,1,1 }, glm::vec3 color = { 1,1,1 });
 		void DrawNetCube(glm::mat4 matrix, glm::vec3 scale = { 1,1,1 }, glm::vec3 color = { 1,1,1 });

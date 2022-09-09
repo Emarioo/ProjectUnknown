@@ -27,19 +27,16 @@
     <ProjectName>ProjectUnknown</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  
   <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -48,16 +45,13 @@
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  
-  <PropertyGroup Label="UserMacros"/>
-  
+  <PropertyGroup Label="UserMacros" />
   <!-- Output -->
   <PropertyGroup>
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
   </PropertyGroup>
-  
   <!-- base -->
   <ItemDefinitionGroup>
     <ClCompile>
@@ -65,8 +59,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_PHYSICS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>include;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;$(SolutionDir)libs/ASIO/include;</AdditionalIncludeDirectories>
-       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>ProUnk/pch.h</PrecompiledHeaderFile>
@@ -76,14 +70,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin/Engone/DebPhysWin32
-      </AdditionalLibraryDirectories>
-      <AdditionalDependencies>Engone.lib
-      </AdditionalDependencies>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/DebPhysWin32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)bin/Engone/DebPhysx64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Engone.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  
   <!-- release -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
@@ -95,24 +86,22 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin/Engone/RelPhysWin32</AdditionalLibraryDirectories>
-      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/RelPhysWin32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)bin/Engone/RelPhysx64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  
   <ItemGroup>
     <ClCompile Include="src\ProUnk\GameApp.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
+    <ClCompile Include="src\ProUnk\NetGameGround.cpp" />
     <ClCompile Include="src\ProUnk\Objects\Player.cpp" />
     <ClCompile Include="src\ProUnk\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
-      <PrecompiledHeaderFile>ProUnk/pch.h</PrecompiledHeaderFile>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ProUnk\NetGameGround.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="include\ProUnk\CombatData.h" />
     <ClInclude Include="include\ProUnk\GameApp.h" />

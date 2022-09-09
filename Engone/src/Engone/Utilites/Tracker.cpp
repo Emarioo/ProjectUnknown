@@ -339,15 +339,11 @@ namespace engone {
 			log::out << log::RED << "You cannot track " << TrackNode::trackerId << "!\n";
 			return;
 		}
-		//if (!m_trackQueueLocked) {
-			m_info.trackQueue++;
-			m_trackQueue.push_back(obj);
-			handleQueue();
-		//}
-		//else {
-		//	//log::out << log::RED << "Track queue was locked, could not track "<< obj.id << ":" << obj.ptr << "(id:ptr)\n";
-		//	log::out << log::RED << "Track queue was locked, could not track " << "(id:ptr)\n";
-		//}
+		lock();
+		m_info.trackQueue++;
+		m_trackQueue.push_back(obj);
+		unlock();
+		handleQueue();
 	}
 	void Tracker::untrack(TrackClass obj) {
 		if (!obj.ptr) return;
@@ -355,88 +351,97 @@ namespace engone {
 			log::out << log::RED << "You cannot untrack " << TrackNode::trackerId << "!\n";
 			return;
 		}
-		//if (!m_untrackQueueLocked) {
-			m_info.untrackQueue++;
-			m_untrackQueue.push_back(obj);
-			handleQueue();
-		//}
-		//else {
-		//	log::out << log::RED << "Track queue was locked, could not track " << obj.id << ":" << obj.ptr << " (id:ptr)\n";
-		//}
+		lock();
+		m_info.untrackQueue++;
+		m_untrackQueue.push_back(obj);
+		unlock();
+		handleQueue();
 	}
-	int32_t Tracker::getMemory(bool includeTracker) const {
-		if (includeTracker)
-			return m_totalMemory;
-
+	int32_t Tracker::getMemory(bool includeTracker) {
+		lock();
 		int32_t out = m_totalMemory;
-		auto find = m_trackedObjects.find(TrackNode::trackerId);
-		if (find != m_trackedObjects.end()) {
-			const ClassInfo& info = find->second;
-			out -= info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
-		}
 
+		if (!includeTracker) {
+			auto find = m_trackedObjects.find(TrackNode::trackerId);
+			if (find != m_trackedObjects.end()) {
+				const ClassInfo& info = find->second;
+				out -= info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
+			}
+		}
+		unlock();
 		return out;
 	}
-	int32_t Tracker::getInternalMemory() const {
+	int32_t Tracker::getInternalMemory() {
+		int out = 0;
+		lock();
 		auto find = m_trackedObjects.find(TrackNode::trackerId);
 		if (find != m_trackedObjects.end()) {
 			const ClassInfo& info = find->second;
-			return info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
+			out = info.floatingMemory; // TrackNodes are tracked with floating memory since they aren't individual.
 		}
-		else {
-			return 0;
-		}
+		unlock();
+		return out;
 	}
-	uint32_t Tracker::getClassMemory(TrackerId id) const {
+	uint32_t Tracker::getClassMemory(TrackerId id) {
+		int out = 0;
+		lock();
 		// cannot use getClassInfo becuse it is not const
 		auto find = m_trackedObjects.find(id);
-		if (find == m_trackedObjects.end()) {
-			return 0;
-		}
-		else {
+		if (find != m_trackedObjects.end()) {
 			const ClassInfo& info = find->second;
-			return info.tree.head * info.size + info.floatingMemory;
+			out = info.tree.head * info.size + info.floatingMemory;
 		}
+		unlock();
+		return out;
 	}
-	int32_t Tracker::getFloatingMemory(TrackerId id) const {
+	int32_t Tracker::getFloatingMemory(TrackerId id) {
+		int out = 0;
+		lock();
 		auto find = m_trackedObjects.find(id);
-		if (find == m_trackedObjects.end()) {
-			return 0;
-		}
-		else {
+		if (find != m_trackedObjects.end()) {
 			const ClassInfo& info = find->second;
-			return info.floatingMemory;
+			out = info.floatingMemory;
 		}
+		unlock();
+		return out;
 	}
 	void Tracker::addMemory(TrackerId id, uint32_t bytes) {
+		lock();
 		m_info.addmems++;
 		ClassInfo& info = getClassInfo(id);
 		info.floatingMemory += bytes;
 		m_totalMemory += bytes;
 		if (m_info.logging)
 			log::out << "Float " << id << " +" << bytes << " " << m_totalMemory << "\n";
+		unlock();
 	}
 	void Tracker::addMemory(uint32_t bytes) {
+		lock();
 		m_info.addmems++;
 		m_floatingMemory += bytes;
 		m_totalMemory += bytes;
 		if (m_info.logging)
 			log::out << "Float +" << bytes << " " << m_totalMemory << "\n";
+		unlock();
 	}
 	void Tracker::subMemory(TrackerId id, uint32_t bytes) {
+		lock();
 		m_info.submems++;
 		ClassInfo& info = getClassInfo(id);
 		info.floatingMemory -= bytes;
 		m_totalMemory -= bytes;
 		if (m_info.logging)
 			log::out << "Float " << id << " -" << bytes << " " << m_totalMemory << "\n";
+		unlock();
 	}
 	void Tracker::subMemory(uint32_t bytes) {
+		lock();
 		m_info.submems++;
 		m_floatingMemory -= bytes;
 		m_totalMemory -= bytes;
 		if (m_info.logging)
 			log::out << "Float -" << bytes << " " << m_totalMemory << "\n";
+		unlock();
 	}
 	void Tracker::printInfo() {
 		log::out << "Queues: " << m_info.trackQueue << " / " << m_info.untrackQueue << " Track/Untracks: " << m_info.tracks << " / " << m_info.untracks << "  AddMem/SubMem: " << m_info.addmems << " / " << m_info.submems << "\n";
@@ -454,9 +459,12 @@ namespace engone {
 	}
 	// NOTE: Function is not optimized but since it rarely runs, it's fine.
 	void Tracker::printMemory() {
+		lock();
 		log::out << "Memory summary:\n";
 		log::out.disableTime(true);
-		log::out << " Total: " << m_totalMemory <<" (from alloc: "<< alloc::allocatedBytes() << ")\n";
+		// total memory and alloc may share some counted memory.
+		log::out << " Tracker Total: " << m_totalMemory <<"\n";
+		log::out << " Alloc: " <<alloc::allocatedBytes() << "\n";
 		log::out << " Floating: " << m_floatingMemory << "\n";
 
 		int wid0 = 0;
@@ -504,19 +512,17 @@ namespace engone {
 			log::out << "No classes\n";
 		}
 		log::out.disableTime(false);
+		unlock();
 	}
 	void Tracker::printTree() {
+		lock();
 		for (auto& [key, info] : m_trackedObjects) {
 			info.tree.print();
 		}
+		unlock();
 	}
 	void Tracker::cleanup(bool force) {
-		//if (m_locked && !force) {
-		//	m_shouldClear = true;
-		//	return;
-		//}
-		//m_locked = true;
-
+		lock();
 		m_trackQueue.clear();
 		m_untrackQueue.clear();
 		// Since StackTree uses the tracker we need to untrack it's memory and then clear trackedObjects
@@ -524,10 +530,10 @@ namespace engone {
 			info.tree.cleanup();
 		}
 		m_trackedObjects.clear();
+		unlock();
 		//m_totalMemory = 0;
 		//m_floatingMemory = 0;
 
-		//m_locked = false;
 		//m_shouldClear = false;
 	}
 	Tracker::ClassInfo& Tracker::getClassInfo(TrackerId id) {
@@ -541,16 +547,10 @@ namespace engone {
 		}
 	}
 	void Tracker::handleQueue() {
-		//if (m_locked)
-		//	return;
-		//m_locked = true;
+		lock();
 		while (m_trackQueue.size() > 0) {
-
-			//m_trackQueueLocked = true;
 			TrackClass obj = m_trackQueue.back();
 			m_trackQueue.pop_back();
-			//m_trackQueueLocked = false;
-
 
 			ClassInfo& info = getClassInfo(obj.id);
 			if(obj.size!=0)
@@ -593,9 +593,28 @@ namespace engone {
 					log::out << " missing\n";
 			}
 		}
-		//if (m_shouldClear)
-		//	cleanup(true);
-		//m_locked = false;
+		unlock();
+	}
+	void Tracker::lock() {
+		if (m_mutexOwner != std::this_thread::get_id()) {
+			//ENGONE_DEBUG(log::out << "server maybe lock\n";)
+			m_mutex.lock();
+			//ENGONE_DEBUG(log::out << "server locked\n";)
+			m_mutexOwner = std::this_thread::get_id();
+			mutexDepth++;
+		} else {
+			mutexDepth++;
+		}
+	}
+	void Tracker::unlock() {
+		if (m_mutexOwner == std::this_thread::get_id()) {
+			mutexDepth--;
+			if (mutexDepth == 0) {
+				m_mutexOwner = {};
+				//ENGONE_DEBUG(log::out << "server unlocked\n";)
+				m_mutex.unlock();
+			}
+		}
 	}
 #ifdef ENGONE_DEBUG_TRACKER
 	uint32_t TrackTree::findDouble() const {

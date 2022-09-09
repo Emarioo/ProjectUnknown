@@ -190,27 +190,27 @@ namespace engone{
 	
 		// Total tracked memory
 		// includeTracker as true will add the tracker's internal memory to the total. (you probably want this as false)
-		int32_t getMemory(bool includeTracker = false) const;
+		int32_t getMemory(bool includeTracker = false);
 		// Memory used by the tracker itself. (TrackNodes)
-		int32_t getInternalMemory() const;
+		int32_t getInternalMemory();
 
 		template<class T>
-		uint32_t getClassMemory() const {
+		uint32_t getClassMemory() {
 			return getClassMemory(T::trackerId);
 		}
 		// Memory for both single pointers and floating memory.
-		uint32_t getClassMemory(TrackerId id) const;
+		uint32_t getClassMemory(TrackerId id);
 		// Memory tracked by non-class floating memory.
 		inline int32_t getFloatingMemory() const {
 			return m_floatingMemory;
 		}
 		// For specific class
 		template<class T>
-		int32_t getFloatingMemory() const { 
+		int32_t getFloatingMemory() { 
 			return getFloatingMemory(T::trackerId);
 		}
 		// For specific class
-		int32_t getFloatingMemory(TrackerId id) const;
+		int32_t getFloatingMemory(TrackerId id);
 
 		// ISSUE: not thread safe
 		template<class T>
@@ -250,8 +250,6 @@ namespace engone{
 
 		inline Info& getInfo() { return m_info; }
 
-		// Dev NOTE: function cannot be const because function will be creat ClassInfo if it doesn't exist.
-		Tracker::ClassInfo& getClassInfo(TrackerId id);
 
 		// Note that you can't fully rely on these values to see if there are memory leaks. AddMem could be used as SubMem. And you may do multiple AddMem but then one SubMem for all of them.
 		void printInfo();
@@ -263,15 +261,19 @@ namespace engone{
 
 		std::vector<TrackClass> m_trackQueue;
 		std::vector<TrackClass> m_untrackQueue;
+		
+		std::mutex m_mutex;
+		std::thread::id m_mutexOwner;
+		int mutexDepth = 0;
+		void lock();
+		void unlock();
 
-		//bool m_untrackQueueLocked, m_trackQueueLocked = false; // not sure if queue lock is necessary.
-		//bool m_locked = false;
-		//bool m_shouldClear = false;
+		// Dev NOTE: function cannot be const because function will be creat ClassInfo if it doesn't exist.
+		Tracker::ClassInfo& getClassInfo(TrackerId id);
 
 		std::unordered_map<TrackerId, ClassInfo> m_trackedObjects;
 
 		// will handle queues if not locked otherwise just return
-		// template is only needed to debug values
 		void handleQueue();
 	};
 #ifdef ENGONE_DEBUG_TRACKER

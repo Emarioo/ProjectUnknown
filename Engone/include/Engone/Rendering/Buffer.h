@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engone/Utilities/ImageUtility.h"
+
 namespace engone {
 
 	/*
@@ -16,8 +18,6 @@ namespace engone {
 		GLObject(const GLObject&) = delete;
 		GLObject& operator=(const GLObject&) = delete;
 
-		virtual void bind() const = 0;
-		virtual void unbind() const = 0;
 		virtual void cleanup() = 0;
 
 		constexpr bool initialized() const { return m_id != 0; }
@@ -56,8 +56,8 @@ namespace engone {
 		//VertexBuffer(const VertexBuffer& ib) = delete;
 		//VertexBuffer& operator=(const VertexBuffer&) = delete;
 
-		void bind() const override;
-		void unbind() const override;
+		void bind() const;
+		void unbind() const;
 		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -72,8 +72,8 @@ namespace engone {
 		// These make it possible to cause bad behaviour
 		//IndexBuffer(const IndexBuffer& ib) = delete;
 		//IndexBuffer& operator=(const IndexBuffer&) = delete;
-		void bind() const override;
-		void unbind() const override;
+		void bind() const;
+		void unbind() const;
 		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -94,8 +94,8 @@ namespace engone {
 		//ShaderBuffer(const ShaderBuffer&) = delete;
 		//ShaderBuffer& operator=(const ShaderBuffer&) = delete;
 
-		void bind() const override;
-		void unbind() const override;
+		void bind() const;
+		void unbind() const;
 		void cleanup() override;
 
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
@@ -117,8 +117,8 @@ namespace engone {
 		//VertexArray(const VertexArray& ib) = delete;
 		//VertexArray& operator=(const VertexArray&) = delete;
 
-		void bind() const override;
-		void unbind() const override;
+		void bind() const;
+		void unbind() const;
 		void cleanup() override;
 
 		void addAttribute(uint8_t floatSize);
@@ -146,6 +146,40 @@ namespace engone {
 		uint8_t strides[MAX_BUFFERS]{};
 		uint8_t startLocations[MAX_BUFFERS]{};
 	};
+
+	class Texture : public GLObject {
+	public:
+		Texture() = default;
+		~Texture() { cleanup(); }
+
+		void bind(unsigned int slot = 0);
+		void unbind();
+		void cleanup() override;
+
+		//void init(const char* path);
+
+		// image cannot be nullptr
+		void init(RawImage* image);
+		//void init(int width, int height, char* data, int x=0,int y);
+		//void init(const void* inBuffer, uint32_t size);
+		//Texture(const std::string& path) : Asset(TYPE) { load(path); };
+		//Texture(const char* inBuffer, uint32_t size, Assets* assets = nullptr) : Asset(TYPE, "") { load(inBuffer, size, assets); };
+		//void load(const void* inBuffer, uint32_t size);
+		//void load(const std::string& path) override;
+
+		//void init(int w, int h, void* data);
+		
+		// function is not complete. Initialization of the image can only be done once.
+		void setData(int width, int height, char* data, int x = 0, int y=0);
+
+		int getWidth() const;
+		int getHeight() const;
+
+	private:
+		unsigned char* buffer = nullptr;
+		int m_width = 0, m_height = 0, BPP = 0;
+	};
+
 	// Note that the framebuffer doesn't inherit GLBuffer since you link other buffers to it.
 	class FrameBuffer : public GLObject {
 	public:
@@ -155,8 +189,8 @@ namespace engone {
 		void init();
 		void initBlur(int width, int height);
 
-		void bind() const override;
-		void unbind() const override;
+		void bind() const;
+		void unbind() const;
 		void cleanup() override;
 
 		// don't forget view port when drawing
@@ -181,5 +215,49 @@ namespace engone {
 
 		unsigned int m_textureId = 0;
 		uint32_t m_renderBufferId = 0;
+	};
+	class Shader : public GLObject {
+	public:
+		Shader() = default;
+		Shader(const char* source) { init(source); }
+		~Shader() { cleanup(); }
+
+		void bind();
+		void unbind();
+		void cleanup() override;
+
+		//void load(const std::string& path, Assets* assets) override;
+		void init(const char* source);
+
+		struct ShaderSource {
+			const char* start = nullptr; // this is not null terminated
+			int length = 0;
+			int line = 0;// which line on the original
+
+			bool operator==(ShaderSource src) {
+				return start == src.start && length == src.length;
+			}
+		};
+		static struct { ShaderSource vs; ShaderSource fs; } GenerateSources(const char* source);
+
+		ShaderSource vs, fs;
+		const char* original = nullptr;
+
+		void setInt(const std::string& name, int i);
+		void setFloat(const std::string& name, float f);
+		void setVec2(const std::string& name, glm::vec2);
+		void setIVec2(const std::string& name, glm::ivec2);
+		void setVec3(const std::string& name, glm::vec3);
+		void setIVec3(const std::string& name, glm::ivec3);
+		void setVec4(const std::string& name, float f0, float f1, float f2, float f3);
+		void setMat4(const std::string& name, glm::mat4 v);
+
+		//static TrackerId trackerId;
+	private:
+		uint32_t createShader(ShaderSource vertexSrc, ShaderSource fragmentSrc);
+		uint32_t compileShader(uint32_t type, ShaderSource source);
+
+		unsigned int getUniformLocation(const std::string& name);
+		std::unordered_map<std::string, unsigned int> uniLocations;
 	};
 }

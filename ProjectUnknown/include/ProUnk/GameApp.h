@@ -5,7 +5,7 @@
 #include "Objects/Player.h"
 #include "Objects/Terrain.h"
 
-#include "Engone/World/Playground.h"
+#include "ProUnk/NetGameGround.h"
 
 #include "Engone/ParticleModule.h"
 
@@ -21,7 +21,16 @@ namespace game {
 	};
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:
-		GameApp(engone::Engone* engone);
+
+		enum Flag : int {
+			StartServer = 1,
+			StartClient = 2
+		};
+		typedef int Flags;
+
+		GameApp(engone::Engone* engone, Flags flag=0);
+		~GameApp() { cleanup(); }
+		void cleanup() {}
 
 		void update(engone::UpdateInfo& info) override;
 		void render(engone::RenderInfo& info) override;
@@ -29,8 +38,13 @@ namespace game {
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
 
-		Player* player=nullptr;
+		Player* player = nullptr;
 		Terrain* terrain = nullptr;
+
+		engone::DelayCode delayed;
+
+		inline NetGameGround* getGround() override { return (NetGameGround*)Application::getGround(); }
+		inline void setGround(NetGameGround* ground) { Application::setGround(ground); }
 
 	private:
 		bool paused = true;

@@ -11,6 +11,8 @@ namespace engone {
 		ModeBorderless = 1,
 		ModeFullscreen = 2,
 		ModeBorderlessFullscreen = 3,
+		ModeTransparent = 4,
+		ModeMousePassthrough = 8,
 	};
 	typedef uint8_t WindowModes;
 	class Application;
@@ -29,7 +31,7 @@ namespace engone {
 		// can be called before window has been created. Altough window is required to use this function.
 		void setTitle(const std::string title);
 		// 32 bit RGBA. 16x16, 32x32, 48x48 are good sizes.
-		void setIcon(const RawImage& img);
+		void setIcon(RawImage* img);
 		// will make this window/context the active one.
 		// will not set window as active if it already is.
 		void setActiveContext();
@@ -52,7 +54,7 @@ namespace engone {
 		inline bool isCursorVisible() const { return m_cursorVisible; }
 
 		inline Application* getParent() { return m_parent; }
-		inline Assets* getAssets() { return &m_assets; }
+		inline AssetStorage* getStorage() { return &m_storage; }
 		inline Renderer* getRenderer() { return &m_renderer; }
 
 		 //will create a new listener which the window has ownership of. Meaning listener will be destroyed when window is.
@@ -111,7 +113,8 @@ namespace engone {
 
 		GLFWwindow* m_glfwWindow=nullptr;
 		Application* m_parent=nullptr;
-		Assets m_assets;
+		//Assets m_assets;
+		AssetStorage m_storage;
 		Renderer m_renderer;
 		std::vector<Listener*> m_listeners;
 		std::vector<Event> m_events;

@@ -188,7 +188,7 @@ namespace engone {
 	EventType FirstPerson(Event& e) {
 		if (e.window->m_lastMouseX != -1) {
 			Camera* camera = e.window->getRenderer()->getCamera();
-			if (GetActiveWindow()->isCursorLocked() && camera != nullptr) {
+			if (e.window->isCursorLocked() && camera != nullptr) {
 				float rawX = -(e.mx - e.window->m_lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
 				float rawY = -(e.my - e.window->m_lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
 
@@ -263,6 +263,7 @@ namespace engone {
 				delete l;
 			}
 		}
+		//log::out << "deleted window\n";
 
 		// then we set it to nullptr
 		activeWindow = nullptr;
@@ -271,8 +272,12 @@ namespace engone {
 		m_title = title;
 		glfwSetWindowTitle(m_glfwWindow, title.c_str());
 	}
-	void Window::setIcon(const RawImage& img) {
-		GLFWimage tmp = {img.width,img.height,(uint8_t*)img.data};
+	void Window::setIcon(RawImage* img) {
+		if (!img) {
+			log::out << log::RED << "Window::setIcon - img is nullptr\n";
+			return;
+		}
+		GLFWimage tmp = {img->width,img->height,(uint8_t*)img->data()};
 		glfwSetWindowIcon(m_glfwWindow,1,&tmp);
 	}
 	void Window::setActiveContext() {
@@ -512,9 +517,13 @@ namespace engone {
 		if (m_glfwWindow) {
 			GLFWmonitor* mayUseMonitor = NULL;
 			if (winMode & ModeBorderless) {
-
+				glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, true);
 			} else {
+				glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, false);
 				mayUseMonitor = monitor;
+			}
+			if ((winMode & ModeTransparent)!=(m_windowMode&ModeTransparent)) {
+				log::out << "Window::setMode - window cannot toggle transparent framebuffers\n";
 			}
 			if (winMode & ModeFullscreen) {
 				if((m_windowMode&ModeFullscreen)==0)
@@ -538,7 +547,18 @@ namespace engone {
 				glfwWindowHint(GLFW_DECORATED, true);
 				mayUseMonitor = monitor;
 			}
-			
+			if (winMode & ModeTransparent) {
+				glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, true);
+			} else {
+				glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, false);
+			}
+			if (winMode & ModeTransparent) {
+				glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, true);
+			} else {
+				glfwWindowHint(GLFW_MOUSE_PASSTHROUGH, false);
+			}
+			glfwWindowHint(GLFW_FOCUSED,false);
+			glfwWindowHint(GLFW_FOCUS_ON_SHOW,false);
 			if ((winMode & ModeFullscreen)==0) {
 				if (m_windowMode & ModeFullscreen)
 					loadCoords();

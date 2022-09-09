@@ -9,6 +9,14 @@
       <Configuration>DebPhys</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="RelBase|Win32">
       <Configuration>RelBase</Configuration>
       <Platform>Win32</Platform>
@@ -36,10 +44,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Engone\Application.h" />
+    <ClInclude Include="include\Engone\Assets\AnimationAsset.h" />
+    <ClInclude Include="include\Engone\Assets\Animator.h" />
+    <ClInclude Include="include\Engone\Assets\ArmatureAsset.h" />
+    <ClInclude Include="include\Engone\Assets\Asset.h" />
+    <ClInclude Include="include\Engone\AssetModule.h" />
+    <ClInclude Include="include\Engone\Assets\ColliderAsset.h" />
+    <ClInclude Include="include\Engone\Assets\FontAsset.h" />
+    <ClInclude Include="include\Engone\Assets\MaterialAsset.h" />
+    <ClInclude Include="include\Engone\Assets\MeshAsset.h" />
+    <ClInclude Include="include\Engone\Assets\ModelAsset.h" />
+    <ClInclude Include="include\Engone\Assets\ShaderAsset.h" />
+    <ClInclude Include="include\Engone\Assets\TextureAsset.h" />
     <ClInclude Include="include\Engone\Defs\DEFS_BASE.h" />
+    <ClInclude Include="include\Engone\Error.h" />
     <ClInclude Include="include\Engone\GameObject.h" />
     <ClInclude Include="include\Engone\Logger.h" />
     <ClInclude Include="include\Engone\ModuleDefs.h" />
+    <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
     <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
@@ -50,11 +72,10 @@
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
     <ClInclude Include="include\Engone\Utilities\Tracker.h" />
-    <ClInclude Include="include\Engone\World\Playground.h" />
+    <ClInclude Include="include\Engone\World\GameGround.h" />
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
     <ClInclude Include="include\Engone\vendor\Libaudio.h" />
-    <ClInclude Include="include\Engone\Components\Component.h" />
     <ClInclude Include="include\Engone\EngoneFlag.h" />
     <ClInclude Include="include\Engone\Networking\Client.h" />
     <ClInclude Include="include\Engone\Networking\MessageBuffer.h" />
@@ -65,7 +86,6 @@
     <ClInclude Include="include\Engone\Rendering\Buffer.h" />
     <ClInclude Include="include\Engone\NetworkModule.h" />
     <ClInclude Include="include\Engone\Engone.h" />
-    <ClInclude Include="include\Engone\AssetModule.h" />
     <ClInclude Include="include\Engone\Rendering\Camera.h" />
     <ClInclude Include="include\Engone\Rendering\Light.h" />
     <ClInclude Include="include\Engone\RenderModule.h" />
@@ -79,27 +99,29 @@
     <ClInclude Include="include\Engone\pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engone\Assets\Animator.cpp" />
+    <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="include\Engone\LoopInfo.h" />
-    <ClCompile Include="include\Engone\Utilities\Alloc.cpp" />
+    <ClCompile Include="src\Engone\GameGround.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Alloc.cpp" />
     <ClCompile Include="src\Engone\Application.cpp" />
-    <ClCompile Include="src\Engone\Components\Component.cpp" />
+    <ClCompile Include="src\Engone\Assets\Asset.cpp" />
     <ClCompile Include="src\Engone\GameObject.cpp" />
     <ClCompile Include="src\Engone\IMPLS.cpp" />
     <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
-    <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="src\Engone\ParticleModule.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
+    <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp" />
     <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
     <ClCompile Include="src\Engone\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
-      <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
@@ -130,10 +152,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings"> </ImportGroup>
+  <ImportGroup Label="Shared"> </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -144,31 +164,48 @@
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\intermediate\$(ProjectName)\$(Configuration)$(Platform)</IntDir>
   </PropertyGroup>
-  <!-- base, ignoring x64 for now-->
+  <!-- base -->
   <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>include;$(SolutionDir)\libs\GLFW\include;$(SolutionDir)\libs\GLEW\include;$(SolutionDir)\libs\ASIO\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;$(SolutionDir)\libs\GLFW\include;$(SolutionDir)\libs\GLEW\include;</AdditionalIncludeDirectories>
+      <!-- $(SolutionDir)\libs\ASIO\include -->
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <ForcedIncludeFiles>Engone/pch.h;Engone/ModuleDefs.h</ForcedIncludeFiles>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)\libs\GLFW\lib;$(SolutionDir)\libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>gdi32.lib;user32.lib;shell32.lib;opengl32.lib;glew32s.lib;glfw3.lib</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;</AdditionalDependencies>
     </Lib>
-    <ProjectReference>
-      <LinkLibraryDependencies>false</LinkLibraryDependencies>
-    </ProjectReference>
+  </ItemDefinitionGroup>
+  <!-- x32 -->
+  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
+    <Message Importance="High" Text="MSGTEST with 32 bit" />
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32</PreprocessorDefinitions>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies);glew32s.lib;glfw332.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <!-- x64 -->
+  <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
+    <ClCompile>
+      <!-- <PreprocessorDefinitions>%(PreprocessorDefinitions);</PreprocessorDefinitions> -->
+    </ClCompile>
+    <Message Importance="High" Text="MSGTEST with 64 bit" />
+    <Lib>
+      <AdditionalDependencies>%(AdditionalDependencies);glew64s.lib;glfw364.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <!-- debug -->
   <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Deb'))">
@@ -178,6 +215,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <!-- release -->
@@ -185,6 +223,7 @@
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+       <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG;</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -194,22 +233,26 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <!-- specifics -->
+  <!-- with physics -->
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Phys'))">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_PHYSICS</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);reactphysics3d.lib</AdditionalDependencies>
+      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories> -->
+      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories> -->
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Platform)'=='Win32'">%(AdditionalDependencies);reactphysics3d32.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Platform)'=='x64'">%(AdditionalDependencies);reactphysics3d64.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
+  <!-- with sound -->
   <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))">
     <Message Importance="High" Text="Building with sound is not finished." />
     <!-- Sound is pretty much finished in here but OpenAL32 requires you to install it on your computer which I don't want.
           I just want a static lib without any installing which works nicely with the executable. -->
+    <!--
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_SOUND</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)\libs\AL\include</AdditionalIncludeDirectories>
@@ -218,8 +261,13 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)\libs\AL\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);OpenAL32.lib</AdditionalDependencies>
     </Lib>
+  -->
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="Daft">
+    <Message Importance="High" Text="MSGTEST maybe $(Platform)" />
+    <Warning  Importance="High" Text="MSGTEST maybe $(Platform)" />
+  </Target>
 </Project>

@@ -48,16 +48,10 @@
     <ClInclude Include="include\Engone\EventModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\AssetModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\NetworkModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Components\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Application.h">
@@ -96,7 +90,7 @@
     <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\World\Playground.h">
+    <ClInclude Include="include\Engone\World\GameGround.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Utilities\rp3d.h">
@@ -141,6 +135,48 @@
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\AssetModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\Asset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\MeshAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\AnimationAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\MaterialAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ArmatureAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ModelAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ColliderAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\TextureAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\Animator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\FontAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ShaderAsset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\NetworkModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
@@ -173,9 +209,6 @@
     <ClCompile Include="src\Engone\Events\EventModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Assets\AssetModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -186,9 +219,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\Light.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Components\Component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Application.cpp">
@@ -215,10 +245,25 @@
     <ClCompile Include="src\Engone\IMPLS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\Engone\Utilities\Alloc.cpp">
+    <ClCompile Include="src\Engone\Utilites\Alloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Assets\AssetModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Assets\Asset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Assets\Animator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\GameGround.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

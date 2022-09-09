@@ -12,11 +12,13 @@ public:
 	int type = 0;
 };
 
+class engone::GameObject;
 class AttackData : public UserData {
 public:
 	static const int TYPE = 1;
 	AttackData() : UserData(TYPE) {}
 
+	engone::GameObject* owner=nullptr;
 	float animationTime = 0; // endFrame-currentFrame in seconds
 	bool attacking = false;
 	void update(engone::UpdateInfo& info) {

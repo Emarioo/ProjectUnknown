@@ -16,12 +16,15 @@ namespace engone {
 	double GetRandom();
 	uint32_t Random32();
 	uint64_t Random64();
-
+	uint8_t HexToNum(char hex);
+	uint8_t HexToNum(char hex0, char hex1);
+	char NumToHex(uint8_t num);
 	// random uuid of 16 bytes in total, use UUID::New to create one.
 	class UUID {
 	public:
 		// memory is not initialized.
 		UUID() = default;
+		UUID(const char* str);
 		static UUID New();
 		bool operator==(const UUID& uuid) const;
 		bool operator!=(const UUID& uuid) const;
@@ -51,6 +54,7 @@ struct std::hash<engone::UUID> {
 #endif // ENGONE_RANDOMUTIL_GUARD
 
 #ifdef ENGONE_RANDOMUTIL_IMPL
+//#ifndef ENGONE_RANDOMUTIL_IMPL
 #undef ENGONE_RANDOMUTIL_IMPL
 
 #ifdef ENGONE_LOGGER
@@ -98,9 +102,41 @@ namespace engone {
 	}
 	UUID::UUID(const int num) {
 		// Uncomment debugbreak, run program, check stackframe.
-		if (num != 0) DebugBreak();
+		//if (num != 0) DebugBreak();
 		assert(("UUID was created from non 0 int which is not allowed. Put a breakpoint here and check stackframe.", num == 0));
 		memset(this, 0, sizeof(UUID));
+	}
+	uint8_t HexToNum(char hex) {
+		if (hex >= '0' && hex <= '9') return hex - '0';
+		if (hex >= 'a' && hex <= 'f') return 10+hex - 'a';
+		return 10+hex - 'A';
+	}
+	uint8_t HexToNum(char hex0,char hex1) {
+		return HexToNum(hex0) | HexToNum(hex1)<<4;
+	}
+	char NumToHex(uint8_t num) {
+		if (num < 10) return '0' + num;
+		else return 'A' + num - 10;
+	}
+	UUID::UUID(const char* str){
+		int len = strlen(str);
+		if (len != 36) {
+			log::out <<log::RED<< "UUID::UUID - string cannot be converted\n";
+			return;
+		}
+		int index = 0;
+		uint8_t* ut = (uint8_t*)data;
+		for (int i = 0; i < len; i++) {
+			if (str[i] == '-') continue;
+			uint8_t num = HexToNum(str[i]);
+
+			if(index%2==0)
+				ut[index / 2]=num;
+			else
+				ut[index / 2]|=num<<4;
+
+			index++;
+		}
 	}
 	bool UUID::operator==(const UUID& uuid) const {
 		for (int i = 0; i < 2; i++) {
@@ -111,10 +147,6 @@ namespace engone {
 	}
 	bool UUID::operator!=(const UUID& uuid) const {
 		return !(*this == uuid);
-	}
-	char toHex(uint8_t num) {
-		if (num < 10) return '0' + num;
-		else return 'A' + num - 10;
 	}
 	std::string UUID::toString(bool fullVersion) const {
 		char out[2 * sizeof(UUID) + 4 + 1]; // maximum hash string, four dashes, 1 null
@@ -127,8 +159,8 @@ namespace engone {
 				break;
 			if (i == 4 || i == 6 || i == 8 || i == 10)
 				out[write++] = '-';
-			out[write++] = toHex(bytes[i] & 15);
-			out[write++] = toHex(bytes[i] >> 4);
+			out[write++] = NumToHex(bytes[i] & 15);
+			out[write++] = NumToHex(bytes[i] >> 4);
 		}
 		out[write] = 0; // finish with null terminated char
 		return out;

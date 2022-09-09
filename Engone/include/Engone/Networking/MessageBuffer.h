@@ -1,21 +1,30 @@
 #pragma once
 
-#include "Engone/Utilities/Tracker.h"
+//#include <stdint.h>
+//#include <string>
+//#include <iostream>
 
 namespace engone {
 	 //A message consists of the size of the body and then the body which is raw data.
 	 //4.29 Gigabytes is the maximum of how many bytes you can send.
 	 //Send multiple messages if you need to send more data.
+	// Be careful when using copy constructor.
 	class MessageBuffer {
 	public:
 		// msgType can be an enum which describes what type of message you are sending.
 		// size is optional, if you know the size of the body this will would prevent
 		// unnecessary reallocations of the internal buffer.
 
-		//static MessageBuffer* Create(int msgType, uint32_t size = 0);
-		MessageBuffer(int msgType, uint32_t size = 0);
+		// the reason i don't use this is because you need to manually delete the pointer unless you pass it to a send function.
+		//static MessageBuffer* Create(uint32_t size=0);
+
 		MessageBuffer() = default;
-		~MessageBuffer();
+		MessageBuffer(uint32_t size);
+		~MessageBuffer() { cleanup(); }
+
+		MessageBuffer(const MessageBuffer&);
+		//MessageBuffer operator=(const MessageBuffer&);
+
 		// size of body
 		uint32_t size() const {
 			if (m_data) {
@@ -35,9 +44,10 @@ namespace engone {
 				}
 			}
 			uint32_t head = sizeof(uint32_t)+size();
-			memcpy_s(m_data + head, m_dataSize - head, in, sizeof(T) * count);
+			std::memcpy(m_data + head, in, sizeof(T) * count);
 			*((uint32_t*)m_data) += sizeof(T) * count;
 		}
+		// Careful with this. "push(vector.size())" is not uint32_t. It is size_t which is 8 bytes and not 4 bytes on 64-bit application.
 		template<class T>
 		void push(const T in) {
 			if (m_dataSize < sizeof(uint32_t)+size() + sizeof(T)) {
@@ -47,9 +57,11 @@ namespace engone {
 				}
 			}
 			uint32_t head = sizeof(uint32_t)+ size();
-			memcpy_s(m_data + head, m_dataSize -head, &in, sizeof(T));
+			std::memcpy(m_data + head, &in, sizeof(T));
+			//log::out << "Pushed " << in<<" . "<< *(T*)(m_data + head) << "\n";
 			*((uint32_t*)m_data) += sizeof(T);
 		}
+
 		void push(const std::string& in);
 		void push(const char* in);
 
@@ -67,16 +79,24 @@ namespace engone {
 		}
 		void pull(std::string& out);
 
+		void moveReadHead(uint32_t byteIndex) {
+			m_readHead = byteIndex;
+		}
+
 		void flush();
 
+		char* getData() { return m_data; }
+		uint32_t getMaxSize() const { return m_dataSize; }
+
+		void cleanup();
+
 		// The internal buffer is grouped with MessageBuffer
-		static TrackerId trackerId;
+		//static TrackerId trackerId;
 	private:
 		char* m_data = nullptr;
 		uint32_t m_dataSize = 0; // including size of header
 		uint32_t m_readHead=0;
-		bool noDelete = false; // used when receiving
-		//uint32_t sharings = 0;
+		bool m_sharing = false; // used when receiving
 
 		// size should exclude size of header
 		bool resize(uint32_t size);

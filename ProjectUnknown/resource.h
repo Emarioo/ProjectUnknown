@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by ProjectUnknown.rc
 //
+#define VS_VERSION_INFO                 1
 #define IDI_ICON1                       102
 
 // Next default values for new objects

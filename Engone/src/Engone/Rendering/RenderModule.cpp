@@ -2,7 +2,6 @@
 #include "Engone/RenderModule.h"
 
 #include "Engone/Window.h"
-#include "Engone/Utilities/Utilities.h"
 #include "Engone/EventModule.h"
 
 #include "Engone/Engone.h"
@@ -57,11 +56,12 @@ namespace engone {
 		textVBO.setData(16 * TEXT_BATCH * sizeof(float), nullptr);
 		textVAO.addAttribute(4, &textVBO);
 
-		Assets* assets = m_parent->getAssets();
+		//Assets* assets = m_parent->getAssets();
+		AssetStorage* assets = m_parent->getStorage();
 
 		// pipeline
 
-		assets->set<Shader>("uiPipeline", new Shader(uiPipelineGLSL));
+		assets->set<ShaderAsset>("uiPipeline", new ShaderAsset(uiPipelineGLSL));
 
 		boxVBO.setData(4 * VERTEX_SIZE * MAX_BOX_BATCH * sizeof(float), nullptr);
 
@@ -94,7 +94,7 @@ namespace engone {
 		//  maybe use tracker inside constructors, You can't have inside constructors because a stack allocated class would be tracked.
 
 		// Line pipeline
-		assets->set<Shader>("lines3d", new Shader(linesGLSL));
+		assets->set<ShaderAsset>("lines3d", new ShaderAsset(linesGLSL));
 		pipe3lines.reserve(PIPE3_LINE_RESERVE*6);
 		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*6 * sizeof(float), nullptr);
 		uint32_t indLine[PIPE3_LINE_BATCH_LIMIT*2];
@@ -104,8 +104,8 @@ namespace engone {
 		pipe3lineIB.setData(PIPE3_LINE_BATCH_LIMIT*2 * sizeof(float), indLine);
 		pipe3lineVA.addAttribute(3, &pipe3lineVB);
 
-		assets->set<Shader>("renderer", new Shader(rendererGLSL));
-		float cubeVertices[48]{
+		assets->set<ShaderAsset>("renderer", new ShaderAsset(rendererGLSL));
+		float cubeVertices[48]{ // this is correct, the shader must be wrong. The latest index's normal is used.
 			0,0,0, 0,0,0,
 			1,0,0, 0,0,-1,
 			0,1,0, -1,0,0,
@@ -160,12 +160,13 @@ namespace engone {
 
 		instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 
-		assets->set<Shader>("gui", new Shader(guiShaderSource));
+		assets->set<ShaderAsset>("gui", new ShaderAsset(guiShaderSource));
 		
-		assets->set<Shader>("object", new Shader(objectSource));
-		assets->set<Shader>("armature", new Shader(armatureSource));
+		assets->set<ShaderAsset>("object", new ShaderAsset(objectSource));
+		assets->set<ShaderAsset>("armature", new ShaderAsset(armatureSource));
 		MaterialAsset* mat = new MaterialAsset();
-		mat->setBaseName("defaultMaterial");
+
+		//mat->setBaseName("defaultMaterial");
 		assets->set<MaterialAsset>("defaultMaterial", mat);
 
 		//instanceBuffer.setData(INSTANCE_LIMIT * 16, nullptr);
@@ -230,16 +231,17 @@ namespace engone {
 		ar[ind + 2] = f2;
 		ar[ind + 3] = f3;
 	}
-	void Renderer::DrawString(Font* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar) {
+	void Renderer::DrawString(FontAsset* font, const std::string& text, bool center, float wantedHeight, float maxWidth, float maxHeight, int atChar) {
 		if (text.length() == 0 && atChar == -1)
 			return;
 		if (font == nullptr) {
 			std::cout << "DrawString: Font is null\n";
 			return;
-		} else if (font->texture.error) {
+		} else if (font->getError()) {
 			return;
 		} else {
-			Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
+			//Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
+			ShaderAsset* guiShader = m_parent->getStorage()->get<ShaderAsset>("gui");
 			if (guiShader != nullptr)
 				guiShader->setInt("uColorMode", 1);
 			//guiShader->setInt("uTextures", 0);
@@ -407,6 +409,7 @@ namespace engone {
 				y = (maxHeight - wantedHeight * lines.size()) / 2;
 			}
 		}
+
 		for (uint32_t i = 0; i < lines.size(); ++i) {
 			//std::cout << "[" << lines[i] << "] " << "\n";
 			float x = 0;
@@ -414,7 +417,7 @@ namespace engone {
 				x = (maxWidth - lineWidths[i]) / 2;
 			//std::cout << lines[i].length()<<"\n";
 			for (uint32_t j = 0; j < lines[i].length(); ++j) {
-				char chr = lines[i][j];
+				uint8_t chr = lines[i][j];
 				//if (chr == '\n')
 				//	continue;
 				float wStride = wantedHeight * (font->charWid[chr] / (float)font->charSize);
@@ -430,7 +433,7 @@ namespace engone {
 				x += wStride + spacing;
 
 				if (dataIndex + 1 == TEXT_BATCH) {
-					textVBO.setData(16 * TEXT_BATCH, verts);
+					textVBO.setData(16 * TEXT_BATCH*sizeof(float), verts);
 					textVAO.draw(&textIBO);
 					//textBuffer.ModifyVertices(0, 4 * 4 * TEXT_BATCH, verts);
 					//textBuffer.Draw();
@@ -465,6 +468,99 @@ namespace engone {
 		//textBuffer.ModifyVertices(0, 16 * TEXT_BATCH, verts);
 		//textBuffer.Draw();
 		//rectBuffer.Draw();
+	}
+	void Renderer::DrawString(FontAsset* font, const std::string& text, float height, int cursorPosition) {
+		if (text.length() == 0 && cursorPosition == -1)
+			return;
+		if (font == nullptr) {
+			std::cout << "DrawString: Font is null\n";
+			return;
+		} else if (font->getError()) {
+			return;
+		} else {
+			//Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
+			ShaderAsset* guiShader = m_parent->getStorage()->get<ShaderAsset>("gui");
+			if (guiShader != nullptr)
+				guiShader->setInt("uColorMode", 1);
+			//guiShader->setInt("uTextures", 0);
+			font->texture.bind();
+		}
+
+
+		float spacing = 0;
+
+		float x = 0;
+		float y = 0;
+		uint32_t dataIndex = 0;
+		if (cursorPosition != -1) { // do marker
+			for (uint32_t j = 0; j < text.size(); ++j) {
+				uint8_t chr = text[j];
+				if (chr == '\n') {
+					x = 0;
+					y += height;
+					continue;
+				}
+
+				float wStride = height * (font->charWid[chr] / (float)font->charSize);
+
+				if (cursorPosition == dataIndex) {
+					break;
+				}
+				x += wStride + spacing;
+
+				dataIndex++;
+			}
+			if (cursorPosition != dataIndex) {
+				x = 0;
+			}
+			dataIndex = 0;
+			//std::cout << x << "\n";
+			float wuv = font->charWid[0] / (float)font->imgSize;
+			float u = (0 % 16);
+			float v = 15 - (0 / 16);
+			float markerW = height * (font->charWid[0] / (float)font->charSize);
+			Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 4 + 16 * dataIndex, x, y + height, (u) / 16, (v) / 16);
+			Insert4(verts, 8 + 16 * dataIndex, x + markerW, y + height, (u) / 16 + wuv, (v) / 16);
+			Insert4(verts, 12 + 16 * dataIndex, x + markerW, y, (u) / 16 + wuv, (v + 1) / 16);
+			dataIndex = 1;
+		}
+		x = 0;
+		dataIndex = 0;
+		//std::cout << lines[i].length()<<"\n";
+		for (uint32_t j = 0; j< text.size(); ++j) {
+			uint8_t chr = text[j];
+			if (chr == '\n') {
+				x = 0;
+				y += height;
+				continue;
+			}
+			float wStride = height * (font->charWid[chr] / (float)font->charSize);
+
+			float wuv = font->charWid[chr] / (float)font->imgSize;
+			float u = (float)(chr % 16);
+			float v = (float)(15 - (chr / 16));
+
+			Insert4(verts, 16 * dataIndex, x, y, (u) / 16, (v + 1) / 16);
+			Insert4(verts, 4 + 16 * dataIndex, x, y + height, (u) / 16, (v) / 16);
+			Insert4(verts, 8 + 16 * dataIndex, x + wStride, y + height, (u) / 16 + wuv, (v) / 16);
+			Insert4(verts, 12 + 16 * dataIndex, x + wStride, y, (u) / 16 + wuv, (v + 1) / 16);
+			x += wStride + spacing;
+
+			if (dataIndex + 1 == TEXT_BATCH) {
+				textVBO.setData(16 * TEXT_BATCH * sizeof(float), verts);
+				textVAO.draw(&textIBO);
+				dataIndex = 0;
+			} else {
+				dataIndex++;
+			}
+		}
+
+		uint32_t charIndex = dataIndex % TEXT_BATCH;
+		memset(verts + 16 * charIndex, 0, 16 * (TEXT_BATCH - charIndex) * sizeof(float));
+
+		textVBO.setData(16 * TEXT_BATCH * sizeof(float), verts);
+		textVAO.draw(&textIBO);
 	}
 	void Renderer::DrawCube(glm::mat4 matrix, glm::vec3 scale, glm::vec3 color) {
 		cubeObjects.push_back({ glm::scale(matrix,scale),color });
@@ -576,7 +672,7 @@ namespace engone {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
 			uint32_t text_index=0;
 			float x = 0, y = 0, h = 20;
-			Font* font = nullptr;
+			FontAsset* font = nullptr;
 			Color rgba;
 			uint32_t at = -1;
 		};
@@ -741,13 +837,16 @@ namespace engone {
 		}
 		EnableDepth();
 
-		Shader* shad = m_parent->getAssets()->get<Shader>("renderer");
+		ShaderAsset* shad = m_parent->getStorage()->get<ShaderAsset>("renderer");
+		//Shader* shad = m_parent->getAssets()->get<Shader>("renderer");
 		if (shad) {
 			shad->bind();
 			updateProjection(shad);
 			shad->setVec3("uCamera", camera.getPosition());
 			uint32_t drawnCubes = 0;
 			uint32_t cubeCount = 0;
+
+			getParent()->getParent()->getEngine()->bindLights(shad, { 0,0,0 });
 
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_BOX_BATCH, cubeObjects.size() - drawnCubes);
@@ -760,11 +859,11 @@ namespace engone {
 			}
 			cubeObjects.clear();
 		}
-		shad = m_parent->getAssets()->get<Shader>("lines3d");
+		shad = m_parent->getStorage()->get<ShaderAsset>("lines3d");
 		if (shad) {
 			shad->bind();
 			updateProjection(shad);
-			glLineWidth(1.f);
+			glLineWidth(4.f);
 			//shad->setVec3("uColor", { 0.3,0.8,0.3 });
 			shad->setVec3("uColor", { 0.9,0.2,0.2 });
 
@@ -788,13 +887,13 @@ namespace engone {
 				log::out << log::YELLOW << "Renderer and active context is different!\n";
 		}
 		// setup
-		Shader* guiShad = m_parent->getAssets()->get<Shader>("gui");
+		ShaderAsset* guiShad = m_parent->getStorage()->get<ShaderAsset>("gui");
 		if (!guiShad) return;
 
 		guiShad->bind();
 		guiShad->setVec2("uWindow", { GetWidth(), GetHeight() });
 
-		Shader* pipeShad = m_parent->getAssets()->get<Shader>("uiPipeline");
+		ShaderAsset* pipeShad = m_parent->getStorage()->get<ShaderAsset>("uiPipeline");
 		if (!pipeShad) return;
 
 		pipeShad->bind();
@@ -870,7 +969,9 @@ namespace engone {
 				guiShad->setVec2("uPos", { box->x, box->y });
 				guiShad->setVec2("uSize", { 1, 1 });
 				guiShad->setVec4("uColor", box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a);
-				DrawString(box->font, uiStrings[box->text_index], false, box->h, 9999, 9999, box->at);
+
+				//DrawString(box->font, uiStrings[box->text_index], false, box->h, 9999, 9999, box->at);
+				DrawString(box->font, uiStrings[box->text_index], box->h, box->at);
 
 				// don't continue with other stuff
 				continue;

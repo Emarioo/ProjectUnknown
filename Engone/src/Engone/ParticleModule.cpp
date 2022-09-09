@@ -1,6 +1,8 @@
 
 #include "Engone/ParticleModule.h"
 
+#include "Engone/Utilities/Utilities.h"
+
 namespace engone {
 
 //	static const char* particleGLSL = {
@@ -74,7 +76,8 @@ namespace engone {
 			EnableBlend();
 		else
 			EnableDepth();
-		Assets* assets = m_parent->getAssets();
+		AssetStorage* assets = m_parent->getStorage();
+		//Assets* assets = m_parent->getAssets();
 		Renderer* renderer = m_parent->getRenderer();
 
 		m_shader->bind();
@@ -120,6 +123,7 @@ namespace engone {
 			//		m_shaderBuffer.setData(m_iSize, m_data);
 			//	}
 				if (m_refreshShaderData) {
+					//log::out << GetActiveWindow() << "\n";
 					m_shaderBuffer.setData(m_count * m_pSize - m_iSize, (char*)m_data + m_iSize, m_iSize);
 				}
 			//}

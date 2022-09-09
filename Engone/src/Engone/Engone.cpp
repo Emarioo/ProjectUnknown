@@ -9,7 +9,7 @@ const char* test2dGLSL = {
 #include "Engone/Tests/BasicRendering.h"
 
 // used to get the sizeof context because it affects getMemory
-#include "asio.hpp"
+//#include "asio.hpp"
 
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
@@ -29,22 +29,17 @@ namespace engone {
 
 #define INSTANCE_LIMIT 1000u
 
-	Engone::Engone() {
-	}
+	Engone::Engone() {}
 	Engone::~Engone() {
 		for (int i = 0; i < m_applications.size();i++) {
 			delete m_applications[i];
 		}
 		m_applications.clear();
-		for (int i = 0; i < m_objects.size(); i++) {
-			delete m_objects[i];
-		}
-		m_objects.clear();
 		for (int i = 0; i < m_lights.size(); i++) {
 			delete m_lights[i];
 		}
 		m_lights.clear();
-		//DestroyIOContext();
+		DestroyNetworking();
 	}
 	void Engone::start() {
 		//if (m_applications.size() == 0) {
@@ -229,10 +224,13 @@ namespace engone {
 		// 
 	//m_runtimeStats.update_accumulator = 8;
 		//
-		log::out.consoleFilter() |= log::Disable;
-		GetTracker().printMemory();
-		GetTracker().printInfo();
-		log::out.consoleFilter() ^= log::Disable;
+		
+		// Filters don't work with multithreading
+		//log::out.setConsoleFilter(log::out.consoleFilter() | log::Disable);
+		//GetTracker().printMemory();
+		//GetTracker().printInfo();
+		//log::out.setConsoleFilter(log::out.consoleFilter() & (~log::Disable));
+
 		float printTime = 0;
 		double lastTime = GetSystemTime();
 		while (true) {
@@ -266,7 +264,7 @@ namespace engone {
 			printTime += delta;
 
 			m_runtimeStats.nextSample(delta);
-
+			
 			for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 				Application* app = m_applications[appIndex];
 				// Close window and applications if needed.
@@ -276,17 +274,20 @@ namespace engone {
 					if (!win->isOpen()) {
 						GetTracker().untrack(win);
 						delete win;
+						//log::out << "Engone.cpp - Deleted WINDOW\n";
 						app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
 						--winIndex;
 						continue;
 					}
 				}
-				if (app->isStopped()) {
+				if (app->isStopped()) { // app needs to be stopped manually (Application::stop)
+
 					// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 					// app should be safe to delete
 					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
 					delete app;
-					// FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
+					//log::out << "Engone.cpp - Deleted APP\n";
+					 //FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
 					m_applications.erase(m_applications.begin() + appIndex);
 					m_appSizes.erase(m_appSizes.begin() + appIndex);
 					m_appIds.erase(m_appIds.begin() + appIndex);
@@ -378,6 +379,11 @@ namespace engone {
 							win->getRenderer()->setProjection(ratio);
 
 						app->render(info);
+
+						AssetProcessor* glProc = win->getStorage()->getGLProc();
+						if(glProc)
+							glProc->process();
+
 						render(info);
 						GetActiveRenderer()->render(info);
 
@@ -427,22 +433,23 @@ namespace engone {
 		// they may have allocated memory in global scope and never deleted it. But only if they used the tracker functions.
 		//GetTracker().clear();
 		
-		GetTracker().printInfo(); // this may show Tracks/Untracks 16/14, but this is expected because io_context and std::thread are left.
-		log::out << "Note that io_context and std::thread are left.\n";
-		// this means that the Memory usage is somewhat high because of io_context
+		GetTracker().printInfo();
+		// The tracker may a little tricky to analyize correctly sometimes. Just don't get to fixated on it.
+
+		// this means that the Memory usage is somewhat high because of io_context (and glfw, and reactphysics)
+		
+		DestroyNetworking();
 
 		uint32_t expectedMem = 0;
-		if(HasIOContext())
-			expectedMem=sizeof(asio::io_context) + sizeof(std::thread);
+		//if(HasIOContext())
+		//	expectedMem=sizeof(asio::io_context) + sizeof(std::thread);
 		if (GetTracker().getMemory() > expectedMem) {
 			log::out << "Memory leak? "<<GetTracker().getMemory()<<" expected "<<expectedMem << "\n";
 			GetTracker().printMemory();
-			std::cin.get();
+			//std::cin.get();
 		} else {
 			log::out << "No tracked memory leak\n";
 		}
-
-		//DestroyIOContext();
 	}
 
 
@@ -469,30 +476,31 @@ namespace engone {
 
 		return EventNone;
 	}
-	void Engone::addObject(GameObject* object) {
-		m_objects.push_back(object);
-	}
-	void Engone::addParticleGroup(ParticleGroupT* group) {
-		m_particleGroups.push_back(group);
-	}
 	void Engone::update(UpdateInfo& info) {
-		for (int i = 0; i < m_objects.size(); i++) {
-			m_objects[i]->update(info);
-		}
-		//for (int i = 0; i < m_particleGroups.size(); i++) {
-		//	m_particleGroups[i]->update(info);
-		//}
-#ifdef ENGONE_PHYSICS
-		if (m_pWorld)
-			m_pWorld->update(info.timeStep);
-#endif
+		if(info.app->getGround())
+			info.app->getGround()->update(info);
+//		for (int i = 0; i < m_objects.size(); i++) {
+//			if (m_objects[i]->pendingColliders) {
+//				m_objects[i]->loadColliders(this);
+//			}
+//			m_objects[i]->update(info);
+//		}
+//		//for (int i = 0; i < m_particleGroups.size(); i++) {
+//		//	m_particleGroups[i]->update(info);
+//		//}
+//#ifdef ENGONE_PHYSICS
+//		if (m_pWorld)
+//			m_pWorld->update(info.timeStep);
+//#endif
 	}
 	float testTime = 0;
 	void Engone::render(RenderInfo& info) {
 		//test::TestParticles(info);
 		EnableDepth();
 		//if (IsKeyDown(GLFW_KEY_K)) {
-		Shader* blur = info.window->getAssets()->get<Shader>("blur");
+		//Shader* blur = info.window->getAssets()->get<ShaderAsset>("blur");
+		ShaderAsset* blur =  info.window->getStorage()->get<ShaderAsset>("blur");
+		//Shader* blur = info.window->getAssets()->get<ShaderAsset>("blur");
 		blur = nullptr;
 		if (blur) {
 			float detail = 1 / 3.f;
@@ -510,8 +518,11 @@ namespace engone {
 		else {
 		}
 		//EnableBlend(); <- don ine particle render
-		for (int i = 0; i < m_particleGroups.size(); i++) {
-			m_particleGroups[i]->render(info);
+		if (info.window->getParent()->getGround()) {
+			auto& groups = info.window->getParent()->getGround()->getParticleGroups();
+			for (int i = 0; i < groups.size(); i++) {
+				groups[i]->render(info);
+			}
 		}
 		//EnableDepth();
 		if (blur) {
@@ -520,7 +531,8 @@ namespace engone {
 			frameBuffer.unbind();
 			glViewport(0, 0, GetWidth(), GetHeight());
 			//
-			Shader* blur = info.window->getAssets()->get<Shader>("blur");
+			//Shader* blur = info.window->getAssets()->get<Shader>("blur");
+			ShaderAsset* blur = info.window->getStorage()->get<ShaderAsset>("blur");
 			blur->bind();
 			blur->setInt("uTexture", 0);
 			blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
@@ -601,9 +613,10 @@ namespace engone {
 
 		// Physics debug
 #ifdef ENGONE_PHYSICS
-		if (m_pWorld) {
-			if (m_pWorld->getIsDebugRenderingEnabled()) {
-				rp3d::DebugRenderer& debugRenderer = m_pWorld->getDebugRenderer();
+		rp3d::PhysicsWorld* world = info.window->getParent()->getGround()->m_pWorld;
+		if (world) {
+			if (world->getIsDebugRenderingEnabled()) {
+				rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
 				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
 				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
 					auto& line = debugRenderer.getLinesArray()[i];
@@ -625,7 +638,8 @@ namespace engone {
 #ifndef ENGONE_PHYSICS
 		// cannot render objects, not building with physics
 #else
-		Assets* assets = info.window->getAssets();
+		AssetStorage* assets = info.window->getStorage();
+		//Assets* assets = info.window->getAssets();
 		Renderer* renderer = info.window->getRenderer();
 		Camera* camera = renderer->getCamera();
 		EnableDepth();
@@ -636,56 +650,58 @@ namespace engone {
 			//log::out << log::YELLOW<<"Warning: rendering with no lights...\n";
 		}
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
-		for (int i = 0; i < m_objects.size(); ++i) {
-			GameObject* obj = m_objects[i];
+		GameGround* ground= info.window->getParent()->getGround();
+		std::vector<SharedObject>& objects = ground->getObjects();
+		for (int i = 0; i < objects.size(); ++i) {
+			GameObject* obj = objects[i].object;
 
 			glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
-			if (obj->modelAsset) {
 
-				Animator* animator = &obj->animator;
+			if (!obj->modelAsset) continue;
+			if (!obj->modelAsset->valid()) continue;
 
-				// Get individual transforms
-				std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(nullptr);
+			Animator* animator = &obj->animator;
 
-				/*
-				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
-					+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
-					(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
-					continue;
-				}
-				*/
+			// Get individual transforms
+			std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(nullptr);
 
+			/*
+			if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+				+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+				(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+				continue;
+			}
+			*/
 				// Draw instances
-				for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
-					AssetInstance& instance = obj->modelAsset->instances[i];
-					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
-					if (instance.asset->type == MeshAsset::TYPE) {
-						MeshAsset* asset = instance.asset->cast<MeshAsset>();
+			for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
+				AssetInstance& instance = obj->modelAsset->instances[i];
+				//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+				if (instance.asset->type == MeshAsset::TYPE) {
+					MeshAsset* asset = (MeshAsset*)instance.asset;
 
-						if (asset->meshType == MeshAsset::MeshType::Normal) {
-							glm::mat4 out;
+					if (asset->meshType == MeshAsset::MeshType::Normal) {
+						glm::mat4 out;
 
-							//if (animator->asset)
-							out = modelMatrix * transforms[i] * instance.localMat;
-							//else
-								//out = modelMatrix * instance.localMat;
-							
+						//if (animator->asset)
+						out = modelMatrix * transforms[i] * instance.localMat;
+						//else
+							//out = modelMatrix * instance.localMat;
 
-							//out = glm::rotate(-20 * glm::pi<float>() / 180.f, glm::vec3(1, 0, 0));
 
-							if (normalObjects.count(asset) > 0) {
-								normalObjects[asset].push_back(out);
-							} else {
-								normalObjects[asset] = std::vector<glm::mat4>();
-								normalObjects[asset].push_back(out);
-							}
+						//out = glm::rotate(-20 * glm::pi<float>() / 180.f, glm::vec3(1, 0, 0));
+
+						if (normalObjects.count(asset) > 0) {
+							normalObjects[asset].push_back(out);
+						} else {
+							normalObjects[asset] = std::vector<glm::mat4>();
+							normalObjects[asset].push_back(out);
 						}
 					}
 				}
 			}
 		}
-		Shader* shader = assets->get<Shader>("object");
-		if (!shader->error) {
+		ShaderAsset* shader = assets->get<ShaderAsset>("object");
+		if (!shader->getError()) {
 			shader->bind();
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
@@ -711,48 +727,51 @@ namespace engone {
 				}
 			}
 		}
-		shader = assets->get<Shader>("armature");
-		if (!shader->error) {
+		shader = assets->get<ShaderAsset>("armature");
+		if (!shader->getError()) {
 			shader->bind();
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
 
-			for (int oi = 0; oi < m_objects.size(); ++oi) {
-				GameObject* obj = m_objects[oi];
+			for (int oi = 0; oi < objects.size(); ++oi) {
+				GameObject* obj = objects[oi].object;
 
-				if (obj->modelAsset) {
+				if (!obj->modelAsset) continue;
+				if (!obj->modelAsset->valid()) continue;
 
-					glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
-					Animator* animator = &obj->animator;
+				glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
-					bindLights(shader, modelMatrix[3]);
+				Animator* animator = &obj->animator;
 
-					// Get individual transforms
-					std::vector<glm::mat4> transforms;
-					transforms = obj->modelAsset->getParentTransforms(nullptr);
+				bindLights(shader, modelMatrix[3]);
 
-					//-- Draw instances
-					AssetInstance* armatureInstance = nullptr;
-					ArmatureAsset* armatureAsset = nullptr;
+				// Get individual transforms
+				std::vector<glm::mat4> transforms;
+				transforms = obj->modelAsset->getParentTransforms(nullptr);
+
+				//-- Draw instances
+				AssetInstance* armatureInstance = nullptr;
+				ArmatureAsset* armatureAsset = nullptr;
+				if (transforms.size() == obj->modelAsset->instances.size()) {
 					for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
 						AssetInstance& instance = obj->modelAsset->instances[i];
 
 						if (instance.asset->type == AssetArmature) {
 							armatureInstance = &instance;
-							armatureAsset = instance.asset->cast<ArmatureAsset>();
+							armatureAsset = (ArmatureAsset*)instance.asset;
 						} else if (instance.asset->type == AssetMesh) {
 							if (!armatureInstance)
 								continue;
 
-							MeshAsset* meshAsset = instance.asset->cast<MeshAsset>();
+							MeshAsset* meshAsset = (MeshAsset*)instance.asset;
 							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
 								if (instance.parent == -1)
 									continue;
 
 								std::vector<glm::mat4> boneMats;
-								std::vector<glm::mat4> boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset,&boneMats);
-								
+								std::vector<glm::mat4> boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset, &boneMats);
+
 								//-- For rendering bones
 								//glm::mat4 basePos = modelMatrix* transforms[i];
 								//glm::mat4 boneLast;

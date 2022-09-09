@@ -10,8 +10,10 @@ void runApp() {
 	using namespace engone;
 
 	{
-		engone::Engone engine;
-		game::GameApp* app = engine.createApplication<game::GameApp>();
+		Engone engine;
+		//game::GameApp* app = engine.createApplication<game::GameApp>();
+		game::GameApp* app = engine.createApplication<game::GameApp>(game::GameApp::StartServer);
+		game::GameApp* app2 = engine.createApplication<game::GameApp>(game::GameApp::StartClient);
 		engine.start();
 	}
 	log::out.getSelected().saveReport(nullptr); // any log message in deconstructors will not be saved. (deconstructors of global variables that is)

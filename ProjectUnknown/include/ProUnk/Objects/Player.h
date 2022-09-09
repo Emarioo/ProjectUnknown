@@ -7,7 +7,7 @@
 
 class Player : public engone::GameObject {
 public:
-	Player(engone::Engone* engone);
+	Player(engone::GameGround* ground);
 
 	void update(engone::UpdateInfo& info) override;
 	void WeaponUpdate(engone::UpdateInfo& info);
@@ -90,7 +90,7 @@ public:
 	bool onGround = false;
 
 	// a little odd to have it here the class needs it when making joints
-	engone::Engone* engone=nullptr;
+	engone::GameGround* ground =nullptr;
 
 private:
 	float animBlending = 0;

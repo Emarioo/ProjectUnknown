@@ -68,7 +68,6 @@ namespace game {
 	//}
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
-		//log::out << "COMEON \n";
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
 			auto pair = callbackData.getOverlappingPair(pairI);
 
@@ -124,7 +123,10 @@ namespace game {
 				//rp3d::CollisionBody* atkBody = pair.getBody1();
 				//rp3d::CollisionBody* defBody = pair.getBody2();
 
-				rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
+				rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
+				rp3d::Vector3 force = {glm::sin(rot.y),0,glm::cos(rot.y)};
+				//log::out << force << "\n";
+				//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
 				//force.y = 1;
 				force *= 60.f*6.f;
 				//log::out << force << "\n";
@@ -136,7 +138,7 @@ namespace game {
 	}
 	engone::EventType OnKey(engone::Event& e);
 	engone::EventType OnMouse(engone::Event& e);
-	GameApp::GameApp(engone::Engone* engone) : Application(engone) {
+	GameApp::GameApp(engone::Engone* engone, Flags flags) : Application(engone) {
 		using namespace engone;
 		
 		m_window = createWindow({ ModeWindowed,1000,800 });
@@ -145,15 +147,18 @@ namespace game {
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
-		Assets* assets = getAssets();
+		AssetStorage* assets = getStorage();
+		//Assets* assets = getAssets();
 
-		Shader* blur = assets->set("blur", new Shader(blurGLSL));
+		ShaderAsset* blur = assets->set("blur", new ShaderAsset(blurGLSL));
 		
 		//Shader* shaderPart = new Shader(particleGLSL);
 		//particleGroup = new ParticleGroup<DefaultParticle>();
 		//particleGroup->init(m_window, shaderPart);
 		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
 		//engone->addParticleGroup(particleGroup);
+		NetGameGround* ground = new NetGameGround(this);
+		setGround(ground);
 
 		Shader* combatPart = new Shader(combatParticlesGLSL);
 		combatParticles = new ParticleGroup<CombatParticle>();
@@ -167,14 +172,14 @@ namespace game {
 			parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
 			parts[i].lifeTime = 30+GetRandom()*10.f;
 		}
-		engone->addParticleGroup(combatParticles);
+		ground->addParticleGroup(combatParticles);
 
 		//-- Assets
 		//assets->set("depth")
 		//AddAsset<Shader>("depth", new Shader(depthGLSL));
 		//AddAsset<Shader>("experiment", new Shader(experimentGLSL));
 		//AddAsset<Shader>("test", new Shader(testGLSL));
-		assets->set<Font>("consolas", "fonts/consolas42");
+		assets->load<FontAsset>("fonts/consolas42");
 
 		//-- Event and game loop functions
 		m_window->attachListener(EventKey, OnKey);
@@ -186,31 +191,41 @@ namespace game {
 			CreateDefualtKeybindings();
 		//}
 
-		engone->m_pCommon = new rp3d::PhysicsCommon(); // needs to be moved inside engine
-		engone->m_pWorld = engone->m_pCommon->createPhysicsWorld();
-
-		engone->m_pWorld->setIsDebugRenderingEnabled(true);
-		rp3d::DebugRenderer& debugRenderer = engone->m_pWorld->getDebugRenderer();
+		ground->m_pWorld->setIsDebugRenderingEnabled(true);
+		rp3d::DebugRenderer& debugRenderer = ground->m_pWorld->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
-		getEngine()->m_pWorld->setEventListener(this);
+		ground->m_pWorld->setEventListener(this);
 
-		sword = new Sword(engone);
-		sword->setTransform({ 2,0,0 });
-		engone->addObject(sword);
+		if(flags&StartServer)
+			ground->getServer().start("1000");
+		else if(flags&StartClient)
+			ground->getClient().start("127.0.0.1","1000");
 
-		player = new Player(engone);
+		player = new Player(ground);
 		player->setTransform({ 0,0,0 });
-		player->inventorySword = sword;
-		engone->addObject(player);
+		ground->addObject(player);
 
-		Dummy* dummy = new Dummy(engone);
-		dummy->setTransform({ 0,0,9 });
-		dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-		engone->addObject(dummy);
+		if (flags&StartServer) {
+			player->setTransform({ 1,0,0 });
+			sword = new Sword(ground);
+			sword->setTransform({ 2,0,0 });
+			ground->addObject(sword);
+			player->inventorySword = sword;
+
+			Dummy* dummy = new Dummy(ground);
+			dummy->setTransform({ 0,0,9 });
+			dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+			ground->addObject(dummy);
+
+			terrain = new Terrain(ground);
+			ground->addObject(terrain);
+			terrain->setTransform({ 0,-2,0 });
+		}
+		//playground.addObject(player->getUUID(), 0, "Player/Player");
 
 		//rp3d::Vector3 anchor(1, 1, 1);
 		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
@@ -219,16 +234,15 @@ namespace game {
 		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
 		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
 
-		terrain = new Terrain(engone);
-		engone->addObject(terrain);
-		terrain->setTransform({ 0,-2,0 });
-
 		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
+
+		delayed.start(1);
 	}
 	//float wantX=500;
 	//float x = 100;
 	//float velX = 0;
+	bool once = false;
 	void GameApp::update(engone::UpdateInfo& info) {
 		using namespace engone;
 		if (engone::IsKeybindingPressed(KeyPause)) {
@@ -238,6 +252,30 @@ namespace game {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
 		}
+		//if (getGround()->getClient().isRunning()) {
+		//	//log::out << getGround()->getObjects().size() << " size\n";
+		//	auto& hm = getGround()->getObjects();
+		//	if (getGround()->getObjects().size() == 5) {
+		//		//log::out << hm[2].object->modelAsset << "\n";
+		//		//int broo = 25;
+		//		//DebugBreak();
+		//	}
+		//}
+		//if (delayed.run(info)) {
+			if (getGround()->getServer().isRunning() || getGround()->getClient().isRunning()) {
+				if (player) {
+					//if (!once) {
+					//	//getGround()->netAddObject(player->getUUID(), 0, "Player/Player");
+					//	once = true;
+					//} else {
+					getGround()->netMoveObject(player->getUUID(), player->rigidBody->getTransform());
+					//}
+				}
+			}
+			//delayed.start(0.2);
+		//}
+		
+
 		//float t = info.timeStep;
 		//float vx = (wantX - x)/t;
 		//vx *= 0.5;

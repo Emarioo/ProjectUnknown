@@ -8,7 +8,7 @@
 #include "Engone/SoundModule.h"
 #include "Engone/Utilities/Utilities.h"
 #include "Engone/Utilities/MemAllocator.h"
-#include "Engone/NetworkModule.h"
+#include "Engone/Networking/NetworkModule.h"
 
 #include "Engone/Rendering/FrameBuffer.h"
 #include "Engone/Rendering/Light.h"
@@ -62,16 +62,15 @@ namespace engone {
 		*/
 		void start();
 		// don't add nullptr, object is assumed to be valid.
-		void addObject(GameObject* object);
+		//void addObject(GameObject* object);
 
-		void addParticleGroup(ParticleGroupT* group);
+		//Playground& getPlayground() { return playground; };
+
+		//void addParticleGroup(ParticleGroupT* group);
 
 		// the run time of stats
 		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
-#ifdef ENGONE_PHYSICS
-		rp3d::PhysicsCommon* m_pCommon=nullptr;
-		rp3d::PhysicsWorld* m_pWorld=nullptr;
-#endif
+
 		void addLight(Light* l);
 		void removeLight(Light* l);
 
@@ -83,6 +82,8 @@ namespace engone {
 		}
 
 		RuntimeStats& getStats() { return m_runtimeStats; }
+		
+		void bindLights(Shader* shader, glm::vec3 objectPos);
 
 		static TrackerId trackerId;
 	private:
@@ -91,9 +92,8 @@ namespace engone {
 		EngoneFlags m_flags;
 
 		// delta uniform is set in engine loop.
-		std::vector<ParticleGroupT*> m_particleGroups;
-		std::vector<GameObject*> m_objects;
 		std::vector<Light*> m_lights;
+
 		bool m_loadedDefault=false;
 
 		FrameBuffer frameBuffer;
@@ -109,8 +109,8 @@ namespace engone {
 		void render(RenderInfo& info);
 		void renderObjects(RenderInfo& info);
 
-		void bindLights(Shader* shader, glm::vec3 objectPos);
 
+		friend class Playground;
 	};
 
 	//void Initialize(EngoneOption hints=EngoneOption::None);

@@ -5,17 +5,21 @@
 #ifdef ENGONE_LOGGER
 #include "Engone/Utilities/LoggingModule.h"
 #endif
+#include "Engone/Error.h"
+#ifdef ENGONE_TRACKER
+#include "Engone/Utilities/Tracker.h"
+#endif
 namespace engone {
 	// FILE
-	enum FileError : char {
-		FileErrorNone = 0,
-		FileErrorMissing,
-		FileErrorCorrupted,
-	};
-	const char* toString(FileError error);
-#ifdef ENGONE_LOGGER
-	Logger& operator<<(Logger& log, FileError value);
-#endif
+	//enum FileError : char {
+	//	FileErrorNone = 0,
+	//	FileErrorMissing,
+	//	FileErrorCorrupted,
+	//};
+//	const char* toString(FileError error);
+//#ifdef ENGONE_LOGGER
+//	Logger& operator<<(Logger& log, FileError value);
+//#endif
 
 	bool FindFile(const std::string& path);
 	std::vector<std::string> GetFiles(const std::string& path);
@@ -31,7 +35,7 @@ namespace engone {
 		FileWriter& operator=(const FileWriter&) = delete;
 
 		inline bool isOpen() const {
-			return error == FileErrorNone;
+			return error == ErrorNone;
 		}
 		inline bool operator!() const {
 			return !isOpen();
@@ -41,21 +45,23 @@ namespace engone {
 		}
 		void close();
 		inline const std::string& getPath() const { return path; }
-		inline FileError getError() const { return error; }
+		inline Error getError() const { return error; }
 		/*
 		T has to be convertable to a string std::to_string(T), otherwise cast T* to char* and multiply size by sizeof(T).
 		*/
 		template <typename T>
-		void write(const T* var, uint32_t size = 1) {
-			if (error != FileErrorNone || var == nullptr || size == 0)
+		void write(const T* var, uint32_t count = 1) {
+			if (error != ErrorNone || var == nullptr)
 				throw error;
+			if (count == 0)
+				return;
 			if (binaryForm) {
-				file.write(reinterpret_cast<const char*>(var), size * (uint32_t)sizeof(T));
-				writeHead += size * sizeof(T);
+				file.write(reinterpret_cast<const char*>(var), count * (uint32_t)sizeof(T));
+				writeHead += count * sizeof(T);
 			}
 			else {
 				std::string out;
-				for (uint32_t i = 0; i < size; i++) {
+				for (uint32_t i = 0; i < count; i++) {
 					if (i == 0)
 						out += std::to_string(var[i]);
 					else
@@ -65,11 +71,11 @@ namespace engone {
 				file.write("\n", 1);
 			}
 		}
-		inline void write(const glm::vec3* var, uint32_t size = 1) {
-			write((const float*)var, size * 3);
+		inline void write(const glm::vec3* var, uint32_t count = 1) {
+			write((const float*)var, count * 3);
 		}
-		inline void write(const glm::mat4* var, uint32_t size = 1) {
-			write((const float*)var, size * 16);
+		inline void write(const glm::mat4* var, uint32_t count = 1) {
+			write((const float*)var, count * 16);
 		}
 		/*
 		256 characters is the current max size.
@@ -83,7 +89,7 @@ namespace engone {
 		int writeHead = 0;
 		std::ofstream file;
 		std::string path;
-		FileError error = FileErrorNone;
+		Error error = ErrorNone;
 
 	};
 	class FileReader {
@@ -95,7 +101,7 @@ namespace engone {
 		FileReader& operator=(const FileReader&) = delete;
 
 		inline bool isOpen() const {
-			return error == FileErrorNone;
+			return error == ErrorNone;
 		}
 		inline bool operator!() const {
 			return !isOpen();
@@ -109,35 +115,40 @@ namespace engone {
 		void close();
 
 		inline const std::string& getPath() const { return path; }
-		inline FileError getError() const { return error; }
+		inline Error getError() const { return error; }
 		/*
 		T has to be convertable to int or float. Can also be char short and most of them. Maybe not long or double
 		*/
 		template <typename T>
-		void read(T* var, uint32_t size = 1) {
-			if (error != FileErrorNone || var == nullptr || size == 0)
+		void read(T* var, uint32_t count = 1) {
+			if (error != ErrorNone || var == nullptr)
 				throw error;
+			if (count == 0) {
+				return;
+			}
 			if (binaryForm) {
-				if (readHead - 1 + size * sizeof(T) > fileSize) {
-					error = FileErrorCorrupted;
-					throw FileErrorCorrupted;
+				if (readHead + count * sizeof(T) > fileSize) {
+					error = ErrorCorruptedFile;
+					throw error;
 				}
 
-				file.read(reinterpret_cast<char*>(var), size * (uint32_t)sizeof(T));
-				readHead += size * sizeof(T);
+				file.read(reinterpret_cast<char*>(var), count * (uint32_t)sizeof(T));
+				readHead += count * sizeof(T);
 			}
 			else {
 				try {
 					std::string line;
 					uint32_t index = 0;
 
-					while (index < size) {
+					while (index < count) {
 						if (readNumbers.size() == 0) {
 
 							std::getline(file, line);
 
-							if (file.eof())
-								throw FileErrorCorrupted;
+							if (file.eof()) {
+								error = ErrorCorruptedFile;
+								throw error;
+							}
 							if (line.empty())
 								continue;
 							if (line[0] == '#')
@@ -145,20 +156,25 @@ namespace engone {
 							if (line.back() == '\r')
 								line.erase(line.end() - 1);
 
+							// one two three
 							const std::string delim = " ";
-							unsigned int at = 0;
-							while ((at = line.find(delim)) != std::string::npos) {
-								std::string push = line.substr(0, at);
+							int lastAt = 0;
+							while (true) {
+								int at = line.find(delim,lastAt);
+								if (at == -1) {
+									break;
+								}
+								std::string push = line.substr(lastAt, at-lastAt);
 								readNumbers.push_back(push);
-								line.erase(0, at + delim.length());
+								lastAt = at+1;
 							}
-							if (line.size() != 0)
-								readNumbers.push_back(line);
-							//readNumbers = SplitString(line, " ");
+							if(lastAt!=line.size() || lastAt == 0)
+								readNumbers.push_back(line.substr(lastAt));
+							//readNumbers = SplitString(line, " "); // could use this instead but that would mean this header requires Utilities.h.
 						}
 						uint32_t toRead = readNumbers.size();
-						if (size < readNumbers.size())
-							toRead = size;
+						if (count < readNumbers.size())
+							toRead = count;
 
 						for (uint32_t i = 0; i < toRead; i++) {
 							std::string& str = readNumbers[0];
@@ -169,8 +185,7 @@ namespace engone {
 							if (str.find('.') == -1) {
 								try {
 									var[index] = static_cast<T>(std::stoi(str));
-								}
-								catch (std::out_of_range e) {
+								} catch (std::out_of_range e) {
 									var[index] = static_cast<T>(std::stoull(str));
 								}
 								index++;
@@ -183,15 +198,16 @@ namespace engone {
 					}
 				}
 				catch (std::invalid_argument e) {
-					throw FileErrorCorrupted;
+					error = ErrorCorruptedFile;
+					throw error;
 				}
 			}
 		}
-		void read(glm::vec3* var, uint32_t size = 1) {
-			read((float*)var, size * 3);
+		void read(glm::vec3* var, uint32_t count = 1) {
+			read((float*)var, count * 3);
 		}
-		void read(glm::mat4* var, uint32_t size = 1) {
-			read((float*)var, size * 16);
+		void read(glm::mat4* var, uint32_t count = 1) {
+			read((float*)var, count * 16);
 		}
 		/*
 		256 characters is the current max size.
@@ -207,7 +223,7 @@ namespace engone {
 		uint32_t fileSize = 0;
 		std::ifstream file;
 		std::string path;
-		FileError error = FileErrorNone;
+		Error error = ErrorNone;
 
 		std::vector<std::string> readNumbers;
 	};
@@ -222,18 +238,18 @@ namespace engone {
 namespace engone {
 	TrackerId FileWriter::trackerId = "FileWriter";
 	TrackerId FileReader::trackerId = "FileReader";
-	const char* toString(FileError e) {
-		switch (e) {
-		case FileErrorMissing: return "Missing File";
-		case FileErrorCorrupted: return "Corrupted Data";
-		}
-		return "";
-	}
-#ifdef ENGONE_LOGGER
-	Logger& operator<<(Logger& log, FileError value) {
-		return log << toString(value);
-	}
-#endif // ENGONE_LOGGER
+//	const char* toString(FileError e) {
+//		switch (e) {
+//		case FileErrorMissing: return "Missing File";
+//		case FileErrorCorrupted: return "Corrupted Data";
+//		}
+//		return "";
+//	}
+//#ifdef ENGONE_LOGGER
+//	Logger& operator<<(Logger& log, FileError value) {
+//		return log << toString(value);
+//	}
+//#endif // ENGONE_LOGGER
 	bool FindFile(const std::string& path) {
 		struct stat buffer;
 		return (stat(path.c_str(), &buffer) == 0);
@@ -255,7 +271,7 @@ namespace engone {
 	FileWriter::FileWriter(const std::string& path, bool binaryForm) : binaryForm(binaryForm), path(path) {
 		file.open(path, std::ios::binary);
 		if (!file.is_open()) {
-			error = FileErrorMissing;
+			error = ErrorMissingFile;
 		}
 	}
 	FileWriter::~FileWriter() {
@@ -266,7 +282,7 @@ namespace engone {
 			file.close();
 	}
 	void FileWriter::write(const std::string* var) {
-		if (error == FileErrorMissing)
+		if (error == ErrorMissingFile)
 			throw error;
 		if (binaryForm) {
 			file.write(var->c_str(), var->length());
@@ -278,7 +294,7 @@ namespace engone {
 		}
 	}
 	void FileWriter::writeComment(const std::string& str) {
-		if (error == FileErrorMissing)
+		if (error == ErrorMissingFile)
 			throw error;
 		if (!binaryForm) {
 			file.write("# ", 2);
@@ -294,7 +310,7 @@ namespace engone {
 			file.seekg(file.beg);
 		}
 		else {
-			error = FileErrorMissing;
+			error = ErrorMissingFile;
 		}
 	}
 	FileReader::~FileReader() {
@@ -305,11 +321,11 @@ namespace engone {
 			file.close();
 	}
 	void FileReader::read(std::string* var) {
-		if (error != FileErrorNone || var == nullptr)
+		if (error != ErrorNone || var == nullptr)
 			throw error;
 		if (binaryForm) {
 			if (readHead - 1u + 1u > fileSize) {
-				error = FileErrorCorrupted;
+				error = ErrorCorruptedFile;
 				throw error;
 			}
 			uint8_t length;
@@ -320,7 +336,7 @@ namespace engone {
 				return;
 
 			if (readHead - 1u + length > fileSize) {
-				error = FileErrorCorrupted;
+				error = ErrorCorruptedFile;
 				throw error;
 			}
 
@@ -335,7 +351,7 @@ namespace engone {
 
 			while (index < 1u) {
 				if (file.eof()) {
-					error = FileErrorCorrupted;
+					error = ErrorCorruptedFile;
 					throw error;
 				}
 				std::getline(file, line);
@@ -355,13 +371,15 @@ namespace engone {
 		}
 	}
 	void FileReader::readAll(std::string* var) {
-		if (error != FileErrorNone || var == nullptr)
+		if (error != ErrorNone || var == nullptr) {
+			log::out << "FileReader::readAll - " << error << "\n";
 			throw error;
+		}
 		if (binaryForm) {
 #ifdef ENGONE_LOGGER
 			log::out << log::RED << "readAll with binary is not implemented" << "\n";
 #endif
-			error = FileErrorCorrupted;
+			error = ErrorCorruptedFile;
 			throw error;
 		}
 		else {
@@ -384,13 +402,13 @@ namespace engone {
 		}
 	}
 	std::vector<std::string> FileReader::readLines(bool includeNewLine) {
-		if (error != FileErrorNone)
+		if (error != ErrorNone)
 			return std::vector<std::string>();
 		if (binaryForm) {
 #ifdef ENGONE_LOGGER
 			log::out << log::RED << "readLines with binary is not implemented" << "\n";
 #endif
-			error = FileErrorCorrupted;
+			error = ErrorCorruptedFile;
 			throw error;
 		}
 		else {

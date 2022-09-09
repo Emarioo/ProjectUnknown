@@ -8,16 +8,31 @@ namespace engone {
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
-		unsigned int at = 0;
-		while ((at = text.find(delim)) != std::string::npos) {
-			std::string push = text.substr(0, at);
-			//if (push.size() > 0) {
+
+		int lastAt = 0;
+		while (true) {
+			int at = text.find(delim, lastAt);
+			if (at == -1) {
+				break;
+			}
+			std::string push = text.substr(lastAt, at - lastAt);
 			out.push_back(push);
-			//}
-			text.erase(0, at + delim.length());
+			lastAt = at + 1;
 		}
-		if (text.size() != 0)
-			out.push_back(text);
+		if (lastAt != text.size()||lastAt==0)
+			out.push_back(text.substr(lastAt));
+
+
+		//unsigned int at = 0;
+		//while ((at = text.find(delim)) != std::string::npos) {
+		//	std::string push = text.substr(0, at);
+		//	//if (push.size() > 0) {
+		//	out.push_back(push);
+		//	//}
+		//	text.erase(0, at + delim.length());
+		//}
+		//if (text.size() != 0)
+		//	out.push_back(text);
 		return out;
 	}
 
@@ -161,7 +176,29 @@ namespace engone {
 		std::cout << "Time: " << (aft - bef) << std::endl;
 	}*/
 
-	//static std::unordered_map<int, int> timerCounting;
+	static std::unordered_map<int, DelayCode> delayers;
+	void DelayCode::Start(int id, float waitSeconds) {
+		delayers[id] = { waitSeconds };
+	}
+	void DelayCode::Stop(int id, float waitSeconds){
+		auto find = delayers.find(id);
+		DelayCode* dc = nullptr;
+		if (find != delayers.end()) {
+			find->second.stop();
+		}
+	}
+	bool DelayCode::Run(int id, float deltaTime) {
+		auto find = delayers.find(id);
+		DelayCode* dc = nullptr;
+		if (find != delayers.end()) {
+			return find->second.run(deltaTime);
+		}
+		return false;
+	}
+	bool DelayCode::Run(int id, UpdateInfo& info) {
+		return Run(id,info.timeStep);
+	}
+
 	//Timer::Timer() : time(GetAppTime()) { }
 	//Timer::Timer(const std::string& str) : time(GetAppTime()), name(str) { }
 	//Timer::Timer(const std::string& str, int id) : time(GetAppTime()), name(str), id(id) { }
@@ -237,324 +274,260 @@ namespace engone {
 		return true;
 	}
 
-
-	template<>
-	ICO* Image::Convert(PNG* img) {
-		return nullptr;
+	void BinaryTree::cleanup() {
+		m_mutex.lock();
+		resize(0);
+		m_mutex.unlock();
 	}
-	template<>
-	RawImage* Image::Convert(BMP* img) {
-		if (!img) return nullptr;
-		if (!img->data) return new RawImage();
-
-		RawImage* out = new RawImage();
-
-		char* imgData = img->data + sizeof(BITMAPINFOHEADER);
-
-		out->data = (char*)alloc::malloc(img->header()->biSizeImage);
-		if (!img->data) {
-			log::out << log::RED << "BMP::toRawImage - failed allocation\n";
-			return {};
-		}
-		out->size = img->header()->biSizeImage;
-		out->width = img->header()->biWidth;
-		out->height = img->header()->biHeight / 2; // bmp has double size for and mask
-		out->channels = img->header()->biBitCount / 8;
-		for (int i = 0; i < out->size / 4; i++) {
-			int p = out->size / 4-1 - i;
-			//bgra -> rgba
-			out->data[p * 4 + 2] = imgData[i * 4 + 0];
-			out->data[p * 4 + 1] = imgData[i * 4 + 1];
-			out->data[p * 4 + 0] = imgData[i * 4 + 2];
-			out->data[p * 4 + 3] = imgData[i * 4 + 3];
-		}
-
-		out->flags = Image::OwnerSelf;
-		return out;
-	}
-	template<>
-	BMP* Image::Convert(RawImage* img) {
-		if (!img) return nullptr;
-		if (!img->data) return new BMP();
-	
-		uint32_t andMaskSize = img->width * img->height / 8;
-		//uint32_t andMaskSize = 0;
-		uint32_t total = sizeof(BITMAPINFOHEADER) + img->size + andMaskSize;
-		char* data = (char*)alloc::malloc(total);
-		if (!data) {
-			log::out << log::RED << "BMP image failed allocating memory\n";
-			return {};
-		}
-		BMP* out = new BMP();
-		out->data = data;
-		out->flags = OwnerSelf;
-		out->size = total;
-		memset(out->data, 0, sizeof(BITMAPINFOHEADER));
-		if (andMaskSize != 0)
-			//memset(out->data + total - andMaskSize, 255, andMaskSize);
-			memset(out->data + total - andMaskSize, 0, andMaskSize);
-
-		out->header()->biSize = sizeof(BITMAPINFOHEADER);
-		out->header()->biSizeImage = size;
-		out->header()->biClrUsed = 0;
-		out->header()->biClrImportant = 0;
-		out->header()->biCompression = 0;
-		out->header()->biPlanes = 1;
-		out->header()->biXPelsPerMeter = 0;
-		out->header()->biYPelsPerMeter = 0;
-
-		out->header()->biWidth = img->width;
-		out->header()->biHeight = img->height*2; // double because of and mask
-		out->header()->biBitCount = img->channels * 8;
-
-		//memcpy_s(out->getData(), size, data, size);
-		char* imgData = data;
-		char* dstData = out->data + sizeof(BITMAPINFOHEADER);
-
-		for (int i = 0; i < size / 4; i++) {
-			int p = size / 4 - 1 - i;
-			//rgba -> bgra
-			dstData[p * 4 + 2] = imgData[i * 4 + 0];
-			dstData[p * 4 + 1] = imgData[i * 4 + 1];
-			dstData[p * 4 + 0] = imgData[i * 4 + 2];
-			dstData[p * 4 + 3] = imgData[i * 4 + 3];
-		}
-
-		return out;
-	}
-
-	void Image::writeFile(const char* path) {
-		if (!data) return;
-
-		std::ofstream file(path, std::ios::binary);
-
-		file.write(data, size);
-
-		file.close();
-	}
-	Image::Flags Image::StripInternal(Image::Flags flags) {
-		return flags & (~(OwnerSelf | OwnerStbi));
-	}
-	void Image::cleanup() {
-		if (data) {
-			if (flags & OwnerSelf) {
-				alloc::free(data, size);
-			}
-			else if (flags & OwnerStbi) {
-				stbi_image_free(data);
+	bool BinaryTree::add(Value ptr) {
+		m_mutex.lock();
+		bool quit = false;
+		// make sure i can add another node if i need to.
+		if (capacity < head + 1) {
+			if (!data) {
+				if (!resize(5)) {
+					quit = true;
+				}
+			} else {
+				if (!resize((head + 1) * 2)) {
+					quit = true;
+				}
 			}
 		}
-		data = nullptr;
-		size = 0;
-		flags = 0;
-	}
-	RawImage* RawImage::ReadFromPNG(const char* path, Flags flags) {
-		int channels = 0;
-		if (flags & RGBA)
-			channels = 4;
-		int realChannels;
-		int width, height;
-		stbi_set_flip_vertically_on_load(flags&FlipOnLoad);
-		char* data = (char*)stbi_load(path, &width, &height, &realChannels, channels);
-		if (!data) {
-			return nullptr;
+		bool out = false;
+		if (quit) {
+			if (getRoot()) {
+				out = getRoot()->add(this, ptr);
+			} else {
+				rootIndex = newNode();
+				if (getRoot()) {
+					memset(getRoot(), 0, sizeof(BinaryNode));
+					getRoot()->m_value = ptr;
+					out = true;
+				} else
+					out = false;
+			}
 		}
-		RawImage* img = new RawImage();
-		img->data = data;
-		img->width = width;
-		img->height = height;
-		img->channels = channels;
-		img->size = img->width * img->height * img->channels;
-		img->flags = StripInternal(flags)|OwnerStbi;
-		return img;
+		m_mutex.unlock();
+		return out;
 	}
-	RawImage* RawImage::LoadFromPNG(int id, Flags flags) {
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
-		HGLOBAL hg = LoadResource(NULL, hs);
-		void* ptr = LockResource(hg);
-		DWORD size = SizeofResource(NULL, hs);
-
-		int channels = 0;
-		if (flags & RGBA)
-			channels = 4;
-		int realChannels;
-		int width, height;
-		stbi_set_flip_vertically_on_load(flags & FlipOnLoad);
-		char* data = (char*)stbi_load_from_memory((uint8_t*)ptr, size, &width, &height, &realChannels, channels);
-		if (!data) {
-			return nullptr;
+	// returns true if ptr was removed, false if it didn't exist
+	bool BinaryTree::remove(Value ptr) {
+		m_mutex.lock();
+		bool out = false;
+		if (getRoot())
+			out = getRoot()->remove(this, rootIndex, ptr);
+		m_mutex.unlock();
+		return out;
+	}
+	bool BinaryTree::find(Value value) {
+		m_mutex.lock();
+		bool out = false;
+		if (getRoot())
+			out = getRoot()->find(this, value);
+		m_mutex.unlock();
+		return out;
+	}
+	BinaryNode* BinaryTree::getNode(uint32_t index) const {
+		if (index == 0) return nullptr;
+		return data + index - 1;
+	}
+	uint32_t BinaryTree::newNode() {
+		if (capacity < head + 1) {
+			return 0; // failed, resizing here is dangerous
 		}
-		RawImage* img = new RawImage();
-		img->data = data;
-		img->width = width;
-		img->height = height;
-		img->channels = channels;
-		img->size = img->width * img->height * img->channels;
-		img->flags = StripInternal(flags) | OwnerStbi;
-		return img;
+		memset(data + head, 0, sizeof(BinaryNode));
+		head++;
+		return head;
 	}
-	//template<>
-	//BMP* RawImage::toBMP<BMP>() {
-	//	//BMP img = BMP::CreateEmpty(size,width,height*2);
-	//
-	//	BMP img;
-	//	uint32_t andMaskSize = width * height / 8;
-	//	//uint32_t andMaskSize = 0;
-	//	uint32_t total = sizeof(BITMAPINFOHEADER) + size + andMaskSize;
-	//	img.data = (char*)alloc::malloc(total);
-	//	if (!img.data) {
-	//		log::out << log::RED << "BMP image failed allocating memory\n";
-	//		return {};
-	//	}
-	//	img.flags = SelfOwned;
-	//	img.size = total;
-	//	memset(img.data, 0, sizeof(BITMAPINFOHEADER));
-	//	if (andMaskSize != 0)
-	//		//memset(img.data + total - andMaskSize, 255, andMaskSize);
-	//		memset(img.data + total - andMaskSize, 0, andMaskSize);
-
-	//	img.header()->biSize = sizeof(BITMAPINFOHEADER);
-	//	img.header()->biSizeImage = size;
-	//	img.header()->biClrUsed = 0;
-	//	img.header()->biClrImportant = 0;
-	//	img.header()->biCompression = 0;
-	//	img.header()->biPlanes = 1;
-	//	img.header()->biXPelsPerMeter = 0;
-	//	img.header()->biYPelsPerMeter = 0;
-
-	//	img.header()->biWidth = width;
-	//	img.header()->biHeight = height*2; // double because of and mask
-	//	img.header()->biBitCount = channels * 8;
-
-	//	//memcpy_s(img.getData(), size, data, size);
-	//	char* imgData = data;
-	//	char* dstData = img.data + sizeof(BITMAPINFOHEADER);
-	//	for (int i = 0; i < size / 4; i++) {
-	//		int p = size / 4 - 1 - i;
-	//		//rgba -> bgra
-	//		dstData[p * 4 + 2] = imgData[i * 4 + 0];
-	//		dstData[p * 4 + 1] = imgData[i * 4 + 1];
-	//		dstData[p * 4 + 0] = imgData[i * 4 + 2];
-	//		dstData[p * 4 + 3] = imgData[i * 4 + 3];
-	//	}
-
-	//	return img;
-	//}
-	PNG* PNG::Load(int id) {
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
-		HGLOBAL hg = LoadResource(NULL, hs);
-		void* ptr = LockResource(hg);
-		DWORD size = SizeofResource(NULL, hs);
-		
-		PNG* img = new PNG();
-		img->data = (char*)ptr;
-		img->size = size;
-		img->flags = 0;
-
-		return img;
+	BinaryNode* BinaryTree::getRoot() const {
+		return getNode(rootIndex);
 	}
-	PNG* PNG::ReadFile(const char* path) {
-		PNG* img = new PNG();
-		Image::ReadFile(path, img);
-		return img;
-	}
-	//RawImage* PNG::toRaw(int channels) {
-	//	RawImage img;
-	//	int realChannels;
-	//	img.data = (char*)stbi_load_from_memory((uint8_t*)data, size, &img.width, &img.height, &realChannels, channels);
-	//	img.channels = channels;
-	//	return img;
-	//}
-	BMP* BMP::ReadFile(const char* path) {
-		BMP* img = new BMP();
-		Image::ReadFile(path, img);
-		return img;
-	}
-	//template<>
-	//ICO BMP::toICO() {
-	//	ICO img = ICO::CreateEmpty(1,size);
-
-	//	ICO::ICONDIRENTRY* e = img.entry(0);
-	//	e->bitsPerPixel = header()->biBitCount;
-	//	e->colorPalette=header()->biClrUsed;
-	//	e->colorPlanes=0;
-	//	//e->colorPlanes=header()->biPlanes;
-	//	e->width = header()->biWidth;
-	//	e->height = header()->biHeight/2;
-	//	e->imageSize = size;
-
-	//	img.autoSetOffsets();
-
-	//	memcpy_s(img.getData(0),e->imageSize,data,size);
-
-	//	return img;
-	//}
-	//RawImage* BMP::toRawImage() {
-	//	RawImage img;
-
-	//	char* imgData = data + sizeof(BITMAPINFOHEADER);
-
-	//	img.data = (char*)alloc::malloc(header()->biSizeImage);
-	//	if (!img.data) {
-	//		log::out << log::RED << "BMP::toRawImage - failed allocation\n";
-	//		return {};
-	//	}
-	//	img.size = header()->biSizeImage;
-	//	img.width = header()->biWidth;
-	//	img.height = header()->biHeight / 2; // bmp has double size for and mask
-	//	img.channels = header()->biBitCount / 8;
-	//	for (int i = 0; i < img.size / 4; i++) {
-	//		int p = img.size / 4-1 - i;
-	//		//bgra -> rgba
-	//		img.data[p * 4 + 2] = imgData[i * 4 + 0];
-	//		img.data[p * 4 + 1] = imgData[i * 4 + 1];
-	//		img.data[p * 4 + 0] = imgData[i * 4 + 2];
-	//		img.data[p * 4 + 3] = imgData[i * 4 + 3];
-	//	}
-
-	//	img.flags = SelfOwned;
-	//	return img;
-	//}
-	ICO* ICO::Load(int id) {
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "ICO");
-		HGLOBAL hg = LoadResource(NULL, hs);
-		void* ptr = LockResource(hg);
-		DWORD size = SizeofResource(NULL, hs);
-
-		ICO* img = new ICO();
-		img->data = (char*)ptr;
-		img->size = size;
-		img->flags = 0;
-
-		return img;
-	}
-	ICO* ICO::ReadFile(const char* path) {
-		ICO* img = new ICO();
-		Image::ReadFile(path, img);
-		return img;
-	}
-	ICO* ICO::CreateEmpty(uint32_t imageCount, uint32_t size) {
-		uint32_t total = sizeof(ICONDIR) + imageCount * sizeof(ICONDIRENTRY) + size;
-		char* data = (char*)alloc::malloc(total);
-		if (!data) {
-			log::out << log::RED << "ICO::CreateEmpty - image failed allocating memory\n";
-			return {};
+	// size is the count of nodes.
+	bool BinaryTree::resize(uint32_t size) {
+		if (size == 0) {
+			if (data) {
+				alloc::free(data, sizeof(BinaryNode) * capacity);
+				//GetTracker().subMemory<BinaryNode>(sizeof(BinaryNode) * capacity);
+				data = nullptr;
+				capacity = 0;
+				head = 0;
+				rootIndex = 0;
+			}
+		} else {
+			if (!data) {
+				BinaryNode* newData = (BinaryNode*)alloc::malloc(sizeof(BinaryNode) * size);
+				if (!newData) return false;
+				//GetTracker().addMemory<TrackNode>(sizeof(TrackNode) * size);
+				data = newData;
+				capacity = size;
+			} else {
+				BinaryNode* newData = (BinaryNode*)alloc::realloc(data, capacity * sizeof(BinaryNode), sizeof(BinaryNode) * size);
+				if (!newData) return false;
+				//GetTracker().subMemory<TrackNode>(sizeof(TrackNode) * (maxCount));
+				//GetTracker().addMemory<TrackNode>(sizeof(TrackNode) * (size));
+				data = newData;
+				capacity = size;
+				if (head > capacity) head = capacity;
+			}
 		}
-		ICO* img=new ICO();
-		img->data = data;
-		img->flags = OwnerSelf;
-		img->size = total;
-		memset(img->data, 0, sizeof(ICONDIR)+imageCount*sizeof(ICONDIRENTRY));
-		img->header()->numImages = imageCount;
-		img->header()->type = 1;
-		return img;
+		return true;
 	}
-	void ICO::autoSetOffsets() {
-		if (!data) return;
-		uint32_t offset=sizeof(ICONDIR)+header()->numImages*sizeof(ICONDIRENTRY);
-		for (int i = 0; i < header()->numImages;i++) {
-			entry(i)->offset = offset;
-			offset += entry(i)->imageSize;
+	// returns true if added, false if ptr already exists, or if something failed
+	bool BinaryNode::add(BinaryTree* tree, Value ptr) {
+		BinaryNode* a = tree->getNode(left);
+		BinaryNode* b = tree->getNode(right);
+		if (m_value == ptr) return false; // could not add ptr
+		if (ptr < m_value) {
+			if (a) {
+				return a->add(tree, ptr);
+			} else {
+				left = tree->newNode();
+				a = tree->getNode(left);
+				if (a) {
+					a->m_value = ptr;
+					return true;
+				} else return false;
+			}
+		} else if (ptr > m_value) {
+			if (b) {
+				return b->add(tree, ptr);
+			} else {
+				right = tree->newNode();
+				b = tree->getNode(right);
+				if (b) {
+					b->m_value = ptr;
+					return true;
+				} else return false;
+			}
+		}
+	}
+	bool BinaryNode::find(BinaryTree* tree, Value ptr) {
+		BinaryNode* a = tree->getNode(left);
+		BinaryNode* b = tree->getNode(right);
+		if (m_value == ptr) return false; // could not add ptr
+		if (ptr < m_value) {
+			if (a) {
+				return a->find(tree, ptr);
+			} else {
+				return false;
+			}
+		} else if (ptr > m_value) {
+			if (b) {
+				return b->find(tree, ptr);
+			} else {
+				return false;
+			}
+		}
+	}
+	// the returned node was detached when you broke a node. The other node replaced the removed node.
+	// returned node is nullptr if no node was detached
+	bool BinaryNode::remove(BinaryTree* tree, uint32_t& ref, Value ptr) {
+		BinaryNode* a = tree->getNode(left);
+		BinaryNode* b = tree->getNode(right);
+		if (m_value == ptr) {
+			uint32_t loose1 = 0;
+			uint32_t loose2 = 0;
+			// ALL THIS SHOULD NOT FAIL IF THERE ARE NO LOOSE NODES
+
+			BinaryNode* cpy = tree->getNode(tree->head);// head-1 is the actual location, getNode decrements index by one. so it adds up.
+
+			// could be nullptr because ref = loose1
+			// find the node that refers to the last node and change it to refer to this
+			BinaryNode* root = tree->getRoot();
+			if (root) {
+				if (root->m_value == cpy->m_value) tree->rootIndex = ref;
+				else root->replace(tree, cpy->m_value, ref);
+			}
+			if (ref % 2 == 0) { // for better distribution
+				if (a) {
+					loose1 = left;
+					loose2 = right;
+				} else if (b) {
+					loose1 = right;
+				}
+			} else {
+				if (b) {
+					loose1 = right;
+					loose2 = left;
+				} else if (a) {
+					loose1 = left;
+				}
+			}
+
+			uint32_t oldRef = ref; // for debugging
+
+			// attach a loose node to the parent
+			ref = loose1;
+
+			//*this = *(tree->data + tree->head - 1);
+			// move last node to memory at this
+
+			// remove last node
+			tree->head--;
+
+			BinaryNode old = *this; // copy for debugging
+
+			m_value = cpy->m_value;
+			left = cpy->left;
+			right = cpy->right;
+
+			if (loose2) // no need to attach nullptr
+				tree->getRoot()->reattach(tree, loose2); // reattach to parent node is enough but i don't have access to it so root will do.
+
+			return true;
+		} else if (ptr < m_value) {
+			if (a)
+				return a->remove(tree, left, ptr);
+		} else if (ptr > m_value) {
+			if (b)
+				return b->remove(tree, right, ptr);
+		}
+		return false;
+	}
+	void BinaryNode::replace(BinaryTree* tree, Value ptr, uint32_t index) {
+		BinaryNode* a = tree->getNode(left);
+		BinaryNode* b = tree->getNode(right);
+		if (ptr < m_value) {
+			if (a) {
+				if (a->m_value == ptr) {
+					left = index;
+				} else {
+					a->replace(tree, ptr, index);
+				}
+			}
+		} else if (ptr > m_value) {
+			if (b) {
+				if (b->m_value == ptr) {
+					right = index;
+				} else {
+					b->replace(tree, ptr, index);
+				}
+			}
+		} else {
+			// do nothing, replacing yourself doesn't work
+			log::out << log::RED << "replaced self\n"; // hasn't happened, hopefully won't
+		}
+	}
+	void BinaryNode::reattach(BinaryTree* tree, uint32_t index) {
+		BinaryNode* a = tree->getNode(left);
+		BinaryNode* b = tree->getNode(right);
+		BinaryNode* node = tree->getNode(index);
+		if (node->m_value < m_value) {
+			if (a) {
+				a->reattach(tree, index);
+			} else {
+				left = index;
+			}
+		} else if (node->m_value > m_value) {
+			if (b) {
+				b->reattach(tree, index);
+			} else {
+				right = index;
+			}
+		} else {
+			//tree->print();
+			log::out << log::RED << "Reattach, found an equal ptr, should not happen!\n";
 		}
 	}
 }

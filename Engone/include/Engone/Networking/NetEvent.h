@@ -1,6 +1,9 @@
 #pragma once
 
+#ifdef ENGONE_LOGGER
 #include "Engone/Logger.h"
+#endif
+//#include <string>
 
 namespace engone {
 	enum class NetEvent : int {
@@ -14,5 +17,6 @@ namespace engone {
 		Stopped,
 	};
 	std::string toString(NetEvent t);
-	Logger& operator<<(Logger& log, NetEvent value);
+	//log::logger operator<<(log::logger a, NetEvent b);
+	Logger& operator<<(Logger& a, NetEvent b);
 }

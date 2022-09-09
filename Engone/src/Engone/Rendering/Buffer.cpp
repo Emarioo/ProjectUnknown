@@ -3,6 +3,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "Engone/vendor/stb_image/stb_image.h"
 
 #define CHECK()  {int err = glGetError();if(err) log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";}
 // unknown error can happen if vertex array isn't bound when a vertex buffer is bound
@@ -347,6 +348,129 @@ namespace engone {
 		CHECK();
 		unbind();
 	}
+	void Texture::cleanup() {
+		if (m_id != 0)
+			glDeleteTextures(1, &m_id);
+	}
+	void Texture::init(RawImage* image) {
+		if (!image) {
+			log::out << "Texture::init - image was null\n";
+			return;
+		}
+		setData(image->width, image->height, image->data());
+	}
+	//void Texture::init(char* data, int _width, int _height) {
+		//if (!data) {
+		//	log::out << "Texture::init - data was null\n";
+		//	return;
+		//}
+		//m_width = _width;
+		//m_height = _height;
+
+		//glGenTextures(1, &m_id);
+		//glBindTexture(GL_TEXTURE_2D, m_id);
+
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		//glBindTexture(GL_TEXTURE_2D, 0);
+	//}
+	void Texture::setData(int width, int height, char* data, int x, int y) {
+		if (!initialized()) {
+			if (width == 0 || height == 0) {
+				log::out <<log::RED<< "Texture::setData - width or height cannot be 0\n";
+				return;
+			}
+			m_width = width;
+			m_height = height;
+
+			glGenTextures(1, &m_id);
+			bind();
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			unbind();
+		} else {
+			bind();
+			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			unbind();
+		}
+	}
+	//void Texture::init(const char* path) {
+	//	stbi_set_flip_vertically_on_load(1);
+	//	buffer = stbi_load(path, &width, &height, &BPP, 4);
+
+	//	glGenTextures(1, &m_id);
+	//	glBindTexture(GL_TEXTURE_2D, m_id);
+
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	//	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//	if (buffer)
+	//		stbi_image_free(buffer);
+
+	//}
+	//void Texture::init(const void* inBuffer, uint32_t size) {
+	//	stbi_set_flip_vertically_on_load(1);
+
+	//	buffer = stbi_load_from_memory((const stbi_uc*)inBuffer, size, &width, &height, &BPP, 4);
+
+	//	glGenTextures(1, &m_id);
+	//	glBindTexture(GL_TEXTURE_2D, m_id);
+
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	//	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//	if (buffer)
+	//		stbi_image_free(buffer);
+	//}
+	//void Texture::init(int w, int h, void* data)
+	//{
+	//	width = w;
+	//	height = h;
+	//	glGenTextures(1, &id);
+	//	glBindTexture(GL_TEXTURE_2D, id);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	//}
+	//void Texture::subData(int x, int y, int w, int h, void* data) {
+	//	glBindTexture(GL_TEXTURE_2D, m_id);
+	//	glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	//	glBindTexture(GL_TEXTURE_2D, 0);
+	//}
+	void Texture::bind(unsigned int slot) {
+		glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, m_id);
+	}
+	void Texture::unbind() {
+		//glActiveTexture(GL_TEXTURE0 + slot);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	int Texture::getWidth() const {
+		return m_width;
+	}
+	int Texture::getHeight()const  {
+		return m_height;
+	}
+
 	void FrameBuffer::init() {
 		glGenFramebuffers(1, &m_id);
 
@@ -432,5 +556,206 @@ namespace engone {
 	}
 	void FrameBuffer::bindRenderbuffer() {
 		glBindRenderbuffer(GL_RENDERBUFFER, m_renderBufferId);
+	}
+	void Shader::bind() {
+		//glLinkProgram(id);
+		//glValidateProgram(id);
+		glUseProgram(m_id);
+
+	}
+	void Shader::unbind() {
+		glUseProgram(0);
+	}
+	void Shader::cleanup() {
+		if(m_id!=0)
+			glDeleteProgram(m_id);
+	}
+	void Shader::init(const char* source) {
+		//std::string& vertex=vs, &fragment = fs;
+		uint32_t sourceSize = strlen(source);
+
+		const char* vTag = "#shader vertex\n";
+		uint32_t vTagLen = strlen(vTag);
+		uint32_t vIndex = 0;
+
+		const char* fTag = "#shader fragment\n";
+		uint32_t fTagLen = strlen(fTag);
+		uint32_t fIndex = 0;
+
+		enum State {
+			ReadingNone,
+			ReadingVertex,
+			ReadingFragment,
+		};
+		State state = ReadingNone;
+
+		vs = {};
+		fs = {};
+
+		int currentLine = 0;
+		for (int i = 0; i < sourceSize; i++) {
+			char chr = source[i];
+			if (chr == '\n') currentLine++;
+			if (chr == vTag[vIndex]) {
+				vIndex++;
+				if (vIndex == vTagLen) {
+					vs.start = source + i + 1;
+					vs.line = currentLine;
+					state = ReadingVertex;
+					if (state == ReadingFragment) {
+						fs.length -= vTagLen;
+					}
+					continue;
+				}
+			}
+			else {
+				vIndex = 0;
+			}
+			if (chr == fTag[fIndex]) {
+				fIndex++;
+				if (fIndex == fTagLen) {
+					fs.start = source + i + 1;
+					fs.line = currentLine;
+					if (state == ReadingVertex) {
+						vs.length -= fTagLen;
+					}
+					state = ReadingFragment;
+				}
+			}
+			else {
+				fIndex = 0;
+			}
+			if (state == ReadingVertex) {
+				vs.length++;
+			}
+			else if (state == ReadingFragment) {
+				fs.length++;
+			}
+		}
+
+		if (vs.length == 0 || fs.length == 0) {
+			std::cout << "Is this shader source correct?:\n" << source << "\n";
+		}
+
+		m_id = createShader(vs, fs);
+	}
+	unsigned int Shader::createShader(ShaderSource vertexSrc, ShaderSource fragmentSrc) {
+		unsigned int program = glCreateProgram();
+		unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexSrc);
+		unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentSrc);
+
+		glAttachShader(program, vs);
+		glAttachShader(program, fs);
+		glLinkProgram(program);
+		glValidateProgram(program);
+
+		glDeleteShader(vs);
+		glDeleteShader(fs);
+
+		return program;
+	}
+	unsigned int Shader::compileShader(unsigned int type, ShaderSource source)
+	{
+		unsigned int id = glCreateShader(type);
+		glShaderSource(id, 1, &source.start, &source.length);
+		glCompileShader(id);
+
+		int result;
+		glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+		if (result == GL_FALSE) {
+			//error = 2;
+			int length; // null terminate is included
+			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+
+			char* msg = new char[length];// a bit extra for when memory is moved to fit in actual error line
+			memset(msg, 0, length);
+
+			glGetShaderInfoLog(id, length, &length, msg); // length is alter and does no longer include null term char
+
+			//std::cout << "Compile error with " << filePath << " (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << ")\n";
+
+			// find where number starts
+			int numStart = 0;
+			while (numStart < length) {
+				numStart++;
+				if (msg[numStart - 1] == '(')
+					break;
+			}
+			// set the null term character
+			int index = numStart;
+			while (index < length) {
+				index++;
+				if (msg[index - 1] == ')') {
+					msg[index - 1] = 0;
+					break;
+				}
+			}
+
+			int line = std::stoi(msg + numStart) + source.line;
+
+			if (type == GL_VERTEX_SHADER)
+				log::out << "Vertex Line:";
+			if (type == GL_FRAGMENT_SHADER)
+				log::out << "Fragment Line:";
+			log::out << line << (msg + index);
+			if (msg[length - 1] != '\n')
+				log::out << "\n";
+
+			glDeleteShader(id);
+
+			return 0;
+		}
+
+		return id;
+	}
+	void Shader::setFloat(const std::string& name, float f)
+	{
+		glUniform1f(getUniformLocation(name), f);
+	}
+	void Shader::setVec2(const std::string& name, glm::vec2 v)
+	{
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << okay << "\n";
+		glUniform2f(getUniformLocation(name), v.x, v.y);
+	}
+	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
+	{
+		glUniform2i(getUniformLocation(name), v.x, v.y);
+	}
+	void Shader::setVec3(const std::string& name, glm::vec3 v)
+	{
+		glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
+	}
+	void Shader::setIVec3(const std::string& name, glm::ivec3 v)
+	{
+		glUniform3i(getUniformLocation(name), v.x, v.y, v.z);
+	}
+	void Shader::setVec4(const std::string& name, float f0, float f1, float f2, float f3)
+	{
+		glUniform4f(getUniformLocation(name), f0, f1, f2, f3);
+	}
+	void Shader::setInt(const std::string& name, int v)
+	{
+		glUniform1i(getUniformLocation(name), v);
+	}
+	void Shader::setMat4(const std::string& name, glm::mat4 mat)
+	{
+		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
+	}
+	unsigned int Shader::getUniformLocation(const std::string& name)
+	{
+		if (uniLocations.find(name) != uniLocations.end()) {
+			return uniLocations[name];
+		}
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << num << "\n";
+		unsigned int loc = glGetUniformLocation(m_id, name.c_str());
+		//int num = glGetError();
+		//const GLubyte* okay = glewGetErrorString(num);
+		//std::cout << num << "\n";
+		uniLocations[name] = loc;
+		return loc;
 	}
 }
