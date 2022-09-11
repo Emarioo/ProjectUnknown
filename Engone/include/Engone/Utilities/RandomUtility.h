@@ -112,7 +112,7 @@ namespace engone {
 		return 10+hex - 'A';
 	}
 	uint8_t HexToNum(char hex0,char hex1) {
-		return HexToNum(hex0) | HexToNum(hex1)<<4;
+		return HexToNum(hex0)<<4 | HexToNum(hex1);
 	}
 	char NumToHex(uint8_t num) {
 		if (num < 10) return '0' + num;

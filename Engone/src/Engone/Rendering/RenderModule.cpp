@@ -36,6 +36,7 @@ namespace engone {
 #ifndef PIPE3_LINE_RESERVE
 #define PIPE3_LINE_RESERVE PIPE3_LINE_BATCH_LIMIT
 #endif
+
 	static Renderer* g_activeRenderer = nullptr;
 	void Renderer::init() {
 		if (m_initialized) return;
@@ -95,13 +96,14 @@ namespace engone {
 
 		// Line pipeline
 		assets->set<ShaderAsset>("lines3d", new ShaderAsset(linesGLSL));
-		pipe3lines.reserve(PIPE3_LINE_RESERVE*6);
-		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*6 * sizeof(float), nullptr);
+		pipe3lines.reserve(PIPE3_LINE_RESERVE*12);
+		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*12 * sizeof(float), nullptr);
 		uint32_t indLine[PIPE3_LINE_BATCH_LIMIT*2];
 		for (int i = 0; i < PIPE3_LINE_BATCH_LIMIT * 2; i++) {
 			indLine[i] = i;
 		}
 		pipe3lineIB.setData(PIPE3_LINE_BATCH_LIMIT*2 * sizeof(float), indLine);
+		pipe3lineVA.addAttribute(3);
 		pipe3lineVA.addAttribute(3, &pipe3lineVB);
 
 		assets->set<ShaderAsset>("renderer", new ShaderAsset(rendererGLSL));
@@ -651,14 +653,20 @@ namespace engone {
 	//	colliderBuffer.ModifyIndices(0, lines.size() * 2, lines.data());
 	//	colliderBuffer.Draw();*/
 	//}
-	void Renderer::DrawLine(glm::vec3 a, glm::vec3 b) {
+	void Renderer::DrawLine(glm::vec3 a, glm::vec3 b, glm::vec3 rgb) {
 		pipe3lines.push_back(a.x);
 		pipe3lines.push_back(a.y);
 		pipe3lines.push_back(a.z);
+		pipe3lines.push_back(rgb.x);
+		pipe3lines.push_back(rgb.y);
+		pipe3lines.push_back(rgb.z);
 
 		pipe3lines.push_back(b.x);
 		pipe3lines.push_back(b.y);
 		pipe3lines.push_back(b.z);
+		pipe3lines.push_back(rgb.x);
+		pipe3lines.push_back(rgb.y);
+		pipe3lines.push_back(rgb.z);
 	}
 	void Renderer::DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
 		DrawLine(a,b);
@@ -863,19 +871,20 @@ namespace engone {
 		if (shad) {
 			shad->bind();
 			updateProjection(shad);
-			glLineWidth(4.f);
+			glLineWidth(2.f);
 			//shad->setVec3("uColor", { 0.3,0.8,0.3 });
 			shad->setVec3("uColor", { 0.9,0.2,0.2 });
 
 			uint32_t drawnLines = 0;
 
-			while (drawnLines * 6 < pipe3lines.size()) {
-				if ((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 6 > pipe3lines.size()) {
-					pipe3lines.resize((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 6, 0);
-				}
-				pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT * 6 * sizeof(float), pipe3lines.data() + drawnLines * 6);
+			while (drawnLines * 12 < pipe3lines.size()) {
+				uint32_t lineCount = min(PIPE3_LINE_BATCH_LIMIT, pipe3lines.size() / 12 - drawnLines);
+				//if ((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 12 > pipe3lines.size()) {
+				//	pipe3lines.resize((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 12, 0);
+				//}
+				pipe3lineVB.setData(lineCount * 12 * sizeof(float), pipe3lines.data() + drawnLines * 12);
 				pipe3lineVA.drawLines(&pipe3lineIB);
-				drawnLines += PIPE3_LINE_BATCH_LIMIT;
+				drawnLines += lineCount;
 			}
 			pipe3lines.clear();
 		}

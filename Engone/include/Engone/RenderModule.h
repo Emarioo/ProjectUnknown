@@ -11,7 +11,7 @@
 #include "Engone/Utilities/Utilities.h"
 
 namespace engone {
-	
+
 	class Renderer;
 	namespace ui {
 		// r,g,b,a
@@ -94,7 +94,7 @@ namespace engone {
 		void DrawNetCube(glm::mat4 matrix, glm::vec3 scale = { 1,1,1 }, glm::vec3 color = { 1,1,1 });
 		void DrawSphere(glm::vec3 position, float radius = 1, glm::vec3 color = { 1,1,1 });
 
-		void DrawLine(glm::vec3 a, glm::vec3 b);
+		void DrawLine(glm::vec3 a, glm::vec3 b, glm::vec3 rgb = {1.f,0.f,0.f});
 		void DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		
 		void render(RenderInfo& info);
