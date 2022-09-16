@@ -138,6 +138,31 @@ namespace engone {
 		cubeVAO.addAttribute(4, 1);
 		cubeVAO.addAttribute(3, 1, &cubeInstanceVBO);
 
+		float cube2Vertices[24]{ // this is correct, the shader must be wrong. The latest index's normal is used.
+			0,0,0,
+			1,0,0,
+			0,1,0,
+			1,1,0,
+
+			0,0,1,
+			1,0,1,
+			0,1,1,
+			1,1,1,
+		};
+		for (int i = 0; i < 24; i++)
+			cube2Vertices[i] -= 0.5;
+		cube2VBO.setData(sizeof(cube2Vertices), cube2Vertices);
+		uint32_t cube2Indices[36]{
+			0, 2, 1, 2, 3, 1,
+			0, 1, 4, 1, 5, 4,
+			0, 4, 2, 4, 6, 2,
+			2, 6, 3, 6, 7, 3,
+			1, 3, 5, 3, 7, 5,
+			4, 5, 6, 5, 7, 6,
+		};
+		cube2IBO.setData(36 * sizeof(uint32_t), cube2Indices);
+		cube2VAO.addAttribute(3, &cube2VBO);
+
 		float simpleQuad[]{
 			0,1,0,1,
 			0,0,0,0,
@@ -564,6 +589,9 @@ namespace engone {
 	}
 	void Renderer::DrawCube(glm::mat4 matrix, glm::vec3 scale, glm::vec3 color) {
 		cubeObjects.push_back({ glm::scale(matrix,scale),color });
+	}
+	void Renderer::DrawCubeRaw() {
+		cube2VAO.draw(&cube2IBO);
 	}
 	void Renderer::DrawNetCube(glm::mat4 matrix, glm::vec3 scale, glm::vec3 color) {
 		auto p = [&](float x, float y, float z) {

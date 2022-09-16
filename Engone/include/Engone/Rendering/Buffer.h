@@ -15,8 +15,9 @@ namespace engone {
 	public:
 		GLObject() = default;
 
-		GLObject(const GLObject&) = delete;
-		GLObject& operator=(const GLObject&) = delete;
+		// careful with this
+		//GLObject(const GLObject&) = delete;
+		//GLObject& operator=(const GLObject&) = delete;
 
 		virtual void cleanup() = 0;
 

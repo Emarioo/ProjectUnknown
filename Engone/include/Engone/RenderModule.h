@@ -94,6 +94,8 @@ namespace engone {
 		void DrawNetCube(glm::mat4 matrix, glm::vec3 scale = { 1,1,1 }, glm::vec3 color = { 1,1,1 });
 		void DrawSphere(glm::vec3 position, float radius = 1, glm::vec3 color = { 1,1,1 });
 
+		void DrawCubeRaw();
+
 		void DrawLine(glm::vec3 a, glm::vec3 b);
 		void DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		
@@ -142,6 +144,10 @@ namespace engone {
 		VertexBuffer cubeVBO{};
 		VertexBuffer cubeInstanceVBO{};
 		IndexBuffer cubeIBO{};
+
+		VertexArray cube2VAO{};
+		VertexBuffer cube2VBO{};
+		IndexBuffer cube2IBO{}; // NOTE: this is the same as cubeIBO. Could be removed.(altough, not removing this would ensure that changing the other cubes values won't affect this one)
 
 		VertexBuffer quadVB;
 		IndexBuffer quadIB;

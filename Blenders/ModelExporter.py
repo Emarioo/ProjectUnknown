@@ -544,21 +544,6 @@ def WriteMaterial(log,file,material):
     log.print('INFO',material.name)
 
 def WriteArmature(log, file, object, originName):
-#    original["dataName"]=original.data.name
-#    file = FileWriter(path+original["dataName"]+".armature")
-#    if file.error:
-#        return
-#    
-#    bpy.ops.object.select_all(action="DESELECT")
-#    # Make a copy of the object and apply modifiers
-#    object=original.copy()
-#    object.data=original.data.copy()
-#    bpy.context.scene.collection.objects.link(object)
-#    object.select_set(True)
-#    bpy.context.view_layer.objects.active=object
-#                       
-#    for mod in object.modifiers:
-#        bpy.ops.object.modifier_apply(modifier=mod.name)
     
     # Loading data
     file.writeComment("Bone count")
@@ -574,8 +559,9 @@ def WriteArmature(log, file, object, originName):
             parentMatrixLocal = bone.parent.matrix_local
             localMatrix = parentMatrixLocal.inverted() @ localMatrix
         
-        localMatrix=axisConvert@localMatrix@axisIConvert
-        invModelMatrix=axisConvert@invModelMatrix@axisIConvert
+        # already done on object
+        #localMatrix=axisConvert@localMatrix@axisIConvert
+        #invModelMatrix=axisConvert@invModelMatrix@axisIConvert
         
         localMatrix = localMatrix.transposed()
         invModelMatrix = invModelMatrix.transposed()
@@ -605,6 +591,18 @@ def GetMedianPoint(data):
     median/=len(data.vertices)
     return median
 
+def CalculateBounds(data):
+    minBound = Vector()
+    maxBound = Vector()
+    for v in data.vertices:
+        for i in range(0,3):
+            if v.co[i]<minBound[i]:
+                minBound[i]=v.co[i]
+            if v.co[i]>maxBound[i]:
+                maxBound[i]=v.co[i]
+    
+    return maxBound-minBound, (maxBound+minBound)/2
+
 # function will NOT change original, z is up
 def DecideColliderType(object):
     data=object.data
@@ -616,7 +614,9 @@ def DecideColliderType(object):
         finished=True
         #print("Empty")
     
-    median = GetMedianPoint(data)
+    #median = GetMedianPoint(data)
+    
+    bounds, center = CalculateBounds(data)
 
     ## ISSUE: vertices not included in polygons should invalidate the collider because a collision happens on a plane.
     ##      some colliders require that a mesh is connected even polygons need to be connected
@@ -686,7 +686,7 @@ def DecideColliderType(object):
                 ab = a-b
                 bc = b-c
                 
-                ang = ab.x*bc.x+ab.y*bc.y # using y since z is up
+                ang = ab.x*bc.x+ab.z*bc.z
                 #print(ang)
                 if math.fabs(ang)>tolerance:
                     #print("Bad angle:",ang)
@@ -703,11 +703,11 @@ def DecideColliderType(object):
             for i in p0.vertices:
                 v = data.vertices[i]
                 f = data.vertices[p0.vertices[0]]
-                print(v.co,f.co)
+                #print(v.co,f.co)
                 if v==f:
                     continue
                 
-                if v.co.x==f.co.x or v.co.y==f.co.y: # using y since z is up
+                if v.co.x==f.co.x or v.co.z==f.co.z:
                     aligns+=1
                     #print(v.co,f.co)
                 
@@ -741,7 +741,7 @@ def DecideColliderType(object):
         minRadius=9999999
         maxRadius=-1
         for mv in data.vertices:
-            d = mv.co-median
+            d = mv.co-center
             radius = d.x*d.x+d.y*d.y+d.z*d.z
             if radius<minRadius:
                 minRadius=radius
@@ -751,8 +751,10 @@ def DecideColliderType(object):
         minRadius = math.sqrt(minRadius)
         maxRadius = math.sqrt(maxRadius)
         
-        tolerance=0.001
+        
+        tolerance=0.05
         radiusDiff = math.fabs(maxRadius-minRadius)
+        #print(radiusDiff)
         if radiusDiff<tolerance:
             type="SPHERE"
             finished=True
@@ -760,45 +762,34 @@ def DecideColliderType(object):
         
     #### check capsule    
     if not finished:
-        ## this code is not flaw because of original.dimensions
-        ## note that tolerance is 0.01, uv sphere isn't 100% spherical
+        ## uv sphere isn't 100% spherical
         
-        #dim = Vector()
-        #for i in range(0,3):
-        #    dim[i]=original.dimensions[i]/original.scale[i]
-        dim = object.dimensions.copy()
+        #dim = object.dimensions.copy()
         # scaling
-        s=original.scale
+        #s=object.scale
         
-        radius2 = (dim.x+dim.y)/4
+        radius2 = (bounds.x+bounds.z)/4
         radius = math.sqrt(radius2)
-        height = dim.z
+        height = bounds.y
         
-        top = median.copy()
-#        top.x*=s.x
-#        top.y*=s.y
-#        top.z*=s.z
-        top.z+=height/2-radius
-        bottom = median.copy()
-#        bottom.x*=s.x
-#        bottom.y*=s.y
-#        bottom.z*=s.z
-        bottom.z+=-height/2+radius
+        #print("mid",median)
+        top = center.copy()
+        top.y+=height/2-radius
+        bottom = center.copy()
+        bottom.y+=-height/2+radius
         
-        tolerance = 0.01
+        tolerance = 0.001
         
-        #print("Dim",dim)
-        #print("R/H:",radius,height,median)
-        #print("Top",top,"Bot",bottom)
+#        print("Dim",bounds)
+#        print("R/H:",radius,height,center)
+#        print("Top",top,"Bot",bottom)
         
         failed=False
         for mv in data.vertices:
             v = mv.co.copy()
-#            v.x*=s.x
-#            v.y*=s.y
-#            v.z*=s.z
             d = top-v
             rt = d.x*d.x+d.y*d.y+d.z*d.z
+            #print("v",v)
             d = bottom-v
             rb = d.x*d.x+d.y*d.y+d.z*d.z
             
@@ -817,7 +808,8 @@ def DecideColliderType(object):
             finished=True
     
     if finished:
-        print("Collider type:",type)
+        #print("Collider type:",type)
+        pass
     else:
         print("Collider type: Unknown")
         
@@ -826,58 +818,40 @@ def DecideColliderType(object):
 def rounding(x):
     return round(x*1000)/1000
 
-# cube collider does not use original.data
 def WriteCollider(log,file,object,colliderType,originName):
-    #colliderType = GetColliderType(original)
-#    colliderType = DecideColliderType(original)
-#    
-#    original["dataName"]=original.name+"-"+colliderType
-#    if not colliderType:
-#        return
-#    
-#    file = FileWriter(path+original["dataName"]+".collider")
-#    if file.error:
-#        return
-#    
-#    bpy.ops.object.select_all(action="DESELECT")
-#    # Make a copy of the object and apply modifiers
-#    object=original.copy()
-#    object.data=original.data.copy()
-#    bpy.context.scene.collection.objects.link(object)
-#    object.select_set(True)
-#    bpy.context.view_layer.objects.active=object
 
-#    object.matrix_world = axisConvert @ object.matrix_world
-#    object.data.transform(axisConvert)
-#    object.matrix_world = object.matrix_world @ axisIConvert
-
-    # CUBE 0
-    # SPEHRE 1
-    # MAP 2
-    # CAPSULE 3
+    SPHERE = 0
+    CUBE = 1
+    CAPSULE = 2
+    MAP = 3
+    
+    bounds, center = CalculateBounds(object.data)
     
     file.writeComment("Type")
     if colliderType=="CUBE":
-        file.writeUChar(0)
+        file.writeUChar(CUBE)
         file.writeComment("Size")
         # dimensions is used here to get the size of the cube. Scale would give the wrong value.
-        file.writeFloat(object.dimensions[0]/2,object.dimensions[1]/2,object.dimensions[2]/2)
+        file.writeFloat(bounds[0]/2,bounds[1]/2,bounds[2]/2)
         
         log.print('INFO',originName)
     elif colliderType=="SPHERE":
-        file.writeUChar(0)
+        file.writeUChar(SPHERE)
         file.writeComment("radius")
-        radius = math.sqrt(pow(object.dimensions[0]/object.scale[0],2)+pow(object.dimensions[1]/object.scale[1],2)+pow(object.dimensions[2]/object.scale[2],2))/2
+        s = bounds/2
+#        for i in range(0,3):
+#            s/=object.scale[i]
+        radius = math.sqrt(s.x*s.x+s.y*s.y+s.z*s.z)
         file.writeFloat(radius);
-        file.writeComment("Position")
-        offset = GetMedianPoint(object.data)
-        file.writeFloat(offset.x,offset.y,offset.z)
+#        file.writeComment("Position")
+#        offset = GetMedianPoint(object.data)
+#        file.writeFloat(offset.x,offset.y,offset.z)
         
         log.print('INFO',originName)
     elif colliderType=="MAP":
         # HEIGHT MAP ASSUMES SOME STUFF
         # Y is up, this means the map needs to be on it's side
-        file.writeUChar(2)
+        file.writeUChar(MAP)
         minHeight=9999999
         maxHeight=-9999999
         for v in object.data.vertices:
@@ -888,38 +862,37 @@ def WriteCollider(log,file,object,colliderType,originName):
         
         # mesh can be assumed to be a grid, otherwise the type wouldn't be considered a map
         # starts with one to account for the base
-        width = 0
-        height = 0
+        columns = 0
+        rows = 0
         base = object.data.vertices[0].co
         
         for i in range(0,len(object.data.vertices)):
          
             v = object.data.vertices[i].co
             
-            if v.x==base.x:
-                width+=1
-            
-            if v.z==base.z: # we are using z because y is height
-                height+=1
+            if v.x==base.x: # x axis means row
+                rows+=1
+            if v.z==base.z:
+                columns+=1
         
-        print("W/H/S",width,height,len(object.data.vertices))
-        if not len(object.data.vertices)==width*height:
+        #print("W/H/S",columns,rows,len(object.data.vertices))
+        if not len(object.data.vertices)==columns*rows:
             log.print('WARNING',"Height map size was miscalculated!")
         else:
-            median = GetMedianPoint(object.data);
+            #median = GetMedianPoint(object.data);
                 
-            median.x=rounding(median.x)
-            median.y=rounding(median.y)
-            median.z=rounding(median.z)
+            center.x=rounding(center.x)
+            center.y=rounding(center.y)
+            center.z=rounding(center.z)
            
-            if not median.x==0 or not median.z == 0:
-                print("CenterPoint:",median)
+            if not center.x==0 or not center.z == 0:
+                print("CenterPoint:",center)
                 log.print('WARNING',"Height map is not centered!")
                 
-            file.writeComment("Width")
-            file.writeUShort(width)
-            file.writeComment("Height")
-            file.writeUShort(height)
+            file.writeComment("Columns")
+            file.writeUShort(columns)
+            file.writeComment("Rows")
+            file.writeUShort(rows)
             
             # this will make sure that the median of min and max is zero.
             if abs(minHeight)<abs(maxHeight):
@@ -932,82 +905,86 @@ def WriteCollider(log,file,object,colliderType,originName):
             file.writeComment("Max Height")
             file.writeFloat(maxHeight)
             # this changes depending on the distance between points, NOT the transform(matrix_local)
-            file.writeComment("ScaleXZ")
-            scaleX = object.dimensions.x/(width-1)
-            scaleY = object.scale.z
-            scaleZ = object.dimensions.y/(width-1)
+            file.writeComment("CellSize")
+            cellSize = Vector()
+            cellSize.x = bounds.x/(columns-1)
+            cellSize.y = 1
+            cellSize.z = bounds.z/(rows-1)
             #print("Scale: ",scaleX,scaleY,scaleZ)
-            file.writeFloat(scaleX,scaleY,scaleZ)
+            file.writeFloat(cellSize.x,cellSize.y,cellSize.z)
             file.writeComment("Height Data")
         
              # The vertices are not stored in order, which means i need to do that.
-            data = []
-            for i in range(0,len(object.data.vertices)):
-                data.append(0) # maybe not the best way to fill an array
-            
-            baseX = object.dimensions.x/2
-            baseZ = object.dimensions.z/2
+            heights = [0]*len(object.data.vertices)
+  
+            baseX = bounds.x/2
+            baseZ = bounds.z/2
             #print("BaseXZ: ",baseX,baseZ," Width: ",width)
             for v in object.data.vertices:
-                xi = round((baseX+v.co.x)/scaleX)
-                zi = round((baseZ+v.co.z)/scaleZ)
-                
+                xi = round((baseX+v.co.x)/cellSize.x)
+                zi = round((baseZ+v.co.z)/cellSize.z)
+                #print(xi,zi)
                 # index should hopefully be less than len(data), if it's not, it's a bug.
-                index = zi*(width)+xi
+                index = zi*columns+xi
                 #print("XY: ",v.co.x,v.co.z," Index: ",xi,zi)
                     
-                data[index]=v.co.yx
+                heights[index]=v.co.y
             
-            for val in data:
-                file.writeFloat(val)
+           #for val in data:
+           #     file.writeFloat(val)
+            file.writeFloat(*heights)
             
             log.print('INFO',originName)
     
     elif colliderType=="CAPSULE":
-        file.writeUChar(3)
+        file.writeUChar(CAPSULE)
         file.writeComment("Radius")
-        file.writeFloat(math.sqrt(object.dimensions[0]*object.dimensions[0]/4+object.dimensions[2]*object.dimensions[2]/4))
+        radius2 = (bounds.x+bounds.z)/4
+        radius = math.sqrt(radius2)
+        file.writeFloat(radius)
         file.writeComment("Height")
-        file.writeFloat(object.dimensions[1]/2)
+        file.writeFloat(bounds.y)
         
         log.print('INFO',originName)
         
     elif colliderType=="MESH":
-        file.writeUChar(2)
-        
-        furthest=0
-        for v in object.data.vertices:
-            dist=v.co.x*v.co.x+v.co.y*v.co.y+v.co.z*v.co.z
-            if dist>furthest:
-                furthest=dist
-        furthest=math.sqrt(furthest)
-        
-        triCount=0
-        for poly in object.data.polygons:
-            if len(poly.vertices)==3:
-                triCount+=1
-        
-        file.writeComment("Vertex count")
-        file.writeUShort(len(object.data.vertices))
-        file.writeComment("Triangle count")
-        file.writeUShort(triCount)
-        file.writeComment("Furthest point")
-        file.writeFloat(furthest)
-        
-        # Write Points
-        for ver in object.data.vertices:
-            v = ver.co
-            file.writeFloat(v[0],v[1],v[2])
-            #file.write(struct.pack("=fff",v[0],v[1],v[2]))
-        
-        # Write Planes
-        for poly in object.data.polygons:
-            v = poly.vertices
-            if len(v)==3:
-                file.writeUShort(v[0],v[1],v[2])
+#        file.writeUChar(2)
+#        
+#        furthest=0
+#        for v in object.data.vertices:
+#            dist=v.co.x*v.co.x+v.co.y*v.co.y+v.co.z*v.co.z
+#            if dist>furthest:
+#                furthest=dist
+#        furthest=math.sqrt(furthest)
+#        
+#        triCount=0
+#        for poly in object.data.polygons:
+#            if len(poly.vertices)==3:
+#                triCount+=1
+#        
+#        file.writeComment("Vertex count")
+#        file.writeUShort(len(object.data.vertices))
+#        file.writeComment("Triangle count")
+#        file.writeUShort(triCount)
+#        file.writeComment("Furthest point")
+#        file.writeFloat(furthest)
+#        
+#        # Write Points
+#        for ver in object.data.vertices:
+#            v = ver.co
+#            file.writeFloat(v[0],v[1],v[2])
+#            #file.write(struct.pack("=fff",v[0],v[1],v[2]))
+#        
+#        # Write Planes
+#        for poly in object.data.polygons:
+#            v = poly.vertices
+#            if len(v)==3:
+#                file.writeUShort(v[0],v[1],v[2])
         
         log.print('INFO',originName)
     else:
+        if not colliderType:
+            colliderType="Unknown"
         log.print('WARNING',"Collider "+colliderType+" is not supported!")
 
 def WriteModel(log,file,instances,animations,originName):
@@ -1182,7 +1159,7 @@ def ExportAssets(log,assetPath):
             
             # Write mesh or collider
             if object.type=='MESH':
-                if object.data.name[-2:]=="-C":
+                if object.data.name[:2]=="C-":
                     found = None
                     for asset in colliders:
                         if asset.object.data.name==object.data.name:
@@ -1205,13 +1182,13 @@ def ExportAssets(log,assetPath):
                         found = Asset("MESH",object)
                         meshes.append(found)
                         for mat in object.data.materials:
-                            found=False
+                            found2=False
                             for m in materials:
                                 if m.name==mat.name:
                                     found=True
                                     break
                             
-                            if not found:
+                            if not found2:
                                 materials.append(mat)
                                 
                     instances.append(Instance(found,object))
@@ -1228,11 +1205,6 @@ def ExportAssets(log,assetPath):
                     found = Asset("ARMATURE",object)
                     armatures.append(found)
                 instances.append(Instance(found,object))
-        
-        #print(instances)
-        
-        # skip for now
-        #continue
 
         for asset in animations:
             file = FileWriter(modelPath+asset.action.name+".animation")
@@ -1266,6 +1238,8 @@ def ExportAssets(log,assetPath):
             objectCopy.data.transform(axisConvert)
             objectCopy.matrix_world = objectCopy.matrix_world @ axisIConvert
             
+            bpy.context.view_layer.update()
+            
             asset.name=asset.object.data.name
             
             file = None
@@ -1288,16 +1262,17 @@ def ExportAssets(log,assetPath):
                     
                 elif asset.type=="COLLIDER":
                     colliderType = DecideColliderType(objectCopy)
-                     
-                    for mod in object.modifiers:
-                        bpy.ops.object.modifier_apply(modifier=mod.name)
                     
-                    # collider name needs to be overwritten
-                    asset.name=asset.object.data.name[:-1]+colliderType
-                    
-                    file = FileWriter(modelPath+asset.name+".collider")
-                    if not file.error:
-                        WriteCollider(log,file,objectCopy,colliderType,asset.name)
+                    if colliderType:
+                        for mod in object.modifiers:
+                            bpy.ops.object.modifier_apply(modifier=mod.name)
+                        
+                        # collider name needs to be overwritten
+                        asset.name=colliderType+asset.object.data.name[1:]
+                        
+                        file = FileWriter(modelPath+asset.name+".collider")
+                        if not file.error:
+                            WriteCollider(log,file,objectCopy,colliderType,asset.name)
                     
                 elif asset.type=="ARMATURE":
                     for mod in object.modifiers:
@@ -1308,6 +1283,7 @@ def ExportAssets(log,assetPath):
                         WriteArmature(log,file,objectCopy,asset.name)
             except:
                 print(traceback.format_exc())
+                log.print("ERROR","See console!")
             
             if file:
                 file.close()
@@ -1321,6 +1297,7 @@ def ExportAssets(log,assetPath):
                 WriteModel(log,file,instances,animations,root.name)   
         except Exception:
             print(traceback.format_exc())
+            log.out("ERROR","See console!")
         
         if file:
             file.close()

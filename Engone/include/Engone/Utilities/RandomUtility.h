@@ -18,7 +18,7 @@ namespace engone {
 	uint64_t Random64();
 	uint8_t HexToNum(char hex);
 	uint8_t HexToNum(char hex0, char hex1);
-	char NumToHex(uint8_t num);
+	char NumToHex(uint8_t num, bool lowerCase=false);
 	// random uuid of 16 bytes in total, use UUID::New to create one.
 	class UUID {
 	public:
@@ -114,9 +114,11 @@ namespace engone {
 	uint8_t HexToNum(char hex0,char hex1) {
 		return HexToNum(hex0) | HexToNum(hex1)<<4;
 	}
-	char NumToHex(uint8_t num) {
+	char NumToHex(uint8_t num, bool lowerCase) {
 		if (num < 10) return '0' + num;
-		else return 'A' + num - 10;
+		if(lowerCase)
+			return 'a' + num - 10;
+		return 'A' + num - 10;
 	}
 	UUID::UUID(const char* str){
 		int len = strlen(str);
@@ -159,8 +161,8 @@ namespace engone {
 				break;
 			if (i == 4 || i == 6 || i == 8 || i == 10)
 				out[write++] = '-';
-			out[write++] = NumToHex(bytes[i] & 15);
-			out[write++] = NumToHex(bytes[i] >> 4);
+			out[write++] = NumToHex(bytes[i] & 15,true);
+			out[write++] = NumToHex(bytes[i] >> 4,true);
 		}
 		out[write] = 0; // finish with null terminated char
 		return out;
