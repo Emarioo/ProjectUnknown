@@ -184,7 +184,7 @@ namespace engone {
 			win->y = (float)y;
 		}
 	}
-	static float cameraSensitivity = 0.1f;
+	static float cameraSensitivity = 0.2f;
 	EventType FirstPerson(Event& e) {
 		if (e.window->m_lastMouseX != -1) {
 			Camera* camera = e.window->getRenderer()->getCamera();
