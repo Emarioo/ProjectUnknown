@@ -68,6 +68,7 @@ namespace engone {
 		//};
 		//State state=None; // finished, phase1, phase2
 	};
+	// An instance of this class exists in each instance of Window.
 	class AssetStorage {
 	public:
 		AssetStorage();

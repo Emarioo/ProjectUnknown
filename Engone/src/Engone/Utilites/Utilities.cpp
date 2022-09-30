@@ -223,13 +223,17 @@ namespace engone {
 	//	log::out << name << " : " << (GetAppTime() - time) << "\n";
 	//	time = 0;
 	//}
-	static wchar_t buffer[256]{};// Will this hardcoded size be an issue?
-	std::wstring convert(const std::string& in) {
-		ZeroMemory(buffer, 256);
+	void ConvertWide(const std::string& in,std::wstring& out) {
+		out.resize(in.length(), 0);
 		for (int i = 0; i < in.length(); i++) {
-			buffer[i] = in[i];
+			out.data()[i] = in[i];
 		}
-		return buffer;
+	}
+	void ConvertWide(const std::wstring& in, std::string& out) {
+		out.resize(in.length(),0);
+		for (int i = 0; i < in.length(); i++) {
+			out.data()[i] = in[i];
+		}
 	}
 	bool StartProgram(const std::string& path) {
 		if (!FindFile(path)) {
@@ -249,14 +253,14 @@ namespace engone {
 
 		std::string workingDir = path.substr(0, slashIndex);
 
-#ifdef NDEBUG
-		std::wstring exeFile = convert(path);
-		std::wstring workDir = convert(workingDir);
-#else
+//#ifdef NDEBUG
+//		std::wstring exeFile = convert(path);
+//		std::wstring workDir = convert(workingDir);
+//#else
 		const std::string& exeFile = path;
 		std::string& workDir = workingDir;
-#endif
-		CreateProcess(exeFile.c_str(),   // the path
+//#endif
+		CreateProcessA(exeFile.c_str(),   // the path
 			NULL,        // Command line
 			NULL,           // Process handle not inheritable
 			NULL,           // Thread handle not inheritable

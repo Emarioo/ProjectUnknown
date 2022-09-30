@@ -285,6 +285,14 @@ namespace engone {
 		if (error == ErrorMissingFile)
 			throw error;
 		if (binaryForm) {
+
+			uint8_t length=var->size();
+			file.write(reinterpret_cast<char*>(&length), 1);
+			writeHead++;
+
+			if (length == 0u)
+				return;
+
 			file.write(var->c_str(), var->length());
 			writeHead += var->length();
 		}
@@ -383,6 +391,7 @@ namespace engone {
 			throw error;
 		}
 		else {
+			var->clear();
 			std::string line;
 			while (true) {
 				if (file.eof()) {

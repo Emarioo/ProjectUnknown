@@ -470,26 +470,26 @@ namespace engone {
 	int Texture::getHeight()const  {
 		return m_height;
 	}
-
 	void FrameBuffer::init() {
-		glGenFramebuffers(1, &m_id);
+		log::out << "FrameBuffer::init - code disabled\n";
+		//glGenFramebuffers(1, &m_id);
 
-		glGenTextures(1, &m_textureId);
-		glBindTexture(GL_TEXTURE_2D, m_textureId);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-			1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		float color[] = { 1,1,1,1 };
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
+		//glGenTextures(1, &m_textureId);
+		//glBindTexture(GL_TEXTURE_2D, m_textureId);
+		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+		//	1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		//float color[] = { 1,1,1,1 };
+		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_id);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureId, 0);
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_textureId, 0);
+		//glDrawBuffer(GL_NONE);
+		//glReadBuffer(GL_NONE);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	void FrameBuffer::initBlur(int width, int height) {
 		glGenFramebuffers(1, &m_id);
@@ -505,7 +505,6 @@ namespace engone {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		//float color[] = { 1,1,1,1 };
 		//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, color);
-
 		glGenRenderbuffers(1, &m_renderBufferId);
 		glBindRenderbuffer(GL_RENDERBUFFER, m_renderBufferId);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -530,7 +529,10 @@ namespace engone {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 	void FrameBuffer::cleanup() {
-		log::out << log::RED << "FrameBuffer:cleanup - not complete!\n";
+		glDeleteTextures(1, &m_textureId);
+		glDeleteRenderbuffers(1, &m_renderBufferId);
+		glDeleteFramebuffers(1, &m_id);
+		//log::out << log::RED << "FrameBuffer:cleanup - not complete!\n"; // probably completed
 	}
 	void FrameBuffer::resize(int width, int height) {
 		log::out << log::RED << "FrameBuffer::resize - not implemented\n";

@@ -9,7 +9,7 @@ namespace engone {
 		static const AssetType TYPE = AssetFont;
 		FontAsset() : Asset(TYPE) {  };
 		~FontAsset() { cleanup(); }
-
+		// don't forget to call load on the asset. You could also load it with AssetStorage::set
 		FontAsset(int id, const std::string& widths) : Asset(TYPE), widthValues(widths),png(PNG::Load(id)) {
 			m_flags = LoadData; // skip io
 			png->setFlags(FlipOnLoad,true);

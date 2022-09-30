@@ -77,7 +77,7 @@ namespace engone {
 			std::memcpy(out, m_data + sizeof(uint32_t)+ m_readHead, sizeof(T) * count);
 			m_readHead += sizeof(T) * count;
 		}
-		void pull(std::string& out);
+		void pull(std::string& out, uint32_t max=-1);
 
 		void moveReadHead(uint32_t byteIndex) {
 			m_readHead = byteIndex;

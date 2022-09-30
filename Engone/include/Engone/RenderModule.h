@@ -55,8 +55,10 @@ namespace engone {
 		void Edit(std::string& str);
 		void Edit(TextBox* text, bool stopEditWithEnter = true);
 
-		bool Clicked(Box& box);
-		bool Clicked(TextBox& box);
+		// 1: clicked, 0: didn't click, -1: clicked but missed box
+		int Clicked(Box& box);
+		// 1: clicked, 0: didn't click, -1: clicked but missed box
+		int Clicked(TextBox& box);
 		bool Hover(Box& box);
 		bool Hover(TextBox& box);
 

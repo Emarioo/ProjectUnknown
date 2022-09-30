@@ -241,10 +241,12 @@ namespace engone {
 			//m_runtimeStats.updateTime = fixed;
 			if (m_flags & EngoneFixedLoop) {
 				double sleeping = m_runtimeStats.frameTime - delta;
+				//log::out << delta <<" "<< sleeping <<"\n";
 				delta = m_runtimeStats.frameTime;
 				if (sleeping > 0) {
 					m_runtimeStats.sleepTime += sleeping;
 					std::this_thread::sleep_for(std::chrono::microseconds((int)(sleeping * 1000000)));
+					lastTime = GetSystemTime(); // this doesn't time accurate.
 				}
 			}
 

@@ -497,6 +497,8 @@ namespace engone {
 		//rectBuffer.Draw();
 	}
 	void Renderer::DrawString(FontAsset* font, const std::string& text, float height, int cursorPosition) {
+		//log::out << text.length() << " " << cursorPosition << "\n";
+
 		if (text.length() == 0 && cursorPosition == -1)
 			return;
 		if (font == nullptr) {
@@ -519,7 +521,9 @@ namespace engone {
 		float x = 0;
 		float y = 0;
 		uint32_t dataIndex = 0;
+		//log::out << "pos " << cursorPosition << "\n";
 		if (cursorPosition != -1) { // do marker
+			//log::out << "pos "<<cursorPosition << "\n";
 			for (uint32_t j = 0; j < text.size(); ++j) {
 				uint8_t chr = text[j];
 				if (chr == '\n') {
@@ -538,6 +542,9 @@ namespace engone {
 				dataIndex++;
 			}
 			if (cursorPosition != dataIndex) {
+				log::out << log::YELLOW<<"Renderer::DrawString - Bad code when drawing text\n";
+				// you may have
+				//log::out << cursorPosition << " " << text.size() << "\n";
 				x = 0;
 			}
 			dataIndex = 0;
@@ -553,7 +560,7 @@ namespace engone {
 			dataIndex = 1;
 		}
 		x = 0;
-		dataIndex = 0;
+		//dataIndex = 0;
 		//std::cout << lines[i].length()<<"\n";
 		for (uint32_t j = 0; j< text.size(); ++j) {
 			uint8_t chr = text[j];
@@ -599,20 +606,20 @@ namespace engone {
 		auto p = [&](float x, float y, float z) {
 			return (matrix * glm::translate(glm::vec3(scale.x * (x - .5), scale.y * (y - .5), scale.z * (z - .5))))[3];
 		};
-		DrawLine(p(0, 0, 0), p(1, 0, 0));
-		DrawLine(p(0, 0, 0), p(0, 0, 1));
-		DrawLine(p(1, 0, 1), p(1, 0, 0));
-		DrawLine(p(1, 0, 1), p(0, 0, 1));
+		DrawLine(p(0, 0, 0), p(1, 0, 0),color);
+		DrawLine(p(0, 0, 0), p(0, 0, 1),color);
+		DrawLine(p(1, 0, 1), p(1, 0, 0),color);
+		DrawLine(p(1, 0, 1), p(0, 0, 1),color);
 
-		DrawLine(p(0, 0, 0), p(0, 1, 0));
-		DrawLine(p(1, 0, 0), p(1, 1, 0));
-		DrawLine(p(1, 0, 1), p(1, 1, 1));
-		DrawLine(p(0, 0, 1), p(0, 1, 1));
+		DrawLine(p(0, 0, 0), p(0, 1, 0),color);
+		DrawLine(p(1, 0, 0), p(1, 1, 0),color);
+		DrawLine(p(1, 0, 1), p(1, 1, 1),color);
+		DrawLine(p(0, 0, 1), p(0, 1, 1),color);
 
-		DrawLine(p(0, 1, 0), p(1, 1, 0));
-		DrawLine(p(0, 1, 0), p(0, 1, 1));
-		DrawLine(p(1, 1, 1), p(1, 1, 0));
-		DrawLine(p(1, 1, 1), p(0, 1, 1));
+		DrawLine(p(0, 1, 0), p(1, 1, 0),color);
+		DrawLine(p(0, 1, 0), p(0, 1, 1),color);
+		DrawLine(p(1, 1, 1), p(1, 1, 0),color);
+		DrawLine(p(1, 1, 1), p(0, 1, 1),color);
 	}
 	constexpr float pis() {
 		return glm::pi<float>();
@@ -812,25 +819,27 @@ namespace engone {
 			}
 			return box.x<x&& box.x + w>x && box.y<y&& box.y + box.h>y;
 		}
-		bool Clicked(Box& box) {
+		int Clicked(Box& box) {
 			if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 				float x = GetMouseX();
 				float y = GetMouseY();
 				if (inside(box, x, y)) {
-					return true;
+					return 1;
 				}
+				return -1;
 			}
-			return false;
+			return 0;
 		}
-		bool Clicked(TextBox& box) {
+		int Clicked(TextBox& box) {
 			if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 				float x = GetMouseX();
 				float y = GetMouseY();
 				if (inside(box, x, y)) {
-					return true;
+					return 1;
 				}
+				return -1;
 			}
-			return false;
+			return 0;
 		}
 		bool Hover(Box& box) {
 			float x = GetMouseX();
@@ -907,12 +916,16 @@ namespace engone {
 
 			while (drawnLines * 12 < pipe3lines.size()) {
 				uint32_t lineCount = min(PIPE3_LINE_BATCH_LIMIT, pipe3lines.size() / 12 - drawnLines);
-				//if ((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 12 > pipe3lines.size()) {
-				//	pipe3lines.resize((drawnLines + PIPE3_LINE_BATCH_LIMIT) * 12, 0);
-				//}
-				pipe3lineVB.setData(lineCount * 12 * sizeof(float), pipe3lines.data() + drawnLines * 12);
+				if (lineCount < PIPE3_LINE_BATCH_LIMIT) {
+					if (pipe3lines.size() % (PIPE3_LINE_BATCH_LIMIT * 12) == 0) {
+						pipe3lines.resize((pipe3lines.size() + PIPE3_LINE_BATCH_LIMIT - lineCount) * 12, 0);
+					} else {
+						memset(pipe3lines.data() + (drawnLines + lineCount) * 12, 0, 12 * (PIPE3_LINE_BATCH_LIMIT - lineCount) * sizeof(float));
+					}
+				}
+				pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT * 12 * sizeof(float), pipe3lines.data() + drawnLines * 12);
 				pipe3lineVA.drawLines(&pipe3lineIB);
-				drawnLines += lineCount;
+				drawnLines += PIPE3_LINE_BATCH_LIMIT;
 			}
 			pipe3lines.clear();
 		}

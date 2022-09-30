@@ -199,11 +199,12 @@ namespace engone {
 		m_readHead += *bytes;
 		return out;
 	}
-	void MessageBuffer::pull(std::string& out) {
+	void MessageBuffer::pull(std::string& out, uint32_t max) {
 		if (m_data) {
 			uint32_t siz = size();
 			char* str = m_data + sizeof(uint32_t) + m_readHead;
-			uint32_t length = strnlen_s(str, siz - m_readHead) + 1;
+			int maxlen = std::min(max, siz - m_readHead);
+			uint32_t length = strnlen_s(str, maxlen) + 1;
 			if (length > siz - m_readHead) {
 				// fishy
 				log::out << log::RED << "MessageBuffer::pull - length of string exceeds message!\n";
@@ -629,7 +630,7 @@ namespace engone {
 
 				//service.sin_port = htons(intPort);
 				//int error = bind(newSocket, (SOCKADDR*)&service, sizeof(service));
-				log::out << "name length " << result->ai_addrlen << "\n";
+				//log::out << "name length " << result->ai_addrlen << "\n";
 				int error = bind(newSocket, result->ai_addr, (int)result->ai_addrlen);
 				freeaddrinfo(result);
 				if (error == SOCKET_ERROR) {

@@ -125,6 +125,8 @@ namespace engone {
 		return FormatTime((uint64_t)round(seconds), compact, flags);
 	}
 	std::string FormatTime(uint64_t time, bool compact, FormatTimePeriods flags) {
+		if (time == 0)
+			return "0s";
 		// what is the max amount of characters?
 		const int outSize = 130;
 		char out[outSize]{};
@@ -152,7 +154,10 @@ namespace engone {
 			rest -= num[i] * divs[i];
 
 			if (write != 0) out[write++] = ' ';
-			write += snprintf(out + write, outSize - write, "%u ", num[i]);
+			if(compact)
+				write += snprintf(out + write, outSize - write, "%u", num[i]);
+			else
+				write += snprintf(out + write, outSize - write, "%u ", num[i]); // adds a space
 			if (compact) {
 				out[write++] = lit[i][0];
 				if (i < 3)
