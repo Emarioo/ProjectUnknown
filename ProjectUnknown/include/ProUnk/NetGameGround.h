@@ -26,11 +26,11 @@ public:
 	}
 	void cleanup() override;
 
-	//-- commands
-	void netMoveObject(engone::UUID uuid, const rp3d::Transform& tr);
+	//-- Network messages you can send
+	void netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular);
 	void netAddObject(engone::UUID uuid, int objectType, const std::string& modelAsset);
 	// synchronize playground with connection.
-	void netSyncObjects();
+	//void netSyncObjects();
 
 	engone::Server& getServer() { return m_server; };
 	engone::Client& getClient() { return m_client; };

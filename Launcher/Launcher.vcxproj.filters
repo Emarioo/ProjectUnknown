@@ -27,6 +27,9 @@
     <ClCompile Include="src\Launcher\pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Launcher\LogLevels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Launcher\Settings.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Launcher\pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Launcher\LogLevels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

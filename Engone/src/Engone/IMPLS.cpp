@@ -6,8 +6,9 @@ Multiple definitions of IMPL would include defintions of functions multiple time
 #define STB_IMAGE_IMPLEMENTATION
 #include "Engone/vendor/stb_image/stb_image.h"
 
-#define ENGONE_LOGGER_IMPL
-#include "Engone/Utilities/LoggingModule.h"
+// not doing this anymore
+//#define ENGONE_LOGGER_IMPL
+//#include "Engone/Utilities/LoggingModule.h"
 
 #define ENGONE_ERROR_IMPL
 #include "Engone/Error.h"

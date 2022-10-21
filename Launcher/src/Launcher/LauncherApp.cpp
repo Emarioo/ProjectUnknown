@@ -18,18 +18,21 @@ namespace launcher {
 	typedef uint8_t StreamStates;
 	LauncherApp::LauncherApp(engone::Engone* engone, const std::string& settings) : Application(engone) {
 		using namespace engone;
-		m_window = createWindow({ WindowMode::BorderlessMode,600,150 });
+		m_window = createWindow({ WindowMode::ModeBorderless,600,150 });
 		m_window->setTitle("Launcher");
 
-		//m_window->close();
-		//consolas = getAssets()->set<Font>("consolas", "fonts/consolas42");
-
-		PNG png = LoadPNG(IDB_PNG1);
-		const char* txtBuffer = "4\n35";
-
-		consolas = getAssets()->set<Font>("consolas", new Font(png.data, png.size, txtBuffer, strlen(txtBuffer)));
+		consolas = getStorage()->set<FontAsset>("consolas", new FontAsset(IDB_PNG1, "4\n35"));
 
 		bool yes = m_settings.load(settings);
+		std::string someIp = m_settings.get("ip");
+		std::string somePort = m_settings.get("port");
+		if (!someIp.empty()) {
+			addressText.text = someIp;
+		}
+		if (!somePort.empty()) {
+			if(somePort!=Settings::PORT)
+				addressText.text += somePort;
+		}
 
 		m_cache.load();
 
@@ -42,13 +45,16 @@ namespace launcher {
 			return true;
 		});
 		m_server.setOnReceive([this](MessageBuffer buf, UUID uuid) {
+			//log::out << "1 buf size " << buf.size() << "\n";
 			LauncherNetType type;
 			buf.pull(&type);
+			ENGONE_DEBUG(log::out << "Server recv " << type << "\n", LAUNCHER_LEVEL, 1);
 			if (type == LauncherClientFiles) {
 				//log::out << "recieved\n";
 				std::vector<FileInfo> sentFiles;
 				uint32_t size;
 				buf.pull(&size);
+				//ENGONE_DEBUG(log::out << "Files: "<<size << "\n", LAUNCHER_LEVEL, 2);
 				for (int i = 0; i < size; i++) {
 					FileInfo f;
 					buf.pull(f.path);
@@ -97,7 +103,7 @@ namespace launcher {
 								sendFiles.push_back({ origin,endPath,time });
 							}
 						} else {
-							log::out << log::RED << "file not found\n";
+							log::out << log::RED << "Launcher::Serv::recv - "<<origin<<" not found\n";
 							ohNo = true;
 							break;
 						}
@@ -143,7 +149,9 @@ namespace launcher {
 						UUID fileUuid = UUID::New();
 						uint32_t bytesLeft = fileSize;
 						while (bytesLeft!=0) {
-							MessageBuffer sendBuf(LauncherServerSendFile);
+							MessageBuffer sendBuf;
+							LauncherNetType type = LauncherServerSendFile;
+							sendBuf.push(&type);
 							sendBuf.push(fileUuid);
 							StreamStates state = 0;
 							if (bytesLeft == fileSize) state = state|StreamStart;
@@ -174,14 +182,19 @@ namespace launcher {
 				// Make a log of messages. infoText will show how the last connection went but not the rest since infoText will override that info.
 				if (ohNo) {
 					infoText.text = "GameFile Paths are probably wrong";
-					MessageBuffer sendBuf(LauncherServerError);
+					MessageBuffer sendBuf;
+
+					LauncherNetType type = LauncherServerError;
+					sendBuf.push(&type);
 					m_server.send(sendBuf, uuid);
 				} else {
 					infoText.text = "";
 					if (sendFiles.size() == 0) {
 						//log::out << "Server: client is up to date\n";
 					}
-					MessageBuffer sendBuf(LauncherServerFinished);
+					MessageBuffer sendBuf;
+					LauncherNetType type = LauncherServerFinished;
+					sendBuf.push(&type);
 					m_server.send(sendBuf, uuid);
 				}
 			} else {
@@ -190,20 +203,24 @@ namespace launcher {
 
 			return true;
 		});
-		m_client.setOnEvent([this](NetEvent e) {
+		m_client.setOnEvent([this](NetEvent e, UUID uuid) {
 			if (NetEvent::Connect == e) {
 				switchState(LauncherDownloading);
 				delayDownloadFailed.start(8);
 
 				std::vector<FileInfo>& files = m_cache.getFiles();
 
-				MessageBuffer buf(LauncherClientFiles);
-				buf.push((uint32_t)files.size());
+				MessageBuffer buf;
+				LauncherNetType type = LauncherClientFiles;
+				buf.push(&type);
+				uint32_t size = files.size();
+				buf.push(size);
+				//ENGONE_DEBUG(log::out <<"Sending files count " <<size << "\n", LAUNCHER_LEVEL, 1);
 				for (int i = 0; i < files.size(); i++) {
 					buf.push(files[i].path);
 					buf.push(files[i].time);
 				}
-
+				//log::out << "buf " << buf.size()<<"\n";
 				m_client.send(buf);
 			} else if (NetEvent::Failed == e) {
 				switchInfoText = "Could not connect\n";
@@ -211,9 +228,10 @@ namespace launcher {
 			}
 			return true;
 		});
-		m_client.setOnReceive([this](MessageBuffer buf) {
+		m_client.setOnReceive([this](MessageBuffer buf, UUID) {
 			LauncherNetType type;
 			buf.pull(&type);
+			ENGONE_DEBUG(log::out<<"Client recv "<<type <<"\n",LAUNCHER_LEVEL,1);
 			if (type == LauncherServerSendFile) {
 				UUID fileUuid;
 				buf.pull(&fileUuid);
@@ -297,7 +315,8 @@ namespace launcher {
 					infoText.text = "Developer messed up which order to send files\n";
 				}
 			} else if (type == LauncherServerError) {
-				m_client.disconnect();
+				delayDownloadFailed.stop();
+				m_client.stop();
 				switchInfoText = "Server didn't want to cooperate";
 				switchState(LauncherSetting);
 			}
@@ -345,8 +364,6 @@ namespace launcher {
 
 		float width = GetWidth(), height = GetHeight();
 
-		Font* font = consolas;
-
 		ui::Color backColor = { 52 / 255.f,23 / 255.f,109 / 255.f,1 };
 		ui::Color lightBackColor = { 52 / 255.f * 1.2,23 / 255.f * 1.2,109 / 255.f * 1.2,1 };
 		ui::Color white = { 1,1,1,1 };
@@ -356,7 +373,7 @@ namespace launcher {
 		ui::Draw(background);
 		
 		ui::Box quitBack = { width - 25,0,25,25,{0.5,0.05,0.1,1} };
-		ui::TextBox quit = { "X", quitBack.x+5,3,20,font,{1,1,1,1}};
+		ui::TextBox quit = { "X", quitBack.x+5,3,20,consolas,{1,1,1,1}};
 
 		if (ui::Hover(quitBack)) {
 			quitBack.rgba.r = 0.7;
@@ -365,14 +382,14 @@ namespace launcher {
 		}
 		ui::Draw(quitBack);
 		ui::Draw(quit);
-		if (ui::Clicked(quitBack)) {
+		if (ui::Clicked(quitBack)==1) {
 			m_window->close();
 		}
 
 		if (state == LauncherConnecting) {
 			// Launcher name
-			ui::TextBox launcherText = { launcherName,0,0,30,font,white };
-			launcherText.x = width / 2 - font->getWidth(launcherName, launcherText.h) / 2;
+			ui::TextBox launcherText = { launcherName,0,0,30,consolas,white };
+			launcherText.x = width / 2 - consolas->getWidth(launcherName, launcherText.h) / 2;
 			launcherText.y = height / 2 - launcherText.h / 2;
 			ui::Draw(launcherText);
 
@@ -380,8 +397,8 @@ namespace launcher {
 			infoText.text = "Connecting";
 			infoText.y = launcherText.y + launcherText.h;
 			infoText.h = launcherText.h * 0.7;
-			infoText.x = width / 2 - font->getWidth("Connecting..", infoText.h) / 2;
-			infoText.font = font;
+			infoText.x = width / 2 - consolas->getWidth("Connecting..", infoText.h) / 2;
+			infoText.font = consolas;
 			infoText.rgba = gray;
 			float timeDiff = 0.5;
 			int dots = (int)(loadingTime / timeDiff) % 6;
@@ -393,7 +410,7 @@ namespace launcher {
 			ui::Draw(infoText);
 		} else if (state == LauncherDownloading) {
 			// Download text
-			ui::TextBox download = { "Downloading",0,height * 0.3,30,font,white };
+			ui::TextBox download = { "Downloading",0,height * 0.3,30,consolas,white };
 			float timeDiff = 0.5;
 			int dots = (int)(loadingTime / timeDiff) % 6;
 			if (dots > 3)
@@ -401,25 +418,25 @@ namespace launcher {
 			for (int i = 0; i < dots; i++) {
 				download.text += '.';
 			}
-			download.x = width / 2 - font->getWidth("Downloading..", download.h) / 2;
+			download.x = width / 2 - consolas->getWidth("Downloading..", download.h) / 2;
 			ui::Draw(download);
 
 			// Last downloaded file
-			ui::TextBox lastFile = { lastDownloadedFile,0,download.y + download.h,download.h * 0.9,font,gray };
-			lastFile.x = width / 2 - font->getWidth(lastDownloadedFile, lastFile.h) / 2;
+			ui::TextBox lastFile = { lastDownloadedFile,0,download.y + download.h,download.h * 0.9,consolas,gray };
+			lastFile.x = width / 2 - consolas->getWidth(lastDownloadedFile, lastFile.h) / 2;
 			ui::Draw(lastFile);
 
 			if (infoText.text.length() != 0) {
 				infoText.h = lastFile.h * 0.8;
-				infoText.font = font;
+				infoText.font = consolas;
 				infoText.rgba = gray;
 				infoText.y = lastFile.y + lastFile.h + height * 0.08;
-				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
+				infoText.x = width / 2 - consolas->getWidth(infoText.text, infoText.h) / 2;
 				ui::Draw(infoText);
 			}
 		} else if (state == LauncherSetting) {
-			ui::TextBox serverText = { "Address",0,0,30,font,white };
-			serverText.x = width / 2 - font->getWidth(serverText.text, serverText.h)/2;
+			ui::TextBox serverText = { "Address",0,0,30,consolas,white };
+			serverText.x = width / 2 - consolas->getWidth(serverText.text, serverText.h)/2;
 			serverText.y = height * 0.25-serverText.h/2;
 			ui::Draw(serverText);
 
@@ -429,9 +446,8 @@ namespace launcher {
 			addressBack.x = width/2 -addressBack.w/2;
 			ui::Draw(addressBack);
 
-
 			bool editBefore = addressText.editing;
-			if (ui::Clicked(addressBack)) {
+			if (ui::Clicked(addressBack)==1) {
 				addressText.editing = true;
 				editBefore = true;
 			} else if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)||!info.window->hasFocus()) {
@@ -441,7 +457,7 @@ namespace launcher {
 			// prevent some characters like # $, or rather, only allow a-Z, 0-9 and .
 			ui::Edit(&addressText);
 			
-			ui::TextBox suggestText = { "",0,addressBack.y,addressBack.h,font,gray };
+			ui::TextBox suggestText = { "",0,addressBack.y,addressBack.h,consolas,gray };
 
 			int index = addressText.text.find_last_of(':');
 			if (addressText.editing) {
@@ -452,15 +468,15 @@ namespace launcher {
 			}
 
 			addressText.h = addressBack.h;
-			addressText.x = addressBack.x+addressBack.w/2-font->getWidth(addressText.text+suggestText.text,addressText.h)/2;
+			addressText.x = addressBack.x+addressBack.w/2-consolas->getWidth(addressText.text+suggestText.text,addressText.h)/2;
 			addressText.y = addressBack.y;
-			addressText.font = font;
+			addressText.font = consolas;
 			addressText.rgba = white;
 
 			ui::Draw(addressText);
 
 			if (addressText.editing) {
-				suggestText.x = addressText.x + font->getWidth(addressText.text, addressText.h);
+				suggestText.x = addressText.x + consolas->getWidth(addressText.text, addressText.h);
 				ui::Draw(suggestText);
 			}
 
@@ -472,15 +488,15 @@ namespace launcher {
 
 			if (infoText.text.length() != 0) {
 				infoText.h = addressText.h * 0.5;
-				infoText.font = font;
+				infoText.font = consolas;
 				infoText.rgba = gray;
 				infoText.y = addressBack.y + addressBack.h + height * 0.08;
-				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
+				infoText.x = width / 2 - consolas->getWidth(infoText.text, infoText.h) / 2;
 				ui::Draw(infoText);
 			}
 		} else if (state == LauncherServerSide) {
-			ui::TextBox serverTitle = { "Server connections:"+std::to_string(m_server.getConnectionCount()),0,height * 0.07,35,font,white };
-			serverTitle.x = width / 2 - font->getWidth(serverTitle.text, serverTitle.h) / 2;
+			ui::TextBox serverTitle = { "Server connections:"+std::to_string(m_server.getConnectionCount()),0,height * 0.07,35,consolas,white };
+			serverTitle.x = width / 2 - consolas->getWidth(serverTitle.text, serverTitle.h) / 2;
 			ui::Draw(serverTitle);
 
 			const uint32_t bufferSize = 150;
@@ -488,10 +504,10 @@ namespace launcher {
 			ZeroMemory(infoBuffer, bufferSize);
 			uint32_t write = 0;
 			
-			write+=snprintf(infoBuffer, bufferSize, "Bytes S/R: %llu/%llu\nMsgs S/R: %llu/%llu", m_server.sentBytes(), m_server.receivedBytes(),m_server.sentMessages(), m_server.receivedMessages());
+			write+=snprintf(infoBuffer, bufferSize, "Bytes S/R: %llu/%llu\nMsgs S/R: %llu/%llu", m_server.getStats().sentBytes(), m_server.getStats().receivedBytes(), m_server.getStats().sentMessages(), m_server.getStats().receivedMessages());
 			infoBuffer[bufferSize - 1] = 0;
-			ui::TextBox connectInfo = { infoBuffer,0,serverTitle.y + serverTitle.h,serverTitle.h * 0.7,font,white};
-			float wid = font->getWidth(connectInfo.text, connectInfo.h);
+			ui::TextBox connectInfo = { infoBuffer,0,serverTitle.y + serverTitle.h,serverTitle.h * 0.7,consolas,white};
+			float wid = consolas->getWidth(connectInfo.text, connectInfo.h);
 			connectInfo.x = width / 2-wid / 2;
 			ui::Draw(connectInfo);
 			
@@ -500,8 +516,8 @@ namespace launcher {
 			if (infoText.text.length() != 0) {
 				infoText.h = serverTitle.h * 0.5;
 				infoText.y = connectInfo.y + connectInfo.h*2 + height * 0.08;
-				infoText.x = width / 2 - font->getWidth(infoText.text, infoText.h) / 2;
-				infoText.font = font;
+				infoText.x = width / 2 - consolas->getWidth(infoText.text, infoText.h) / 2;
+				infoText.font = consolas;
 				infoText.rgba = gray;
 				ui::Draw(infoText);
 			}
@@ -555,7 +571,8 @@ namespace launcher {
 		m_settings.save();
 
 		m_server.stop();
-		m_client.disconnect();
+		m_client.stop();
+		stop();
 	}
 	void LauncherApp::doAction(bool delay) {
 		using namespace engone;
@@ -567,7 +584,7 @@ namespace launcher {
 				log::out << "Server is already running\n";
 			} else {
 				if (m_client.isRunning())
-					m_client.disconnect();
+					m_client.stop();
 				if (!m_server.start(port)) {
 					switchInfoText = "Invalid Port";
 					if (delay)
@@ -584,7 +601,7 @@ namespace launcher {
 			} else {
 				if (m_server.isRunning())
 					m_server.stop();
-				if (!m_client.connect(ip, port)) {
+				if (!m_client.start(ip, port)) {
 					// infoText can be ambiguous, was the ip invalid because the server didn't exist and the client couldn't connect or
 					// because the ip wasn't a correctly formatted ip address. 12#515Ar <- this would be an invalid ip.
 					switchInfoText= "Invalid IP/Port";

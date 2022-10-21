@@ -22,7 +22,7 @@ Player::Player(engone::GameGround* ground) : GameObject(ground) {
 	engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 	//modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody"); 
 	modelAsset = assets->load<engone::ModelAsset>("Player/Player"); 
-	//modelAsset = assets->set<engone::ModelAsset>("Player/Player"); 
+	//modelAsset = assets->set<engone::ModelAsset>("Player/Player");
 	animator.asset = modelAsset;
 
 	loadColliders(ground);

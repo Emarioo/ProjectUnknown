@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "Engone/Assets/Asset.h"
-
 #include "Engone/Assets/AnimationAsset.h"
 #include "Engone/Assets/ArmatureAsset.h"
 #include "Engone/Assets/ColliderAsset.h"
@@ -49,6 +47,7 @@ unless storage is being destroyed on render thread in which case it might lock i
 */
 
 namespace engone {
+	extern int ASSET_LEVEL;
 
 	// Update
 	// Render
@@ -69,112 +68,100 @@ namespace engone {
 		//State state=None; // finished, phase1, phase2
 	};
 	// An instance of this class exists in each instance of Window.
+	// Allow auto refresh
 	class AssetStorage {
 	public:
 		AssetStorage();
 		~AssetStorage();
 
-		enum Flag : uint8_t {
-			//Async=1, // Async by default
-			Sync = 1,
-			ForceLoad = 2, // When used in load function. A new asset will always be made. This new asset will overwrite an asset with the same name.
-			SoftLoad = 4, // get
-		};
-		typedef uint8_t Flags;
+		//-- Flags for methods
+		static const uint8_t SYNC = 1; // Perform function synchronously. Applies to AssetStorage::load
+		//static const uint8_t FORCE_RELOAD = 2;// Load were supposed to always load asset even if it had been loaded. BUT, it will now reload automatically.
+		static const uint8_t DEFAULT_FLAGS = 0;
 
-		static const Flags defaultFlags = Sync;
-
-		// creates a new asset loaded from path
+		// load asset from path
 		template<class T>
-		T* load(const std::string& path, Flags flags = defaultFlags) {
+		T* load(const std::string& path, uint8_t flags = DEFAULT_FLAGS) {
 			// ask to load an asset as a task through processors.
 			// reload asset if already loaded
 			m_assetMutex.lock();
 			std::string _path = modifyPath<T>(path);
 
-			T* t = nullptr;
-			bool quit = false;
-			if ((flags & ForceLoad) == 0) {
-				auto& list = m_assets[T::TYPE];
-				auto find = list.find(path);
-				if (find != list.end()) {
-					t = (T*)find->second;
-					if (t->m_state == Asset::Processing) {
-						// already loading
-						quit = true;
-					} else {
-						//log::out << "Reload " << path << "\n"; // reload if asset failed or is loaded
-					}
-				}
-			}
-			if (!t) {
-				//log::out << "Load " << path << "\n";
-				t = new T();
-				t->m_flags = Asset::LoadIO;
-				t->setStorage(this);
-				GetTracker().track(t);
-				m_assets[T::TYPE][path] = t;
-				_path += GetFormat(T::TYPE);
-				t->setPath(_path);
-				t->setLoadName(path);
-			}
-			m_assetMutex.unlock();
-			if ((flags & SoftLoad) && t->m_state != Asset::Waiting){
-				quit = true;
-			}
-			if (quit) {
-				return t;
-			}
-			flags |= Sync;
-			t->m_state = Asset::Processing;
-			if (flags & Sync) {
-				// load returns flags but we can safely ignore them.
-				t->load(Asset::LoadAll);
-			} else {
-				//AssetTask task(t, Asset::LoadIO);
-				AssetTask task(t);
-				processTask(task);
+			T* asset = nullptr;
+
+			//-- Find asset, (simular to AssetStorage::get)
+			auto& list = m_assets[T::TYPE];
+			auto find = list.find(path);
+			if (find != list.end()) {
+				asset = (T*)find->second;
 			}
 
-			return t;
+			if (!asset) {
+				//log::out << "Load " << path << "\n";
+				asset = new T();
+				asset->setStorage(this);
+				GetTracker().track(asset);
+				m_assets[T::TYPE][path] = asset;
+				_path += GetFormat(T::TYPE);
+				asset->setPath(_path);
+				asset->setLoadName(path);
+			}
+			m_assetMutex.unlock();
+			
+			if (asset->m_state == Asset::Processing) // return if asset already is being processed
+				return asset; 
+			
+			asset->m_state = Asset::Processing;
+			if (flags & SYNC) {
+				// load returns flags but we can safely ignore them.
+				asset->load(Asset::LoadAll);
+			} else {
+				asset->m_flags = Asset::LoadIO;
+				AssetTask task(asset);
+				processTask(task);
+			}
+			return asset;
 		}
+		
 		// deletes an asset which was loaded from path
 		// note that the pointer of the asset is invalid memory after it is unloaded
 		template<typename T>
-		void unload(const std::string& path, Flags flags = defaultFlags) {
+		void unload(const std::string& path, uint8_t flags = DEFAULT_FLAGS) {
 			m_assetMutex.lock();
 			std::string _path = modifyPath<T>(path);
 
 			auto& list = m_assets[T::TYPE];
 			auto find = list.find(path);
 			if (find != list.end()) {
-				delete find->second(); // bad, what if asset is being processed
-				GetTracker().untrack(find->second);
-				list.erase(find);
+				if (find->second->m_state == Asset::Processing) {
+					log::out << "AssetStorage::unload - Asset cannot be unloaded while being processed!\n";
+				} else {
+					delete find->second; // can asset be deleted?
+					GetTracker().untrack(find->second);
+					list.erase(find);
+				}
 			}
 			m_assetMutex.unlock();
 		}
+		
 		// returns nullptr if not found. str could be path or name
 		template<typename T>
-		T* get(const std::string& str, Flags flags = defaultFlags) {
+		T* get(const std::string& str, uint8_t flags = DEFAULT_FLAGS) {
 			m_assetMutex.lock();
 			auto& list = m_assets[T::TYPE];
 			auto find = list.find(str);
 			T* out = nullptr;
 			if (find != list.end()) {
 				out = (T*)find->second;
-			} 
-			//else if(flags&SoftLoad) {
-			//	out = load<T>(str, ForceLoad);
-			//}
+			}
 			m_assetMutex.unlock();
 			return out;
 		}
-		//typedef MeshAsset T;
+
 		// returns nullptr if name already exists.
 		// by using this function you relieve your responsibility of deleting asset. It is now done by storage.
 		template<typename T>
-		T* set(const std::string& name, T* asset, Flags flags = defaultFlags) {
+		T* set(const std::string& name, T* asset, uint8_t flags = DEFAULT_FLAGS) {
 			asset->m_path.clear(); // no path, asset cannot reload, you can of course change it's data yourself
 
 			m_assetMutex.lock();
@@ -208,7 +195,7 @@ namespace engone {
 					t->m_state = Asset::Loaded;
 				} else {
 					t->m_state = Asset::Processing;
-					if (flags&Sync) {
+					if (flags&SYNC) {
 						t->load(Asset::LoadAll);
 					} else {
 						AssetTask task(t);
@@ -221,11 +208,51 @@ namespace engone {
 			return t;
 		}
 
+		void addIOProcessor();
+		void addDataProcessor();
+		void addGraphicProcessor();
+
+		void cleanup();
+
+		void printTasks();
+
+		std::vector<AssetProcessor*>& getIOProcessors() { return m_ioProcessors; }
+		std::vector<AssetProcessor*>& getDataProcessors() { return m_dataProcessors; }
+		std::vector<AssetProcessor*>& getGraphicProcessors() { return m_graphicProcessors; }
+
+	private:
+		bool m_running = false;
+
+		// will queue task into appropriate processor
+		// path needs to be set for the asset before hand.
+		void processTask(AssetTask task);
+		
+		//-- distrubtion when queueing tasks
+		int m_ioNext=0;
+		int m_dataNext=0;
+		int m_graphicNext=0;
+
+		//-- Processors
+		std::vector<AssetProcessor*> m_ioProcessors;
+		std::vector<AssetProcessor*> m_dataProcessors;
+		std::vector<AssetProcessor*> m_graphicProcessors; // OpenGL is single threaded. Can only have one processor.
+		std::mutex m_ioProcMutex;
+		std::mutex m_dataProcMutex;
+		std::mutex m_graphicProcMutex;
+
+		//-- Assets in storage
+		std::unordered_map<AssetType, std::unordered_map<std::string,Asset*>> m_assets;
+		std::mutex m_assetMutex;
+		
+		// loading assets and then changing this will not allow
+		// you to access those assets again since the path is different
+		std::string m_storagePath="assets/";
+
 		template<typename T>
 		std::string modifyPath(const std::string& str) {
 			std::string out;
 			// optimize this
-			if (!m_storagePath.empty()&&!str._Starts_with(m_storagePath))
+			if (!m_storagePath.empty() && !str._Starts_with(m_storagePath))
 				out += m_storagePath;
 
 			if (T::TYPE == ModelAsset::TYPE)
@@ -235,44 +262,6 @@ namespace engone {
 
 			return out;
 		}
-		
-		// add LoadData processor
-		void addProcessor();
-		void addIOProcessor();
-
-		void cleanup();
-
-		void printTasks();
-
-		// can be null if no asset has been queued which requires this processor
-		AssetProcessor* getGLProc() const { return m_glProcessor; }
-
-	private:
-		bool m_running = false;
-
-		// will queue task into appropriate processor
-		// path needs to be set for the asset before hand.
-		void processTask(AssetTask task);
-		int m_ioDistr=0; // distrubtion when queueing tasks
-		int m_distr=0;
-
-		//AssetProcessor* m_ioProcessor=nullptr;
-		std::vector<AssetProcessor*> m_ioProcessors;
-		std::vector<AssetProcessor*> m_processors;
-		AssetProcessor* m_glProcessor=nullptr; // OpenGL is single threaded. Can only have one processor
-
-		std::mutex m_ioProcMutex;
-		std::mutex m_procMutex;
-		std::mutex m_glProcMutex;
-
-		// all assets in storage
-		std::mutex m_assetMutex;
-		std::unordered_map<AssetType, std::unordered_map<std::string,Asset*>> m_assets;
-		//std::unordered_map<AssetType, std::vector<Asset*>> m_assets;
-		
-		// loading assets and then changing this will not allow
-		// you to access those assets again since the path is different
-		std::string m_storagePath="assets/";
 
 		friend class AssetLoader;
 		friend class AssetProcessor;
@@ -298,13 +287,13 @@ namespace engone {
 		
 	private:
 		AssetStorage* m_storage = nullptr;
-
 		bool m_running=false;
+
 		std::thread m_thread;
-		std::mutex m_queueMutex;
 
 		Asset::LoadFlag m_processType;
 		std::vector<AssetTask> m_queue; // tasks to do
+		std::mutex m_queueMutex;
 
 		std::mutex m_waitMutex;
 		std::condition_variable m_wait;

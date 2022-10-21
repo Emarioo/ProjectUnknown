@@ -2,7 +2,8 @@
 
 #include "Engone/Engone.h"
 #include "Launcher/Settings.h"
-#include "Engone/NetworkModule.h"
+#include "Engone/Networking/NetworkModule.h"
+#include "Launcher/LogLevels.h"
 
 namespace launcher {
 	enum LauncherState : uint8_t {
@@ -35,7 +36,7 @@ namespace launcher {
 		Settings m_settings;
 		GameCache m_cache;
 		std::string root = "download\\";
-		engone::Font* consolas;
+		engone::FontAsset* consolas;
 		engone::Client m_client;
 		engone::Server m_server;
 

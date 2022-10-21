@@ -382,9 +382,9 @@ namespace engone {
 
 						app->render(info);
 
-						AssetProcessor* glProc = win->getStorage()->getGLProc();
-						if(glProc)
-							glProc->process();
+						if (!win->getStorage()->getGraphicProcessors().empty()) {
+							win->getStorage()->getGraphicProcessors()[0]->process();
+						}
 
 						render(info);
 						GetActiveRenderer()->render(info);

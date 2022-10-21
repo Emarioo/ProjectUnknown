@@ -5,7 +5,7 @@
 
 #include "Engone/vendor/stb_image/stb_image.h"
 
-#define CHECK()  {int err = glGetError();if(err) log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";}
+#define CHECK()  {int err = glGetError();if(err) {log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
 // unknown error can happen if vertex array isn't bound when a vertex buffer is bound
 namespace engone {
 
@@ -529,9 +529,12 @@ namespace engone {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 	void FrameBuffer::cleanup() {
-		glDeleteTextures(1, &m_textureId);
-		glDeleteRenderbuffers(1, &m_renderBufferId);
-		glDeleteFramebuffers(1, &m_id);
+		if (m_textureId != 0)
+			glDeleteTextures(1, &m_textureId);
+		if (m_renderBufferId != 0)
+			glDeleteRenderbuffers(1, &m_renderBufferId);
+		if (m_id != 0)
+			glDeleteFramebuffers(1, &m_id);
 		//log::out << log::RED << "FrameBuffer:cleanup - not complete!\n"; // probably completed
 	}
 	void FrameBuffer::resize(int width, int height) {

@@ -9,7 +9,7 @@
 
 #include "Engone/ParticleModule.h"
 
-namespace game {
+namespace prounk {
 
 	struct CombatParticle {
 		glm::vec3 pos;
@@ -19,16 +19,20 @@ namespace game {
 	struct CombatParticleInfo {
 		int aliveCount;
 	};
+
+	struct GameAppInfo {
+		int flags=0;
+		std::string port;
+		std::string ip;
+	};
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:
 
-		enum Flag : int {
-			StartServer = 1,
-			StartClient = 2
-		};
-		typedef int Flags;
+		
+		static const int START_SERVER = 1;
+		static const int START_CLIENT = 2;
 
-		GameApp(engone::Engone* engone, Flags flag=0);
+		GameApp(engone::Engone* engone, GameAppInfo info);
 		~GameApp() { cleanup(); }
 		void cleanup() {}
 

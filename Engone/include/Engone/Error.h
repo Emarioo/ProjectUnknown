@@ -9,7 +9,7 @@
 namespace engone {
 	enum Error : uint8_t {
 		ErrorNone = 0,
-		ErrorMissingFile = 1,
+		ErrorMissingFile = 1, // could also mean that the file is used by another process (application/program)
 		ErrorCorruptedFile = 2,
 
 	};

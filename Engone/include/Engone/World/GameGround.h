@@ -1,6 +1,6 @@
 /*
 What do i want and why do i want it
-I want a way of sharing certain game wobjects between clients.
+I want a way of sharing certain game objects between clients.
 Some objects belong to the host and cannot be altered
 Some objects belong to a specific client
 Some objects are global and can be manipulate by anyone

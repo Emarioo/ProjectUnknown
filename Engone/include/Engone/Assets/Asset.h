@@ -36,7 +36,7 @@ namespace engone {
 			LoadNone = 0,
 			LoadIO = 1,
 			LoadData = 2,
-			LoadGL = 4,
+			LoadGraphic = 4,
 			LoadAll = -1,
 		};
 		typedef uint8_t LoadFlags;

@@ -13,28 +13,10 @@
 
 #include "Engone/Tests/BasicRendering.h"
 
-namespace game {
+#include "ProUnk/Shaders/Shaders.h"
 
-	//-- Shaders
-	//static const char* experimentGLSL = {
-	//#include "Shaders/experiment.glsl"
-	//};
-	static const char* particleGLSL = {
-#include "Engone/Shaders/particle.glsl"
-//#include "Engone/Tests/testParticle.glsl"
-	};
-	static const char* combatParticlesGLSL = {
-#include "ProUnk/Shaders/combatParticles.glsl"
-	};
-	//static const char* depthGLSL = {
-	//#include "Shaders/depth.glsl"
-	//};
-	//static const char* testGLSL = {
-	//#include "Shaders/test.glsl"
-	//};
-	static const char* blurGLSL = {
-#include "Engone/Shaders/blur.glsl"
-	};
+namespace prounk {
+
 	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
 	//	using namespace engone;
 	//	//log::out << "COMEON \n";
@@ -66,6 +48,7 @@ namespace game {
 	//		}
 	//	}
 	//}
+
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
@@ -138,7 +121,7 @@ namespace game {
 	}
 	engone::EventType OnKey(engone::Event& e);
 	engone::EventType OnMouse(engone::Event& e);
-	GameApp::GameApp(engone::Engone* engone, Flags flags) : Application(engone) {
+	GameApp::GameApp(engone::Engone* engone, GameAppInfo info) : Application(engone) {
 		using namespace engone;
 		
 		m_window = createWindow({ ModeWindowed,1000,800 });
@@ -160,18 +143,19 @@ namespace game {
 		NetGameGround* ground = new NetGameGround(this);
 		setGround(ground);
 
+		//-- setup some particles
 		Shader* combatPart = new Shader(combatParticlesGLSL);
 		combatParticles = new ParticleGroup<CombatParticle>();
 		combatParticles->init(m_window, combatPart);
 		CombatParticle* parts = combatParticles->createParticles(10000);
-		for (int i = 0; i < combatParticles->getCount();i++) {
-			float rad = 4*glm::pi<float>() * (pow(2,3) - pow(2 * GetRandom(), 3)) / 3.f;
-			glm::vec3 norm = glm::vec3(GetRandom()-0.5f,GetRandom()-0.5f,GetRandom()-0.5f);
-			norm = glm::normalize(norm);
-			parts[i].pos = norm *rad;
-			parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
-			parts[i].lifeTime = 30+GetRandom()*10.f;
-		}
+		//for (int i = 0; i < combatParticles->getCount();i++) {
+		//	float rad = 4*glm::pi<float>() * (pow(2,3) - pow(2 * GetRandom(), 3)) / 3.f;
+		//	glm::vec3 norm = glm::vec3(GetRandom()-0.5f,GetRandom()-0.5f,GetRandom()-0.5f);
+		//	norm = glm::normalize(norm);
+		//	parts[i].pos = norm *rad;
+		//	parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
+		//	parts[i].lifeTime = 30+GetRandom()*10.f;
+		//}
 		ground->addParticleGroup(combatParticles);
 
 		//-- Assets
@@ -200,32 +184,32 @@ namespace game {
 
 		ground->m_pWorld->setEventListener(this);
 
-		if(flags&StartServer)
-			ground->getServer().start("1000");
-		else if(flags&StartClient)
-			ground->getClient().start("127.0.0.1","1000");
 
 		player = new Player(ground);
 		player->setTransform({ 0,0,0 });
 		ground->addObject(player);
 
-		if (flags&StartServer) {
+		if (info.flags & START_SERVER) {
 			player->setTransform({ 1,0,0 });
-			sword = new Sword(ground);
-			sword->setTransform({ 2,0,0 });
-			ground->addObject(sword);
-			player->inventorySword = sword;
+			//sword = new Sword(ground);
+			//sword->setTransform({ 2,0,0 });
+			//ground->addObject(sword);
+			//player->inventorySword = sword;
 
-			Dummy* dummy = new Dummy(ground);
-			dummy->setTransform({ 0,0,9 });
-			dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-			ground->addObject(dummy);
+			//Dummy* dummy = new Dummy(ground);
+			//dummy->setTransform({ 0,0,9 });
+			//dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+			//ground->addObject(dummy);
 
 			terrain = new Terrain(ground);
 			ground->addObject(terrain);
 			terrain->setTransform({ 0,-2,0 });
+
+			ground->getServer().start(info.port);
+
+		} else if (info.flags & START_CLIENT) {
+			ground->getClient().start(info.ip,info.ip);
 		}
-		//playground.addObject(player->getUUID(), 0, "Player/Player");
 
 		//rp3d::Vector3 anchor(1, 1, 1);
 		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
@@ -268,7 +252,7 @@ namespace game {
 					//	//getGround()->netAddObject(player->getUUID(), 0, "Player/Player");
 					//	once = true;
 					//} else {
-					getGround()->netMoveObject(player->getUUID(), player->rigidBody->getTransform());
+					getGround()->netMoveObject(player->getUUID(), player->rigidBody->getTransform(), player->rigidBody->getLinearVelocity(), player->rigidBody->getAngularVelocity());
 					//}
 				}
 			}
@@ -294,8 +278,6 @@ namespace game {
 
 		//Shader* shad = combatParticles->getShader();
 		//shad->bind();
-
-		
 
 		//Shader* shad = particleGroup->getShader();
 		//shad->bind();
@@ -743,7 +725,6 @@ namespace game {
 							renderer::SetCursorMode(true);
 							// Other things?
 						}
-
 					}
 				}*/
 			}

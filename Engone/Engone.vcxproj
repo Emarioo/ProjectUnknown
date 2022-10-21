@@ -67,6 +67,7 @@
     <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h" />
     <ClInclude Include="include\Engone\Utilities\LoggingModule.h" />
+    <ClInclude Include="include\Engone\Utilities\LogLevels.h" />
     <ClInclude Include="include\Engone\Utilities\RandomUtility.h" />
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
@@ -103,12 +104,12 @@
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\GameGround.cpp" />
+    <ClCompile Include="src\Engone\Utilites\LogLevels.cpp" />
     <ClCompile Include="src\Engone\Utilites\Alloc.cpp" />
     <ClCompile Include="src\Engone\Application.cpp" />
     <ClCompile Include="src\Engone\Assets\Asset.cpp" />
     <ClCompile Include="src\Engone\GameObject.cpp" />
     <ClCompile Include="src\Engone\IMPLS.cpp" />
-    <ClCompile Include="src\Engone\Logger.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
     <ClCompile Include="src\Engone\ParticleModule.cpp" />
@@ -116,7 +117,9 @@
     <ClCompile Include="src\Engone\Rendering\Light.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
+    <ClCompile Include="src\Engone\Utilites\FileUtility.cpp" />
     <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp" />
+    <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp" />
     <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
     <ClCompile Include="src\Engone\Window.cpp" />
@@ -245,8 +248,10 @@
       <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories> -->
       <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories> -->
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies Condition="'$(Platform)'=='Win32'">%(AdditionalDependencies);reactphysics3d32.lib</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Platform)'=='x64'">%(AdditionalDependencies);reactphysics3d64.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|Win32'">%(AdditionalDependencies);reactphysics3d_d32.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|x64'">%(AdditionalDependencies);reactphysics3d_d64.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|Win32'">%(AdditionalDependencies);reactphysics3d_r32.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|x64'">%(AdditionalDependencies);reactphysics3d_r64.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <!-- with sound -->

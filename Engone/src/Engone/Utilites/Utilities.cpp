@@ -3,6 +3,9 @@
 
 #include "Engone/vendor/stb_image/stb_image.h"
 
+// used in ConvertArguments
+#include <shellapi.h>
+
 namespace engone {
 	TrackerId ItemVector::trackerId = "ItemVector";
 
@@ -533,5 +536,184 @@ namespace engone {
 			//tree->print();
 			log::out << log::RED << "Reattach, found an equal ptr, should not happen!\n";
 		}
+	}
+	void ConvertArguments(int& argc, char**& argv) {
+		LPWSTR wstr = GetCommandLineW();
+
+		wchar_t** wargv = CommandLineToArgvW(wstr, &argc);
+
+		if (wargv == NULL) {
+			int err = GetLastError();
+			log::out << log::RED<<"ConvertArguments - " << err << "\n";
+		} else {
+			// argv will become a pointer to contigous memory which contain arguments.
+			int totalSize = argc*sizeof(char*);
+			int index = totalSize;
+			for (int i = 0; i < argc; i++) {
+				int length = wcslen(wargv[i]);
+				//printf("len: %d\n", length);
+				totalSize += length + 1;
+			}
+			//printf("size: %d index: %d\n", totalSize,index);
+			argv = (char**)malloc(totalSize);
+			char* argData = (char*)argv + index;
+			if (!argv) {
+				log::out << log::RED << "ConverArguments - allocation failed\n";
+			}else{
+				for (int i = 0; i < argc; i++) {
+					int length = wcslen(wargv[i]);
+
+					argv[i] = argData + index;
+
+					for (int j = 0; j < length; j++) {
+						argData[index] = wargv[i][j];
+						index++;
+					}
+					argData[index++] = 0;
+				}
+			}
+		}
+		LocalFree(wargv);
+	}
+	void FreeArguments(int argc, char** argv) {
+		free(argv);
+	}
+	void CreateConsole() {
+		bool b = AllocConsole();
+		if (b) {
+			freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+			freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+		}
+	}
+	void FileRefresher::cleanup() {
+		m_mutex.lock();
+		if (m_changeHandle != NULL) {
+			FindCloseChangeNotification(m_changeHandle);
+			m_changeHandle = NULL;
+		}
+		m_mutex.unlock();
+
+		if (m_thread.joinable())
+			m_thread.join();
+		// m_running is set to false in thread
+	}
+	void FileRefresher::check(const std::string& path, std::function<void(const std::string&)> callback, int flags) {
+		if (m_changeHandle != NULL) {
+			FindCloseChangeNotification(m_changeHandle);
+			m_changeHandle = NULL;
+		}
+
+		m_mutex.lock();
+		if(!m_running){
+			if (m_thread.joinable())
+				m_thread.join();
+
+			m_root = path;
+			m_callback = callback;
+			m_flags = flags;
+
+			bool failed = false;
+			if (!std::filesystem::exists(m_root)) {
+				failed = true;
+				log::out << log::RED << "FileRefresher::check - invalid path : " << m_root << "\n";
+			}
+			if (!failed) {
+				m_dirHandle = CreateFileA(m_root.c_str(), FILE_LIST_DIRECTORY, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
+				if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
+					failed = true;
+					m_dirHandle = NULL;
+					DWORD err = GetLastError();
+					log::out << log::RED << "FileRefresher::check - dirHandle failed: " << (int)err << "\n";
+				}
+			}
+			if (!failed) {
+				m_changeHandle = FindFirstChangeNotification(m_root.c_str(), true, FILE_NOTIFY_CHANGE_LAST_WRITE);
+				if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
+					failed = true;
+					m_changeHandle = NULL;
+					DWORD err = GetLastError();
+					log::out << log::RED << "FileRefresher::check - invalid handle: " << (int)err << "\n";
+				}
+			}
+			if (!failed) {
+				m_running = true;
+				m_thread = std::thread([this]() {
+
+					DWORD waitStatus;
+					while (true) {
+						waitStatus = WaitForSingleObject(m_changeHandle, INFINITE);
+
+						if (waitStatus == WAIT_OBJECT_0) {
+
+							if (!m_buffer) {
+								m_buffer = (FILE_NOTIFY_INFORMATION*)alloc::malloc(INITIAL_SIZE);
+								if (!m_buffer) {
+									m_bufferSize = 0;
+									log::out << log::RED << "FileRefresher::check - buffer allocation failed\n";
+									break;
+								}
+								m_bufferSize = INITIAL_SIZE;
+							}
+							DWORD bytes = 0;
+							BOOL err = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags&WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE, &bytes, NULL, NULL);
+
+							if (bytes == 0) {
+								// try to read changes again but with bigger buffer? while loop?
+								log::out << log::RED << "FileRefresher::check - buffer to small or big\n";
+							}
+							if (err == 0) {
+								log::out << log::RED << "FileRefresher::check - ReadDirectoryChanges err: "<<err<<"\n";
+							} else {
+								char tmp[MAX_PATH + 1]; // NOTE: MAX_PATH bad?
+								tmp[MAX_PATH] = 0;
+
+								int offset = 0;
+								while (true) {
+									FILE_NOTIFY_INFORMATION& info = *(FILE_NOTIFY_INFORMATION*)((char*)m_buffer + offset);
+									int length = info.FileNameLength / sizeof(WCHAR);
+									if (length < MAX_PATH + 1) {
+										for (int i = 0; i < length; i++) {
+											tmp[i] = (char)*(info.FileName + i);
+										}
+										tmp[length] = 0;
+									}
+									
+									std::string_view path = tmp;
+
+									m_callback((const std::string&)path);
+
+									if (info.NextEntryOffset == 0)
+										break;
+									offset += info.NextEntryOffset;
+								}
+							}
+
+							m_mutex.lock();
+							bool yes = FindNextChangeNotification(m_changeHandle);
+							m_mutex.unlock();
+
+							if (!yes) {
+								// handle could have been closed
+								break;
+							}
+						} else {
+							// not sure why we are here but it isn't good so stop.
+							break;
+						}
+					}
+					m_mutex.lock();
+					m_running = false;
+
+					FindCloseChangeNotification(m_changeHandle);
+					m_changeHandle = NULL;
+
+					CloseHandle(m_dirHandle);
+					m_dirHandle = NULL;
+					m_mutex.unlock();
+
+				});
+			}
+		}
+		m_mutex.unlock();
 	}
 }

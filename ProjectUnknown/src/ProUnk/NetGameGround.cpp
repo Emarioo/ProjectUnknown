@@ -18,44 +18,58 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 	using namespace engone;
 	auto onRecv = [this](MessageBuffer& msg, UUID uuid) {
 		//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
-
+		Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*) & m_client;
+		
 		NetCommand cmd;
 		msg.pull(&cmd);
-		//log::out << " Cmd: " << cmd << "\n";
+		//log::out << m_server.isRunning() << " " << cmd << "\n";
 
 		if (cmd == MoveObject) {
+			//-- Extract data
 			UUID uuid;
 			msg.pull(&uuid);
-			rp3d::Transform tr;
-			msg.pull(&tr);
-			bool found = false;
+			rp3d::Transform transform;
+			rp3d::Vector3 velocity;
+			rp3d::Vector3 angularVelocity;
+			msg.pull(&transform);
+			msg.pull(&velocity);
+			msg.pull(&angularVelocity);
+
+			//-- Find object with matching UUID
+			GameObject* object = nullptr;
 			for (int i = 0; i < m_objects.size(); i++) {
-				GameObject* object = m_objects[i].object;
-				if (object->getUUID() == uuid) {
-					found = true;
-					object->rigidBody->setTransform(tr);
+				if (m_objects[i].object->getUUID() == uuid) {
+					object = m_objects[i].object;
 					break;
 				}
 			}
+
+			if (object) {
+				object->rigidBody->setTransform(transform);
+				object->rigidBody->setLinearVelocity(velocity);
+				object->rigidBody->setAngularVelocity(angularVelocity);
+			}
+
 		} else if (cmd == AddObject) {
+			//-- Extract data
 			UUID uuid;
 			msg.pull(&uuid); // ISSUE: what if uuid already exists (the client may have sent the same uuid by intention)
-
 			int objectType;
 			msg.pull(&objectType);
-
 			std::string modelAsset;
 			msg.pull(modelAsset);
+
 			//if (objectType == 0) {
 				GameObject* newObject = new GameObject(this, uuid);
-				GameGround::addObject(newObject);
+				addObject(newObject);
 				rp3d::Transform tr;
 				tr.setPosition({ 0,0,0 });
-				newObject->rigidBody = m_pWorld->createRigidBody(tr);
 				//newObject->setOnlyTrigger(true);
+				// 
+				newObject->rigidBody = m_pWorld->createRigidBody(tr);
 				newObject->rigidBody->enableGravity(false);
 
-				newObject->modelAsset = m_app->getStorage()->load<ModelAsset>(modelAsset, AssetStorage::SoftLoad);
+				newObject->modelAsset = m_app->getStorage()->load<ModelAsset>(modelAsset, 0);
 				newObject->loadColliders(this);
 				if(objectType==0)
 					m_clients[uuid].player = newObject;
@@ -83,14 +97,14 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 
 		if (e == NetEvent::Connect) {
 			m_clients[uuid] = {};
-			game::GameApp* app = (game::GameApp*)m_app;
+			prounk::GameApp* app = (prounk::GameApp*)m_app;
 			for (int i = 0; i < m_objects.size();i++) {
 				GameObject* obj = m_objects[i].object;
 				int type = 1;
 				if (app->player == obj)
 					type = 0;
 				netAddObject(obj->getUUID(), type,obj->modelAsset->getLoadName());
-				netMoveObject(obj->getUUID(), obj->rigidBody->getTransform());
+				netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
 			}
 		} else if (e == NetEvent::Disconnect) {
 			m_clients.erase(uuid); // uuid should exist. NetworkModule may have a bug if it doesn't.
@@ -102,7 +116,7 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 		log::out << "Client "<<e<<"\n";
 
 		if (e == NetEvent::Connect) {
-			game::GameApp* app = (game::GameApp*)m_app;
+			prounk::GameApp* app = (prounk::GameApp*)m_app;
 			if (app->player) {
 				netAddObject(app->player->getUUID(), 0, app->player->modelAsset->getLoadName());
 			}
@@ -179,42 +193,49 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 void NetGameGround::cleanup() {
 	GameGround::cleanup();
 }
-void NetGameGround::netSyncObjects() {
-	using namespace engone;
-	// When client connects, it requests uuids from server.
-	// server sends them
-	MessageBuffer msg;
-
-	msg.push(SyncObjects);
-	int count = 0;
-	msg.push(count);
-}
-void NetGameGround::netMoveObject(engone::UUID uuid, const rp3d::Transform& tr) {
+//void NetGameGround::netSyncObjects() {
+//	using namespace engone;
+//	// When client connects, it requests uuids from server.
+//	// server sends them. ehm, this is complex. Simular complexity to UniSync where messages are sent back and forth.
+//	
+//	//-- Prepare message
+//	//MessageBuffer msg;
+//	//msg.push(SyncObjects);
+//	//int count = 0;
+//	//msg.push(count);
+//
+//	//-- send
+//}
+void NetGameGround::netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular) {
 	using namespace engone;
 	if (!m_server.isRunning() && !m_client.isRunning()) {
-		log::out << "Playground::moveObject - neither sever or client is runbing\n";
+		log::out << "Playground::moveObject - neither server or client is running\n";
 		return;
 	}
+	//-- Prepare message
 	MessageBuffer msg;
 	NetCommand cmd = MoveObject;
 	msg.push(cmd);
 	msg.push(&uuid);
-	msg.push(&tr);
+	msg.push(&transform);
+	msg.push(&velocity);
+	msg.push(&angular);
 
-	if (m_server.isRunning()) {
-		m_server.send(msg, 0, true);
-	}
-	if (m_client.isRunning()) {
+	//-- Send message
+	if (m_server.isRunning())
+		m_server.send(msg,0,true);
+	if (m_client.isRunning())
 		m_client.send(msg);
-	}
 }
 void NetGameGround::netAddObject(engone::UUID uuid, int objectType, const std::string& modelAsset) {
 	using namespace engone;
 	if (!m_server.isRunning() && !m_client.isRunning()) {
-		log::out << "Playground::moveObject - neither sever or client is runbing\n";
+		log::out << log::RED<<"Playground::moveObject - neither server or client is running\n";
 		return;
 	}
-	log::out << modelAsset<<"Add object\n";
+	log::out << m_server.isRunning() << " "<<modelAsset << " Add object\n";
+
+	//-- Prepare message
 	MessageBuffer msg;
 	NetCommand cmd = AddObject;
 	msg.push(cmd);
@@ -222,10 +243,9 @@ void NetGameGround::netAddObject(engone::UUID uuid, int objectType, const std::s
 	msg.push(objectType);
 	msg.push(modelAsset);
 
-	if (m_server.isRunning()) {
-		m_server.send(msg, 0, true);
-	}
-	if (m_client.isRunning()) {
+	//-- Send message
+	if (m_server.isRunning())
+		m_server.send(msg,0,true);
+	if (m_client.isRunning())
 		m_client.send(msg);
-	}
 }

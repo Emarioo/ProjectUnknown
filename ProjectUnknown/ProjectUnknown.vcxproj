@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
+   <!--  <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
-    </ProjectConfiguration>
+    </ProjectConfiguration> -->
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -70,7 +70,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/DebPhysWin32</AdditionalLibraryDirectories>
+      <!-- <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/DebPhysWin32</AdditionalLibraryDirectories> -->
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)bin/Engone/DebPhysx64</AdditionalLibraryDirectories>
       <AdditionalDependencies>Engone.lib</AdditionalDependencies>
     </Link>
@@ -86,7 +86,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/RelPhysWin32</AdditionalLibraryDirectories>
+      <!-- <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/RelPhysWin32</AdditionalLibraryDirectories> -->
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)bin/Engone/RelPhysx64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -99,6 +99,7 @@
     <ClCompile Include="src\ProUnk\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\ProUnk\Shaders.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ProUnk\NetGameGround.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="include\ProUnk\Objects\Sword.h" />
     <ClInclude Include="include\ProUnk\Objects\Terrain.h" />
     <ClInclude Include="include\ProUnk\pch.h" />
+    <ClInclude Include="include\ProUnk\Shaders\Shaders.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ProjectUnknown.rc" />

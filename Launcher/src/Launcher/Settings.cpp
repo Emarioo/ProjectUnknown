@@ -3,6 +3,7 @@
 #include "Engone/Logger.h"
 
 namespace launcher {
+	// Replace any // or \\ with PATH_DELIM
 	void FormatPath(std::string& path) {
 		for (int i = 0; i < path.size(); i++) {
 			if ((PATH_DELIM=='\\'&&path.data()[i] == '/')|| (PATH_DELIM=='/'&&path.data()[i]=='\\'))
@@ -26,7 +27,7 @@ namespace launcher {
 						m_map[split[0]] = split[1];
 					}
 				}
-			} catch (FileError err) {
+			} catch (Error err) {
 				log::out << "Setting::load - " << err << "\n";
 				return false;
 			}
@@ -76,7 +77,7 @@ namespace launcher {
 					file.read(&f.time);
 					m_files.push_back(f);
 				}
-			} catch (engone::FileError err) {
+			} catch (engone::Error err) {
 				engone::log::out << "Error: GameCache::load " << err << "\n";
 			}
 		}
@@ -91,7 +92,7 @@ namespace launcher {
 					file.write(&f.path);
 					file.write(&f.time);
 				}
-			} catch (engone::FileError err) {
+			} catch (engone::Error err) {
 				engone::log::out << "Error: GameCache::save " << err << "\n";
 			}
 		}
@@ -114,29 +115,24 @@ namespace launcher {
 			try {
 				std::vector<std::string> lines = file.readLines();
 				for (std::string& line : lines) {
-					std::vector<std::string> split = engone::SplitString(line, ",");
+					std::vector<std::string> split = engone::SplitString(line, "=");
 					FilePath f;
-					if (split.size() == 0)
+					if (split.size() != 2) {
+						engone::log::out << engone::log::RED<< "LoadGameFiles - line must have 1 of '=' : "<<line<<"\n";
 						continue;
-					if (split.size() > 2) {
-						engone::log::out << "GameFiles bad format\n";
-						continue;
-					}
-					if (split.size() > 0) {
+					}else{
 						f.originPath = split[0];
 						FormatPath(f.originPath);
-						if (split.size() == 1&&f.originPath.find_last_of(".exe")!=-1) {
-							f.path = f.originPath.substr(f.originPath.find_last_of('\\') + 1);
-						}
-					}
-					if(split.size()>1) {
+						//if (split.size() == 1&&f.originPath.find_last_of(".exe")!=-1) {
+						//	f.path = f.originPath.substr(f.originPath.find_last_of('\\') + 1);
+						//}
 						f.path = split[1];
 						FormatPath(f.path);
 					}
 					files.push_back(f);
 				}
-			} catch (engone::FileError err) {
-				engone::log::out << "Error: GameCache::load " << err << "\n";
+			} catch (engone::Error err) {
+				engone::log::out << engone::log::RED<<"LoadGameFiles - err? " << err << "\n";
 			}
 		}
 		return files;

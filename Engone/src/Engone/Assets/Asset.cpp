@@ -82,7 +82,7 @@ namespace engone {
 		case Asset::LoadNone: return "LoadNone";
 		case Asset::LoadIO: return "LoadIO";
 		case Asset::LoadData: return "LoadData";
-		case Asset::LoadGL: return "LoadGL";
+		case Asset::LoadGraphic: return "LoadGraphic";
 		case Asset::LoadAll: return "LoadAll";
 		}
 		return "";
@@ -151,13 +151,13 @@ namespace engone {
 				rawImage = Image::Convert<PNG, RawImage>(png);
 				delete png;
 				png = nullptr;
-				out = LoadGL;
+				out = LoadGraphic;
 			}
 		}
-		if ((flags & LoadGL) && !m_error) {
+		if ((flags & LoadGraphic) && !m_error) {
 			if (!rawImage)
 				log::out << log::RED << "TextureAsset::load - rawImage is nullptr\n"; // a little log incase it happens
-			// rawImage can only be nullptr if AssetStorage is broken or if you set LoadGL flag on an empty asset.
+			// rawImage can only be nullptr if AssetStorage is broken or if you set LoadGraphic flag on an empty asset.
 
 			texture.init(rawImage);
 			delete rawImage;
@@ -225,10 +225,10 @@ namespace engone {
 				m_error = ErrorMissingFile;
 				m_state = Failed;
 			} else {
-				out = LoadGL;
+				out = LoadGraphic;
 			}
 		}
-		if ((flags&LoadGL) && !m_error) {
+		if ((flags&LoadGraphic) && !m_error) {
 			if (!rawImage)
 				log::out << log::RED << "TextureAsset::load - rawImage is nullptr\n"; // a little log incase it happens
 			// rawImage should not be nullptr if we are here so m_state does not need to be set to Failed.
@@ -993,7 +993,7 @@ namespace engone {
 						}
 					}
 				}
-				out = LoadGL;
+				out = LoadGraphic;
 			} catch (Error err) {
 				m_error = err;
 				m_state = Failed;
@@ -1017,7 +1017,7 @@ namespace engone {
 			weightValues = nullptr;
 			triangles = nullptr;
 		}
-		if ((flags & LoadGL) && !m_error) {
+		if ((flags & LoadGraphic) && !m_error) {
 			vertexBuffer.setData(vertexOutSize, vertexOut);
 			indexBuffer.setData(triangleOutSize, triangleOut);
 

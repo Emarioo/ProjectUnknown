@@ -23,10 +23,9 @@
 //#include <thread>
 
 //#define ENGONE_DEBUG(x) x;
-#define ENGONE_DEBUG(x)
+//#define ENGONE_DEBUG(x)
 
 namespace engone {
-
 #ifdef ENGONE_TRACKER
 	TrackerId Server::trackerId = "Server";
 	TrackerId Client::trackerId = "Client";
@@ -358,7 +357,7 @@ namespace engone {
 		// if the client send head and then a smaller size then expected. readBody will freeze until that data has come through.
 		// This will only happend if the a programmer tampers with the client code. The same is true for server.
 		m_readThread = new std::thread([this]() {
-			ENGONE_DEBUG(log::out << m_uuid << " read thread start\n";)
+			//ENGONE_DEBUG(log::out << m_uuid << " read thread start\n";)
 			// not using mutex in thread because once the thread is running. NOTHING and NO ONE will touch the members of the connection.
 			enum Next {
 				Head,
@@ -392,7 +391,7 @@ namespace engone {
 					if (readBytes == 0)
 						err = 0;
 
-					ENGONE_DEBUG(log::out << m_uuid<<" recv error closing "<<err<<"\n";)
+					//ENGONE_DEBUG(log::out << m_uuid<<" recv error closing "<<err<<"\n";)
 					close();
 					if (m_server) {
 						if (m_server->m_onEvent)
@@ -447,6 +446,7 @@ namespace engone {
 					if (expectingSize != readBytes) {
 						log::out << log::YELLOW << "Connection::readThread - readBytes did not match header's size "<<readBytes<<" != "<<expectingSize << "\n";
 					}
+					ENGONE_DEBUG(log::out << m_uuid << " recieved " << readBytes << "\n", NETWORKING_LEVEL, 2);
 					//MessageBuffer copy = *m_buffer;
 					//copy.m_sharing = true;
 					if (m_server) {
@@ -488,7 +488,7 @@ namespace engone {
 				}
 			}
 			//m_readMutex.unlock();
-			ENGONE_DEBUG(log::out << m_uuid << " read thread stop\n";)
+			//ENGONE_DEBUG(log::out << m_uuid << " read thread stop\n";)
 		});
 		m_readMutex.unlock();
 	}
@@ -508,7 +508,7 @@ namespace engone {
 			bool shouldUnlock = true; // may not be necessary
 
 			m_writeMutex.lock();
-			ENGONE_DEBUG(log::out << m_uuid << " write thread start\n";)
+			//ENGONE_DEBUG(log::out << m_uuid << " write thread start\n";)
 			while (m_outMessages.size() != 0) {
 				auto msg = m_outMessages.front();
 				uint32_t length = msg->size() + sizeof(uint32_t);
@@ -527,39 +527,40 @@ namespace engone {
 					// write thread can close quitely.
 					break;
 				}
+				ENGONE_DEBUG(log::out << m_uuid <<" sent "<<error<<"\n", NETWORKING_LEVEL, 2);
 				if (m_server) {
-					ENGONE_DEBUG(log::out << "wt trylock server\n";)
+					//ENGONE_DEBUG(log::out << "wt trylock server\n";)
 					m_server->m_mutex.lock();
-					ENGONE_DEBUG(log::out << "wt lock server\n";)
+					//ENGONE_DEBUG(log::out << "wt lock server\n";)
 					m_server->getStats().m_sentMessages++;
 					m_server->getStats().m_sentBytes += length;
-					ENGONE_DEBUG(log::out << "wt unlock server\n";)
+					//ENGONE_DEBUG(log::out << "wt unlock server\n";)
 					m_server->m_mutex.unlock();
 				} else if (m_client) {
-					ENGONE_DEBUG(log::out << "wt trylock client\n";)
+					//ENGONE_DEBUG(log::out << "wt trylock client\n";)
 					m_client->m_mutex.lock();
-					ENGONE_DEBUG(log::out << "wt lock client\n";)
+					//ENGONE_DEBUG(log::out << "wt lock client\n";)
 					m_client->getStats().m_sentMessages++;
 					m_client->getStats().m_sentBytes += length;
-					ENGONE_DEBUG(log::out << "wt unlock client\n";)
+					//ENGONE_DEBUG(log::out << "wt unlock client\n";)
 					m_client->m_mutex.unlock();
 				}
 				m_writeMutex.lock();
 				m_outMessages.erase(m_outMessages.begin());
 				m_writeMutex.unlock();
 				// space here to allow new messages flowing in.
-				ENGONE_DEBUG(log::out << "wt Waiting for msg\n";)
+				//ENGONE_DEBUG(log::out << "wt Waiting for msg\n";)
 				std::unique_lock<std::mutex> lock(m_uniqueMutex);
 				if (m_outMessages.size() == 0&& m_socket!=INVALID_SOCKET)
 					m_cv.wait(lock);
-				ENGONE_DEBUG(log::out << "wt continuing\n";)
+				//ENGONE_DEBUG(log::out << "wt continuing\n";)
 				if (m_outMessages.size() == 0) { // break if we still don't have messages. we still need to lock mutex because we unlock it later
 					shouldUnlock = false;
 					break;
 				}
 				m_writeMutex.lock();
 			}
-			ENGONE_DEBUG(log::out << m_uuid << " write thread stop\n";)
+			//ENGONE_DEBUG(log::out << m_uuid << " write thread stop\n";)
 			if (shouldUnlock) {
 				m_writeMutex.unlock();
 			}
@@ -580,7 +581,7 @@ namespace engone {
 			return true;
 		}
 		if (!m_onEvent || !m_onReceive) {
-			log::out << "Server::start - missing lambdas\n";
+			log::out << log::RED<<"Server::start - missing lambdas\n";
 			unlock();
 			return false;
 		}
@@ -651,7 +652,7 @@ namespace engone {
 					m_socket = (void*)newSocket;
 					// thread joined in cleanup
 					m_acceptThread = std::thread([this]() {
-						ENGONE_DEBUG(log::out << "accept thread start\n";)
+						//ENGONE_DEBUG(log::out << "accept thread start\n";)
 						while (keepRunning) {
 							//printf("accepting\n");
 							SOCKET newSocket = accept((SOCKET)m_socket, NULL, NULL);
@@ -686,11 +687,11 @@ namespace engone {
 						}
 						int err = WSAGetLastError();
 
-						ENGONE_DEBUG(log::out<<"accept call stop\n";)
+						//ENGONE_DEBUG(log::out<<"accept call stop\n";)
 						stop();
 
 						m_onEvent(NetEvent::Stopped, 0);
-						ENGONE_DEBUG(log::out << "accept thread finished\n";)
+						//ENGONE_DEBUG(log::out << "accept thread finished\n";)
 
 					});
 				}
@@ -707,7 +708,7 @@ namespace engone {
 				m_workerThread.join();
 			lock();
 			m_workerThread = std::thread([this,uuid]() {
-				ENGONE_DEBUG(log::out << "serv work thread start - discon\n";)
+				//ENGONE_DEBUG(log::out << "serv work thread start - discon\n";)
 				lock();
 				auto find = m_connections.find(uuid);
 				// connection doesn't exist
@@ -716,7 +717,7 @@ namespace engone {
 					m_connections.erase(find);
 				}
 				unlock();
-				ENGONE_DEBUG(log::out << "serv work thread stop - discon\n";)
+				//ENGONE_DEBUG(log::out << "serv work thread stop - discon\n";)
 			});
 			unlock();
 		}
@@ -724,21 +725,21 @@ namespace engone {
 	void Server::stop() {
 		if (keepRunning) {
 			keepRunning = false;
-			ENGONE_DEBUG(log::out << "Server started stop\n";)
+			//ENGONE_DEBUG(log::out << "Server started stop\n";)
 			if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
 				m_workerThread.join();
 			lock();
 			m_workerThread = std::thread([this]() {
-				ENGONE_DEBUG(log::out << "serv work thread(clean) start\n";)
+				//ENGONE_DEBUG(log::out << "serv work thread(clean) start\n";)
 				cleanup();
-				ENGONE_DEBUG(log::out << "serv work thread(clean) stop\n";)
+				//ENGONE_DEBUG(log::out << "serv work thread(clean) stop\n";)
 			});
 			unlock();
-			ENGONE_DEBUG(log::out << "Server finished stop\n";)
+			//ENGONE_DEBUG(log::out << "Server finished stop\n";)
 		}
 	}
 	void Server::cleanup() {
-		ENGONE_DEBUG(log::out << "Server started cleanup\n";)
+		//ENGONE_DEBUG(log::out << "Server started cleanup\n";)
 		keepRunning = false;
 		if ((SOCKET)m_socket != INVALID_SOCKET) {
 			closesocket((SOCKET)m_socket);
@@ -758,7 +759,7 @@ namespace engone {
 		m_port.clear();
 		m_connections.clear();
 		unlock();
-		ENGONE_DEBUG(log::out << "Server finished cleanup\n";)
+		//ENGONE_DEBUG(log::out << "Server finished cleanup\n";)
 	}
 	void Server::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -801,9 +802,9 @@ namespace engone {
 	}
 	void Server::lock() {
 		if (m_mutexOwner != std::this_thread::get_id()) {
-			ENGONE_DEBUG(log::out << "server maybe lock\n";)
+			//ENGONE_DEBUG(log::out << "server maybe lock\n";)
 			m_mutex.lock();
-			ENGONE_DEBUG(log::out << "server locked\n";)
+			//ENGONE_DEBUG(log::out << "server locked\n";)
 			m_mutexOwner = std::this_thread::get_id();
 			mutexDepth++;
 		} else {
@@ -815,7 +816,7 @@ namespace engone {
 			mutexDepth--;
 			if (mutexDepth == 0) {
 				m_mutexOwner = {};
-				ENGONE_DEBUG(log::out << "server unlocked\n";)
+				//ENGONE_DEBUG(log::out << "server unlocked\n";)
 				m_mutex.unlock();
 			}
 		}
@@ -866,7 +867,7 @@ namespace engone {
 				m_port = port;
 				m_ip = ip;
 				m_workerThread = std::thread([this, newSocket, result]() {
-					ENGONE_DEBUG(log::out << "client work thread start\n";)
+					//ENGONE_DEBUG(log::out << "client work thread start\n";)
 					int error = connect(newSocket, result->ai_addr, (int)result->ai_addrlen);
 					freeaddrinfo(result);
 					
@@ -874,7 +875,7 @@ namespace engone {
 					if (error == SOCKET_ERROR) {
 						int code = WSAGetLastError();
 						// Error with client connect
-						ENGONE_DEBUG(printf("Did not connect %d\n", code);)
+						//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
 						closesocket(newSocket);
 						keepRunning = false;
 						m_onEvent(NetEvent::Failed, 0);
@@ -893,7 +894,7 @@ namespace engone {
 						}
 					}
 					unlock();
-					ENGONE_DEBUG(log::out << "client work thread stop\n";)
+					//ENGONE_DEBUG(log::out << "client work thread stop\n";)
 				});
 			}
 		}
@@ -903,23 +904,23 @@ namespace engone {
 	void Client::stop() {
 		if (keepRunning) {
 			keepRunning = false;
-			ENGONE_DEBUG(log::out << "Client started stop\n";)
+			//ENGONE_DEBUG(log::out << "Client started stop\n";)
 			if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
 				m_workerThread.join();
 			lock();
 			m_workerThread = std::thread([this]() {
 
-				ENGONE_DEBUG(log::out << "client work thread(clean) start\n";)
+				//ENGONE_DEBUG(log::out << "client work thread(clean) start\n";)
 				cleanup();
-				ENGONE_DEBUG(log::out << "client work thread(clean) stop\n";)
+				//ENGONE_DEBUG(log::out << "client work thread(clean) stop\n";)
 		
 			});
 			unlock();
-			ENGONE_DEBUG(log::out << "Client finish stop\n";)
+			//ENGONE_DEBUG(log::out << "Client finish stop\n";)
 		}
 	}
 	void Client::cleanup() {
-		ENGONE_DEBUG(log::out << "Client started cleanup\n";)
+		//ENGONE_DEBUG(log::out << "Client started cleanup\n";)
 		keepRunning = false;
 		if (m_workerThread.joinable()&&std::this_thread::get_id()!=m_workerThread.get_id()) {
 			m_workerThread.join(); // make sure the worker thread isn't deleting connection. Would be fine since it is mutex locked but still.
@@ -932,7 +933,7 @@ namespace engone {
 			m_connection = nullptr;
 		}
 		unlock();
-		ENGONE_DEBUG(log::out << "Client finished cleanup\n";)
+		//ENGONE_DEBUG(log::out << "Client finished cleanup\n";)
 	}
 	void Client::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -954,9 +955,9 @@ namespace engone {
 	}
 	void Client::lock() {
 		if (m_mutexOwner != std::this_thread::get_id()) {
-			ENGONE_DEBUG(log::out << "client maybe lock\n";)
+			//ENGONE_DEBUG(log::out << "client maybe lock\n";)
 			m_mutex.lock();
-			ENGONE_DEBUG(log::out << "client locked\n";)
+			//ENGONE_DEBUG(log::out << "client locked\n";)
 			m_mutexOwner = std::this_thread::get_id();
 			mutexDepth++;
 		} else {
@@ -969,7 +970,7 @@ namespace engone {
 			if (mutexDepth == 0) {
 				m_mutexOwner = {};
 				m_mutex.unlock();
-				ENGONE_DEBUG(log::out << "client unlocked\n";)
+				//ENGONE_DEBUG(log::out << "client unlocked\n";)
 			}
 		}
 	}

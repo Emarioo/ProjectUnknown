@@ -583,9 +583,10 @@ namespace engone {
 		m_windowMode = winMode;
 	}
 	void Window::close() {
-		if(isOpen())
+		if (isOpen()) {
+			glfwSetWindowShouldClose(m_glfwWindow, true);
 			CloseCallback(m_glfwWindow);
-		glfwSetWindowShouldClose(m_glfwWindow, true);
+		}
 	}
 	void Window::setCursorVisible(bool visible) {
 		m_cursorVisible = visible;
