@@ -4,7 +4,6 @@
 namespace engone {
 #ifdef ENGONE_PHYSICS
 	void GameObject::loadColliders(GameGround* ground) {
-		
 		if (!modelAsset) {
 			log::out << log::RED << "ModelAsset is null\n";
 			return;
@@ -14,10 +13,10 @@ namespace engone {
 			return;
 		}
 		if (!modelAsset->valid()) {
-			pendingColliders = true; // try again in update loop of engine.
+			flags |= PENDING_COLLIDERS; // try again in update loop of engine.
 			return;
 		}
-		pendingColliders = false;
+		flags &= ~PENDING_COLLIDERS;
 
 		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
 

@@ -19,7 +19,7 @@ namespace prounk {
 	struct CombatParticleInfo {
 		int aliveCount;
 	};
-
+	// flags, port, ip
 	struct GameAppInfo {
 		int flags=0;
 		std::string port;
@@ -27,8 +27,6 @@ namespace prounk {
 	};
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:
-
-		
 		static const int START_SERVER = 1;
 		static const int START_CLIENT = 2;
 
@@ -50,19 +48,17 @@ namespace prounk {
 		inline NetGameGround* getGround() override { return (NetGameGround*)Application::getGround(); }
 		inline void setGround(NetGameGround* ground) { Application::setGround(ground); }
 
-	private:
-		bool paused = true;
-
+		
+		engone::ParticleGroup<CombatParticle>* combatParticles=nullptr;
 		engone::ParticleGroup<engone::DefaultParticle>* particleGroup;
 
-		engone::ParticleGroup<CombatParticle>* combatParticles=nullptr;
+	private:
+		bool paused = true;
 
 		engone::Window* m_window=nullptr;
 
 		Sword* sword = nullptr;
 
-		void TestScene();
-		void IntroScreen();
 		void UiTest();
 	};
 }

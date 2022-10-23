@@ -13,7 +13,6 @@ const char* to_string(NetCommand value) {
 engone::Logger& operator<<(engone::Logger& log, NetCommand value) {
 	return log << to_string(value);
 }
-
 NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 	using namespace engone;
 	auto onRecv = [this](MessageBuffer& msg, UUID uuid) {
@@ -38,16 +37,18 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 			//-- Find object with matching UUID
 			GameObject* object = nullptr;
 			for (int i = 0; i < m_objects.size(); i++) {
-				if (m_objects[i].object->getUUID() == uuid) {
-					object = m_objects[i].object;
+				if (m_objects[i]->getUUID() == uuid) {
+					object = m_objects[i];
 					break;
 				}
 			}
 
 			if (object) {
+				m_mutex.lock();
 				object->rigidBody->setTransform(transform);
 				object->rigidBody->setLinearVelocity(velocity);
 				object->rigidBody->setAngularVelocity(angularVelocity);
+				m_mutex.unlock();
 			}
 
 		} else if (cmd == AddObject) {
@@ -60,8 +61,7 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 			msg.pull(modelAsset);
 
 			//if (objectType == 0) {
-				GameObject* newObject = new GameObject(this, uuid);
-				addObject(newObject);
+				GameObject* newObject = new GameObject(uuid);
 				rp3d::Transform tr;
 				tr.setPosition({ 0,0,0 });
 				//newObject->setOnlyTrigger(true);
@@ -71,6 +71,7 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 
 				newObject->modelAsset = m_app->getStorage()->load<ModelAsset>(modelAsset, 0);
 				newObject->loadColliders(this);
+				addObject(newObject);
 				if(objectType==0)
 					m_clients[uuid].player = newObject;
 			//}
@@ -82,7 +83,7 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 				msg.pull(&uuid);
 				bool found = false;
 				for (int i = 0; i < m_objects.size(); i++) {
-					if (uuid == m_objects[i].object->getUUID()) {
+					if (uuid == m_objects[i]->getUUID()) {
 						found = true;
 						break;
 					}
@@ -93,13 +94,13 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 		return true; // wont work on server
 	};
 	m_server.setOnEvent([this](NetEvent e, UUID uuid) {
-		log::out << "Server "<<e<<"\n";
+		log::out << "ProUnk::Server::onEvent - "<<e<<"\n";
 
 		if (e == NetEvent::Connect) {
 			m_clients[uuid] = {};
 			prounk::GameApp* app = (prounk::GameApp*)m_app;
 			for (int i = 0; i < m_objects.size();i++) {
-				GameObject* obj = m_objects[i].object;
+				GameObject* obj = m_objects[i];
 				int type = 1;
 				if (app->player == obj)
 					type = 0;
@@ -113,7 +114,7 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 		return true;
 	});
 	m_client.setOnEvent([this](NetEvent e, UUID uuid) {
-		log::out << "Client "<<e<<"\n";
+		log::out << "ProUnk::Client::onEvent - "<<e<<"\n";
 
 		if (e == NetEvent::Connect) {
 			prounk::GameApp* app = (prounk::GameApp*)m_app;
@@ -192,6 +193,20 @@ NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 }
 void NetGameGround::cleanup() {
 	GameGround::cleanup();
+}
+void NetGameGround::update(engone::UpdateInfo& info) {
+	using namespace engone;
+	GameGround::update(info);
+	
+	if (getServer().isRunning() || getClient().isRunning()) {
+		for (int i = 0; i < m_objects.size(); i++) {
+			GameObject* object = m_objects[i];
+			if (object->flags & NetGameGround::OBJECT_NETMOVE) {
+				netMoveObject(object->getUUID(), object->rigidBody->getTransform(),
+					object->rigidBody->getLinearVelocity(), object->rigidBody->getAngularVelocity());
+			}
+		}
+	}
 }
 //void NetGameGround::netSyncObjects() {
 //	using namespace engone;

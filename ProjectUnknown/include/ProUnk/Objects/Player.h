@@ -71,6 +71,7 @@ public:
 	WeaponState weaponState;
 	engone::GameObject* heldWeapon = nullptr;
 	rp3d::FixedJoint* weaponJoint = nullptr;
+	engone::GameGround* ground = nullptr; // used when making and destroying joints in update method.
 
 	void setWeapon(engone::GameObject* weapon);
 
@@ -90,7 +91,7 @@ public:
 	bool onGround = false;
 
 	// a little odd to have it here the class needs it when making joints
-	engone::GameGround* ground =nullptr;
+	//engone::GameGround* ground = nullptr;
 
 private:
 	float animBlending = 0;

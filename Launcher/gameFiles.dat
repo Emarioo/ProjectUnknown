@@ -1,2 +1,4 @@
-D:\Backup\VisualStudio\ProjectUnknown\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe=ProjectUnknown.exe
-D:\Backup\VisualStudio\ProjectUnknown\ProjectUnknown\assets=assets
+..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe=ProjectUnknown.exe
+..\ProjectUnknown\assets=assets
+arguments=--client 192.168.0.5 1001
+autostart=ProjectUnknown.exe

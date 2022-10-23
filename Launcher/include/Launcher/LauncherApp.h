@@ -24,6 +24,15 @@ namespace launcher {
 		// this will check current settings, and start server/client or error message
 		void doAction(bool delay=false);
 
+		bool launchGame();
+
+		struct FileSend {
+			std::string fullPath;// where server finds the file
+			std::string path; // where client should put file
+			uint64_t time;
+		};
+		void sendFile(FileSend& file, engone::UUID clientUUID, bool exclude);
+
 		void switchState(LauncherState newState);
 		void interpretAddress();
 
@@ -55,5 +64,14 @@ namespace launcher {
 		std::string switchInfoText;
 		engone::DelayCode delaySwitch;
 		engone::DelayCode delayDownloadFailed;
+
+		engone::FileMonitor gameFilesRefresher;
+		struct EntryInfo {
+			std::string source;
+			std::string destination;
+			// pointer because some code complained
+			engone::FileMonitor* refresher;
+		};
+		std::unordered_map<std::string, EntryInfo> gameFileEntries;
 	};
 }

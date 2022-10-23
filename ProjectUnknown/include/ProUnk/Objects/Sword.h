@@ -4,7 +4,7 @@
 
 class Sword : public engone::GameObject {
 public:
-	Sword(engone::GameGround* ground) : GameObject(ground) {
+	Sword(engone::GameGround* ground) : GameObject() {
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
@@ -18,7 +18,7 @@ public:
 		rigidBody->setType(rp3d::BodyType::DYNAMIC);
 		rigidBody->setIsAllowedToSleep(false);
 
-		loadColliders(ground);
+		loadColliders();
 	}
 
 private:

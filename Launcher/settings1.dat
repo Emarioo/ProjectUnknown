@@ -1,3 +1,2 @@
-isServer=true
-ip=host
 port=5492
+ip=host

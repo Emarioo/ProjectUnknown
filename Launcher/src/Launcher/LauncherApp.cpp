@@ -26,6 +26,59 @@ namespace launcher {
 		bool yes = m_settings.load(settings);
 		std::string someIp = m_settings.get("ip");
 		std::string somePort = m_settings.get("port");
+
+		//-- Setup updater
+		gameFilesRefresher.check(GAME_FILES_PATH,[this](const std::string& path){
+			// should also check for file deletion
+
+			// printf("GameFiles reading\n");
+			FileReader file(path,false);
+			if (file) {
+				auto list = file.readLines();
+				for (auto& entry : list) {
+					std::vector<std::string> split = engone::SplitString(entry, "=");;
+					if (split.size() == 2) {
+						if (split[0] == "arguments"|| split[0] == "autostart") {
+							EntryInfo info = { split[0], split[1], nullptr};
+							gameFileEntries[split[0]] = info;
+						} else {
+							auto find = gameFileEntries.find(split[0]);
+							if (find == gameFileEntries.end()) {
+								EntryInfo info = { split[0], split[1], new FileMonitor() };
+								gameFileEntries[split[0]] = info;
+								std::string source = info.source;
+
+								info.refresher->check(info.source, [this, source](const std::string& sourcePath) {
+									log::out << "Refresh " << sourcePath << "\n";
+									EntryInfo& info = gameFileEntries[source];
+									std::string dst = info.destination +
+										sourcePath.substr(info.source.length());
+
+									// send files
+									FileSend fileSend = { sourcePath,
+										dst,
+										GetFileLastModified(sourcePath) };
+
+									sendFile(fileSend, 0, true);
+								}, FileMonitor::WATCH_SUBTREE);
+							}
+							else {
+								// entry already exists so do nothing
+							}
+						}
+					} else {
+						log::out << log::RED<< "LauncherApp::LauncherApp - format wrong: " << entry << "\n";
+					}
+				}
+				file.close();
+				//printf("GameFiles closed\n");
+			} else {
+				log::out << log::RED << "LauncherApp::LauncherApp - access to '" << GAME_FILES_PATH << "' was denied\n";
+			}
+		},0);
+		// just call it
+		gameFilesRefresher.getCallback()(GAME_FILES_PATH);
+
 		if (!someIp.empty()) {
 			addressText.text = someIp;
 		}
@@ -62,123 +115,79 @@ namespace launcher {
 					sentFiles.push_back(f);
 				}
 
-				struct FileSend {
-					std::string fullPath;// where server finds the file
-					std::string path; // where client should put file
-					uint64_t time;
-				};
 				std::vector<FileSend> sendFiles;
-
-				auto gameFiles = LoadGameFiles();
 
 				bool ohNo = false;
 
-				for (int i = 0; i < gameFiles.size(); i++) {
-					std::string& origin = gameFiles[i].originPath;
-					std::string& endPath = gameFiles[i].path;
+				for (auto [_,entry] : gameFileEntries) {
+					std::string& origin = entry.source;
+					std::string& endPath = entry.destination;
 
-					bool isDir = std::filesystem::is_directory(origin); // if origin is invalid, this will be false.
+					printf("Entry %s\n", origin.c_str());
+					if (origin == "arguments") {
+						sendFiles.push_back({ origin,endPath,0 });
+					} else if (origin == "autostart") {
+						sendFiles.push_back({ origin,endPath,0 });
+					} else {
+						bool isDir = std::filesystem::is_directory(origin); // if origin is invalid, this will be false.
 
-					if (!isDir) {
-						if (i == 0) {
-							if (origin.find(".exe") == -1) {
-								log::out << log::YELLOW << "first file is not .exe\n";
-							}
-						}
-						uint64_t time = GetFileLastModified(origin);
-						if (time != 0) {
-							bool sendFile = true;
-							for (int i = 0; i < sentFiles.size(); i++) {
-								FileInfo& f = sentFiles[i];
-								if (f.path == endPath) {
-									if (f.time != time) {
-										// send file
-									} else {
-										// file is up to date
-										sendFile = false;
+						if (!isDir) {
+							uint64_t time = GetFileLastModified(origin);
+							if (time != 0) {
+								bool sendFile = true;
+								for (int i = 0; i < sentFiles.size(); i++) {
+									FileInfo& f = sentFiles[i];
+									if (f.path == endPath) {
+										if (f.time != time) {
+											// send file
+										} else {
+											// file is up to date
+											sendFile = false;
+										}
 									}
 								}
-							}
-							if (sendFile) {
-								sendFiles.push_back({ origin,endPath,time });
+								if (sendFile) {
+									sendFiles.push_back({ origin,endPath,time });
+								}
+							} else {
+								log::out << log::RED << "Launcher::Serv::recv - " << origin << " not found\n";
+								ohNo = true;
+								break;
 							}
 						} else {
-							log::out << log::RED << "Launcher::Serv::recv - "<<origin<<" not found\n";
-							ohNo = true;
-							break;
-						}
-					} else {
-						std::filesystem::recursive_directory_iterator itera(origin);
-						// PATHS MAY NOT BE DIRECTORIES
-						for (auto const& entry : itera) {
-							if (entry.is_directory()) continue;
-							std::string filePath = entry.path().generic_string(); // THIS MAY BE BAD CASTING PATH
-							FormatPath(filePath);
+							std::filesystem::recursive_directory_iterator itera(origin);
+							// PATHS MAY NOT BE DIRECTORIES
+							for (auto const& entry : itera) {
+								if (entry.is_directory()) continue;
+								std::string filePath = entry.path().generic_string(); // THIS MAY BE BAD CASTING PATH
+								FormatPath(filePath);
 
-							std::string partPath = endPath + filePath.substr(origin.size()); // THIS MAY BE BAD CASTING PATH
-							uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(entry.last_write_time().time_since_epoch()).count();
-							bool sendFile = true;
-							for (int i = 0; i < sentFiles.size(); i++) {
-								FileInfo& f = sentFiles[i];
-								if (f.path == partPath) {
-									if (f.time != time) {
-										// send file
-									} else {
-										// it's all good
-										sendFile = false;
+								std::string partPath = endPath + filePath.substr(origin.size()); // THIS MAY BE BAD CASTING PATH
+								uint64_t time = std::chrono::duration_cast<std::chrono::seconds>(entry.last_write_time().time_since_epoch()).count();
+								bool sendFile = true;
+								for (int i = 0; i < sentFiles.size(); i++) {
+									FileInfo& f = sentFiles[i];
+									if (f.path == partPath) {
+										if (f.time != time) {
+											// send file
+										} else {
+											// it's all good
+											sendFile = false;
+										}
 									}
 								}
-							}
-							if (sendFile) {
-								sendFiles.push_back({ filePath,partPath,time });
+								if (sendFile) {
+									sendFiles.push_back({ filePath,partPath,time });
+								}
 							}
 						}
 					}
 				}
-
-				for (int i = 0; i < sendFiles.size(); i++) {
-					FileSend& f = sendFiles[i];
-					std::ifstream file(f.fullPath, std::ios::binary);
-					if (file) {
-						file.seekg(0, file.end);
-						uint32_t fileSize = file.tellg();
-						file.seekg(0, file.beg);
-
-						//log::out << "SEND "<<f.path << "\n";
-
-						UUID fileUuid = UUID::New();
-						uint32_t bytesLeft = fileSize;
-						while (bytesLeft!=0) {
-							MessageBuffer sendBuf;
-							LauncherNetType type = LauncherServerSendFile;
-							sendBuf.push(&type);
-							sendBuf.push(fileUuid);
-							StreamStates state = 0;
-							if (bytesLeft == fileSize) state = state|StreamStart;
-							if (bytesLeft <= m_server.getTransferLimit()) state = state|StreamEnd;
-
-							sendBuf.push(state);
-							if (state&StreamStart) {
-								sendBuf.push(f.path);
-								sendBuf.push(f.time);
-							}
-
-							uint32_t headerSize = sendBuf.size() + sizeof(uint32_t); // <- for transferBytes in pushBuffer
-
-							uint32_t transferBytes = std::min(bytesLeft,m_server.getTransferLimit()-headerSize);
-							
-							char* data = sendBuf.pushBuffer(transferBytes);
-							file.read(data, transferBytes);
-
-							//log::out << "Size " << sendBuf.size() << "\n";
-
-							m_server.send(sendBuf, uuid);
-
-							bytesLeft -= transferBytes;
-						}
-						file.close();
+				if(!ohNo)
+					for (int i = 0; i < sendFiles.size(); i++) {
+						sendFile(sendFiles[i],uuid,false);
 					}
-				}
+
 				// Make a log of messages. infoText will show how the last connection went but not the rest since infoText will override that info.
 				if (ohNo) {
 					infoText.text = "GameFile Paths are probably wrong";
@@ -223,7 +232,8 @@ namespace launcher {
 				//log::out << "buf " << buf.size()<<"\n";
 				m_client.send(buf);
 			} else if (NetEvent::Failed == e) {
-				switchInfoText = "Could not connect\n";
+				infoText.text = "Could not connect\n";
+				//switchInfoText = "Could not connect\n";
 				switchState(LauncherSetting);
 			}
 			return true;
@@ -244,11 +254,13 @@ namespace launcher {
 					uint64_t time;
 					buf.pull(&time);
 
+					//printf("got %s", path.c_str());
+
 					std::string fullPath = root + path;
 					try {
 						std::filesystem::create_directories(fullPath.substr(0, fullPath.find_last_of(PATH_DELIM)));
 					} catch (std::filesystem::filesystem_error err) {
-						log::out << log::RED << err.what() << "\n";
+						log::out << log::RED <<"Client recv "<< err.what() << "\n";
 					}
 
 					writer = new FileWriter(fullPath,true);
@@ -297,27 +309,20 @@ namespace launcher {
 			} else if (type == LauncherServerFinished) {
 				// download is done, save to cache
 				m_cache.save();
-				std::string exePath;
 				delayDownloadFailed.stop();
 
-				if (m_cache.getFiles().size() != 0) {
-					if (m_cache.getFiles()[0].path.find_last_of(".exe") != -1) {
-						exePath = root + m_cache.getFiles()[0].path;
-					}
+				if (!launchGame()) {
+					//switchInfoText = "Developer issues?\n";
+					infoText.text = "Developer issues?\n";
+					switchState(LauncherSetting);
 				}
-				//log::out << "Client: finished ," << exePath << "\n";
-				if (!exePath.empty()) {
-					StartProgram(exePath);
-
-					m_window->close();
-				} else {
-					//log::out << log::RED << "First file was not executable\n";
-					infoText.text = "Developer messed up which order to send files\n";
-				}
+				//m_window->close();
 			} else if (type == LauncherServerError) {
 				delayDownloadFailed.stop();
 				m_client.stop();
-				switchInfoText = "Server didn't want to cooperate";
+
+				//switchInfoText = "Server didn't want to cooperate";
+				infoText.text = "Server didn't want to cooperate";
 				switchState(LauncherSetting);
 			}
 			return true;
@@ -349,7 +354,114 @@ namespace launcher {
 		// ISSUE: without this, the app doesn't act how i want. it says connecting... when it's not even trying to.
 		doAction(true);
 	}
+	void LauncherApp::sendFile(FileSend& f, engone::UUID clientUUID, bool exclude) {
+		using namespace engone;
+		printf("Send %s\n", f.fullPath.c_str());
+		if (f.fullPath == "arguments") {
+			MessageBuffer sendBuf;
+			LauncherNetType type = LauncherServerSendFile;
+			sendBuf.push(&type);
+			UUID fileUuid = UUID::New();
+			sendBuf.push(fileUuid);
+			StreamStates state = StreamStart | StreamEnd; // arguments is probably not going to be huge so one send is enough.
 
+			sendBuf.push(state);
+			sendBuf.push(f.fullPath);
+			sendBuf.push(f.time);
+
+			char* data = sendBuf.pushBuffer(f.path.length());
+			memcpy(data, f.path.c_str(), f.path.length());
+
+			m_server.send(sendBuf, clientUUID,exclude);
+		} else if (f.fullPath == "autostart") {
+			MessageBuffer sendBuf;
+			LauncherNetType type = LauncherServerSendFile;
+			sendBuf.push(&type);
+			UUID fileUuid = UUID::New();
+			sendBuf.push(fileUuid);
+			StreamStates state = StreamStart | StreamEnd; // arguments is probably not going to be huge so one send is enough.
+
+			sendBuf.push(state);
+			sendBuf.push(f.fullPath);
+			sendBuf.push(f.time);
+
+			char* data = sendBuf.pushBuffer(f.path.length());
+			memcpy(data, f.path.c_str(), f.path.length());
+
+			m_server.send(sendBuf, clientUUID, exclude);
+		} else {
+			std::ifstream file(f.fullPath, std::ios::binary);
+			if (file) {
+				file.seekg(0, file.end);
+				uint32_t fileSize = file.tellg();
+				file.seekg(0, file.beg);
+
+				UUID fileUuid = UUID::New();
+				uint32_t bytesLeft = fileSize;
+				while (bytesLeft != 0) {
+					MessageBuffer sendBuf;
+					LauncherNetType type = LauncherServerSendFile;
+					sendBuf.push(&type);
+					sendBuf.push(fileUuid);
+					StreamStates state = 0;
+					if (bytesLeft == fileSize) state = state | StreamStart;
+					if (bytesLeft <= m_server.getTransferLimit()) state = state | StreamEnd;
+
+					sendBuf.push(state);
+					if (state & StreamStart) {
+						sendBuf.push(f.path);
+						sendBuf.push(f.time);
+					}
+
+					uint32_t headerSize = sendBuf.size() + sizeof(uint32_t); // <- for transferBytes in pushBuffer
+
+					uint32_t transferBytes = std::min(bytesLeft, m_server.getTransferLimit() - headerSize);
+
+					char* data = sendBuf.pushBuffer(transferBytes);
+					file.read(data, transferBytes);
+
+					//log::out << "Size " << sendBuf.size() << "\n";
+
+					m_server.send(sendBuf, clientUUID);
+
+					bytesLeft -= transferBytes;
+				}
+				file.close();
+			}
+		}
+	}
+	bool LauncherApp::launchGame() {
+		using namespace engone;
+		return false; // don't launch
+
+		FileReader file1(root + "autostart", false);
+		if (file1) {
+			std::string startPath;
+			file1.readAll(&startPath);
+			file1.close();
+
+			startPath = root + startPath;
+
+			bool startedProgram = false;
+			FileReader file(root + "arguments", false);
+			if (file) {
+				std::string args;
+				file.readAll(&args);
+				file.close();
+				startedProgram = StartProgram(startPath, args.data());
+			} else {
+				startedProgram = StartProgram(startPath);
+			}
+			if (!startedProgram) {
+				log::out << log::RED << "LauncherApp::launchGame - could not start exe\n";
+				return false;
+			}else
+				return true;
+		} else {
+			log::out << log::RED << "LauncherApp::launchGame - autostart file is missing\n";
+			return false;
+		}
+	}
 	void LauncherApp::update(engone::UpdateInfo& info) {
 		loadingTime += info.timeStep;
 		if (delaySwitch.run(info)) {
@@ -362,6 +474,7 @@ namespace launcher {
 	void LauncherApp::render(engone::RenderInfo& info) {
 		using namespace engone;
 
+		//-- Menu / Colors
 		float width = GetWidth(), height = GetHeight();
 
 		ui::Color backColor = { 52 / 255.f,23 / 255.f,109 / 255.f,1 };
@@ -386,6 +499,7 @@ namespace launcher {
 			m_window->close();
 		}
 
+		//-- State dependent
 		if (state == LauncherConnecting) {
 			// Launcher name
 			ui::TextBox launcherText = { launcherName,0,0,30,consolas,white };
@@ -408,7 +522,8 @@ namespace launcher {
 				infoText.text += '.';
 			}
 			ui::Draw(infoText);
-		} else if (state == LauncherDownloading) {
+		} 
+		else if (state == LauncherDownloading) {
 			// Download text
 			ui::TextBox download = { "Downloading",0,height * 0.3,30,consolas,white };
 			float timeDiff = 0.5;
@@ -434,7 +549,8 @@ namespace launcher {
 				infoText.x = width / 2 - consolas->getWidth(infoText.text, infoText.h) / 2;
 				ui::Draw(infoText);
 			}
-		} else if (state == LauncherSetting) {
+		} 
+		else if (state == LauncherSetting) {
 			ui::TextBox serverText = { "Address",0,0,30,consolas,white };
 			serverText.x = width / 2 - consolas->getWidth(serverText.text, serverText.h)/2;
 			serverText.y = height * 0.25-serverText.h/2;
@@ -494,7 +610,8 @@ namespace launcher {
 				infoText.x = width / 2 - consolas->getWidth(infoText.text, infoText.h) / 2;
 				ui::Draw(infoText);
 			}
-		} else if (state == LauncherServerSide) {
+		} 
+		else if (state == LauncherServerSide) {
 			ui::TextBox serverTitle = { "Server connections:"+std::to_string(m_server.getConnectionCount()),0,height * 0.07,35,consolas,white };
 			serverTitle.x = width / 2 - consolas->getWidth(serverTitle.text, serverTitle.h) / 2;
 			ui::Draw(serverTitle);
@@ -527,11 +644,6 @@ namespace launcher {
 		std::vector<std::string> split = engone::SplitString(addressText.text, ":");
 		if (split.size() == 0) {
 		} else if (split.size() <= 2) {
-			if (split[0] == "host") {
-				m_settings.set("isServer", "true");
-			} else {
-				m_settings.remove("isServer");
-			}
 			m_settings.set("ip", split[0]);
 			if (split.size() == 2) {
 				if (split[1].length() != 0)
@@ -546,8 +658,8 @@ namespace launcher {
 	void LauncherApp::switchState(LauncherState newState) {
 		state = newState;
 		loadingTime = 0;
-		infoText.text = switchInfoText;
-		switchInfoText = "";
+		//infoText.text = switchInfoText;
+		//switchInfoText = "";
 		if (state == LauncherSetting) {
 			std::string ip = m_settings.get("ip");
 			std::string port = m_settings.get("port");
@@ -578,20 +690,30 @@ namespace launcher {
 		using namespace engone;
 		std::string ip = m_settings.get("ip");
 		std::string port = m_settings.get("port");
-		std::string isServer = m_settings.get("isServer");
-		if (isServer == "true") {
+		if (ip == "force") {
+			if (!launchGame()) {
+				//m_window->close();
+				//switchInfoText = "Cache is invalid";
+				infoText.text = "Cache is invalid. Connect at least once.";
+				switchState(LauncherSetting);
+			} else {
+				// what should be done if successful?
+			}
+		}else if (ip == "host") {
 			if (m_server.isRunning()) {
 				log::out << "Server is already running\n";
 			} else {
 				if (m_client.isRunning())
 					m_client.stop();
 				if (!m_server.start(port)) {
-					switchInfoText = "Invalid Port";
+					infoText.text = "Invalid Port";
+					//switchInfoText = "Invalid Port";
 					if (delay)
 						delaySwitch.start(1);
 					else
 						switchState(LauncherSetting);
 				} else {
+					infoText.text = "";
 					switchState(LauncherServerSide);
 				}
 			}
@@ -604,12 +726,14 @@ namespace launcher {
 				if (!m_client.start(ip, port)) {
 					// infoText can be ambiguous, was the ip invalid because the server didn't exist and the client couldn't connect or
 					// because the ip wasn't a correctly formatted ip address. 12#515Ar <- this would be an invalid ip.
-					switchInfoText= "Invalid IP/Port";
+					//switchInfoText= "Invalid IP/Port";
+					infoText.text = "Invalid IP/Port";
 					if (delay) {
 						delaySwitch.start(1);
 					} else
 						switchState(LauncherSetting);
 				} else {
+					infoText.text = "";
 					switchState(LauncherConnecting);
 				}
 			}

@@ -238,7 +238,7 @@ namespace engone {
 			out.data()[i] = in[i];
 		}
 	}
-	bool StartProgram(const std::string& path) {
+	bool StartProgram(const std::string& path, char* commandLine) {
 		if (!FindFile(path)) {
 			return false;
 		}
@@ -264,7 +264,7 @@ namespace engone {
 		std::string& workDir = workingDir;
 //#endif
 		CreateProcessA(exeFile.c_str(),   // the path
-			NULL,        // Command line
+			commandLine,        // Command line
 			NULL,           // Process handle not inheritable
 			NULL,           // Thread handle not inheritable
 			FALSE,          // Set handle inheritance to FALSE
@@ -575,6 +575,62 @@ namespace engone {
 		}
 		LocalFree(wargv);
 	}
+	void ConvertArguments(const char* args, int& argc, char**& argv) {
+		if (args == nullptr) {
+			log::out << log::RED << "ConvertArguments - args was null\n";
+		} else {
+			argc = 0;
+			// argv will become a pointer to contigous memory which contain arguments.
+			int dataSize = 0;
+			int argsLength = strlen(args);
+			int argLength = 0;
+			for (int i = 0; i < argsLength+1; i++) {
+				char chr = args[i];
+				if (chr == 0||chr==' ') {
+					if (argLength != 0) {
+						dataSize++; // null terminated character
+						argc++;
+					}
+					argLength = 0;
+					if(chr==0)
+						break;
+				} else {
+					argLength++;
+					dataSize++;
+				}
+			}
+			int index = argc * sizeof(char*);
+			int totalSize = index + dataSize;
+			//printf("size: %d index: %d\n", totalSize,index);
+			argv = (char**)malloc(totalSize);
+			char* argData = (char*)argv + index;
+			if (!argv) {
+				log::out << log::RED << "ConverArguments - allocation failed\n";
+			} else {
+				int strIndex = 0; // index of char*
+				for (int i = 0; i < argsLength+1; i++) {
+					char chr = args[i];
+
+					if (chr == 0 || chr == ' ') {
+						if (argLength != 0) {
+							argData[i] = 0;
+							dataSize++; // null terminated character
+						}
+						argLength = 0;
+						if (chr == 0)
+							break;
+					} else {
+						if (argLength == 0) {
+							argv[strIndex] = argData + i;
+							strIndex++;
+						}
+						argData[i] = chr;
+						argLength++;
+					}
+				}
+			}
+		}
+	}
 	void FreeArguments(int argc, char** argv) {
 		free(argv);
 	}
@@ -585,11 +641,15 @@ namespace engone {
 			freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
 		}
 	}
-	void FileRefresher::cleanup() {
+	void FileMonitor::cleanup() {
 		m_mutex.lock();
 		if (m_changeHandle != NULL) {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
+		}
+		if (m_dirHandle) {
+			CloseHandle(m_dirHandle);
+			m_dirHandle = NULL;
 		}
 		m_mutex.unlock();
 
@@ -597,13 +657,17 @@ namespace engone {
 			m_thread.join();
 		// m_running is set to false in thread
 	}
-	void FileRefresher::check(const std::string& path, std::function<void(const std::string&)> callback, int flags) {
+	void FileMonitor::check(const std::string& path, std::function<void(const std::string&)> callback, int flags) {
+		m_mutex.lock();
 		if (m_changeHandle != NULL) {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
 		}
+		if (m_dirHandle) {
+			CloseHandle(m_dirHandle);
+			m_dirHandle = NULL;
+		}
 
-		m_mutex.lock();
 		if(!m_running){
 			if (m_thread.joinable())
 				m_thread.join();
@@ -615,72 +679,97 @@ namespace engone {
 			bool failed = false;
 			if (!std::filesystem::exists(m_root)) {
 				failed = true;
-				log::out << log::RED << "FileRefresher::check - invalid path : " << m_root << "\n";
+				log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
 			}
-			if (!failed) {
-				m_dirHandle = CreateFileA(m_root.c_str(), FILE_LIST_DIRECTORY, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
-				if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
-					failed = true;
-					m_dirHandle = NULL;
-					DWORD err = GetLastError();
-					log::out << log::RED << "FileRefresher::check - dirHandle failed: " << (int)err << "\n";
+			int attributes = GetFileAttributesA(m_root.c_str());
+			if (attributes == INVALID_FILE_ATTRIBUTES) {
+				
+			} else if(attributes & FILE_ATTRIBUTE_DIRECTORY) {
+				m_dirPath = m_root;
+			} else {
+				int index = m_root.find_last_of('\\');
+				if (index == -1) {
+					m_dirPath = ".\\";
+				} else {
+					m_dirPath = m_root.substr(0,index);
 				}
 			}
 			if (!failed) {
-				m_changeHandle = FindFirstChangeNotification(m_root.c_str(), true, FILE_NOTIFY_CHANGE_LAST_WRITE);
+				m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE);
 				if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
 					failed = true;
 					m_changeHandle = NULL;
 					DWORD err = GetLastError();
-					log::out << log::RED << "FileRefresher::check - invalid handle: " << (int)err << "\n";
+					log::out << log::RED << "FileMonitor::check - invalid handle("<< (int)err <<"): " << m_dirPath << "\n";
+				}
+			}
+			if (!failed) {
+				//FILE_FLAG_OVERLAPPED
+				m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY, 
+					FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
+					OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+				if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
+					failed = true;
+					m_dirHandle = NULL;
+					DWORD err = GetLastError();
+					log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err <<"): " << m_dirPath << "\n";
+					if (m_changeHandle != NULL) {
+						FindCloseChangeNotification(m_changeHandle);
+						m_changeHandle = NULL;
+					}
 				}
 			}
 			if (!failed) {
 				m_running = true;
+
+				log::out << "FileMonitor::check - monitor " << m_root << "\n";
 				m_thread = std::thread([this]() {
 
+					std::string temp;
 					DWORD waitStatus;
 					while (true) {
 						waitStatus = WaitForSingleObject(m_changeHandle, INFINITE);
 
 						if (waitStatus == WAIT_OBJECT_0) {
+							log::out << "FileMonitor::check - catched " << m_root << "\n";
 
 							if (!m_buffer) {
 								m_buffer = (FILE_NOTIFY_INFORMATION*)alloc::malloc(INITIAL_SIZE);
 								if (!m_buffer) {
 									m_bufferSize = 0;
-									log::out << log::RED << "FileRefresher::check - buffer allocation failed\n";
+									log::out << log::RED << "FileMonitor::check - buffer allocation failed\n";
 									break;
 								}
 								m_bufferSize = INITIAL_SIZE;
 							}
+
 							DWORD bytes = 0;
-							BOOL err = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags&WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE, &bytes, NULL, NULL);
+							BOOL err = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags & WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE, &bytes, NULL, NULL);
 
 							if (bytes == 0) {
 								// try to read changes again but with bigger buffer? while loop?
-								log::out << log::RED << "FileRefresher::check - buffer to small or big\n";
+								log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
 							}
-							if (err == 0) {
-								log::out << log::RED << "FileRefresher::check - ReadDirectoryChanges err: "<<err<<"\n";
+							if (err == 0
+								//||err== ERROR_INVALID_FUNCTION
+								) {
+								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges err(" << err << "): "<<m_root<<"\n";
 							} else {
-								char tmp[MAX_PATH + 1]; // NOTE: MAX_PATH bad?
-								tmp[MAX_PATH] = 0;
-
 								int offset = 0;
 								while (true) {
 									FILE_NOTIFY_INFORMATION& info = *(FILE_NOTIFY_INFORMATION*)((char*)m_buffer + offset);
 									int length = info.FileNameLength / sizeof(WCHAR);
 									if (length < MAX_PATH + 1) {
+										temp.resize(length);
 										for (int i = 0; i < length; i++) {
-											tmp[i] = (char)*(info.FileName + i);
+											temp.data()[i] = (char)*(info.FileName + i);
 										}
-										tmp[length] = 0;
 									}
-									
-									std::string_view path = tmp;
 
-									m_callback((const std::string&)path);
+									if (m_dirPath == m_root || temp == m_root) {
+										log::out << "FileMonitor::check - call callback " << temp << "\n";
+										m_callback(temp);
+									}
 
 									if (info.NextEntryOffset == 0)
 										break;
@@ -704,11 +793,15 @@ namespace engone {
 					m_mutex.lock();
 					m_running = false;
 
-					FindCloseChangeNotification(m_changeHandle);
-					m_changeHandle = NULL;
+					if (m_changeHandle) {
+						FindCloseChangeNotification(m_changeHandle);
+						m_changeHandle = NULL;
+					}
 
-					CloseHandle(m_dirHandle);
-					m_dirHandle = NULL;
+					if (m_dirHandle) {
+						CloseHandle(m_dirHandle);
+						m_dirHandle = NULL;
+					}
 					m_mutex.unlock();
 
 				});

@@ -9,8 +9,7 @@
 
 #include "Engone/Utilities/rp3d.h"
 
-Player::Player(engone::GameGround* ground) : GameObject(ground) {
-	this->ground = ground;
+Player::Player(engone::GameGround* ground) : GameObject() {
 	rp3d::Transform t;
 	rigidBody = ground->m_pWorld->createRigidBody(t);
 	rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
@@ -21,18 +20,19 @@ Player::Player(engone::GameGround* ground) : GameObject(ground) {
 	//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
 	engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 	//modelAsset = assets->set<engone::ModelAsset>("PlayerBody/PlayerBody"); 
-	modelAsset = assets->load<engone::ModelAsset>("Player/Player"); 
+	modelAsset = assets->load<engone::ModelAsset>("Player/Player");
 	//modelAsset = assets->set<engone::ModelAsset>("Player/Player");
 	animator.asset = modelAsset;
 
-	loadColliders(ground);
+	this->ground = ground;
+
+	loadColliders();
 }
 void Player::update(engone::UpdateInfo& info) {
 	animator.update(info.timeStep);
 	Input(info);
 	Movement(info);
 	WeaponUpdate(info);
-
 }
 void Player::WeaponUpdate(engone::UpdateInfo& info) {
 	using namespace engone;

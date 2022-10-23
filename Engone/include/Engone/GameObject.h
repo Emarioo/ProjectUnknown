@@ -12,9 +12,11 @@ namespace engone {
 	class GameGround;
 	class GameObject {
 	public:
+		static const int PENDING_COLLIDERS=1;
+
 		//GameObject() = default;
-		GameObject(GameGround* ground) : m_uuid(UUID::New()) {};
-		GameObject(GameGround* ground, UUID uuid) : m_uuid(uuid) {};
+		GameObject() : m_uuid(UUID::New()) {};
+		GameObject(UUID uuid) : m_uuid(uuid) {};
 		virtual ~GameObject() {}
 
 		virtual void update(UpdateInfo& info) {};
@@ -22,6 +24,7 @@ namespace engone {
 		UUID getUUID() const { return m_uuid; }
 		ModelAsset* modelAsset=nullptr;
 		Animator animator;
+		int flags; // make it private and provide methods?
 
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* rigidBody=nullptr;
@@ -54,11 +57,10 @@ namespace engone {
 		}
 		void setOnlyTrigger(bool yes);
 
-		//bool loadedColliders = false;
-		bool pendingColliders = false;
-		// Requires rigidbody and modelAsset to be non-null
-		// Will give unexpected results if model hasn't been loaded yet.
-		void loadColliders(GameGround* ground);
+		// Will load colliders whenever requirements are meet. This method is asynchronous.
+		// These are: modelAsset is valid, rigidbody is valid.
+		// The ground parameter is used by the engine and not relevant to you.
+		void loadColliders(GameGround* ground=nullptr);
 #endif
 
 	private:

@@ -4,7 +4,7 @@
 
 class Dummy : public engone::GameObject {
 public:
-	Dummy(engone::GameGround* ground) : GameObject(ground) {
+	Dummy(engone::GameGround* ground) : GameObject() {
 
 		//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
@@ -19,7 +19,7 @@ public:
 		rigidBody->setIsAllowedToSleep(false);
 		//rigidBody->enableGravity(false);
 
-		loadColliders(ground);
+		loadColliders();
 	}
 	void update(engone::UpdateInfo& info) override {
 		using namespace engone;

@@ -42,188 +42,6 @@ namespace engone {
 		DestroyNetworking();
 	}
 	void Engone::start() {
-		//if (m_applications.size() == 0) {
-		//	log::out << log::RED << "No applications added\n";
-		//	return;
-		//}
-		//m_runtimeStats.startTime = GetSystemTime();
-		//for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-		//	Application* app = m_applications[appIndex];
-		//	app->getStats().startTime = m_runtimeStats.startTime;
-		//}
-
-		// FEATURE: note style in code, FEATURE:, ISSUE:, NOTE: are tags in the code which you can search for and see comments
-		// This is useful if I need to write things down and don't have internet. I can write notes, and keep track of them.
-		// This feature should be documented in the engine. or somewhere in obsidian.
-		
-		// FEATURE: memory tracking flag. if enabled, changes in memory will be printed every frame
-		uint64_t lastMemory=0;
-
-		float statPrintTime = 0;
-		// Some game loop concept comes from ReactPhysics user manual.
-		//while (true) {
-		//	double loopStart = GetSystemTime();
-		//	for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-		//		Application* app = m_applications[appIndex];
-
-		//		double startTime = GetSystemTime();
-
-		//		double updateTime = app->getStats().updateTime / m_applications.size();
-		//		double frameTime = app->getStats().frameTime / m_applications.size();
-
-		//		// Close window and applications if needed.
-		//		for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-		//			Window* win = app->getWindow(winIndex);
-		//			// Potentially close window
-		//			if (!win->isActive()) {
-		//				delete win;
-		//				tracker::addMemory(-(int64_t)sizeof(Window));
-
-		//				app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
-		//				--winIndex;
-		//				continue;
-		//			}
-		//		}
-		//		if (app->getAttachedWindows().size() == 0) {
-		//			// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
-		//			// app should be safe to delete
-
-		//			delete m_applications[appIndex];
-		//			tracker::addMemory(-(int64_t)m_appSizes[appIndex]);
-
-		//			m_applications.erase(m_applications.begin() + appIndex);
-		//			m_appSizes.erase(m_appSizes.begin() + appIndex);
-		//			--appIndex;
-		//			continue;
-		//		}
-		//		int limit = 1; // used when debugging so that the while update loop doesn't continue forever.
-
-		//		// This loop runs at full speed which uses a lot of cpu. but that isn't really needed so how can you slow it down? thread sleep?
-
-		//		// Write some documentation on how the loop works.
-		//		// update can be skipped, and so will not be called for every frame. you should therefore
-		//		// not change the rotation/position of the camera in update do that in renderer
-
-		//		Window* mainWindow = app->getWindow(0);
-		//		if (mainWindow)
-		//			mainWindow->setActiveContext();
-
-		//		bool skippedUpdate=true;
-		//		//log::out << "while "<<(accumulator)<<"\n";
-		//		while (app->getStats().update_accumulator >= updateTime
-		//			//&& limit-- != 0
-		//			) {
-		//			skippedUpdate = false;
-		//			m_runtimeStats.incrUpdates();
-		//			app->getStats().incrUpdates();
-		//			//log::out << "update "<<accumulator<<"\n";
-		//			UpdateInfo info = { updateTime, app };
-		//		
-		//			update(info);
-		//			app->update(info);
-
-		//			app->getStats().update_accumulator -= updateTime;
-
-		//			// update reset for all windows.
-		//			// The global variable IsKeyPressed only works for the active window
-		//			// which is mainWindow which is the first window attached to application.
-		//			// If you want isKeyPressed for a specific window you do
-		//			// window->isKeyPressed instead where window is you window of choice.
-		//			for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-		//				app->getWindow(winIndex)->resetEvents();
-		//			}
-		//		}
-		//		
-		//		//if(tracker::getMemory()!=lastMemory) tracker::logMemory();
-		//		lastMemory = tracker::getMemory();
-
-		//		if (app->getStats().frame_accumulator >= frameTime) {
-		//			app->getStats().frame_accumulator -= frameTime;
-		//			app->m_renderingWindows = true;
-		//			m_runtimeStats.incrFrames();
-		//			app->getStats().incrFrames();
-		//			for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-		//				Window* win = app->getWindow(winIndex);
-		//				if (!win->isActive()) continue;
-		//				float interpolation = app->getStats().update_accumulator / frameTime; // Note: update accumulator should be there.
-		//				RenderInfo info = { interpolation,win };
-
-		//				win->setActiveContext();
-		//				// Important setup
-		//				// DONE IN Window::setActiveContext
-		//				glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
-		//				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//				glDepthFunc(GL_LESS);
-		//				glEnable(GL_CULL_FACE);
-		//				glClearColor(0.15f, 0.18f, 0.18f, 1.f);
-		//				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//				// 3d stuf
-		//				win->getRenderer()->setProjection(GetWidth() / GetHeight());
-
-		//				app->render(info);
-		//				win->getRenderer()->updateViewMatrix(0);
-		//				render(info);
-
-		//				GetActiveRenderer()->render(info);
-		//				//std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		//				glfwSwapInterval(0); // turning off vsync?
-		//				glfwSwapBuffers(win->glfw());
-
-		//				// frame reset
-		//				win->resetEvents();
-		//				char endChr;
-		//				while (endChr = win->pollChar()) {
-		//					//log::out << "endpoll " << endChr << "\n";
-		//				}
-		//			}
-		//			app->m_renderingWindows = false;
-		//		} else {
-		//			std::this_thread::sleep_for(std::chrono::milliseconds((int)((frameTime-app->getStats().frame_accumulator)*1000.0)));
-		//		}
-		//		double delta = GetSystemTime() - startTime;
-		//		app->getStats().update_accumulator += delta;
-		//		app->getStats().frame_accumulator += delta;
-		//		app->getStats().runtime += delta;
-
-		//		// This may not work properly if there is a slight change in time.
-		//		//app->getStats().real_fps = 1/delta;
-		//		//app->getStats().real_ups -= updateTime;
-
-		//		statPrintTime += delta;
-		//	}
-		//	glfwPollEvents();
-		//	if (statPrintTime > 0.5) {
-		//		statPrintTime -= 0.5;
-		//		m_runtimeStats.print(true);
-		//		log::out << "\n";
-		//		for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-		//			Application* app = m_applications[appIndex];
-		//			log::out << "APPLICATION " << appIndex << "\n";
-		//			app->getStats().print();
-		//			log::out << "\n";
-		//		}
-		//	}
-		//	double loopDelta = GetSystemTime()-loopStart;
-		//	m_runtimeStats.runtime += loopDelta;
-
-		//	//m_runtimeStats.real_fps -= 1/m_runtimeStats.frameTime*loopDelta;
-
-		//	//for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-		//	//	Application* app = m_applications[appIndex];
-		//	//	RuntimeStats& stats = app->getStats();
-		//	//	//stats.acc_second += loopDelta;
-		//	//	//if (stats.acc_second > 1) {
-		//	//	//	stats.finishSample();
-		//	//	//}
-		//	//}
-
-		//	if (m_applications.size() == 0)
-		//		break;
-		//}
-		// 
-	//m_runtimeStats.update_accumulator = 8;
-		//
 		
 		// Filters don't work with multithreading
 		//log::out.setConsoleFilter(log::out.consoleFilter() | log::Disable);
@@ -250,15 +68,10 @@ namespace engone {
 				}
 			}
 
-			//-- original
-			//double now = GetSystemTime();
-			//double delta = now - lastTime;
-			//lastTime = now;
-
-			// high delta will cause a series consecuative updates which will freeze the apps. This is unwanted.
+			// high delta will cause a series of consecuative updates which will freeze the apps. This is unwanted.
 			// Limit delta to fix it.
-			//double limit = 8 * m_runtimeStats.updateTime;
-			//if (delta > limit) delta = limit;
+			double limit = 8 * m_runtimeStats.updateTime;
+			if (delta > limit) delta = limit;
 
 			m_runtimeStats.runTime += delta;
 			m_runtimeStats.update_accumulator += delta;
@@ -276,7 +89,6 @@ namespace engone {
 					if (!win->isOpen()) {
 						GetTracker().untrack(win);
 						delete win;
-						//log::out << "Engone.cpp - Deleted WINDOW\n";
 						app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
 						--winIndex;
 						continue;
@@ -288,7 +100,6 @@ namespace engone {
 					// app should be safe to delete
 					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
 					delete app;
-					//log::out << "Engone.cpp - Deleted APP\n";
 					 //FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
 					m_applications.erase(m_applications.begin() + appIndex);
 					m_appSizes.erase(m_appSizes.begin() + appIndex);
@@ -311,7 +122,6 @@ namespace engone {
 			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime|| m_flags & EngoneFixedLoop)
 			{
 				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
-				//log::out << m_runtimeStats.update_accumulator << "\n";
 
 				m_runtimeStats.incrUpdates();
 				UpdateInfo info = { m_runtimeStats.updateTime, nullptr };
@@ -481,19 +291,6 @@ namespace engone {
 	void Engone::update(UpdateInfo& info) {
 		if(info.app->getGround())
 			info.app->getGround()->update(info);
-//		for (int i = 0; i < m_objects.size(); i++) {
-//			if (m_objects[i]->pendingColliders) {
-//				m_objects[i]->loadColliders(this);
-//			}
-//			m_objects[i]->update(info);
-//		}
-//		//for (int i = 0; i < m_particleGroups.size(); i++) {
-//		//	m_particleGroups[i]->update(info);
-//		//}
-//#ifdef ENGONE_PHYSICS
-//		if (m_pWorld)
-//			m_pWorld->update(info.timeStep);
-//#endif
 	}
 	float testTime = 0;
 	void Engone::render(RenderInfo& info) {
@@ -519,7 +316,7 @@ namespace engone {
 		}
 		else {
 		}
-		//EnableBlend(); <- don ine particle render
+		//EnableBlend(); <- done in particle render
 		if (info.window->getParent()->getGround()) {
 			auto& groups = info.window->getParent()->getGround()->getParticleGroups();
 			for (int i = 0; i < groups.size(); i++) {
@@ -653,9 +450,10 @@ namespace engone {
 		}
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
 		GameGround* ground= info.window->getParent()->getGround();
-		std::vector<SharedObject>& objects = ground->getObjects();
+		std::vector<GameObject*>& objects = ground->getObjects();
+		ground->m_mutex.lock();
 		for (int i = 0; i < objects.size(); ++i) {
-			GameObject* obj = objects[i].object;
+			GameObject* obj = objects[i];
 
 			glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
@@ -702,6 +500,7 @@ namespace engone {
 				}
 			}
 		}
+		ground->m_mutex.unlock();
 		ShaderAsset* shader = assets->get<ShaderAsset>("object");
 		if (!shader->getError()) {
 			shader->bind();
@@ -730,13 +529,14 @@ namespace engone {
 			}
 		}
 		shader = assets->get<ShaderAsset>("armature");
+		ground->m_mutex.lock();
 		if (!shader->getError()) {
 			shader->bind();
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
 
 			for (int oi = 0; oi < objects.size(); ++oi) {
-				GameObject* obj = objects[oi].object;
+				GameObject* obj = objects[oi];
 
 				if (!obj->modelAsset) continue;
 				if (!obj->modelAsset->valid()) continue;
@@ -800,6 +600,7 @@ namespace engone {
 				}
 			}
 		}
+		ground->m_mutex.unlock();
 
 		//}
 		//Mesh* lightCube = GetMeshAsset("LightCube");

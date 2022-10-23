@@ -149,31 +149,10 @@ namespace engone {
 			log::out << "FileReader::readAll - " << error << "\n";
 			throw error;
 		}
-		if (binaryForm) {
-#ifdef ENGONE_LOGGER
-			log::out << log::RED << "readAll with binary is not implemented" << "\n";
-#endif
-			error = ErrorCorruptedFile;
-			throw error;
-		} else {
-			var->clear();
-			std::string line;
-			while (true) {
-				if (file.eof()) {
-					break;
-				}
-				std::getline(file, line);
-
-				if (line[0] == '#') {
-					continue;
-				}
-				if (!line.empty()) {
-					if (line.back() == '\r')
-						line.erase(line.end() - 1);
-				}
-				*var += line + "\n";
-			}
-		}
+		// works the same for both forms
+		var->clear();
+		var->resize(fileSize);
+		file.read(var->data(), fileSize);
 	}
 	std::vector<std::string> FileReader::readLines(bool includeNewLine) {
 		if (error != ErrorNone)

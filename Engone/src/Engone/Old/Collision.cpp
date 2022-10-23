@@ -396,4 +396,19 @@ namespace engone {
 		
 		return false;
 	}
+
+	//-- some code for testing collision
+	//ui::Box box = { 20,30,100,100,{1,1,1,1} };
+	//ui::Draw(box);
+
+	//glm::mat4 m1 = glm::translate(glm::vec3(1, 8, 0));
+	//glm::vec3 s1(1, 1, 1);
+
+	//glm::mat4 m2 = glm::translate(glm::vec3(1, 8, 0));
+	//glm::vec3 s2(1.5, 1, 1);
+
+	//PlaneCollider col1 = MakeCubeCollider(m1, s1);
+	//PlaneCollider col2 = MakeCubeCollider(m2, s2);
+
+	//bool boolean = TestPlanes(col1, col2);
 }

@@ -27,7 +27,7 @@ namespace launcher {
 		std::string path;
 		uint64_t time;
 	};
-#define GAME_CACHE_PATH "launcher_cache.dat"
+#define GAME_CACHE_PATH "launcher.cache"
 	class GameCache {
 	public:
 		GameCache() = default;
@@ -41,11 +41,11 @@ namespace launcher {
 	private:
 		std::vector<FileInfo> m_files;
 	};
-	struct FilePath {
+	
+	struct Entry {
 		std::string originPath;
 		std::string path;
 	};
-
 #define GAME_FILES_PATH "gameFiles.dat"
-	std::vector<FilePath> LoadGameFiles();
+	std::vector<Entry> LoadGameFiles();
 }

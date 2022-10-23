@@ -183,35 +183,42 @@ namespace engone {
 	//void CountingTest(int times, int numElements, std::function<int()> func);
 
 	// Starts an exe at path. Uses CreateProcess from windows.h
-	bool StartProgram(const std::string& path);
+	// commandLine cannot be constant (CreateProcessA in windows api says so)
+	bool StartProgram(const std::string& path, char* commandLine=NULL);
 
 	// Converts arguments from WinMain into simpler arguments. Not unicode.
 	// note that argc and argv are references and the outputs of this function.
 	// do not forget to call FreeArguments because this function allocates memory.
 	void ConvertArguments(int& argc, char**& argv);
+	// same as previous but arguments are converted from paramteter args.
+	// args is what would follow when you call the executable. Ex, mygame.exe --console --server
+	void ConvertArguments(const char* args, int& argc, char**& argv);
 	void FreeArguments(int argc, char** argv);
 	// calls AllocConsole and sets stdin and stdout
 	void CreateConsole();
 
 	// track directory or file. probably with a thread.
-	class FileRefresher {
+	class FileMonitor {
 	public:
 		//-- flags
 		static const int WATCH_SUBTREE = 1;
-		static const int DEFAULT_FLAGS = WATCH_SUBTREE;
+		static const int DEFAULT_FLAGS = 0;
 
-		FileRefresher() = default;
-		~FileRefresher() { cleanup(); }
+		FileMonitor() = default;
+		~FileMonitor() { cleanup(); }
 		void cleanup();
 
 		// path can be file or directory
 		// calling this again will restart the tracking with new arguments.
 		void check(const std::string& path, std::function<void(const std::string&)> callback, int flags = DEFAULT_FLAGS);
 
+		inline std::function<void(const std::string&)>& getCallback() { return m_callback; }
+
 	private:
 		bool m_running = false;
 		std::function<void(const std::string&)> m_callback;
-		std::string m_root; // this should be private, use functions to change which path is being refreshed
+		std::string m_root; // path passed to check function
+		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
 		int m_flags = 0;
 
 		HANDLE m_changeHandle=NULL;

@@ -4,7 +4,7 @@
 
 class Terrain : public engone::GameObject {
 public:
-	Terrain(engone::GameGround* ground) : GameObject(ground) {
+	Terrain(engone::GameGround* ground) : GameObject() {
 		using namespace engone;
 		//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
@@ -20,7 +20,7 @@ public:
 		rigidBody->setType(rp3d::BodyType::STATIC);
 		//rigidBody->setLinearVelocity({0,1,1});
 
-		loadColliders(ground);
+		loadColliders();
 	}
 
 private:

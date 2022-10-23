@@ -3,13 +3,9 @@
 void runApp() {
 	using namespace engone;
 
-	//Shader* shad = new Shader(test);
-
-	//Sleep(2.0);
-
 	Engone engone;
-	//launcher::LauncherApp* app = engone.createApplication<launcher::LauncherApp>("settings1.dat");
-	launcher::LauncherApp* app2 = engone.createApplication<launcher::LauncherApp>("settings2.dat");
+	launcher::LauncherApp* app = engone.createApplication<launcher::LauncherApp>("settings1.dat");
+	launcher::LauncherApp* app2 = engone.createApplication<launcher::LauncherApp>("settings.dat");
 
 	engone.start();
 

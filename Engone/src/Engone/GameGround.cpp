@@ -2,13 +2,6 @@
 #include "Engone/Application.h"
 
 namespace engone {
-
-	//ClientPermissions::~ClientPermissions() {
-	//	for (auto [id, p] : permissions) {
-	//		delete p;
-	//	}
-	//	permissions.clear();
-	//}
 	GameGround::~GameGround() {
 		cleanup();
 	}
@@ -21,10 +14,12 @@ namespace engone {
 #endif
 	}
 	void GameGround::cleanup() {
+		m_mutex.lock();
 		for (int i = 0; i < m_objects.size(); i++) {
-			delete m_objects[i].object;
+			delete m_objects[i];
 		}
 		m_objects.clear();
+		m_mutex.unlock();
 #ifdef ENGONE_PHYSICS
 		if (m_pCommon) {
 			delete m_pCommon; // should delete everything
@@ -34,21 +29,25 @@ namespace engone {
 #endif
 	}
 	void GameGround::update(UpdateInfo& info) {
+		m_mutex.lock();
 		for (int i = 0; i < m_objects.size(); i++) {
 #ifdef ENGONE_PHYSICS
-			if (m_objects[i].object->pendingColliders) {
-				m_objects[i].object->loadColliders(this);
+			if (m_objects[i]->flags&GameObject::PENDING_COLLIDERS) {
+				m_objects[i]->loadColliders(this);
 			}
 #endif
-			m_objects[i].object->update(info);
+			m_objects[i]->update(info);
 		}
 #ifdef ENGONE_PHYSICS
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
 #endif
+		m_mutex.unlock();
 	}
 	void GameGround::addObject(GameObject* object) {
-		m_objects.push_back({ 0,object });
+		m_mutex.lock();
+		m_objects.push_back(object);
+		m_mutex.unlock();
 	}
 	void GameGround::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);

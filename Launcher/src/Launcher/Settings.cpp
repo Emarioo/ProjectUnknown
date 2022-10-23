@@ -78,7 +78,7 @@ namespace launcher {
 					m_files.push_back(f);
 				}
 			} catch (engone::Error err) {
-				engone::log::out << "Error: GameCache::load " << err << "\n";
+				engone::log::out << "GameCache::load - " << err << "\n";
 			}
 		}
 	}
@@ -93,7 +93,7 @@ namespace launcher {
 					file.write(&f.time);
 				}
 			} catch (engone::Error err) {
-				engone::log::out << "Error: GameCache::save " << err << "\n";
+				engone::log::out << "GameCache::save - " << err << "\n";
 			}
 		}
 	}
@@ -108,15 +108,15 @@ namespace launcher {
 		}
 		m_files.push_back(file);
 	}
-	std::vector<FilePath> LoadGameFiles() {
-		std::vector<FilePath> files;
+	std::vector<Entry> LoadGameFiles() {
+		std::vector<Entry> files;
 		engone::FileReader file(GAME_FILES_PATH);
 		if (file) {
 			try {
 				std::vector<std::string> lines = file.readLines();
 				for (std::string& line : lines) {
 					std::vector<std::string> split = engone::SplitString(line, "=");
-					FilePath f;
+					Entry f;
 					if (split.size() != 2) {
 						engone::log::out << engone::log::RED<< "LoadGameFiles - line must have 1 of '=' : "<<line<<"\n";
 						continue;
