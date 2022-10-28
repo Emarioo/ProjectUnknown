@@ -25,5 +25,6 @@ CUBE-PlayerBody
 0.0 0.0 0.469833642244339 0.0
 0.0 1.079740285873413 0.0 1.0
 # Animation count
-1
-PlayerStab
+2
+PlayerDownSwing
+PlayerSideSwing

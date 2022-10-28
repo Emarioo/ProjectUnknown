@@ -1,5 +1,5 @@
 #include "Launcher/LogLevels.h"
 
 namespace launcher {
-	int LAUNCHER_LEVEL=1;
+	int LAUNCHER_LEVEL=5;
 }

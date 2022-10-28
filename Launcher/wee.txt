@@ -1,0 +1,47 @@
+wee.txt
+
+mutexRead
+int readDepth=0;
+
+mutexWrite
+int writeDepth=0;
+
+blockRead
+
+mutex
+
+while(){
+	blockRead.lock();
+	mutexRead.lock()
+	if(readDepth==0){
+		mutex.lock();
+	}
+	readDepth++;
+	mutexRead.unlock();
+	blockRead.unlock();
+
+	// read
+
+	mutexRead.lock()
+	readDepth--;
+	if(readDepth==0){
+		mutex.unlock();
+	}
+	mutexRead.unlock()
+}
+
+
+while(){
+	mutexEntry.lock()
+	if(depth==0){
+		mutex.lock();
+	}
+	writeDepth++;
+	mutexEntry.unlock();
+
+	mutex.lock()
+	// write
+	mutex.unlock();
+
+
+}

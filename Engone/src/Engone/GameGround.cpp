@@ -44,6 +44,16 @@ namespace engone {
 #endif
 		m_mutex.unlock();
 	}
+	GameObject* GameGround::getObject(UUID uuid) {
+		if (uuid == 0) return nullptr;
+		for (int i = 0; i < m_objects.size(); i++) {
+			if (m_objects[i]->getUUID() == uuid) {
+				return m_objects[i];
+				break;
+			}
+		}
+		return nullptr;
+	}
 	void GameGround::addObject(GameObject* object) {
 		m_mutex.lock();
 		m_objects.push_back(object);

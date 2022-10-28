@@ -9,6 +9,8 @@
 
 #include "Engone/ParticleModule.h"
 
+#include "ProUnk/Combat/CombatData.h"
+
 namespace prounk {
 
 	struct CombatParticle {
@@ -39,6 +41,7 @@ namespace prounk {
 		void onClose(engone::Window* window) override;
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
+		void dealCombat(CombatData* atkData, rp3d::CollisionBody* atkBody, CombatData* defData, rp3d::CollisionBody* defBody);
 
 		Player* player = nullptr;
 		Terrain* terrain = nullptr;

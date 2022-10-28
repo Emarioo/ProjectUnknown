@@ -31,7 +31,6 @@ namespace launcher {
 		gameFilesRefresher.check(GAME_FILES_PATH,[this](const std::string& path){
 			// should also check for file deletion
 
-			// printf("GameFiles reading\n");
 			FileReader file(path,false);
 			if (file) {
 				auto list = file.readLines();
@@ -49,14 +48,11 @@ namespace launcher {
 								std::string source = info.source;
 
 								info.refresher->check(info.source, [this, source](const std::string& sourcePath) {
-									log::out << "Refresh " << sourcePath << "\n";
 									EntryInfo& info = gameFileEntries[source];
-									std::string dst = info.destination +
-										sourcePath.substr(info.source.length());
 
 									// send files
-									FileSend fileSend = { sourcePath,
-										dst,
+									FileSend fileSend = { source+"\\"+sourcePath,
+										info.destination + "\\" + sourcePath,
 										GetFileLastModified(sourcePath) };
 
 									sendFile(fileSend, 0, true);
@@ -94,6 +90,7 @@ namespace launcher {
 				//launcherMessage = "Connect "+std::to_string(uuid);
 			} else if (NetEvent::Stopped == e) {
 				//launcherMessage = "Stopped server";
+				log::out << "Serv Stopped\n";
 			}
 			return true;
 		});
@@ -123,7 +120,7 @@ namespace launcher {
 					std::string& origin = entry.source;
 					std::string& endPath = entry.destination;
 
-					printf("Entry %s\n", origin.c_str());
+					//log::out << "Entry "<< origin<<"\n";
 					if (origin == "arguments") {
 						sendFiles.push_back({ origin,endPath,0 });
 					} else if (origin == "autostart") {
@@ -232,6 +229,7 @@ namespace launcher {
 				//log::out << "buf " << buf.size()<<"\n";
 				m_client.send(buf);
 			} else if (NetEvent::Failed == e) {
+				//log::out << "CLIENT FAILED\n";
 				infoText.text = "Could not connect\n";
 				//switchInfoText = "Could not connect\n";
 				switchState(LauncherSetting);
@@ -254,7 +252,7 @@ namespace launcher {
 					uint64_t time;
 					buf.pull(&time);
 
-					//printf("got %s", path.c_str());
+					//log::out << "Got " << path << "\n";
 
 					std::string fullPath = root + path;
 					try {
@@ -319,7 +317,7 @@ namespace launcher {
 				//m_window->close();
 			} else if (type == LauncherServerError) {
 				delayDownloadFailed.stop();
-				m_client.stop();
+				//m_client.stop();
 
 				//switchInfoText = "Server didn't want to cooperate";
 				infoText.text = "Server didn't want to cooperate";
@@ -356,7 +354,7 @@ namespace launcher {
 	}
 	void LauncherApp::sendFile(FileSend& f, engone::UUID clientUUID, bool exclude) {
 		using namespace engone;
-		printf("Send %s\n", f.fullPath.c_str());
+		//log::out << "Send "<< f.fullPath<<"\n" ;
 		if (f.fullPath == "arguments") {
 			MessageBuffer sendBuf;
 			LauncherNetType type = LauncherServerSendFile;
@@ -420,19 +418,21 @@ namespace launcher {
 					char* data = sendBuf.pushBuffer(transferBytes);
 					file.read(data, transferBytes);
 
-					//log::out << "Size " << sendBuf.size() << "\n";
+					//log::out << "SERV SEND " << sendBuf.size() << "\n";
 
-					m_server.send(sendBuf, clientUUID);
+					m_server.send(sendBuf, clientUUID,exclude);
 
 					bytesLeft -= transferBytes;
 				}
 				file.close();
+			} else {
+				log::out <<log::RED<< "LauncherApp::sendFile - denied access to '" << f.fullPath << "'\n";
 			}
 		}
 	}
 	bool LauncherApp::launchGame() {
 		using namespace engone;
-		return false; // don't launch
+		//return false; // don't launch
 
 		FileReader file1(root + "autostart", false);
 		if (file1) {

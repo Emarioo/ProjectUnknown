@@ -48,47 +48,55 @@ ISSUE: playground can have both a server and a client at the same time. This is 
 #include "Engone/World/GameGround.h"
 #include "Engone/GameObject.h"
 
-enum NetCommand : int {
-	MoveObject,
-	AddObject,
-	SyncObjects,
-};
-const char* to_string(NetCommand value);
-engone::Logger& operator<<(engone::Logger& log, NetCommand value);
+namespace prounk {
 
-class ClientData {
-public:
-	ClientData() = default;
+	enum NetCommand : int {
+		MoveObject,
+		AddObject,
+		AnimateObject,
+		EditObject,
+		SyncObjects,
+	};
+	const char* to_string(NetCommand value);
+	engone::Logger& operator<<(engone::Logger& log, NetCommand value);
 
-	engone::GameObject* player = nullptr;
-};
-class NetGameGround : public engone::GameGround {
-public:
-	static const int OBJECT_NETMOVE = 0x00010000;
+	class ClientData {
+	public:
+		ClientData() = default;
 
-	NetGameGround() = default;
-	NetGameGround(engone::Application* app);
-	~NetGameGround() { 
-		cleanup();
-	}
-	void cleanup() override;
+		engone::GameObject* player = nullptr;
+	};
+	class NetGameGround : public engone::GameGround {
+	public:
+		static const int OBJECT_NETMOVE = 0x00010000;
 
-	//-- Network messages you can send
-	// 
-	// pass in GameObject instead?
-	void netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular);
-	void netAddObject(engone::UUID uuid, int objectType, const std::string& modelAsset);
-	// synchronize playground with connection.
-	//void netSyncObjects();
+		NetGameGround() = default;
+		NetGameGround(engone::Application* app);
+		~NetGameGround() {
+			cleanup();
+		}
+		void cleanup() override;
 
-	void update(engone::UpdateInfo& info) override;
+		//-- Network messages you can send
+		// 
+		// pass in GameObject instead?
+		void netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular);
+		//void netAddObject(engone::UUID uuid, int objectType, const std::string& modelAsset);
+		void netAddObject(engone::UUID uuid, engone::GameObject* object, int data);
+		void netAnimateObject(engone::UUID uuid, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame);
+		void netEditObject(engone::UUID uuid, int type, uint64_t data);
+		// synchronize playground with connection.
+		//void netSyncObjects();
 
-	engone::Server& getServer() { return m_server; };
-	engone::Client& getClient() { return m_client; };
+		void update(engone::UpdateInfo& info) override;
 
-private:
-	std::unordered_map<engone::UUID, ClientData> m_clients; // for server
-	engone::Server m_server;
-	engone::Client m_client;
+		engone::Server& getServer() { return m_server; };
+		engone::Client& getClient() { return m_client; };
 
-};
+	private:
+		std::unordered_map<engone::UUID, ClientData> m_clients; // for server
+		engone::Server m_server;
+		engone::Client m_client;
+
+	};
+}

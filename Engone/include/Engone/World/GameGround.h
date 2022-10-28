@@ -22,7 +22,7 @@ namespace engone {
 		void addObject(GameObject* object);
 		//void removeObject(GameObject* object);
 
-		//SharedObject& getObject(uint64_t uuid);
+		GameObject* getObject(UUID uuid);
 
 		inline std::vector<GameObject*>& getObjects() { return m_objects; };
 		inline std::vector<ParticleGroupT*>& getParticleGroups() { return m_particleGroups; };

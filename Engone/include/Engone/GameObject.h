@@ -56,6 +56,7 @@ namespace engone {
 			setTransform(glm::translate(glm::mat4(1), vec));
 		}
 		void setOnlyTrigger(bool yes);
+		bool isOnlyTrigger();
 
 		// Will load colliders whenever requirements are meet. This method is asynchronous.
 		// These are: modelAsset is valid, rigidbody is valid.
@@ -65,6 +66,7 @@ namespace engone {
 
 	private:
 		UUID m_uuid=0;
+		bool m_isOnlyTrigger = false;
 
 		friend class Engone;
 	};

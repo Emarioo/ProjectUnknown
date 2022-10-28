@@ -66,9 +66,11 @@ namespace engone {
 		virtual bool valid() const {
 			return m_state == Loaded;
 		}
-
+		// assets/...?
 		inline const std::string& getPath() const { return m_path; }
+		// only last part of name
 		inline const std::string& getName() const { return m_name; }
+		// name you entered when loading
 		inline const std::string& getLoadName() const { return m_loadName; }
 
 		void setPath(const std::string& path) {

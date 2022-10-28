@@ -2,55 +2,61 @@
 
 #include "Engone/Engone.h"
 
-class Dummy : public engone::GameObject {
-public:
-	Dummy(engone::GameGround* ground) : GameObject() {
+#include "ProUnk/Combat/CombatData.h"
 
-		//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
-		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		modelAsset = assets->load<engone::ModelAsset>("Dummy/Dummy");
-		//modelAsset = assets->set<engone::ModelAsset>("Dummy/Dummy");
+namespace prounk {
+	class Dummy : public engone::GameObject {
+	public:
+		Dummy(engone::GameGround* ground) : GameObject() {
 
-		rp3d::Transform t;
-		collisionBody = ground->m_pWorld->createCollisionBody(t);
+			//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
+			engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
+			modelAsset = assets->load<engone::ModelAsset>("Dummy/Dummy");
+			//modelAsset = assets->set<engone::ModelAsset>("Dummy/Dummy");
 
-		rigidBody = ground->m_pWorld->createRigidBody(t);
-		rigidBody->setType(rp3d::BodyType::DYNAMIC);
-		rigidBody->setIsAllowedToSleep(false);
-		//rigidBody->enableGravity(false);
+			rp3d::Transform t;
+			collisionBody = ground->m_pWorld->createCollisionBody(t);
 
-		loadColliders();
-	}
-	void update(engone::UpdateInfo& info) override {
-		using namespace engone;
-		defenseData.update(info);
-		// maybe don't spam this
-		for (int i = 0; i < rigidBody->getNbColliders(); i++) {
-			rigidBody->getCollider(i)->setUserData(&defenseData);
+			rigidBody = ground->m_pWorld->createRigidBody(t);
+			rigidBody->setType(rp3d::BodyType::DYNAMIC);
+			rigidBody->setIsAllowedToSleep(false);
+			//rigidBody->enableGravity(false);
+
+			combatData.owner = this;
+
+			loadColliders();
 		}
-		//
-		//glm::vec3 acc = glm::vec3(0, 0, 0);
+		void update(engone::UpdateInfo& info) override {
+			using namespace engone;
+			combatData.update(info);
+			// maybe don't spam this
+			for (int i = 0; i < rigidBody->getNbColliders(); i++) {
+				rigidBody->getCollider(i)->setUserData(&combatData);
+			}
+			//
+			//glm::vec3 acc = glm::vec3(0, 0, 0);
 
-		//glm::vec3 vel = ToGlmVec3(rigidBody->getLinearVelocity());
-		//glm::vec3 pos = ToGlmVec3(rigidBody->getTransform().getPosition());
+			//glm::vec3 vel = ToGlmVec3(rigidBody->getLinearVelocity());
+			//glm::vec3 pos = ToGlmVec3(rigidBody->getTransform().getPosition());
 
-		////double x = sqrt(double(vel.x)*double(vel.x)+ double(vel.y) * double(vel.y)+ double(vel.z) * double(vel.z));
+			////double x = sqrt(double(vel.x)*double(vel.x)+ double(vel.y) * double(vel.y)+ double(vel.z) * double(vel.z));
 
-		//float velDist = glm::length(vel);
+			//float velDist = glm::length(vel);
 
-		//glm::vec3 focus = glm::vec3(0, 0, 0) - pos;
+			//glm::vec3 focus = glm::vec3(0, 0, 0) - pos;
 
-		//float radius = glm::length(focus);
-		////log::out << focus << vel << "\n";
-		////log::out << radius << " " << velDist << "\n";
-		////acc += focus/radius*velDist*velDist/radius;
-		//acc = focus/radius * velDist * velDist / radius;
-		//
-		//rp3d::Vector3 temp = ToRp3dVec3(acc);
+			//float radius = glm::length(focus);
+			////log::out << focus << vel << "\n";
+			////log::out << radius << " " << velDist << "\n";
+			////acc += focus/radius*velDist*velDist/radius;
+			//acc = focus/radius * velDist * velDist / radius;
+			//
+			//rp3d::Vector3 temp = ToRp3dVec3(acc);
 
-		//rigidBody->applyLocalForceAtCenterOfMass(temp);
-	}
-	DefenseData defenseData;
+			//rigidBody->applyLocalForceAtCenterOfMass(temp);
+		}
+		CombatData combatData;
 
-private:
-};
+	private:
+	};
+}

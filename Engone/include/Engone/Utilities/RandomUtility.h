@@ -24,6 +24,7 @@ namespace engone {
 	public:
 		// memory is not initialized.
 		UUID() = default;
+		UUID(uint64_t data0, uint64_t data1) { data[0] = data0; data[1] = data1; }
 		UUID(const char* str);
 		static UUID New();
 		bool operator==(const UUID& uuid) const;
@@ -36,8 +37,8 @@ namespace engone {
 		// otherwise the first 8 will be returned
 		std::string toString(bool fullVersion = false) const;
 
-	private:
 		uint64_t data[2];
+	private:
 
 		friend struct std::hash<engone::UUID>;
 	};

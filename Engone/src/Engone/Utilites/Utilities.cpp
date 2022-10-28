@@ -643,6 +643,14 @@ namespace engone {
 	}
 	void FileMonitor::cleanup() {
 		m_mutex.lock();
+		if (m_thread.joinable()) {
+			HANDLE handle = m_thread.native_handle();
+			int err = CancelSynchronousIo(handle);
+			if (err == 0) {
+				err = GetLastError();
+				log::out << log::RED << "FileMonitor::cleanup - err " << err << "\n";
+			}
+		}
 		if (m_changeHandle != NULL) {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
@@ -655,10 +663,17 @@ namespace engone {
 
 		if (m_thread.joinable())
 			m_thread.join();
+		//m_threadHandle = NULL;
+		if (m_buffer) {
+			alloc::free(m_buffer, m_bufferSize);
+		}
 		// m_running is set to false in thread
 	}
 	void FileMonitor::check(const std::string& path, std::function<void(const std::string&)> callback, int flags) {
 		m_mutex.lock();
+		//if (m_threadHandle) {
+		//	CancelSynchronousIo(m_threadHandle);
+		//}
 		if (m_changeHandle != NULL) {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
@@ -671,6 +686,7 @@ namespace engone {
 		if(!m_running){
 			if (m_thread.joinable())
 				m_thread.join();
+			//m_threadHandle = NULL;
 
 			m_root = path;
 			m_callback = callback;
@@ -722,16 +738,16 @@ namespace engone {
 			if (!failed) {
 				m_running = true;
 
-				log::out << "FileMonitor::check - monitor " << m_root << "\n";
+				//log::out << "FileMonitor::check - monitor " << m_root << "\n";
 				m_thread = std::thread([this]() {
-
+					//m_threadHandle = GetCurrentThread();
 					std::string temp;
 					DWORD waitStatus;
 					while (true) {
 						waitStatus = WaitForSingleObject(m_changeHandle, INFINITE);
 
 						if (waitStatus == WAIT_OBJECT_0) {
-							log::out << "FileMonitor::check - catched " << m_root << "\n";
+							//log::out << "FileMonitor::check - catched " << m_root << "\n";
 
 							if (!m_buffer) {
 								m_buffer = (FILE_NOTIFY_INFORMATION*)alloc::malloc(INITIAL_SIZE);
@@ -749,10 +765,12 @@ namespace engone {
 							if (bytes == 0) {
 								// try to read changes again but with bigger buffer? while loop?
 								log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
+								// this could also mean that we cancelled the read.
 							}
 							if (err == 0
 								//||err== ERROR_INVALID_FUNCTION
 								) {
+								// this could also mean that we cancelled the read.
 								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges err(" << err << "): "<<m_root<<"\n";
 							} else {
 								int offset = 0;
@@ -767,7 +785,7 @@ namespace engone {
 									}
 
 									if (m_dirPath == m_root || temp == m_root) {
-										log::out << "FileMonitor::check - call callback " << temp << "\n";
+										//log::out << "FileMonitor::check - call callback " << temp << "\n";
 										m_callback(temp);
 									}
 

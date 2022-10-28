@@ -34,7 +34,7 @@ namespace engone {
 
 		// synchronous as true will block current thread until message has been sent.
 		// False will use a write thread to send messages.
-		virtual void send(MessageBuffer& msg, UUID uuid = 0, bool excludeUUID = false, bool synchronous=false) = 0;
+		virtual void send(MessageBuffer& msg, UUID uuid, bool excludeUUID, bool synchronous=false) = 0;
 
 		// maximum bytes that can be sent/recieved. Size does not include header
 		// Messages over this limit will be ignored. Implement data streaming to bypass.

@@ -5,8 +5,8 @@ namespace engone {
 	class ModelAsset;
 	struct AnimatorProperty {
 		bool loop;
-		float blend;
 		float speed;// multiplier to the default speed
+		float blend;
 		float frame;
 		std::string instanceName;
 		AnimationAsset* asset;

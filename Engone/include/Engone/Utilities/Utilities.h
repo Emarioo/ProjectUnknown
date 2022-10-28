@@ -197,7 +197,7 @@ namespace engone {
 	// calls AllocConsole and sets stdin and stdout
 	void CreateConsole();
 
-	// track directory or file. probably with a thread.
+	// Monitor a directory or file where any changes to files will call the callback with certain path.
 	class FileMonitor {
 	public:
 		//-- flags
@@ -210,7 +210,8 @@ namespace engone {
 
 		// path can be file or directory
 		// calling this again will restart the tracking with new arguments.
-		void check(const std::string& path, std::function<void(const std::string&)> callback, int flags = DEFAULT_FLAGS);
+		// the argument in the callback is a relative path from root to the file that was changed.
+		void check(const std::string& root, std::function<void(const std::string&)> callback, int flags = DEFAULT_FLAGS);
 
 		inline std::function<void(const std::string&)>& getCallback() { return m_callback; }
 
@@ -224,6 +225,8 @@ namespace engone {
 		HANDLE m_changeHandle=NULL;
 		std::mutex m_mutex;
 		std::thread m_thread;
+		//HANDLE m_threadHandle = NULL; // used to cancel ReadDirectoryChangesW
+		
 	
 		HANDLE m_dirHandle = NULL;
 		void* m_buffer=nullptr;

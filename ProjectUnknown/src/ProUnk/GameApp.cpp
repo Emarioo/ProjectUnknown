@@ -9,13 +9,13 @@
 
 #include "ProUnk/Magic/Focals.h"
 
-#include "ProUnk/CombatData.h"
-
 #include "Engone/Tests/BasicRendering.h"
 
 #include "ProUnk/Shaders/Shaders.h"
 
 #include "ProUnk/Magic/Magic.h"
+
+#include "ProUnk/UI/PlayerInformation.h"
 
 namespace prounk {
 
@@ -51,6 +51,49 @@ namespace prounk {
 	//	}
 	//}
 
+	void GameApp::dealCombat(CombatData* atkData, rp3d::CollisionBody* atkBody, CombatData* defData, rp3d::CollisionBody* defBody) {
+		using namespace engone;
+		if (!atkData->attacking || defData->hitCooldown!=0) return;
+
+		defData->hitCooldown = atkData->animationTime;
+		
+		defData->health += -atkData->getAttack();
+		defData->health = defData->health<0?0:defData->health;
+
+		
+
+		//glm::vec3 particlePosition = ToGlmVec3(pair.getCollider1()->getLocalToWorldTransform().getPosition() +
+		//	pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2.f;
+		glm::vec3 particlePosition = defData->owner->getPosition();
+
+		// spawn particles
+		// hit cooldown is determined by the attacker's animation time left
+
+		CombatParticle* parts = combatParticles->getParticles();
+		for (int i = 0; i < combatParticles->getCount(); i++) {
+			//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
+			float rad = GetRandom() * 0.5;
+			glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
+			norm = glm::normalize(norm);
+			parts[i].pos = particlePosition + norm * rad;
+			parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
+			parts[i].lifeTime = 1 + GetRandom() * 3.f;
+		}
+
+		// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
+		//	Meaning no damage.
+
+		rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
+		rp3d::Vector3 force = { glm::sin(rot.y),0,glm::cos(rot.y) };
+		//log::out << force << "\n";
+		//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
+		//force.y = 1;
+		force *= 60.f * 6.f;
+		//log::out << force << "\n";
+		 //for now, defense can be assumed to be a rigidbody
+
+		defData->owner->rigidBody->applyWorldForceAtCenterOfMass(force);
+	}
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
@@ -58,67 +101,23 @@ namespace prounk {
 
 			void* ptr1 = pair.getCollider1()->getUserData();
 			void* ptr2 = pair.getCollider2()->getUserData();
+
+			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
+			
 			if (!ptr1 || !ptr2) continue;
 
-			struct Data {
-				Data() : user(nullptr), body(nullptr) {}
-				Data(void* user, rp3d::CollisionBody* body) : user((UserData*)user), body(body) {}
-				UserData* user = nullptr;
-				rp3d::CollisionBody* body = nullptr;
-			};
-			Data data1 = {ptr1,pair.getBody1()};
-			Data data2 = {ptr2,pair.getBody2()};
-			if (data1.user->type != data2.user->type) {
-				Data atk = data1;
-				Data def = data2;
-				if (data1.user->type == DefenseData::TYPE)
-					def = data1;
-				if (data2.user->type == AttackData::TYPE)
-					atk = data2;
+			//struct Data {
+			//	Data() : user(nullptr), body(nullptr) {}
+			//	Data(void* user, rp3d::CollisionBody* body) : user((CombatData*)user), body(body) {}
+			//	CombatData* user = nullptr;
+			//	rp3d::CollisionBody* body = nullptr;
+			//};
+			//Data data1 = {ptr1,pair.getBody1()};
+			//Data data2 = {ptr2,pair.getBody2()};
 
-				AttackData* atkData = (AttackData*)atk.user;
-				DefenseData* defData = (DefenseData*)def.user;
 
-				//log::out << "cool: "<<defData->hitCooldown << "\n";
-
-				if (!atkData->attacking) continue;
-				if (defData->hitCooldown!=0) continue;
-
-				defData->hitCooldown = atkData->animationTime;
-
-				glm::vec3 particlePosition = ToGlmVec3(pair.getCollider1()->getLocalToWorldTransform().getPosition() + 
-						pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2.f;
-
-				// spawn particles
-				// hit cooldown is determined by the attacker's animation time left
-
-				CombatParticle* parts = combatParticles->getParticles();
-				for (int i = 0; i < combatParticles->getCount(); i++) {
-					//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
-					float rad = GetRandom()*0.5;
-					glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
-					norm = glm::normalize(norm);
-					parts[i].pos = particlePosition + norm * rad;
-					parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
-					parts[i].lifeTime = 1 + GetRandom() * 3.f;
-				}
-
-				// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
-				//	Meaning no damage.
-				//rp3d::CollisionBody* atkBody = pair.getBody1();
-				//rp3d::CollisionBody* defBody = pair.getBody2();
-
-				rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
-				rp3d::Vector3 force = {glm::sin(rot.y),0,glm::cos(rot.y)};
-				//log::out << force << "\n";
-				//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
-				//force.y = 1;
-				force *= 60.f*6.f;
-				//log::out << force << "\n";
-				 //for now, defense can be assumed to be a rigidbody
-
-				((rp3d::RigidBody*)def.body)->applyWorldForceAtCenterOfMass(force);
-			}
+			dealCombat((CombatData*)ptr1, pair.getBody1(), (CombatData*)ptr2, pair.getBody2());
+			dealCombat((CombatData*)ptr2,pair.getBody2(),(CombatData*)ptr1,pair.getBody1());
 		}
 	}
 	engone::EventType OnKey(engone::Event& e);
@@ -186,29 +185,30 @@ namespace prounk {
 
 		ground->m_pWorld->setEventListener(this);
 
-
 		player = new Player(ground);
 		player->flags |= NetGameGround::OBJECT_NETMOVE;
 		player->setTransform({ 0,0,0 });
 		ground->addObject(player);
 
-		if (info.flags & START_SERVER) {
-			player->setTransform({ 1,0,0 });
-			//sword = new Sword(ground);
-			//sword->setTransform({ 2,0,0 });
-			//ground->addObject(sword);
-			//player->inventorySword = sword;
+		sword = new Sword(ground);
+		sword->setTransform({ 2,0,0 });
+		sword->flags |= NetGameGround::OBJECT_NETMOVE;
+		ground->addObject(sword);
+		player->inventorySword = sword;
 
-			//Dummy* dummy = new Dummy(ground);
-			//dummy->setTransform({ 0,0,9 });
-			//dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-			//ground->addObject(dummy);
+		if (info.flags & START_SERVER) {
+			Dummy* dummy = new Dummy(ground);
+			dummy->setTransform({ 0,0,9 });
+			dummy->flags |= NetGameGround::OBJECT_NETMOVE;
+			dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+			ground->addObject(dummy);
 
 			terrain = new Terrain(ground);
 			terrain->flags |= NetGameGround::OBJECT_NETMOVE;
 			ground->addObject(terrain);
 			terrain->setTransform({ 0,-2,0 });
 
+			player->setTransform({ 1,0,0 });
 			ground->getServer().start(info.port);
 
 		} else if (info.flags & START_CLIENT) {
@@ -262,11 +262,13 @@ namespace prounk {
 		//ui::Box box = {x-25,100,50,50};
 		//ui::Draw(box);
 
+		RenderPlayerInformation(info, player);
+
 		if (player) {
 			if (player->rigidBody) {
 				glm::vec3 pos = player->getPosition();
 				Camera* cam = m_window->getRenderer()->getCamera();
-				float camH = 1.4;
+				float camH = 2.4;
 				glm::mat4 camMat = glm::translate(pos + glm::vec3(0, camH, 0));
 				if (player->zoom != 0) {
 					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoom));

@@ -15,7 +15,8 @@ void runApp(int argc, char** argv) {
 	bool overrideArgs = false;
 
 	//overrideArgs = true;
-	//ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
+	//ConvertArguments("--server", argc, argv);
+	ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.
 	for (int i = 0; i < argc; i++) {

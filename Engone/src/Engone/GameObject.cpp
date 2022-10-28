@@ -80,11 +80,15 @@ namespace engone {
 	}
 	void GameObject::setOnlyTrigger(bool yes) {
 		if (rigidBody) {
+			m_isOnlyTrigger = yes;
 			for (int i = 0; i < rigidBody->getNbColliders(); i++) {
 				auto col = rigidBody->getCollider(i);
 				col->setIsTrigger(yes);
 			}
 		}
+	}
+	bool GameObject::isOnlyTrigger() {
+		return m_isOnlyTrigger;
 	}
 #endif
 }
