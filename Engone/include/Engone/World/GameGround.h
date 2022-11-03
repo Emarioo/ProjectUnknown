@@ -29,6 +29,8 @@ namespace engone {
 
 		virtual void update(UpdateInfo& info);
 
+		Application* getApp() { return m_app; }
+
 #ifdef ENGONE_PHYSICS
 		rp3d::PhysicsWorld* m_pWorld = nullptr;
 		rp3d::PhysicsCommon* m_pCommon = nullptr;

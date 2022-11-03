@@ -17,8 +17,10 @@ namespace prounk {
 		ui::Box healthBack = { 10,10,sw * 0.2,50,{0.5f,0.5f,0.5f,0.5f} };
 		ui::Draw(healthBack);
 
-		float& health = player->combatData.health;
-		float maxHealth = player->combatData.getMaxHealth();
+		CombatData* combatData = (CombatData*)player->userData;
+
+		float& health = combatData->health;
+		float maxHealth = combatData->getMaxHealth();
 
 		ui::Box healthFront = { healthBack.x + border,healthBack.y + border,
 			(healthBack.w - border * 2) * health / maxHealth,
@@ -39,7 +41,7 @@ namespace prounk {
 		ui::Box atkBack = { 10,healthBack.y+healthBack.h+10,sw * 0.2,50,{0.5f,0.5f,0.5f,0.5f} };
 		ui::Draw(atkBack);
 
-		float atk = player->combatData.getAttack();
+		float atk = combatData->getAttack();
 		//float maxHealth = player->combatData.getMaxHealth();
 
 		//ui::Box healthFront = { back.x + border,back.y + border,

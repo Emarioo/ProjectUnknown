@@ -4,8 +4,8 @@
 
 #include "ProUnk/Keybindings.h"
 #include "ProUnk/Objects/Player.h"
-#include "ProUnk/Objects/Sword.h"
-#include "ProUnk/Objects/Dummy.h"
+//#include "ProUnk/Objects/Sword.h"
+//#include "ProUnk/Objects/Dummy.h"
 
 #include "ProUnk/Magic/Focals.h"
 
@@ -16,6 +16,7 @@
 #include "ProUnk/Magic/Magic.h"
 
 #include "ProUnk/UI/PlayerInformation.h"
+#include "ProUnk/UI/UIMenus.h"
 
 namespace prounk {
 
@@ -51,34 +52,68 @@ namespace prounk {
 	//	}
 	//}
 
-	void GameApp::dealCombat(CombatData* atkData, rp3d::CollisionBody* atkBody, CombatData* defData, rp3d::CollisionBody* defBody) {
+	// arguments passed to function cannot be nullptr
+	void GameApp::dealCombat(engone::GameObject* atkObj, engone::GameObject* defObj) {
 		using namespace engone;
-		if (!atkData->attacking || defData->hitCooldown!=0) return;
 
-		defData->hitCooldown = atkData->animationTime;
-		
-		defData->health += -atkData->getAttack();
-		defData->health = defData->health<0?0:defData->health;
+		CombatData* atkData=(CombatData*)atkObj->userData;
+		CombatData* defData=(CombatData*)defObj->userData;
 
-		
+		if (!atkData || !defData) {
+			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
+			return;
+		}
+
+		if (!atkData->attacking) return;
+
+		// skip if object has been hit earlier in the attack
+		bool hit = false;
+		for (auto& uuid : atkData->hitObjects) {
+			if (uuid == defObj->getUUID())
+				hit = true;
+		}
+		if (hit)
+			return;
+
+		atkData->hitObjects.push_back(defObj->getUUID());
+
+		float atk = atkData->getAttack();
+		defData->health -= atk;
+		if (defData->health < 0) defData->health = 0;
+
+		getGround()->netDamageObject(defObj->getUUID(), atk);
+
+		// send updated health.
+		// what if someone else also updates health? then do addition or subtraction on health.
+		// how about hit cooldown? can other players deal damage two you at the same time?
+		// i'm thinking yes.
+		// still need cooldown because the same player should not be able to deal damage from the same attack twice.
+		// instead of cooldown have one frame were attack deals damage? bad if frame is skipped, it won't be skipped because of how
+		// the game loop works. delta is fixed. it may skip one or two frames though, depending on speed and stuff.
+		// You could ensure this doesn't happen? the attack chould store which objects you hit. and then
+		// don't deal damage to them. you can deal damage between an interval of frames.
+		// CombatData requires vector.
+		// 
+		// let's not focus to much on cheating
+		// 
 
 		//glm::vec3 particlePosition = ToGlmVec3(pair.getCollider1()->getLocalToWorldTransform().getPosition() +
 		//	pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2.f;
-		glm::vec3 particlePosition = defData->owner->getPosition();
+		//glm::vec3 particlePosition = defObj->getPosition();
 
 		// spawn particles
 		// hit cooldown is determined by the attacker's animation time left
-
-		CombatParticle* parts = combatParticles->getParticles();
-		for (int i = 0; i < combatParticles->getCount(); i++) {
-			//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
-			float rad = GetRandom() * 0.5;
-			glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
-			norm = glm::normalize(norm);
-			parts[i].pos = particlePosition + norm * rad;
-			parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
-			parts[i].lifeTime = 1 + GetRandom() * 3.f;
-		}
+		doParticles(defObj->getPosition());
+		//CombatParticle* parts = combatParticles->getParticles();
+		//for (int i = 0; i < combatParticles->getCount(); i++) {
+		//	//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
+		//	float rad = GetRandom() * 0.5;
+		//	glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
+		//	norm = glm::normalize(norm);
+		//	parts[i].pos = particlePosition + norm * rad;
+		//	parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
+		//	parts[i].lifeTime = 1 + GetRandom() * 3.f;
+		//}
 
 		// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
 		//	Meaning no damage.
@@ -92,32 +127,27 @@ namespace prounk {
 		//log::out << force << "\n";
 		 //for now, defense can be assumed to be a rigidbody
 
-		defData->owner->rigidBody->applyWorldForceAtCenterOfMass(force);
+		defObj->rigidBody->applyWorldForceAtCenterOfMass(force);
 	}
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
 			auto pair = callbackData.getOverlappingPair(pairI);
 
-			void* ptr1 = pair.getCollider1()->getUserData();
-			void* ptr2 = pair.getCollider2()->getUserData();
+			GameObject* ptr1 = (GameObject*)pair.getBody1()->getUserData();
+			GameObject* ptr2 = (GameObject*)pair.getBody2()->getUserData();
 
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
-			
+
 			if (!ptr1 || !ptr2) continue;
 
-			//struct Data {
-			//	Data() : user(nullptr), body(nullptr) {}
-			//	Data(void* user, rp3d::CollisionBody* body) : user((CombatData*)user), body(body) {}
-			//	CombatData* user = nullptr;
-			//	rp3d::CollisionBody* body = nullptr;
-			//};
-			//Data data1 = {ptr1,pair.getBody1()};
-			//Data data2 = {ptr2,pair.getBody2()};
-
-
-			dealCombat((CombatData*)ptr1, pair.getBody1(), (CombatData*)ptr2, pair.getBody2());
-			dealCombat((CombatData*)ptr2,pair.getBody2(),(CombatData*)ptr1,pair.getBody1());
+			if ((ptr1->flags & OBJECT_HAS_COMBATDATA )&&( ptr2->flags & OBJECT_HAS_COMBATDATA)) {
+				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
+				if(((uint32_t)pair.getCollider1()->getUserData() == COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() == COLLIDER_IS_HEALTH))
+					dealCombat(ptr1, ptr2);
+				if (((uint32_t)pair.getCollider1()->getUserData() == COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() == COLLIDER_IS_DAMAGE))
+					dealCombat(ptr2, ptr1);
+			}
 		}
 	}
 	engone::EventType OnKey(engone::Event& e);
@@ -127,12 +157,10 @@ namespace prounk {
 		
 		m_window = createWindow({ ModeWindowed,1000,800 });
 
-		//m_window = new Window(this,1000,800);
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
 		AssetStorage* assets = getStorage();
-		//Assets* assets = getAssets();
 
 		ShaderAsset* blur = assets->set("blur", new ShaderAsset(blurGLSL));
 		
@@ -190,20 +218,20 @@ namespace prounk {
 		player->setTransform({ 0,0,0 });
 		ground->addObject(player);
 
-		sword = new Sword(ground);
-		sword->setTransform({ 2,0,0 });
-		sword->flags |= NetGameGround::OBJECT_NETMOVE;
-		ground->addObject(sword);
+		GameObject* sword = CreateSword(ground);
 		player->inventorySword = sword;
+		sword->flags |= NetGameGround::OBJECT_NETMOVE;
+		sword->setTransform({2,0,0});
+		ground->addObject(sword);
 
 		if (info.flags & START_SERVER) {
-			Dummy* dummy = new Dummy(ground);
+			GameObject* dummy = CreateDummy(ground);
 			dummy->setTransform({ 0,0,9 });
 			dummy->flags |= NetGameGround::OBJECT_NETMOVE;
 			dummy->rigidBody->setLinearVelocity({ 9,0,0 });
 			ground->addObject(dummy);
 
-			terrain = new Terrain(ground);
+			GameObject* terrain = CreateTerrain(ground);
 			terrain->flags |= NetGameGround::OBJECT_NETMOVE;
 			ground->addObject(terrain);
 			terrain->setTransform({ 0,-2,0 });
@@ -240,7 +268,19 @@ namespace prounk {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
 		}		
-
+		if (partRequested) {
+			CombatParticle* parts = combatParticles->getParticles();
+			for (int i = 0; i < combatParticles->getCount(); i++) {
+				//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
+				float rad = GetRandom() * 0.5;
+				glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
+				norm = glm::normalize(norm);
+				parts[i].pos = requestPos + norm * rad;
+				parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
+				parts[i].lifeTime = 1 + GetRandom() * 3.f;
+			}
+			partRequested = false;
+		}
 		//float t = info.timeStep;
 		//float vx = (wantX - x)/t;
 		//vx *= 0.5;
@@ -263,6 +303,9 @@ namespace prounk {
 		//ui::Draw(box);
 
 		RenderPlayerInformation(info, player);
+		RenderServerClientMenu(info);
+
+		DebugInfo(info,this);
 
 		if (player) {
 			if (player->rigidBody) {
@@ -280,10 +323,6 @@ namespace prounk {
 	void GameApp::onClose(engone::Window* window) {
 		stop();
 	}
-
-	// ##############
-	//     EVENTS    
-	// ##############
 	engone::EventType OnKey(engone::Event& e) {
 		//if (engone::CheckState(GameState::RenderGame)) {
 		if (e.action == 1) {

@@ -31,9 +31,6 @@ namespace engone {
 
 		inline bool isRunning() { return keepRunning; }
 
-		const std::string& getIP() const { return m_ip; }
-		const std::string& getPort() const { return m_port; }
-
 		// waits for everything to terminate unlike stop.
 		void cleanup();
 #ifdef ENGONE_TRACKER
@@ -50,8 +47,6 @@ namespace engone {
 		std::thread::id m_mutexOwner;
 		void lock();
 		void unlock();
-
-		std::string m_ip, m_port;
 
 		friend class Connection;
 	};

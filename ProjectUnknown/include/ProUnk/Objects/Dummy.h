@@ -5,14 +5,15 @@
 #include "ProUnk/Combat/CombatData.h"
 
 namespace prounk {
+
+	engone::GameObject* CreateDummy(engone::GameGround* ground);
+
 	class Dummy : public engone::GameObject {
 	public:
 		Dummy(engone::GameGround* ground) : GameObject() {
 
-			//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
 			engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 			modelAsset = assets->load<engone::ModelAsset>("Dummy/Dummy");
-			//modelAsset = assets->set<engone::ModelAsset>("Dummy/Dummy");
 
 			rp3d::Transform t;
 			collisionBody = ground->m_pWorld->createCollisionBody(t);
@@ -22,17 +23,17 @@ namespace prounk {
 			rigidBody->setIsAllowedToSleep(false);
 			//rigidBody->enableGravity(false);
 
-			combatData.owner = this;
+			CombatData* data = new CombatData();
+			//data->owner = this;
+			userData = data;
+			flags |= OBJECT_HAS_COMBATDATA;
+
+			rigidBody->setUserData(this);
 
 			loadColliders();
 		}
 		void update(engone::UpdateInfo& info) override {
 			using namespace engone;
-			combatData.update(info);
-			// maybe don't spam this
-			for (int i = 0; i < rigidBody->getNbColliders(); i++) {
-				rigidBody->getCollider(i)->setUserData(&combatData);
-			}
 			//
 			//glm::vec3 acc = glm::vec3(0, 0, 0);
 
@@ -55,7 +56,6 @@ namespace prounk {
 
 			//rigidBody->applyLocalForceAtCenterOfMass(temp);
 		}
-		CombatData combatData;
 
 	private:
 	};

@@ -16,7 +16,7 @@ namespace engone {
 	class Connection;
 	class Server : public Sender {
 	public:
-		Server() : Sender(true) {}
+		Server() : Sender(true, "127.0.0.1") {}
 		~Server();
 
 		// set lambdas before starting.
@@ -33,8 +33,6 @@ namespace engone {
 		uint32_t getConnectionCount() const { return m_connections.size(); }
 
 		inline bool isRunning() { return keepRunning; }
-
-		const std::string& getPort() const { return m_port; }
 
 		// will wait for everything to terminate unlike stop
 		void cleanup();
@@ -57,8 +55,6 @@ namespace engone {
 		int mutexDepth = 0;
 		void lock();
 		void unlock();
-
-		std::string m_port;
 
 		friend class Connection;
 	};

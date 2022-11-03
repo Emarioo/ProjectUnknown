@@ -37,6 +37,7 @@ namespace engone {
 			}
 #endif
 			m_objects[i]->update(info);
+			m_objects[i]->animator.update(info.timeStep);
 		}
 #ifdef ENGONE_PHYSICS
 		if (m_pWorld)

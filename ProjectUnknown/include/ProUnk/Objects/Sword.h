@@ -7,8 +7,6 @@ public:
 	Sword(engone::GameGround* ground) : GameObject() {
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		//engone::Assets* assets = engone::GetActiveWindow()->getAssets();
-		//modelAsset = assets->set<engone::ModelAsset>("SwordBase/SwordBase");
 		modelAsset = assets->load<engone::ModelAsset>("SwordBase/SwordBase");
 		
 		rp3d::Transform t;

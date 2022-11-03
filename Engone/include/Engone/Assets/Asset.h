@@ -95,7 +95,7 @@ namespace engone {
 	protected:
 		AssetStorage* m_storage = nullptr;
 
-		State m_state = Waiting; // loaded, loading, failed/error, also show error type
+		State m_state = Waiting; // loaded, Processing, failed/error, also show error type
 		LoadFlags m_flags = LoadNone;
 		int m_error = 0;
 		

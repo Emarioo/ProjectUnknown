@@ -108,7 +108,7 @@ namespace engone {
 			}
 			m_assetMutex.unlock();
 			
-			if (asset->m_state == Asset::Processing) // return if asset already is being processed
+			if (asset->m_state == Asset::Processing||asset->m_state==Asset::Loaded) // return if asset already is being processed
 				return asset; 
 			
 			asset->m_state = Asset::Processing;

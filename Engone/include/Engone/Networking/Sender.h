@@ -26,6 +26,7 @@ namespace engone {
 	class Sender {
 	public:
 		Sender(bool isServer) : m_isServer(isServer) {};
+		Sender(bool isServer, const std::string& ip) : m_isServer(isServer), m_ip(ip) {};
 
 		// lambda should return false to deny connection, true to accept.
 		inline void setOnEvent(std::function<bool(NetEvent,UUID)> onEvent) { m_onEvent = onEvent; }
@@ -45,6 +46,9 @@ namespace engone {
 
 		inline bool isServer() const { return m_isServer; }
 
+		const std::string& getIP() const { return m_ip; }
+		const std::string& getPort() const { return m_port; }
+
 	protected:
 		bool m_isServer = false;
 
@@ -55,6 +59,8 @@ namespace engone {
 		// But I would assume a normal computer should be able to handle it without issue.
 		uint32_t m_transferLimit=256000;
 		NetworkStats m_stats;
+
+		std::string m_ip, m_port;
 
 		friend class Connection;
 

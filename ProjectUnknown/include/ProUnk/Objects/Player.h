@@ -20,8 +20,6 @@ namespace prounk {
 		float zoom = 3;
 		float zoomSpeed = 0;
 
-		CombatData combatData;
-
 		NetGameGround* ground = nullptr;
 
 		engone::GameObject* inventorySword = nullptr;
@@ -70,11 +68,9 @@ namespace prounk {
 		//	void sample(engone::GameObject* weapon) {
 		//		using namespace engone;
 		//		if (!weapon)return;
-
 		//		double now = GetSystemTime();
 		//		double time = now - lastTime;
 		//		if (time == 0) return; // nothing should have happend in 0 seconds.
-
 		//		glm::vec3 pos = ToGlmVec3(weapon->rigidBody->getTransform().getPosition());
 		//		if (lastTime != 0) { // skip first time
 		//			glm::vec3 diff = pos - lastPosition;

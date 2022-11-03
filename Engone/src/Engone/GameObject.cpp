@@ -5,18 +5,17 @@ namespace engone {
 #ifdef ENGONE_PHYSICS
 	void GameObject::loadColliders(GameGround* ground) {
 		if (!modelAsset) {
-			log::out << log::RED << "ModelAsset is null\n";
+			log::out << log::RED << "GameObject::loadColliders - ModelAsset is null\n";
 			return;
 		}
 		if (!rigidBody) {
-			log::out << log::RED << "Rigidbody is null\n";
+			log::out << log::RED << "GameObject::loadColliders - Rigidbody is null\n";
 			return;
 		}
 		if (!modelAsset->valid()) {
 			flags |= PENDING_COLLIDERS; // try again in update loop of engine.
 			return;
 		}
-		flags &= ~PENDING_COLLIDERS;
 
 		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
 
@@ -68,8 +67,10 @@ namespace engone {
 				auto col = rigidBody->getCollider(rigidBody->getNbColliders() - 1);
 				col->getMaterial().setFrictionCoefficient(0.5f);
 				col->getMaterial().setBounciness(0.0f);
+				col->setUserData(colliderData);
 			}
 		}
+		flags &= ~PENDING_COLLIDERS;
 		if (noColliders) {
 			// updating center of mass would cause wierd stuff
 			log::out << "Loaded no colliders\n";
@@ -80,7 +81,8 @@ namespace engone {
 	}
 	void GameObject::setOnlyTrigger(bool yes) {
 		if (rigidBody) {
-			m_isOnlyTrigger = yes;
+			if (yes) flags |= ONLY_TRIGGER;
+			else flags &= ~ONLY_TRIGGER;
 			for (int i = 0; i < rigidBody->getNbColliders(); i++) {
 				auto col = rigidBody->getCollider(i);
 				col->setIsTrigger(yes);
@@ -88,7 +90,7 @@ namespace engone {
 		}
 	}
 	bool GameObject::isOnlyTrigger() {
-		return m_isOnlyTrigger;
+		return flags&ONLY_TRIGGER;
 	}
 #endif
 }

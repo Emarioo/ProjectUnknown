@@ -1,2 +1,7 @@
-[03:03:50] Queues: 31 / 31 Track/Untracks: 31 / 31  AddMem/SubMem: 11 / 0
-[03:03:50] No tracked memory leak
+[11:08:23] ProUnk::Client::onEvent - Connect
+[11:08:23] ProUnk::Server::onEvent - Connect
+[11:33:37] ProUnk::Server::onEvent - Stopped
+[11:33:37] ProUnk::Server::onEvent - Disconnect
+[11:33:37] ProUnk::Client::onEvent - Disconnect
+[11:33:40] Queues: 62 / 62 Track/Untracks: 62 / 62  AddMem/SubMem: 17 / 6
+[11:33:40] No tracked memory leak

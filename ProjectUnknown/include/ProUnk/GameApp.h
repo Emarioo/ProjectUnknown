@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Engone/Engone.h"
-#include "Objects/Sword.h"
+#include "Objects/BasicObjects.h"
 #include "Objects/Player.h"
-#include "Objects/Terrain.h"
+//#include "Objects/Terrain.h"
 
 #include "ProUnk/NetGameGround.h"
 
@@ -41,16 +41,23 @@ namespace prounk {
 		void onClose(engone::Window* window) override;
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
-		void dealCombat(CombatData* atkData, rp3d::CollisionBody* atkBody, CombatData* defData, rp3d::CollisionBody* defBody);
+		void dealCombat(engone::GameObject* atkObj, engone::GameObject* collider);
 
 		Player* player = nullptr;
-		Terrain* terrain = nullptr;
+		//Terrain* terrain = nullptr;
 
 		engone::DelayCode delayed;
 
 		inline NetGameGround* getGround() override { return (NetGameGround*)Application::getGround(); }
 		inline void setGround(NetGameGround* ground) { Application::setGround(ground); }
 
+		// request system for particles.
+		void doParticles(glm::vec3 pos) {
+			partRequested = true; requestPos = pos;
+		}
+
+		bool partRequested = false;
+		glm::vec3 requestPos;
 		
 		engone::ParticleGroup<CombatParticle>* combatParticles=nullptr;
 		engone::ParticleGroup<engone::DefaultParticle>* particleGroup;
@@ -60,8 +67,8 @@ namespace prounk {
 
 		engone::Window* m_window=nullptr;
 
-		Sword* sword = nullptr;
+		//Sword* sword = nullptr;
 
-		void UiTest();
+		//void UiTest();
 	};
 }

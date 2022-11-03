@@ -10,6 +10,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/Combat/Combat.h"
+
 namespace prounk {
 	Player::Player(engone::GameGround* ground) : GameObject() {
 		rp3d::Transform t;
@@ -19,6 +21,8 @@ namespace prounk {
 
 		setFlight(true);
 
+		objectType = OBJECT_PLAYER;
+
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		modelAsset = assets->load<engone::ModelAsset>("Player/Player");
 		//modelAsset = assets->set<engone::ModelAsset>("Player/Player");
@@ -26,10 +30,18 @@ namespace prounk {
 
 		this->ground = (NetGameGround*)ground;
 
+		CombatData* data = new CombatData();
+		data->owner = this;
+		userData = data;
+		flags |= OBJECT_HAS_COMBATDATA;
+
+		rigidBody->setUserData(this);
+
+		setColliderUserData((void*)COLLIDER_IS_HEALTH);
 		loadColliders();
 	}
 	void Player::update(engone::UpdateInfo& info) {
-		animator.update(info.timeStep);
+		//animator.update(info.timeStep);
 		Input(info);
 		Movement(info);
 		WeaponUpdate(info);
@@ -97,10 +109,14 @@ namespace prounk {
 			//heldWeapon->rigidBody->setLinearVelocity(ToRp3dVec3(weaponState.sampledVelocity()));
 			//weaponState.reset();
 
-			if (heldWeapon->rigidBody->getNbColliders() != 0) {
-				heldWeapon->rigidBody->getCollider(0)->setUserData(nullptr);
-				//ground->netEditObject(heldWeapon->getUUID(), 1, 0, );
-			}
+			SetCombatData(this,heldWeapon,false);
+			ground->netEditCombatData(heldWeapon->getUUID(), this->getUUID(), false);
+			//if (heldWeapon->rigidBody->getNbColliders() != 0) {
+			//	heldWeapon->rigidBody->getCollider(0)->setUserData(0);
+			//	heldWeapon->flags &= ~OBJECT_HAS_COMBATDATA;
+			//	heldWeapon->userData = nullptr;
+			//}
+			//	//ground->netEditObject(heldWeapon->getUUID(), 1, 0, );
 
 			heldWeapon = nullptr;
 		}
@@ -110,12 +126,16 @@ namespace prounk {
 		// destroy joint to previous weapon.
 		heldWeapon = weapon;
 		// collider should exist for now
-		if (heldWeapon->rigidBody->getNbColliders() != 0) {
-			combatData.owner = this;
-			heldWeapon->rigidBody->getCollider(0)->setUserData(&combatData);
-			//ground->netEditObject(heldWeapon->getUUID(), 1, 0, getUUID().data[0], getUUID().data[1], 0);
-			
-		}
+		SetCombatData(this, heldWeapon, true);
+		ground->netEditCombatData(heldWeapon->getUUID(), this->getUUID(), true);
+		
+		//if (heldWeapon->rigidBody->getNbColliders() != 0) {
+		//	heldWeapon->rigidBody->getCollider(0)->setUserData((void*)COLLIDER_IS_DAMAGE);
+		//	heldWeapon->flags |= OBJECT_HAS_COMBATDATA;
+		//	heldWeapon->userData = userData;
+		//	//ground->netEditObject(heldWeapon->getUUID(), 1, 0, getUUID().data[0], getUUID().data[1], 0);
+		//	
+		//}
 		//weaponState.gravity = weapon->rigidBody->isGravityEnabled();
 
 		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
@@ -149,7 +169,6 @@ namespace prounk {
 		rp3d::Vector3 baseVec;
 		weapon->setOnlyTrigger(true);
 		ground->netEditObject(weapon->getUUID(),0,true);
-		
 
 		//heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
 		//heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
@@ -171,28 +190,31 @@ namespace prounk {
 			else
 				setWeapon(info,inventorySword);
 		}
-		combatData.update(info);
+		CombatData* combatData = (CombatData*)userData;
+		if (IsKeyPressed(GLFW_KEY_R)) {
+			combatData->health = combatData->getMaxHealth();
+		}
 		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
-			if (!combatData.attacking) {
-				combatData.skillType = SKILL_SLASH;
-				combatData.attack();
+			if (!combatData->attacking) {
+				combatData->skillType = SKILL_SLASH;
+				combatData->attack();
 				animator.enable("Player", "PlayerDownSwing", { false,1,1,0 });
 				ground->netAnimateObject(getUUID(), "Player", "PlayerDownSwing", false, 1, 1, 0);
 				AnimatorProperty* prop = animator.getProp("Player");
 				if (prop) {
-					combatData.animationTime = prop->getRemainingSeconds();
+					combatData->animationTime = prop->getRemainingSeconds();
 				}
 			}
 		}
 		if (IsKeyDown(GLFW_KEY_F)) {
-			if (!combatData.attacking) {
-				combatData.skillType = SKILL_SIDE_SLASH;
-				combatData.attack();
+			if (!combatData->attacking) {
+				combatData->skillType = SKILL_SIDE_SLASH;
+				combatData->attack();
 				animator.enable("Player", "PlayerSideSwing", { false,1,1,0 });
 				ground->netAnimateObject(getUUID(), "Player", "PlayerSideSwing", false, 1, 1, 0);
 				AnimatorProperty* prop = animator.getProp("Player");
 				if (prop) {
-					combatData.animationTime = prop->getRemainingSeconds();
+					combatData->animationTime = prop->getRemainingSeconds();
 				}
 			}
 		}

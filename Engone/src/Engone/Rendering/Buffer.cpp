@@ -137,6 +137,18 @@ namespace engone {
 		unbind();
 		glBindVertexArray(0);
 	}
+	void VertexArray::clear() {
+		while (bufferSection > 0) {
+			bufferSection--;
+			strides[bufferSection] = 0;
+			while (location > 0) {
+				location--;
+				locationSizes[location] = 0;
+				glDisableVertexAttribArray(location);
+			}
+		}
+		totalLocation = 0;
+	}
 	void VertexArray::addAttribute(uint8_t floatSize, uint8_t divisor) {
 		if (!initialized())
 			glGenVertexArrays(1, &m_id);
@@ -234,6 +246,7 @@ namespace engone {
 	void VertexArray::unbind() const {
 		glBindVertexArray(0);
 	}
+	
 	void VertexArray::cleanup() {
 		if (m_id != 0)
 			glDeleteVertexArrays(1, &m_id);

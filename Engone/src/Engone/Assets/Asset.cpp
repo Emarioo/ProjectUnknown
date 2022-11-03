@@ -1021,6 +1021,7 @@ namespace engone {
 			vertexBuffer.setData(vertexOutSize, vertexOut);
 			indexBuffer.setData(triangleOutSize, triangleOut);
 
+			vertexArray.clear(); // reset previous attributes
 			vertexArray.addAttribute(3);// Position
 			vertexArray.addAttribute(3);// Normal
 			if (meshType == MeshType::Boned) {

@@ -10,13 +10,18 @@ namespace engone {
 	
 	class Engone;
 	class GameGround;
+	// move function bodies to cpp file. having them in the header feels bad
 	class GameObject {
 	public:
-		static const int PENDING_COLLIDERS=1;
+		//-- flags
+		static const uint32_t PENDING_COLLIDERS=1;
+		static const uint32_t ONLY_TRIGGER=2; // all colliders are triggers
+		// make only trigger flag
 
 		//GameObject() = default;
 		GameObject() : m_uuid(UUID::New()) {};
-		GameObject(UUID uuid) : m_uuid(uuid) {};
+		// uuid as 0 will generate a new UUID
+		GameObject(UUID uuid) : m_uuid(uuid!=0?uuid:UUID::New()) { };
 		virtual ~GameObject() {}
 
 		virtual void update(UpdateInfo& info) {};
@@ -24,7 +29,10 @@ namespace engone {
 		UUID getUUID() const { return m_uuid; }
 		ModelAsset* modelAsset=nullptr;
 		Animator animator;
-		int flags; // make it private and provide methods?
+		uint32_t flags=0; // make it private and provide methods?
+		uint32_t objectType = 0;
+
+		void* userData=nullptr; // combatdata for example
 
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* rigidBody=nullptr;
@@ -62,11 +70,23 @@ namespace engone {
 		// These are: modelAsset is valid, rigidbody is valid.
 		// The ground parameter is used by the engine and not relevant to you.
 		void loadColliders(GameGround* ground=nullptr);
+
+		// sets user data for all colliders of the rigidbody.
+		// if colliders aren't loaded. it will be set when they are.
+		void* colliderData=nullptr;
+		void setColliderUserData(void* data) {
+			colliderData = data; 
+			if ((flags & PENDING_COLLIDERS) == 0) { // colliders have been loaded so just set user data here
+				int cols = rigidBody->getNbColliders();
+				for (int i = 0; i < cols; i++) {
+					rigidBody->getCollider(i)->setUserData(colliderData);
+				}
+			} 
+		}
 #endif
 
 	private:
 		UUID m_uuid=0;
-		bool m_isOnlyTrigger = false;
 
 		friend class Engone;
 	};

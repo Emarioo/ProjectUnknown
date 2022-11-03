@@ -122,6 +122,9 @@ namespace engone {
 		void unbind() const;
 		void cleanup() override;
 
+		// reset attributes, not sure if it works
+		void clear();
+
 		void addAttribute(uint8_t floatSize);
 		void addAttribute(uint8_t floatSize, VertexBuffer* buffer);
 		void addAttribute(uint8_t floatSize, uint8_t divisor);
