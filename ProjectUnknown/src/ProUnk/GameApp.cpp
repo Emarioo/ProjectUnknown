@@ -118,21 +118,51 @@ namespace prounk {
 		// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
 		//	Meaning no damage.
 
-		rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
-		rp3d::Vector3 force = { glm::sin(rot.y),0,glm::cos(rot.y) };
+		glm::vec3 diff = (defData->owner->getPosition() - atkData->owner->getPosition()) / 2.f;
+		glm::vec3 dir = glm::normalize(diff);
+		rp3d::Vector3 force = ToRp3dVec3(diff)*12.f;
+		force += atkData->owner->rigidBody->getLinearVelocity() - defData->owner->rigidBody->getLinearVelocity();
+
+		//rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
+		//rp3d::Vector3 force = { glm::sin(rot.y),0,glm::cos(rot.y) };
 		//log::out << force << "\n";
 		//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
 		//force.y = 1;
-		force *= 60.f * 6.f;
+		force *= 60.f;
 		//log::out << force << "\n";
 		 //for now, defense can be assumed to be a rigidbody
 
 		defObj->rigidBody->applyWorldForceAtCenterOfMass(force);
 	}
+	void GameApp::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
+		using namespace engone;
+		for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
+			auto pair = callbackData.getContactPair(pairI);
+
+			GameObject* ptr1 = (GameObject*)pair.getBody1()->getUserData();
+			GameObject* ptr2 = (GameObject*)pair.getBody2()->getUserData();
+
+			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
+
+			if (!ptr1 || !ptr2) continue;
+
+			if ((ptr1->flags & OBJECT_HAS_COMBATDATA) && (ptr2->flags & OBJECT_HAS_COMBATDATA)) {
+				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
+				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
+					dealCombat(ptr1, ptr2);
+				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
+					dealCombat(ptr2, ptr1);
+			}
+		}
+	}
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
 			auto pair = callbackData.getOverlappingPair(pairI);
+			//pair.getEventType()
+
+			//auto pair = pair.getEventType();
+			//rp3d::OverlapCallback::OverlapPair::EventType::
 
 			GameObject* ptr1 = (GameObject*)pair.getBody1()->getUserData();
 			GameObject* ptr2 = (GameObject*)pair.getBody2()->getUserData();
@@ -143,9 +173,9 @@ namespace prounk {
 
 			if ((ptr1->flags & OBJECT_HAS_COMBATDATA )&&( ptr2->flags & OBJECT_HAS_COMBATDATA)) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
-				if(((uint32_t)pair.getCollider1()->getUserData() == COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() == COLLIDER_IS_HEALTH))
+				if(((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
 					dealCombat(ptr1, ptr2);
-				if (((uint32_t)pair.getCollider1()->getUserData() == COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() == COLLIDER_IS_DAMAGE))
+				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
 					dealCombat(ptr2, ptr1);
 			}
 		}
@@ -214,6 +244,7 @@ namespace prounk {
 		ground->m_pWorld->setEventListener(this);
 
 		player = new Player(ground);
+		//player = CreatePlayer(ground);
 		player->flags |= NetGameGround::OBJECT_NETMOVE;
 		player->setTransform({ 0,0,0 });
 		ground->addObject(player);
@@ -226,9 +257,9 @@ namespace prounk {
 
 		if (info.flags & START_SERVER) {
 			GameObject* dummy = CreateDummy(ground);
-			dummy->setTransform({ 0,0,9 });
+			dummy->setTransform({ 4,7,8 });
 			dummy->flags |= NetGameGround::OBJECT_NETMOVE;
-			dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+			//dummy->rigidBody->setLinearVelocity({ 9,0,0 });
 			ground->addObject(dummy);
 
 			GameObject* terrain = CreateTerrain(ground);
@@ -241,6 +272,8 @@ namespace prounk {
 
 		} else if (info.flags & START_CLIENT) {
 			ground->getClient().start(info.ip,info.port);
+		} else {
+			SetDefaultPortIP(this, info.port, info.ip);
 		}
 
 		//rp3d::Vector3 anchor(1, 1, 1);
@@ -259,6 +292,8 @@ namespace prounk {
 	//float x = 100;
 	//float velX = 0;
 	bool once = false;
+
+	float deathTime=0;
 	void GameApp::update(engone::UpdateInfo& info) {
 		using namespace engone;
 		if (engone::IsKeybindingPressed(KeyPause)) {
@@ -281,6 +316,7 @@ namespace prounk {
 			}
 			partRequested = false;
 		}
+
 		//float t = info.timeStep;
 		//float vx = (wantX - x)/t;
 		//vx *= 0.5;
@@ -308,7 +344,7 @@ namespace prounk {
 		DebugInfo(info,this);
 
 		if (player) {
-			if (player->rigidBody) {
+			if (player->rigidBody&&!player->isDead()) {
 				glm::vec3 pos = player->getPosition();
 				Camera* cam = m_window->getRenderer()->getCamera();
 				float camH = 2.4;

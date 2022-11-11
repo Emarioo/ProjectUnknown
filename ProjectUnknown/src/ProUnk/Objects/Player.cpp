@@ -25,7 +25,6 @@ namespace prounk {
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		modelAsset = assets->load<engone::ModelAsset>("Player/Player");
-		//modelAsset = assets->set<engone::ModelAsset>("Player/Player");
 		animator.asset = modelAsset;
 
 		this->ground = (NetGameGround*)ground;
@@ -185,14 +184,29 @@ namespace prounk {
 			setNoClip(!noclip);
 		}
 		if (IsKeyPressed(GLFW_KEY_Q)) { // drop/pickup weapon
-			if (heldWeapon)
-				setWeapon(info,nullptr);
-			else
-				setWeapon(info,inventorySword);
+			if (!isDead()) {
+				if (heldWeapon)
+					setWeapon(info, nullptr);
+				else
+					setWeapon(info, inventorySword);
+			}
 		}
 		CombatData* combatData = (CombatData*)userData;
 		if (IsKeyPressed(GLFW_KEY_R)) {
-			combatData->health = combatData->getMaxHealth();
+			if (isDead()) {
+				deathTime = 0;
+				setDead(false);
+				rigidBody->setAngularLockAxisFactor({ 0,1,0 });
+				//auto tr = rigidBody->getTransform(); // only reset orientation
+				//tr.setOrientation({ 0,0,0,1.f });
+				//rigidBody->setTransform(tr);
+				rigidBody->setTransform({}); // reset position too
+
+				combatData->health = combatData->getMaxHealth();
+			}
+		}
+		if (IsKeyPressed(GLFW_KEY_K)) {
+			combatData->health = 0;
 		}
 		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
 			if (!combatData->attacking) {
@@ -252,30 +266,72 @@ namespace prounk {
 		if (IsKeybindingDown(KeyRight)) {
 			flatInput.x += 1;
 		}
-		float zoomAcc = 0.1 + 5 * abs(zoomSpeed);
-		if (zoomSpeed > 0) {
-			zoomSpeed -= zoomAcc * info.timeStep;
-			if (zoomSpeed < 0)
-				zoomSpeed = 0;
-		} else if (zoomSpeed < 0) {
-			zoomSpeed += zoomAcc * info.timeStep;
-			if (zoomSpeed > 0)
-				zoomSpeed = 0;
-		}
-		float minZoom = 1.3;
-		zoom += zoomSpeed * info.timeStep;
-		if (zoom < 0) {
-			zoom = 0;
-			zoomSpeed = 0;
-		} else if (zoom != 0 && zoom < minZoom) {
-			zoom = minZoom;
-		}
-		float scroll = IsScrolledY();
-		if (scroll) {
-			if (zoom == minZoom)
+		if (!isDead()) {
+			float zoomAcc = 0.1 + 5 * abs(zoomSpeed);
+			if (zoomSpeed > 0) {
+				zoomSpeed -= zoomAcc * info.timeStep;
+				if (zoomSpeed < 0)
+					zoomSpeed = 0;
+			} else if (zoomSpeed < 0) {
+				zoomSpeed += zoomAcc * info.timeStep;
+				if (zoomSpeed > 0)
+					zoomSpeed = 0;
+			}
+			float minZoom = 1.3;
+			zoom += zoomSpeed * info.timeStep;
+			if (zoom < 0) {
 				zoom = 0;
-			zoomSpeed -= scroll * (0.8 + zoom * 0.3);
+				zoomSpeed = 0;
+			} else if (zoom != 0 && zoom < minZoom) {
+				zoom = minZoom;
+			}
+			float scroll = IsScrolledY();
+			if (scroll) {
+				if (zoom == minZoom)
+					zoom = 0;
+				zoomSpeed -= scroll * (0.8 + zoom * 0.3);
+			}
 		}
+
+		// death logic
+		CombatData* data = (CombatData*)userData;
+		deathTime -= info.timeStep;
+		//printf("%f\n", deathTime);
+		if (deathTime < 0) {
+			deathTime = 0;
+			if (isDead()) {
+				setDead(false);
+				rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
+				setTransform({ 0,0,0 });
+				rigidBody->setLinearVelocity({ 0,0,0 });
+				rigidBody->setAngularVelocity({ 0,0,0 });
+				data->health = data->getMaxHealth();
+			}
+		}
+		if (!isDead() && data->health == 0) {
+			deathTime = 5;
+
+			setDead(true);
+			zoom = 4;
+			
+			setFlight(false);
+			if (heldWeapon)
+				setWeapon(info, nullptr);
+
+			rigidBody->setAngularLockAxisFactor({ 1,1,1 }); // only allow spin (y rotation)
+
+			float angleStrength = 200.f*deathShockStrength;
+			rp3d::Vector3 angRand= {(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
+			angRand *= angleStrength;
+			rigidBody->applyLocalTorque(angRand);
+
+			float velStrength = 200.0f* deathShockStrength;
+			rp3d::Vector3 velRand = { (float)GetRandom()-0.5f,(float)GetRandom()/2.f,(float)GetRandom() - 0.5f };
+			velRand *= velStrength;
+			//log::out << angRand << " " << velRand << "\n";
+			rigidBody->applyWorldForceAtCenterOfMass(velRand);
+		}
+
 		//log::out << "speed: " << zoomSpeed << " "<<zoom<<"\n";
 
 		glm::vec3 flatMove{};
@@ -283,23 +339,24 @@ namespace prounk {
 			flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
 		}
 		glm::vec3 moveDir = flatMove;
-		if (flight) {
-			if (IsKeybindingDown(KeyJump)) {
-				moveDir.y += speed;
-			}
-			if (IsKeybindingDown(KeyCrouch)) {
-				moveDir.y -= speed;
-			}
-		} else {
-			if (IsKeybindingPressed(KeyJump)) {
-				moveDir.y += jumpForce;
-			}
-			if (IsKeybindingPressed(KeyCrouch)) {
-				moveDir.y -= jumpForce;
+		if (!isDead()) {
+			if (flight) {
+				if (IsKeybindingDown(KeyJump)) {
+					moveDir.y += speed;
+				}
+				if (IsKeybindingDown(KeyCrouch)) {
+					moveDir.y -= speed;
+				}
+			} else {
+				if (IsKeybindingPressed(KeyJump)) {
+					moveDir.y += jumpForce;
+				}
+				if (IsKeybindingPressed(KeyCrouch)) {
+					moveDir.y -= jumpForce;
+				}
 			}
 		}
-
-		if (rigidBody) {
+		if (rigidBody&&!isDead()) {
 			rp3d::Vector3 rot = ToEuler(rigidBody->getTransform().getOrientation());
 			float realY = rot.y;
 			float wantY = realY;

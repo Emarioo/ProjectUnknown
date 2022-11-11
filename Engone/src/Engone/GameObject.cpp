@@ -12,7 +12,7 @@ namespace engone {
 			log::out << log::RED << "GameObject::loadColliders - Rigidbody is null\n";
 			return;
 		}
-		if (!modelAsset->valid()) {
+		if (!modelAsset->valid()||ground==nullptr) {
 			flags |= PENDING_COLLIDERS; // try again in update loop of engine.
 			return;
 		}
@@ -68,6 +68,7 @@ namespace engone {
 				col->getMaterial().setFrictionCoefficient(0.5f);
 				col->getMaterial().setBounciness(0.0f);
 				col->setUserData(colliderData);
+				col->setIsTrigger(flags & ONLY_TRIGGER);
 			}
 		}
 		flags &= ~PENDING_COLLIDERS;
@@ -75,8 +76,8 @@ namespace engone {
 			// updating center of mass would cause wierd stuff
 			log::out << "Loaded no colliders\n";
 		} else {
-			rigidBody->updateLocalInertiaTensorFromColliders();
 			rigidBody->updateLocalCenterOfMassFromColliders();
+			rigidBody->updateLocalInertiaTensorFromColliders();
 		}
 	}
 	void GameObject::setOnlyTrigger(bool yes) {

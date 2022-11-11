@@ -19,14 +19,15 @@ namespace engone {
 		Server() : Sender(true, "127.0.0.1") {}
 		~Server();
 
-		// set lambdas before starting.
-		// returns false if port was invalid.
-		// returns true if server started or already running
+		// Set lambdas before starting.
+		// Returns false if port was invalid or if it already is running.
+		// Returns true if server started successfully.
 		bool start(const std::string& port);
-		// close one connection
+		// Close one connection
 		void disconnect(UUID uuid);
-		// stop server and all connections.
-		// does not wait for connections to close. A silent stop.
+
+		// Stop server and all connections asynchronously.
+		// Does not wait for connections to close.
 		void stop();
 		void send(MessageBuffer& msg, UUID uuid = 0, bool excludeUUID = false, bool synchronous = false) override;
 
@@ -34,7 +35,8 @@ namespace engone {
 
 		inline bool isRunning() { return keepRunning; }
 
-		// will wait for everything to terminate unlike stop
+		// Will wait for everything to terminate unlike stop
+		// Never mutex lock this. A deadlock may occur
 		void cleanup();
 
 #ifdef ENGONE_TRACKER
@@ -44,11 +46,29 @@ namespace engone {
 		bool keepRunning = false;
 
 		std::unordered_map<UUID, Connection*> m_connections;
+		std::mutex m_connectionsMutex;
 
 		// void* should be SOCKET, but isn't so that you don't need to include in this header.
 		void* m_socket=nullptr;
 		std::thread m_acceptThread;
 		std::thread m_workerThread;
+
+		struct Action {
+			//Action(int type, const std::string& port) : type(type), port(port) {}
+			Action(int type) : type(type), uuid(uuid) {}
+			Action(int type, UUID uuid) : type(type), uuid(uuid) {}
+			static const int START = 0;
+			static const int STOP = 1;
+			static const int DISCONNECT = 2; // disconnect a client/socket/connection
+			int type;
+			// use union here?
+			//std::string port;
+			UUID uuid;
+		};
+		std::vector<Action> m_workQueue;
+		std::mutex m_workMutex;
+		bool m_working = false;
+		void work();
 
 		std::mutex m_mutex;
 		std::thread::id m_mutexOwner;

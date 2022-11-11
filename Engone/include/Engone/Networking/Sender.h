@@ -49,6 +49,11 @@ namespace engone {
 		const std::string& getIP() const { return m_ip; }
 		const std::string& getPort() const { return m_port; }
 
+		// Use this with caution. Preferably not at all.
+		void setIP(const std::string& str) { m_ip = str; }
+		// Use this with caution. Preferably not at all.
+		void setPort(const std::string& str) { m_port = str; }
+
 	protected:
 		bool m_isServer = false;
 

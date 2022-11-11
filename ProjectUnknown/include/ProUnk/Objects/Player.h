@@ -6,6 +6,9 @@
 #include "ProUnk/Combat/CombatData.h"
 
 namespace prounk {
+
+#define OBJECT_PLAYER_DEAD 0x00200000
+
 	class NetGameGround;
 	class Player : public engone::GameObject {
 	public:
@@ -33,11 +36,24 @@ namespace prounk {
 		void setFlight(bool yes);
 		void setNoClip(bool yes);
 
+		float deathTime = 0;
+		float deathShockStrength = 1.f; // how much the player "jumps" when it dies.
+		//bool isDead = false;
+		void setDead(bool yes) { 
+			if (yes) 
+				flags |= OBJECT_PLAYER_DEAD;
+			else 
+				flags &= ~OBJECT_PLAYER_DEAD;
+		}
+		bool isDead() { 
+			return flags & OBJECT_PLAYER_DEAD; 
+		}
+
 		float flySpeed = 8.f;
 		float flyFastSpeed = 90.f;
 		float walkSpeed = 8.f;
-		float sprintSpeed = 20.f;
-		float jumpForce = 5.f;
+		float sprintSpeed = 15.f;
+		float jumpForce = 10.f;
 
 		engone::Camera testCam;
 

@@ -1,5 +1,7 @@
 #include "Engone/AssetModule.h"
 
+#include "Engone/Utilities/Utilities.h"
+
 namespace engone {
 	
 	AssetStorage::AssetStorage() {
@@ -167,8 +169,11 @@ namespace engone {
 	void AssetProcessor::start() {
 		if (!m_running) {
 			m_running = true;
-
 			m_thread = std::thread([this]() {
+				std::string name = "AProc. ";
+				name += ToString(m_processType);
+				engone::SetThreadName(-1, name.c_str());
+
 				ENGONE_DEBUG(log::out << "AssetProcessor::start - started thread\n", ASSET_LEVEL, 1)
 				while (m_running) {
 
@@ -216,10 +221,10 @@ namespace engone {
 			// depending on asset type
 			//task.finalAsset->m_state = Asset::Loaded;
 		}
+		// do more processing if necessary.
 		for (AssetTask& t : tasks) {
 			m_storage->processTask(t);
 		}
-		tasks.clear();
 	}
 	void AssetProcessor::stop() {
 		m_running = false;

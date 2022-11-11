@@ -75,9 +75,9 @@ namespace engone {
 		~AssetStorage();
 
 		//-- Flags for methods
-		static const uint8_t SYNC = 1; // Perform function synchronously. Applies to AssetStorage::load
+		static const uint8_t SYNC = 1; // Perform function synchronously. Applies to AssetStorage::load and set
 		//static const uint8_t FORCE_RELOAD = 2;// Load were supposed to always load asset even if it had been loaded. BUT, it will now reload automatically.
-		static const uint8_t DEFAULT_FLAGS = 0;
+		static const uint8_t DEFAULT_FLAGS = SYNC;
 
 		// load asset from path
 		template<class T>
@@ -114,7 +114,22 @@ namespace engone {
 			asset->m_state = Asset::Processing;
 			if (flags & SYNC) {
 				// load returns flags but we can safely ignore them.
-				asset->load(Asset::LoadAll);
+				
+				//asset->load(Asset::LoadAll);
+				asset->m_flags = asset->load(Asset::LoadIO | Asset::LoadData);
+				if (asset->m_error != Error::ErrorNone) {
+					asset->m_flags = Asset::LoadNone;
+					log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
+				}
+				if (asset->m_state & Asset::Loaded) {
+					if (asset->getPath().size() != 0) {
+						ENGONE_DEBUG(log::out << "Loaded " << asset->getPath() << "\n", ASSET_LEVEL, 2)
+					}
+				} else {
+					ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+				}
+				AssetTask task(asset);
+				processTask(task);
 			} else {
 				asset->m_flags = Asset::LoadIO;
 				AssetTask task(asset);
@@ -196,7 +211,21 @@ namespace engone {
 				} else {
 					t->m_state = Asset::Processing;
 					if (flags&SYNC) {
-						t->load(Asset::LoadAll);
+						//t->load(Asset::LoadAll);
+						t->m_flags = t->load(Asset::LoadIO | Asset::LoadData);
+						if (t->m_error != Error::ErrorNone) {
+							t->m_flags = Asset::LoadNone;
+							log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
+						}
+						if (t->m_state & Asset::Loaded) {
+							if (t->getPath().size() != 0) {
+								ENGONE_DEBUG(log::out << "Loaded " << t->getPath() << "\n", ASSET_LEVEL, 2)
+							}
+						} else {
+							ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+						}
+						AssetTask task(t);
+						processTask(task);
 					} else {
 						AssetTask task(t);
 						processTask(t);

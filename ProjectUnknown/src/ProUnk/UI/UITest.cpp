@@ -72,38 +72,59 @@ namespace prounk {
 			ground->getClient().stop();
 		}
 	}
+	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip) {
+		auto find = app_data.find(app);
+		if (find == app_data.end()) {
+			app_data[app] = { "Client",{port},{ip},false };
+		} else {
+			find->second.ipBox.text = ip;
+			find->second.portBox.text = port;
+		}
+	}
 	void Connect(engone::RenderInfo& info) {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
 		Stuff& stuff = app_data[app];
 		NetGameGround* ground = app->getGround();
-		if (ground->getServer().isRunning()) {
-			ground->getServer().stop();
-		}
-		if (ground->getClient().isRunning()) {
-			ground->getClient().stop();
-		}
-		// TODO: handle potential error messages.
-		if (stuff.type == "Client") {
-			ground->getClient().start(stuff.ipBox.text, stuff.portBox.text);
-		}
-		else if (stuff.type == "Server") {
-			ground->getServer().start(stuff.portBox.text);
+
+		// Nothing will happen if client or server is active. You have to stop first.
+		// NOTE: restarting server is a bit tricky because you can't call stop and then start because stop is asynchronous and when start is called the server is still running
+		//		resulting in just a stopped server.
+		//		You can't call cleanup (synchronous) because it would freeze the game (not for long but still not ideal).
+		//		A good solution would be a queue. Calling stop and start would put actions onto the queue for a worker thread to handle. The worker thread is synchrounous when
+		//      doing the actions while the thread calling stop and start is asynchronous.
+		//		THIS idea has been added to the TODO list in Engone for Networking. Change this code when it is implemented.
+
+		if (!ground->getServer().isRunning()&&!ground->getClient().isRunning()) {
+			bool result = false;
+			// TODO: handle potential error messages.
+			if (stuff.type == "Client") {
+				result = ground->getClient().start(stuff.ipBox.text, stuff.portBox.text);
+			} else if (stuff.type == "Server") {
+				result = ground->getServer().start(stuff.portBox.text);
+			}
+			if (!result) {
+				log::out << log::RED << "UITest::Connect - Server/Client::start failed\n";
+			}
 		}
 	}
 	void RenderServerClientMenu(engone::RenderInfo& info) {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
 
+		if (info.window->isCursorLocked()) // TODO: change this to check for pause state
+			return;
+
 		auto find = app_data.find(app);
 		if (find == app_data.end())
 			app_data[app] = {};
 
+		NetGameGround* ground = ((GameApp*)info.window->getParent())->getGround();
+		
 		Stuff& stuff = app_data[app];
 		if (!stuff.once) {
 			stuff.once = true;
 			
-			NetGameGround* ground = ((GameApp*)info.window->getParent())->getGround();
 			if (ground->getServer().isRunning()) {
 				stuff.type = "Server";
 				stuff.ipBox.text = ground->getServer().getIP();
@@ -114,6 +135,7 @@ namespace prounk {
 				stuff.ipBox.text = ground->getClient().getIP();
 				stuff.portBox.text = ground->getClient().getPort();
 			}
+			// specify default values with SetDefaultIPPort
 		}
 
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
@@ -141,8 +163,11 @@ namespace prounk {
 		stuff.portBox.font = consolas;
 		stuff.portBox.rgba = textColor;
 
-		if (ui::Clicked(stuff.portBox)==1) {
+		int clickPortBox = ui::Clicked(stuff.portBox);
+		if (clickPortBox==1) {
 			stuff.portBox.editing = true;
+		} else if(clickPortBox==-1) {
+			stuff.portBox.editing = false;
 		}
 
 		ui::Edit(&stuff.portBox);
@@ -155,25 +180,34 @@ namespace prounk {
 		stuff.ipBox.font = consolas;
 		stuff.ipBox.rgba = textColor;
 		
-		if (ui::Clicked(stuff.ipBox) == 1) {
+		int clickIpBox = ui::Clicked(stuff.ipBox);
+		if (clickIpBox == 1) {
 			stuff.ipBox.editing = true;
+		} else if (clickIpBox == -1) {
+			stuff.ipBox.editing = false;
 		}
+
 		ui::Edit(&stuff.ipBox);
 		ui::Draw(stuff.ipBox);
 
-		ui::TextBox connectBox = { "Connect",stuff.ipBox.x,stuff.ipBox.y + stuff.ipBox.h,25,consolas, textColor };
-		if (ui::Clicked(connectBox)==1) {
-			Connect(info);
-			//log::out << "clicked\n";
+		if (ground->getServer().isRunning() || ground->getClient().isRunning()) {
+			ui::TextBox stopBox = { "Stop",stuff.ipBox.x,stuff.ipBox.y + stuff.ipBox.h,25,consolas, textColor };
+			if (ui::Clicked(stopBox) == 1) {
+				Stop(info);
+				//log::out << "clicked\n";
+			}
+			ui::Draw(stopBox);
+		} else {
+			ui::TextBox connectBox = { "Connect",stuff.ipBox.x,stuff.ipBox.y + stuff.ipBox.h,25,consolas, textColor };
+			if (stuff.type=="Server") {
+				connectBox.text = "Start";
+			}
+			if (ui::Clicked(connectBox) == 1) {
+				Connect(info);
+				//log::out << "clicked\n";
+			}
+			ui::Draw(connectBox);
 		}
-		ui::Draw(connectBox);
-
-		ui::TextBox stopBox = { "Stop",connectBox.x,connectBox.y + connectBox.h,25,consolas, textColor };
-		if (ui::Clicked(stopBox) == 1) {
-			Stop(info);
-			//log::out << "clicked\n";
-		}
-		ui::Draw(stopBox);
 
 		// server/client toggle button
 		// port

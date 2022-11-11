@@ -835,6 +835,9 @@ namespace engone {
 				float x = GetMouseX();
 				float y = GetMouseY();
 				if (inside(box, x, y)) {
+					// set cursor
+					float wid = box.font->getWidth(" ", box.h);
+					box.at = ((x - box.x) / wid+0.5f);
 					return 1;
 				}
 				return -1;

@@ -163,7 +163,7 @@ namespace engone {
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 					Application* app = m_applications[appIndex];
 					app->m_renderingWindows = true;
-
+					//if (appIndex == 1) continue;
 					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
 						Window* win = app->getWindow(winIndex);
 						if (!win->isOpen()) continue;
@@ -173,8 +173,12 @@ namespace engone {
 							info.timeStep = m_runtimeStats.frameTime;
 							interpolation = 0;
 						}
-
 						win->setActiveContext();
+
+						if (!win->getStorage()->getGraphicProcessors().empty()) {
+							win->getStorage()->getGraphicProcessors()[0]->process();
+						}
+
 						// Important setup
 						// DONE IN Window::setActiveContext
 						glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
@@ -191,10 +195,6 @@ namespace engone {
 							win->getRenderer()->setProjection(ratio);
 
 						app->render(info);
-
-						if (!win->getStorage()->getGraphicProcessors().empty()) {
-							win->getStorage()->getGraphicProcessors()[0]->process();
-						}
 
 						render(info);
 						GetActiveRenderer()->render(info);
@@ -229,36 +229,24 @@ namespace engone {
 			//Timer poll("glPollEvents");
 			glfwPollEvents();
 			//poll.stop();
-			if (m_applications.size() != 0) {
-				if (m_applications[0]->getAttachedWindows().size() != 0) {
-					if (!m_applications[0]->getWindow(0)->isOpen()) {
-						//DebugBreak();
-					}
-				}
-			}
 		}
 		glfwTerminate();
-		// You would preferably want to destroy io_context so that the final memory IS 0. but asio doesn't like it.
-		//DestroyIOContext();
 		 
 		// doesn't have to be a memory leak, it depends on the users code.
 		// they may have allocated memory in global scope and never deleted it. But only if they used the tracker functions.
 		//GetTracker().clear();
 		
 		GetTracker().printInfo();
-		// The tracker may a little tricky to analyize correctly sometimes. Just don't get to fixated on it.
+		// The tracker may a little tricky to analyize correctly sometimes. Just don't get too fixated on it.
 
 		// this means that the Memory usage is somewhat high because of io_context (and glfw, and reactphysics)
 		
 		DestroyNetworking();
 
 		uint32_t expectedMem = 0;
-		//if(HasIOContext())
-		//	expectedMem=sizeof(asio::io_context) + sizeof(std::thread);
 		if (GetTracker().getMemory() > expectedMem) {
 			log::out << "Memory leak? "<<GetTracker().getMemory()<<" expected "<<expectedMem << "\n";
 			GetTracker().printMemory();
-			//std::cin.get();
 		} else {
 			log::out << "No tracked memory leak\n";
 		}

@@ -233,4 +233,9 @@ namespace engone {
 		uint32_t m_bufferSize=0;
 		static const uint32_t INITIAL_SIZE = 5 * (sizeof(FILE_NOTIFY_INFORMATION) + 500);
 	};
+	
+	// You set a threads name with it. Use -1 as threadId if you want to set the name for the current thread.
+	// This only works in visual studios debugger.
+	// An alternative is SetThreadDescription but it is not available in Windows 8.1 which I am using.
+	void SetThreadName(DWORD dwThreadID, const char* threadName);
 }

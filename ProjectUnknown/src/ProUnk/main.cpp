@@ -12,11 +12,10 @@ void runApp(int argc, char** argv) {
 
 	Engone engine;
 
-	bool overrideArgs = false;
-
 	//overrideArgs = true;
-	//ConvertArguments("--server", argc, argv);
-	ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
+	ConvertArguments("--server", argc, argv);
+	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
+	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.
 	for (int i = 0; i < argc; i++) {
@@ -42,12 +41,17 @@ void runApp(int argc, char** argv) {
 			}
 		}
 	}
+	if (engine.getApplications().size() == 0) {
+		GameAppInfo info = { 0, "1000", "127.0.0.1"};
+		GameApp* app = engine.createApplication<GameApp>(info);
+		//app = engine.createApplication<GameApp>(info);
+		//app = engine.createApplication<GameApp>(info);
+	}
 
 	//engine.getStats().setFPSLimit(144);
 	//engine.getStats().setFPSLimit(144);
 	engine.start();
-	if(overrideArgs)
-		FreeArguments(argc, argv);
+	//FreeArguments(argc, argv);
 
 	// any log message in deconstructors will not be saved. (deconstructors of global variables that is) <- what do I mean?
 	log::out.getSelected().saveReport(nullptr);

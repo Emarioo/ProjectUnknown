@@ -9,6 +9,7 @@ namespace prounk {
 	void TestScene(GameApp* app);
 
 	void DebugInfo(engone::RenderInfo& info, GameApp* app);
-
+	// app is required because the values are stored globally and you need a way to differentiate the values from multiple applications.
+	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip);
 	void RenderServerClientMenu(engone::RenderInfo& info);
 }

@@ -17,21 +17,21 @@ namespace engone {
 		// Constructor does nothing
 		Client() : Sender(false) {}
 		~Client();
-		/*
-		set lambdas before connecting.
-		returns false if ip or port were invalid.
-		returns true if client already is connected/connecting or has started connecting.
-		*/
+		
+		// Set lambdas before connecting.
+		// Returns false if ip or port were invalid or if client already is running.
+		// Returns true if client successfully connected.
 		bool start(const std::string& ip, const std::string& port);
-		// will disconnect but won't wait for connection and threads to close.
+		// Will disconnect asynchonously.
 		void stop();
 
-		// uuid and excludeUUID is not relevant for client
+		// Uuid and excludeUUID is not relevant for client
 		void send(MessageBuffer& msg, UUID uuid = 0, bool excludeUUID = false,bool synchronous = false) override;
 
 		inline bool isRunning() { return keepRunning; }
 
-		// waits for everything to terminate unlike stop.
+		// Waits for everything to terminate unlike stop.
+		// Do not mutex lock this (risk for deadlock).
 		void cleanup();
 #ifdef ENGONE_TRACKER
 		static TrackerId trackerId;
@@ -39,6 +39,19 @@ namespace engone {
 	private:
 		bool keepRunning = false;
 		Connection* m_connection = nullptr;
+
+		// Not the best struct but it does work
+		struct Action {
+			static const int START = 0;
+			static const int STOP = 1;
+			int type;
+			std::string ip;
+			std::string port;
+		};
+		std::vector<Action> m_workQueue;
+		std::mutex m_workMutex;
+		bool m_working=false;
+		void work();
 
 		std::thread m_workerThread; // connect thread
 

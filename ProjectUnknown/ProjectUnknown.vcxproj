@@ -72,7 +72,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <!-- <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">$(SolutionDir)bin/Engone/DebPhysWin32</AdditionalLibraryDirectories> -->
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(SolutionDir)bin/Engone/DebPhysx64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Engone.lib</AdditionalDependencies>
+      <AdditionalDependencies>Engone.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <!-- release -->

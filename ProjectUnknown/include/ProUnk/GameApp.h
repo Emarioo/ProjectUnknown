@@ -41,6 +41,7 @@ namespace prounk {
 		void onClose(engone::Window* window) override;
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
+		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
 		void dealCombat(engone::GameObject* atkObj, engone::GameObject* collider);
 
 		Player* player = nullptr;

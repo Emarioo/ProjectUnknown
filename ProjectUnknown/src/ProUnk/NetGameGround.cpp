@@ -12,6 +12,7 @@ namespace prounk {
 		switch (value) {
 		case MoveObject: return "MoveObject";
 		case AddObject: return "AddObject";
+		case DELETE_OBJECT: return "DeleteObject";
 		case AnimateObject: return "AnimateObject";
 		case EditObject: return "EditObject";
 		case DamageObject: return "DamageObject";
@@ -24,7 +25,7 @@ namespace prounk {
 	}
 	NetGameGround::NetGameGround(engone::Application* app) : GameGround(app) {
 		using namespace engone;
-		auto onRecv = [this](MessageBuffer& msg, UUID uuid) {
+		auto onRecv = [this](MessageBuffer& msg, UUID clientUUID) {
 			//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
 			Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*)&m_client;
 
@@ -81,11 +82,21 @@ namespace prounk {
 					//newObject->animator.asset = newObject->modelAsset;
 					//newObject->loadColliders(this);
 					addObject(newObject);
-					if (objectType == OBJECT_PLAYER)
-						m_clients[uuid].player = newObject;
+
+					if (clientUUID != 0) {
+						auto find = m_clients.find(clientUUID);
+						if (find == m_clients.end()) {
+							log::out << log::RED << "NetGameGround::Recieve - Could not find client data for " << clientUUID << "\n";
+						} else {
+							if (objectType == OBJECT_PLAYER)
+								find->second.player = newObject;
+
+							find->second.ownedObjects.push_back(newObject);
+						}
+					}
 				}
 				else {
-					log::out << log::RED << "NetGameGround::Receive - \n";
+					log::out << log::RED << "NetGameGround::Receive - Cannot add "<<uuid<<" because it exists\n";
 				}
 				//}
 			} else if (cmd == AnimateObject) {
@@ -182,21 +193,39 @@ namespace prounk {
 
 					m_mutex.unlock();
 				}
-			}
-			else if (cmd == SyncObjects) {
-				int count;
-				msg.pull(&count);
-				for (int j = 0; j < count; j++) {
-					UUID uuid;
-					msg.pull(&uuid);
-					bool found = false;
-					for (int i = 0; i < m_objects.size(); i++) {
-						if (uuid == m_objects[i]->getUUID()) {
-							found = true;
-							break;
-						}
+			} else if (cmd == DELETE_OBJECT) {
+				UUID uuid;
+				msg.pull(&uuid);
+
+				m_mutex.lock();
+				// this is highly unoptimized
+				int index = -1;
+				for (int j = 0; j < m_objects.size(); j++) {
+					if (uuid == m_objects[j]->getUUID()) { // NOTE: compare UUID instead of pointers?
+						index = j;
 					}
 				}
+				if (index != -1) {
+					DeleteObject(this, m_objects[index]);
+					m_objects.erase(m_objects.begin() + index);
+				} else {
+					log::out << log::RED << "NetGameGround::Event - Object " << uuid << " is already deleted\n";
+				}
+				m_mutex.unlock();
+			} else if (cmd == SyncObjects) {
+				//int count;
+				//msg.pull(&count);
+				//for (int j = 0; j < count; j++) {
+				//	UUID uuid;
+				//	msg.pull(&uuid);
+				//	bool found = false;
+				//	for (int i = 0; i < m_objects.size(); i++) {
+				//		if (uuid == m_objects[i]->getUUID()) {
+				//			found = true;
+				//			break;
+				//		}
+				//	}
+				//}
 			}
 			return true; // wont work on server
 		};
@@ -215,7 +244,33 @@ namespace prounk {
 					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
 				}
 			} else if (e == NetEvent::Disconnect) {
-				m_clients.erase(uuid); // uuid should exist. NetworkModule may have a bug if it doesn't.
+				auto find = m_clients.find(uuid);
+				if (find==m_clients.end()) {
+					// this would be a bug
+					log::out << log::RED << "NetGameGround::Event - Cannot find client data for "<<uuid<<"\n";
+				} else {
+					m_mutex.lock();
+					for (int i = 0; i < find->second.ownedObjects.size();i++) {
+						GameObject* obj = find->second.ownedObjects[i];
+						// this is highly unoptimized
+						int index = -1;
+						for (int j = 0; j < m_objects.size(); j++) {
+							if (find->second.ownedObjects[i] == m_objects[j]) { // NOTE: compare UUID instead of pointers?
+								index = j;
+							}
+						}
+						netDeleteObject(obj->getUUID());
+						if (index != -1) {
+							DeleteObject(this, find->second.ownedObjects[i]);
+							m_objects.erase(m_objects.begin() + index);
+						} else {
+							log::out << log::RED << "NetGameGround::Event - Object "<<uuid<<" is already deleted\n";
+						}
+
+					}
+					m_mutex.unlock();
+					m_clients.erase(find);
+				}
 			}
 			return true;
 		});
@@ -234,12 +289,17 @@ namespace prounk {
 				//	netAddObject(app->player->getUUID(), 0, app->player->modelAsset->getLoadName());
 				//}
 			} else if (e == NetEvent::Disconnect) {
-				// delete 
+				// delete all objects
+				m_mutex.lock();
 				for (int i = 0; i < m_objects.size(); i++) {
 					GameObject* obj = m_objects[i];
-					if (obj->flags & OBJECT_NETMOVE)
-
+					if ((obj->flags & OBJECT_NETMOVE) == 0) {
+						DeleteObject(this, obj);
+						m_objects.erase(m_objects.begin() + i);
+						i--;
+					}
 				}
+				m_mutex.unlock();
 			}
 
 			return true;
@@ -311,7 +371,57 @@ namespace prounk {
 	}
 	void NetGameGround::update(engone::UpdateInfo& info) {
 		using namespace engone;
-		GameGround::update(info);
+		GameGround::update(info); // lock this with mutex? maybe not?
+
+		m_objectMutex.lock();
+		// dummy AI (not efficient)
+		for (int i = 0; i < m_objects.size();i++) {
+			GameObject* obj = m_objects[i];
+			if (obj->objectType==OBJECT_DUMMY) {
+				if (((CombatData*)obj->userData)->health == 0) {
+					// delete or respawn dummy
+					DeleteObject(this, obj);
+					m_objects.erase(m_objects.begin()+i);
+					i--;
+					continue;
+				}
+
+				//if (GetRandom() < 0.02f) {
+					((CombatData*)obj->userData)->animationTime = 1.f; // required otherwise attacking will be set to false
+					((CombatData*)obj->userData)->attack(); // attacks every tick.
+					//log::out << "hit\n";
+				//}
+				float minDist = 9999999;
+				GameObject* plr = nullptr;
+				for (int j = 0; j < m_objects.size(); j++) {
+					GameObject* obj2 = m_objects[j];
+					if (obj2->objectType == OBJECT_PLAYER) {
+						if ((obj2->flags & OBJECT_PLAYER_DEAD)==0) {
+							float leng = glm::length(obj->getPosition() - obj2->getPosition());
+							if (leng > minDist || !plr) {
+								plr = obj2;
+								minDist = leng;
+							}
+						}
+					}
+				}
+				if (plr) {
+					glm::vec3 diff = plr->getPosition() - obj->getPosition();
+					float speed = 0.17f;
+					if (glm::length(diff) > 10) {
+						speed *= 2;
+					}
+					glm::vec3 wantedVelocity = speed * glm::normalize(diff)/info.timeStep;
+
+					glm::vec3 currentVelocity = ToGlmVec3(obj->rigidBody->getLinearVelocity());
+					glm::vec3 force = 0.045f*(wantedVelocity - 0.7f*currentVelocity) / info.timeStep;
+					//glm::vec3 force = 0.01f*(wantedVelocity - 0.4f*currentVelocity) / info.timeStep;
+					
+					obj->rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(force));
+				}
+			}
+		}
+
 		if (getServer().isRunning() || getClient().isRunning()) {
 			for (int i = 0; i < m_objects.size(); i++) {
 				GameObject* object = m_objects[i];
@@ -338,6 +448,7 @@ namespace prounk {
 				((CombatData*)m_objects[i]->userData)->wasUpdated=false;
 			}
 		}
+		m_objectMutex.unlock();
 		updateSample(info.timeStep);
 	}
 	//void NetGameGround::netSyncObjects() {
@@ -353,10 +464,11 @@ namespace prounk {
 	//
 	//	//-- send
 	//}
+
 	void NetGameGround::netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << "Playground::moveObject - neither server or client is running\n";
+			//log::out << "NetGameGround::netMoveObject - neither server or client is running\n";
 			return;
 		}
 		//-- Prepare message
@@ -377,7 +489,7 @@ namespace prounk {
 	void NetGameGround::netAddObject(engone::UUID uuid, engone::GameObject* object) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << log::RED << "Playground::moveObject - neither server or client is running\n";
+			//log::out << log::RED << "NetGameGround::addObject - neither server or client is running\n";
 			return;
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
@@ -397,10 +509,30 @@ namespace prounk {
 		if (m_client.isRunning())
 			m_client.send(msg);
 	}
+	void  NetGameGround::netDeleteObject(engone::UUID uuid) {
+		using namespace engone;
+		if (!m_server.isRunning() && !m_client.isRunning()) {
+			//log::out << log::RED << "NetGameGround::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = DELETE_OBJECT;
+		msg.push(cmd);
+		msg.push(&uuid);
+
+		//-- Send message
+		if (m_server.isRunning())
+			m_server.send(msg, 0, true);
+		if (m_client.isRunning())
+			m_client.send(msg);
+	}
 	void NetGameGround::netAnimateObject(engone::UUID uuid, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << "Playground::moveObject - neither server or client is running\n";
+			//log::out << "NetGameGround::netAnimateObject - neither server or client is running\n";
 			return;
 		}
 		//-- Prepare message
@@ -425,7 +557,7 @@ namespace prounk {
 	void NetGameGround::netEditObject(engone::UUID uuid, int type, uint64_t data) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << "Playground::moveObject - neither server or client is running\n";
+			//log::out << "NetGameGround::editObject - neither server or client is running\n";
 			return;
 		}
 		//-- Prepare message
@@ -446,7 +578,7 @@ namespace prounk {
 	void NetGameGround::netEditCombatData(engone::UUID uuid, engone::UUID player, bool yes) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << "Playground::moveObject - neither server or client is running\n";
+			//log::out << "NetGameGround::editCombatObject - neither server or client is running\n";
 			return;
 		}
 		//-- Prepare message
@@ -469,7 +601,7 @@ namespace prounk {
 	void NetGameGround::netDamageObject(engone::UUID uuid, float damage) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
-			log::out << "Playground::moveObject - neither server or client is running\n";
+			//log::out << "Playground::moveObject - neither server or client is running\n";
 			return;
 		}
 		//-- Prepare message

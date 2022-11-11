@@ -3,6 +3,7 @@
 #include "Engone/Logger.h"
 
 #include "Engone/Utilities/Alloc.h"
+#include "Engone/Utilities/Utilities.h"
 
 //#ifdef _WIN32
 //#define _WIN32_WINNT 0x0A00
@@ -57,15 +58,17 @@ namespace engone {
 
 	static WSADATA wsaData;
 	static bool startedWSA = false;
+	static std::mutex init_mutex;
 	void InitNetworking() {
-		if (startedWSA) {
-			return;
+		init_mutex.lock();
+		if (!startedWSA) {
+			if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
+				printf("Error with WSAStartup\n");
+			} else {
+				startedWSA = true;
+			}
 		}
-		if (WSAStartup(MAKEWORD(2, 2), &wsaData)) {
-			printf("Error with WSAStartup\n");
-			return;
-		}
-		startedWSA = true;
+		init_mutex.unlock();
 	}
 	void DestroyNetworking() {
 		WSACleanup();
@@ -357,6 +360,11 @@ namespace engone {
 		// if the client send head and then a smaller size then expected. readBody will freeze until that data has come through.
 		// This will only happend if the a programmer tampers with the client code. The same is true for server.
 		m_readThread = new std::thread([this]() {
+			if (m_server)
+				engone::SetThreadName(-1, "Server recv");
+			else if (m_client)
+				engone::SetThreadName(-1, "Client recv");
+			
 			//ENGONE_DEBUG(log::out << m_uuid << " read thread start\n";)
 			// not using mutex in thread because once the thread is running. NOTHING and NO ONE will touch the members of the connection.
 			enum Next {
@@ -396,6 +404,7 @@ namespace engone {
 					if (m_server) {
 						if (m_server->m_onEvent)
 							m_server->m_onEvent(NetEvent::Disconnect, m_uuid);
+
 						m_server->disconnect(m_uuid);
 					}
 					if (m_client) {
@@ -446,7 +455,7 @@ namespace engone {
 					if (expectingSize != readBytes) {
 						log::out << log::YELLOW << "Connection::readThread - readBytes did not match header's size "<<readBytes<<" != "<<expectingSize << "\n";
 					}
-					ENGONE_DEBUG(log::out << m_uuid << " recieved " << readBytes << "\n", NETWORKING_LEVEL, 2);
+					ENGONE_DEBUG(log::out << m_uuid << " recieved " << readBytes << "\n", NETWORKING_LEVEL, 1);
 					//MessageBuffer copy = *m_buffer;
 					//copy.m_sharing = true;
 					if (m_server) {
@@ -505,6 +514,11 @@ namespace engone {
 		m_writeThread = nullptr;
 		m_writing = true;
 		m_writeThread = new std::thread([this]() {
+			if (m_server)
+				engone::SetThreadName(-1, "Server send");
+			else if (m_client)
+				engone::SetThreadName(-1, "Client send");
+
 			bool shouldUnlock = true; // may not be necessary
 
 			m_writeMutex.lock();
@@ -527,7 +541,7 @@ namespace engone {
 					// write thread can close quitely.
 					break;
 				}
-				ENGONE_DEBUG(log::out << m_uuid <<" sent "<<error<<"\n", NETWORKING_LEVEL, 2);
+				ENGONE_DEBUG(log::out << m_uuid <<" sent "<<error<<"\n", NETWORKING_LEVEL, 1);
 				if (m_server) {
 					//ENGONE_DEBUG(log::out << "wt trylock server\n";)
 					m_server->m_mutex.lock();
@@ -573,22 +587,29 @@ namespace engone {
 	*/
 	Server::~Server() {
 		cleanup();
+		ENGONE_DEBUG(log::out << "Server::~Server - finished\n", NETWORKING_LEVEL, 2);
 	}
 	bool Server::start(const std::string& port) {
-		lock();
+		m_port = port;
+
+		m_workMutex.lock();
+		m_workQueue.push_back({ Action::START });
+		m_workMutex.unlock();
+		work();
+
+		return true;
 		if (keepRunning || m_connections.size() > 0) {
-			unlock();
-			return true;
+			return false;
 		}
 		if (!m_onEvent || !m_onReceive) {
 			log::out << log::RED<<"Server::start - missing lambdas\n";
-			unlock();
 			return false;
 		}
 
 		InitNetworking();
 
-		cleanup();
+		cleanup(); // do not lock this
+		lock();
 
 		keepRunning = true;
 
@@ -621,6 +642,7 @@ namespace engone {
 		if (keepRunning) {
 			m_port = port;
 			m_workerThread = std::thread([this,newSocket,intPort,result]() {
+				engone::SetThreadName(-1, "Server worker");
 				lock();
 				//struct sockaddr_in service;
 				//service.sin_family = AF_INET;
@@ -652,6 +674,7 @@ namespace engone {
 					m_socket = (void*)newSocket;
 					// thread joined in cleanup
 					m_acceptThread = std::thread([this]() {
+						engone::SetThreadName(-1, "Server acceptor");
 						//ENGONE_DEBUG(log::out << "accept thread start\n";)
 						while (keepRunning) {
 							//printf("accepting\n");
@@ -678,9 +701,10 @@ namespace engone {
 							//unlock();
 
 							if (!keep) {
-								conn->close();
+								m_connectionsMutex.lock();
 								delete conn;
 								m_connections.erase(uuid);
+								m_connectionsMutex.unlock();
 								continue;
 							}
 							conn->readThread();
@@ -703,63 +727,242 @@ namespace engone {
 		return out;
 	}
 	void Server::disconnect(UUID uuid) {
-		if (keepRunning) {
-			if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
-				m_workerThread.join();
-			lock();
-			m_workerThread = std::thread([this,uuid]() {
-				//ENGONE_DEBUG(log::out << "serv work thread start - discon\n";)
-				lock();
-				auto find = m_connections.find(uuid);
-				// connection doesn't exist
-				if (find != m_connections.end()) {
-					delete m_connections[uuid];
-					m_connections.erase(find);
-				}
-				unlock();
-				//ENGONE_DEBUG(log::out << "serv work thread stop - discon\n";)
-			});
-			unlock();
-		}
+		m_workMutex.lock();
+		m_workQueue.push_back({ Action::DISCONNECT, uuid});
+		m_workMutex.unlock();
+		work();
+		//if (keepRunning) {
+		//	if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
+		//		m_workerThread.join();
+		//	lock();
+		//	m_workerThread = std::thread([this,uuid]() {
+		//		//ENGONE_DEBUG(log::out << "serv work thread start - discon\n";)
+		//		lock();
+		//		auto find = m_connections.find(uuid);
+		//		if (find != m_connections.end()) {
+		//			delete m_connections[uuid];
+		//			m_connections.erase(find);
+		//		}
+		//		unlock();
+		//		//ENGONE_DEBUG(log::out << "serv work thread stop - discon\n";)
+		//	});
+		//	unlock();
+		//}
 	}
 	void Server::stop() {
-		if (keepRunning) {
-			keepRunning = false;
-			//ENGONE_DEBUG(log::out << "Server started stop\n";)
-			if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
+		m_workMutex.lock();
+		m_workQueue.push_back({ Action::STOP });
+		m_workMutex.unlock();
+		work();
+		//if (keepRunning) {
+		//	keepRunning = false;
+		//	//ENGONE_DEBUG(log::out << "Server started stop\n";)
+		//	if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
+		//		m_workerThread.join();
+		//	lock();
+		//	m_workerThread = std::thread([this]() {
+		//		//ENGONE_DEBUG(log::out << "serv work thread(clean) start\n";)
+		//		cleanup();
+		//		//ENGONE_DEBUG(log::out << "serv work thread(clean) stop\n";)
+		//	});
+		//	unlock();
+		//	//ENGONE_DEBUG(log::out << "Server finished stop\n";)
+		//}
+	}
+	void Server::work() {
+		m_workMutex.lock();
+		if (!m_working) {
+			m_working = true;
+			if (m_workerThread.joinable())
 				m_workerThread.join();
-			lock();
 			m_workerThread = std::thread([this]() {
-				//ENGONE_DEBUG(log::out << "serv work thread(clean) start\n";)
-				cleanup();
-				//ENGONE_DEBUG(log::out << "serv work thread(clean) stop\n";)
+				engone::SetThreadName(-1, "Server worker");
+
+				ENGONE_DEBUG(log::out << "Server::work - worker thread started\n", NETWORKING_LEVEL, 2);
+				m_workMutex.lock();
+				while (!m_workQueue.empty()) {
+					Action action = m_workQueue.front();
+					m_workQueue.erase(m_workQueue.begin());
+					m_workMutex.unlock();
+
+					if (action.type == Action::START) {
+						if (!m_onEvent ||!m_onReceive) {
+							log::out << log::RED << "Server::start - missing lambdas\n";
+							
+						} else {
+
+
+							InitNetworking();
+
+							cleanup(); // do not lock this
+							lock();
+
+							keepRunning = true;
+
+							uint16_t intPort = 0;
+							try {
+								intPort = std::stoi(m_port);
+							} catch (std::invalid_argument err) {
+								keepRunning = false;
+							}
+
+							struct addrinfo* result = NULL, * ptr = NULL, hints;
+
+							ZeroMemory(&hints, sizeof(hints));
+							hints.ai_family = AF_INET;
+							hints.ai_socktype = SOCK_STREAM;
+							hints.ai_protocol = IPPROTO_TCP;
+							hints.ai_flags = AI_PASSIVE;
+
+							int err = getaddrinfo(NULL, m_port.c_str(), &hints, &result);
+
+							SOCKET newSocket = 0;
+							if (keepRunning) {
+								newSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+								if (newSocket == INVALID_SOCKET) {
+									freeaddrinfo(result);
+									printf("Error with server socket\n");
+									keepRunning = false;
+								}
+							}
+							if (keepRunning) {
+								//m_port = port;
+								//m_workerThread = std::thread([this, newSocket, intPort, result]() {
+								//	engone::SetThreadName(-1, "Server worker");
+									//lock();
+									//struct sockaddr_in service;
+									//service.sin_family = AF_INET;
+									//service.sin_family = AF_INET;
+									// localhost as ip does not work
+									//service.sin_addr.s_addr = inet_addr("127.0.0.1");
+									//int ret = inet_pton(service.sin_family, "127.0.0.1",&service.sin_addr.S_un.S_addr);
+
+									//service.sin_port = htons(intPort);
+									//int error = bind(newSocket, (SOCKADDR*)&service, sizeof(service));
+									//log::out << "name length " << result->ai_addrlen << "\n";
+									int error = bind(newSocket, result->ai_addr, (int)result->ai_addrlen);
+									freeaddrinfo(result);
+									if (error == SOCKET_ERROR) {
+										printf("Error with server bind\n");
+										closesocket(newSocket);
+										keepRunning = false;
+									}
+									if (keepRunning) {
+										int backlog = 6;
+										int error = listen(newSocket, backlog);
+										if (error == SOCKET_ERROR) {
+											printf("Error with server listen\n");
+											closesocket(newSocket);
+											keepRunning = false;
+										}
+									}
+									if (keepRunning) {
+										m_socket = (void*)newSocket;
+										// thread joined in cleanup
+										m_acceptThread = std::thread([this]() {
+											engone::SetThreadName(-1, "Server acceptor");
+											//ENGONE_DEBUG(log::out << "accept thread start\n";)
+											while (keepRunning) {
+												//printf("accepting\n");
+												SOCKET newSocket = accept((SOCKET)m_socket, NULL, NULL);
+
+												if (newSocket == INVALID_SOCKET) {
+													//  Usually means the server socket was closed
+													break;
+												}
+
+												//UUID uuid = rand();
+												UUID uuid = UUID::New();
+
+												Connection* conn = new Connection(newSocket);
+												conn->m_uuid = uuid;
+												conn->m_server = this;
+												//GetTracker().track(conn);
+
+												m_connections[uuid] = conn; // needs to be before onEvent because sending messages require the connection 
+												// to be listed in m_connections
+
+												//lock();
+												bool keep = m_onEvent(NetEvent::Connect, uuid);
+												//unlock();
+
+												if (!keep) {
+													m_connectionsMutex.lock();
+													delete conn;
+													m_connections.erase(uuid);
+													m_connectionsMutex.unlock();
+													continue;
+												}
+												conn->readThread();
+											}
+											int err = WSAGetLastError();
+
+											//ENGONE_DEBUG(log::out<<"accept call stop\n";)
+											stop();
+
+											m_onEvent(NetEvent::Stopped, 0);
+											//ENGONE_DEBUG(log::out << "accept thread finished\n";)
+
+										});
+									}
+									//unlock();
+								//});
+							}
+							//bool out = keepRunning;
+							unlock();
+							//return out;
+						}
+					} else if (action.type == Action::STOP) {
+						cleanup();
+					} else if (action.type == Action::DISCONNECT) {
+						m_connectionsMutex.lock();
+						auto find = m_connections.find(action.uuid);
+						delete find->second;
+						m_connections.erase(find);
+						m_connectionsMutex.unlock();
+					}
+
+					m_workMutex.lock();
+				}
+				m_working = false;
+				m_workMutex.unlock();
+
+				ENGONE_DEBUG(log::out << "Server::work - worker thread started\n", NETWORKING_LEVEL, 2);
 			});
-			unlock();
-			//ENGONE_DEBUG(log::out << "Server finished stop\n";)
 		}
+		m_workMutex.unlock();
 	}
 	void Server::cleanup() {
-		//ENGONE_DEBUG(log::out << "Server started cleanup\n";)
+		if (!keepRunning) return; // already cleaned or being cleaned up
+		ENGONE_DEBUG(log::out << "Server::cleanup - started\n", NETWORKING_LEVEL, 2);
+
 		keepRunning = false;
 		if ((SOCKET)m_socket != INVALID_SOCKET) {
 			closesocket((SOCKET)m_socket);
 			m_socket = (void*)INVALID_SOCKET;
 		}
-		if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
-			m_workerThread.join();
+
 		lock();
-		for (auto [id, conn] : m_connections) {
-			conn->close();
-		}
 		if (m_acceptThread.joinable() && std::this_thread::get_id() != m_acceptThread.get_id())
 			m_acceptThread.join();
+
+		// ISSUE: What if the worker thread is active and tries to delete a connection while connections
+		//		are being looped through? use mutex lock for connections?
+		m_connectionsMutex.lock();
 		for (auto [id, conn] : m_connections) {
 			delete conn;
 		}
+		//m_connections.clear(); // <- not necessary because deleting connection will queue disconnect work for worker thread.
+		m_connectionsMutex.unlock();
+
 		m_port.clear();
-		m_connections.clear();
+
 		unlock();
-		//ENGONE_DEBUG(log::out << "Server finished cleanup\n";)
+
+		// wait for work to finish
+		if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
+			m_workerThread.join();
+		ENGONE_DEBUG(log::out << "Server::cleanup - finished\n", NETWORKING_LEVEL, 2);
 	}
 	void Server::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -826,24 +1029,31 @@ namespace engone {
 	*/
 	Client::~Client() {
 		cleanup();
-		//log::out << "finished cleanup client\n";
+		ENGONE_DEBUG(log::out << "Client::~Client - finished\n", NETWORKING_LEVEL, 2);
 	}
 	bool Client::start(const std::string& ip, const std::string& port) {
-		lock();
+		m_ip = ip;
+		m_port = port;
+
+		m_workMutex.lock();
+		m_workQueue.push_back({ Action::START });
+		m_workMutex.unlock();
+		work();
+
+		return true;
+		
 		if (keepRunning || m_connection) {
-			unlock();
-			return true;
+			return false;
 		}
 		if (!m_onEvent || !m_onReceive) {
 			log::out << "Client::start - missing lambdas\n";
-			unlock();
 			return false;
 		}
 
 		InitNetworking();
 
 		cleanup(); // can't start client if everything isn't cleaned up.
-		
+		lock();
 		keepRunning = true;
 
 		struct addrinfo *result = NULL, hints;
@@ -866,7 +1076,9 @@ namespace engone {
 			} else {
 				m_port = port;
 				m_ip = ip;
+				// creating worker thread here isn't ideal
 				m_workerThread = std::thread([this, newSocket, result]() {
+					engone::SetThreadName(-1, "Client worker");
 					//ENGONE_DEBUG(log::out << "client work thread start\n";)
 					int error = connect(newSocket, result->ai_addr, (int)result->ai_addrlen);
 					freeaddrinfo(result);
@@ -902,29 +1114,137 @@ namespace engone {
 		return keepRunning;
 	}
 	void Client::stop() {
-		if (keepRunning) {
-			keepRunning = false;
-			//ENGONE_DEBUG(log::out << "Client started stop\n";)
-			if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
-				m_workerThread.join();
-			lock();
-			m_workerThread = std::thread([this]() {
+		m_workMutex.lock();
+		m_workQueue.push_back({Action::STOP});
+		m_workMutex.unlock();
+		work();
+		//if (keepRunning) {
+		//	keepRunning = false;
+		//	//ENGONE_DEBUG(log::out << "Client started stop\n";)
+		//	if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
+		//		m_workerThread.join();
+		//	lock();
+		//	m_workerThread = std::thread([this]() {
 
-				//ENGONE_DEBUG(log::out << "client work thread(clean) start\n";)
-				cleanup();
-				//ENGONE_DEBUG(log::out << "client work thread(clean) stop\n";)
-		
+		//		//ENGONE_DEBUG(log::out << "client work thread(clean) start\n";)
+		//		cleanup();
+		//		//ENGONE_DEBUG(log::out << "client work thread(clean) stop\n";)
+		//
+		//	});
+		//	unlock();
+		//	//ENGONE_DEBUG(log::out << "Client finish stop\n";)
+		//}
+	}
+	void Client::work() {
+		m_workMutex.lock();
+		if (!m_working) {
+			m_working = true;
+			if (m_workerThread.joinable())
+				m_workerThread.join();
+			m_workerThread = std::thread([this]() {
+				engone::SetThreadName(-1, "Client worker");
+				ENGONE_DEBUG(log::out << "Client::work - worker thread started\n", NETWORKING_LEVEL, 2);
+				m_workMutex.lock();
+				while (!m_workQueue.empty()) {
+					Action action = m_workQueue.front();
+					m_workQueue.erase(m_workQueue.begin());
+					m_workMutex.unlock();
+
+					if (action.type == Action::START) {
+						//if (keepRunning || m_connection) {
+						//	return false;
+						//}
+						if (!m_onEvent || !m_onReceive) {
+							log::out << "Client::start - missing lambdas\n";
+						} else {
+							InitNetworking();
+
+							cleanup(); // can't start client if everything isn't cleaned up.
+							lock();
+							keepRunning = true;
+
+							struct addrinfo* result = NULL, hints;
+
+							ZeroMemory(&hints, sizeof(hints));
+							hints.ai_family = AF_UNSPEC;
+							hints.ai_socktype = SOCK_STREAM;
+							hints.ai_protocol = IPPROTO_TCP;
+
+							int err = getaddrinfo(m_ip.c_str(), m_port.c_str(), &hints, &result);
+							if (err != 0) {
+								// Error getaddr
+								keepRunning = false;
+							} else {
+								SOCKET newSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+								if (newSocket == INVALID_SOCKET) {
+									// Error with socket
+									freeaddrinfo(result);
+									keepRunning = false;
+								} else {
+									//m_port = port;
+									//m_ip = ip;
+									// creating worker thread here isn't ideal
+									//m_workerThread = std::thread([this, newSocket, result]() {
+									//	engone::SetThreadName(-1, "Client worker");
+										//ENGONE_DEBUG(log::out << "client work thread start\n";)
+										int error = connect(newSocket, result->ai_addr, (int)result->ai_addrlen);
+										freeaddrinfo(result);
+
+										//lock();
+										if (error == SOCKET_ERROR) {
+											int code = WSAGetLastError();
+											// Error with client connect
+											//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
+											closesocket(newSocket);
+											keepRunning = false;
+											m_onEvent(NetEvent::Failed, 0);
+										} else {
+
+											m_connection = new Connection(newSocket);
+											m_connection->m_uuid = 0; // ISSUE: this was 9999 before i switched to UUID maybe bad?
+											m_connection->m_client = this;
+
+											bool keep = m_onEvent(NetEvent::Connect, 0);
+
+											if (!keep) {
+												cleanup();
+											} else {
+												m_connection->readThread();
+											}
+										}
+										//unlock();
+										//ENGONE_DEBUG(log::out << "client work thread stop\n";)
+									//});
+								}
+							}
+							unlock();
+							//return keepRunning;
+						}
+					} else if (action.type == Action::STOP) {
+						cleanup();
+					}
+
+					m_workMutex.lock();
+				}
+				m_working = false;
+				m_workMutex.unlock();
+				ENGONE_DEBUG(log::out << "Client::work - worker thread finished\n", NETWORKING_LEVEL, 2);
 			});
-			unlock();
-			//ENGONE_DEBUG(log::out << "Client finish stop\n";)
 		}
+		m_workMutex.unlock();
 	}
 	void Client::cleanup() {
-		//ENGONE_DEBUG(log::out << "Client started cleanup\n";)
-		keepRunning = false;
-		if (m_workerThread.joinable()&&std::this_thread::get_id()!=m_workerThread.get_id()) {
-			m_workerThread.join(); // make sure the worker thread isn't deleting connection. Would be fine since it is mutex locked but still.
-		}
+		if (!keepRunning) return; // already cleaned or being cleaned.
+		ENGONE_DEBUG(log::out << "Client::cleanup - started\n", NETWORKING_LEVEL, 2);
+
+		// here you should disallow start work to happen.
+		// you don't want the client to start back up if is being destroyed.
+
+		keepRunning = false; // do this last? no because of if(!keepRunning) at top.
+		// another bool to indicate client being destroyed.
+		// client being stopped gracefully and being terminated are different things.
+		// gracefully is done by player when they quit a server. termination is done when the game is forcefully shutdown.
+
 		lock();
 		m_ip.clear();
 		m_port.clear();
@@ -933,7 +1253,12 @@ namespace engone {
 			m_connection = nullptr;
 		}
 		unlock();
-		//ENGONE_DEBUG(log::out << "Client finished cleanup\n";)
+
+		// wait for work to finish. the only work is
+		if (m_workerThread.joinable()&&std::this_thread::get_id()!=m_workerThread.get_id()) {
+			m_workerThread.join();
+		}
+		ENGONE_DEBUG(log::out << "Client::cleanup - finished\n", NETWORKING_LEVEL, 2);
 	}
 	void Client::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -945,10 +1270,12 @@ namespace engone {
 		if (msg.size() > getTransferLimit()) {
 			log::out << log::RED << "Buffer is bigger than the transfer limit!\n";
 		}
-		lock();
 		// ISSUE: how to track memory of shared ptr. increment sizeof(MessageBuffer) when is it destroyed?
 		// Make a custom ptr? heeeeeellllllp...
 		std::shared_ptr<MessageBuffer> ptr = std::make_shared<MessageBuffer>(msg);
+		
+		lock();
+		// lock a different connection mutex? replacement for lock()?
 		m_connection->sendMsg(ptr,synchronous);
 		msg.m_sharing = true;
 		unlock();
