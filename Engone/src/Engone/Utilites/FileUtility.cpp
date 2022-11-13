@@ -55,7 +55,7 @@ namespace engone {
 			throw error;
 		if (binaryForm) {
 
-			uint8_t length = var->size();
+			uint8_t length = var->length();
 			file.write(reinterpret_cast<char*>(&length), 1);
 			writeHead++;
 
@@ -96,7 +96,7 @@ namespace engone {
 			file.close();
 	}
 	void FileReader::read(std::string* var) {
-		if (error != ErrorNone || var == nullptr)
+		if (error != ErrorNone)
 			throw error;
 		if (binaryForm) {
 			if (readHead - 1u + 1u > fileSize) {
@@ -115,7 +115,7 @@ namespace engone {
 				throw error;
 			}
 
-			*var = std::string(length, ' ');
+			var->resize(length);
 
 			file.read(reinterpret_cast<char*>(var->data()), length);
 			readHead += length;

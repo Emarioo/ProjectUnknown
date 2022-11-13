@@ -1,21 +1,32 @@
 #pragma once
 
-#include "ItemType.h"
+//#include "ItemType.h"
 
-#ifdef gone
-class Item {
-public:
-	Item();
-	Item(const std::string& name);
-	Item(const std::string& name, int count);
+#include "Engone/Assets/ModelAsset.h"
 
-	std::string GetName();
+namespace prounk {
+	class Item {
+	public:
+		Item() = default;
+		//Item(const std::string& name);
+		//Item(const std::string& name, int count);
 
-	void SetItem(const std::string& name,int count);
+		const std::string& getName() { return m_name; }
+		void setName(const std::string& name) { m_name=name; }
 
-	int count = 0;
+		int getCount() { return m_count; }
+		void setCount(int count) { m_count = count; }
 
-	ItemType type;
+		engone::ModelAsset* getModel() { return m_model; }
+		void setModel(engone::ModelAsset* model) { m_model = model; }
+	
+	private:
+		int m_count = 0;
+		std::string m_name;
+		engone::ModelAsset* m_model;
 
-};
-#endif
+		int m_handlerId=0;
+		int m_dataIndex;
+
+	};
+}

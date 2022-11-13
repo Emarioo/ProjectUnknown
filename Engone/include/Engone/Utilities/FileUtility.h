@@ -71,6 +71,14 @@ namespace engone {
 				file.write("\n", 1);
 			}
 		}
+		//template <typename T>
+		//void write(const T& var) {
+		//	write(&var, 1);
+		//}
+		template <typename T>
+		void writeOne(T var) {
+			write(&var, 1);
+		}
 		inline void write(const glm::vec3* var, uint32_t count = 1) {
 			write((const float*)var, count * 3);
 		}
@@ -80,6 +88,9 @@ namespace engone {
 		/*
 		256 characters is the current max size.
 		*/
+		void write(const std::string& var) {
+			write(&var);
+		}
 		void write(const std::string* var);
 		void writeComment(const std::string& str);
 		static TrackerId trackerId;
@@ -203,6 +214,10 @@ namespace engone {
 				}
 			}
 		}
+		template <typename T>
+		void readOne(T& var) {
+			read(&var, 1);
+		}
 		void read(glm::vec3* var, uint32_t count = 1) {
 			read((float*)var, count * 3);
 		}
@@ -212,6 +227,9 @@ namespace engone {
 		/*
 		256 characters is the current max size.
 		*/
+		void read(std::string& var) {
+			read(&var);
+		}
 		void read(std::string* var);
 		void readAll(std::string* var);
 		// Does not include \n

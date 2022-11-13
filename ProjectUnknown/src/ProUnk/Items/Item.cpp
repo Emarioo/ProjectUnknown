@@ -1,25 +1,20 @@
-#include "gonpch.h"
 
-#include "Item.h"
+//#include "Item.h"
 
-#include "ItemHandler.h"
-#ifdef gone
-Item::Item() {
+//#include "ItemHandler.h"
 
-}
-Item::Item(const std::string& name)
-	: type(GetItemType(name)), count(1) {
-	
-}
-Item::Item(const std::string& name, int count)
-	: type(GetItemType(name)), count(count) {
-
-}
-void Item::SetItem(const std::string& name, int count) {
-	type = GetItemType(name);
-	count = count;
-}
-std::string Item::GetName() {
-	return type.name;
-}
-#endif
+//Item::Item() {
+//
+//}
+//Item::Item(const std::string& name)
+//	: type(GetItemType(name)), count(1) {
+//	
+//}
+//Item::Item(const std::string& name, int count)
+//	: type(GetItemType(name)), count(count) {
+//
+//}
+//void Item::setItem(const std::string& name, int count) {
+//	type = GetItemType(name);
+//	count = count;
+//}

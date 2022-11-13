@@ -8,6 +8,8 @@
 
 namespace engone {
 	
+#define GAME_OBJECT_EXTRA_DATA struct { int handlerId; int index; };
+
 	class Engone;
 	class GameGround;
 	// move function bodies to cpp file. having them in the header feels bad
@@ -32,7 +34,8 @@ namespace engone {
 		uint32_t flags=0; // make it private and provide methods?
 		uint32_t objectType = 0;
 
-		void* userData=nullptr; // combatdata for example
+		GAME_OBJECT_EXTRA_DATA
+		//void* userData=nullptr; // combatdata for example
 
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* rigidBody=nullptr;

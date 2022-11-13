@@ -6,9 +6,15 @@
 
 #include "Engone/Utilities/LoggingModule.h"
 
+#include "ProUnk/Tests/AllTests.h"
+
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
+
+	DataHandlerTest();
+
+	return;
 
 	Engone engine;
 

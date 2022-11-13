@@ -94,7 +94,12 @@
     <ClCompile Include="src\ProUnk\Combat\Combat.cpp" />
     <ClCompile Include="src\ProUnk\Combat\CombatData.cpp" />
     <ClCompile Include="src\ProUnk\Combat\Skills.cpp" />
+    <ClCompile Include="src\ProUnk\DataHandlers\DataHandlerRegistry.cpp" />
+    <ClCompile Include="src\ProUnk\DataHandlers\EntityHandler.cpp" />
+    <ClCompile Include="src\ProUnk\DataHandlers\InventoryHandler.cpp" />
     <ClCompile Include="src\ProUnk\GameApp.cpp" />
+    <ClCompile Include="src\ProUnk\Items\InventoryHandler.cpp" />
+    <ClCompile Include="src\ProUnk\Items\Item.cpp" />
     <ClCompile Include="src\ProUnk\Magic.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
@@ -107,6 +112,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\ProUnk\Shaders.cpp" />
+    <ClCompile Include="src\ProUnk\Test\DataHandlerTest.cpp" />
     <ClCompile Include="src\ProUnk\UI\DebugInfo.cpp" />
     <ClCompile Include="src\ProUnk\UI\IntroScene.cpp" />
     <ClCompile Include="src\ProUnk\UI\PlayerInformation.cpp" />
@@ -115,9 +121,11 @@
   <ItemGroup>
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
+    <ClInclude Include="include\ProUnk\DataHandlers\EntityHandler.h" />
     <ClInclude Include="include\ProUnk\NetGameGround.h" />
     <ClInclude Include="include\ProUnk\Objects\BasicObjects.h" />
     <ClInclude Include="include\ProUnk\Objects\ObjectManager.h" />
+    <ClInclude Include="include\ProUnk\Tests\AllTests.h" />
     <ClInclude Include="include\ProUnk\UI\PlayerInformation.h" />
     <ClInclude Include="include\ProUnk\UI\UIMenus.h" />
     <ClInclude Include="resource.h" />
@@ -130,6 +138,10 @@
     <ClInclude Include="include\ProUnk\Shaders\Shaders.h" />
     <ClInclude Include="include\ProUnk\Magic\Magic.h" />
     <ClInclude Include="include\ProUnk\Combat\Combat.h" />
+    <ClInclude Include="include\ProUnk\DataHandlers\DataHandlerRegistry.h" />
+    <ClInclude Include="src\ProUnk\Items\Inventory.h" />
+    <ClInclude Include="include\ProUnk\DataHandlers\InventoryHandler.h" />
+    <ClInclude Include="src\ProUnk\Items\Item.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ProjectUnknown.rc" />
