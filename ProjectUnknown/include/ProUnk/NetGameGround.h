@@ -84,7 +84,8 @@ namespace prounk {
 		//-- Network messages you can send
 		// 
 		// pass in GameObject instead?
-		void netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular);
+		void netMoveObject(engone::GameObject* object);
+		//void netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular);
 		//void netAddObject(engone::UUID uuid, int objectType, const std::string& modelAsset);
 		void netAddObject(engone::UUID uuid, engone::GameObject* object);
 		void netDeleteObject(engone::UUID uuid);

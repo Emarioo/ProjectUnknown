@@ -8,7 +8,8 @@
 
 namespace engone {
 	
-#define GAME_OBJECT_EXTRA_DATA struct { int handlerId; int index; };
+#define GAME_OBJECT_EXTRA_DATA void* userData;
+//#define GAME_OBJECT_EXTRA_DATA struct { int handlerId; int index; };
 
 	class Engone;
 	class GameGround;

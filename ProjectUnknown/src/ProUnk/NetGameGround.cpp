@@ -426,8 +426,9 @@ namespace prounk {
 			for (int i = 0; i < m_objects.size(); i++) {
 				GameObject* object = m_objects[i];
 				if (object->flags & NetGameGround::OBJECT_NETMOVE) {
-					netMoveObject(object->getUUID(), object->rigidBody->getTransform(),
-						object->rigidBody->getLinearVelocity(), object->rigidBody->getAngularVelocity());
+					netMoveObject(object);
+					//netMoveObject(object->getUUID(), object->rigidBody->getTransform(),
+					//	object->rigidBody->getLinearVelocity(), object->rigidBody->getAngularVelocity());
 				}
 			}
 		}
@@ -465,7 +466,7 @@ namespace prounk {
 	//	//-- send
 	//}
 
-	void NetGameGround::netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular) {
+	void NetGameGround::netMoveObject(engone::GameObject* object) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
 			//log::out << "NetGameGround::netMoveObject - neither server or client is running\n";
@@ -475,10 +476,15 @@ namespace prounk {
 		MessageBuffer msg;
 		NetCommand cmd = MoveObject;
 		msg.push(cmd);
+		// creating the values on stack here is unnecessary but requires
+		// changes to MessageBuffer to be able to avoid it.
+		UUID uuid = object->getUUID();
+		rp3d::Vector3 vel = object->rigidBody->getLinearVelocity();
+		rp3d::Vector3 angVel = object->rigidBody->getAngularVelocity();
 		msg.push(&uuid);
-		msg.push(&transform);
-		msg.push(&velocity);
-		msg.push(&angular);
+		msg.push(&object->rigidBody->getTransform());
+		msg.push(&vel);
+		msg.push(&angVel);
 
 		//-- Send message
 		if (m_server.isRunning())
@@ -486,6 +492,27 @@ namespace prounk {
 		if (m_client.isRunning())
 			m_client.send(msg);
 	}
+	//void NetGameGround::netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular) {
+	//	using namespace engone;
+	//	if (!m_server.isRunning() && !m_client.isRunning()) {
+	//		//log::out << "NetGameGround::netMoveObject - neither server or client is running\n";
+	//		return;
+	//	}
+	//	//-- Prepare message
+	//	MessageBuffer msg;
+	//	NetCommand cmd = MoveObject;
+	//	msg.push(cmd);
+	//	msg.push(&uuid);
+	//	msg.push(&transform);
+	//	msg.push(&velocity);
+	//	msg.push(&angular);
+
+	//	//-- Send message
+	//	if (m_server.isRunning())
+	//		m_server.send(msg, 0, true);
+	//	if (m_client.isRunning())
+	//		m_client.send(msg);
+	//}
 	void NetGameGround::netAddObject(engone::UUID uuid, engone::GameObject* object) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {

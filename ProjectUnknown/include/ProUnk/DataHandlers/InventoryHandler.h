@@ -3,6 +3,8 @@
 #include "ProUnk/DataHandlers/DataHandlerRegistry.h"
 #include "Engone/Assets/ModelAsset.h"
 
+#include "ProUnk/DataHandlers/ModelHandler.h"
+
 namespace prounk {
 	class Item {
 	public:
@@ -16,13 +18,16 @@ namespace prounk {
 		int getCount() { return m_count; }
 		void setCount(int count) { m_count = count; }
 
-		engone::ModelAsset* getModel() { return m_model; }
-		void setModel(engone::ModelAsset* model) { m_model = model; }
+		//engone::ModelAsset* getModelId() { return m_modelId; }
+		ModelId getModelId() { return m_modelId; }
+		// not sure about this function
+		void setModelId(ModelId modelId){ m_modelId = modelId; }
 
 	private:
 		int m_count = 0;
 		std::string m_name;
-		engone::ModelAsset* m_model;
+		ModelId m_modelId;
+		//engone::ModelAsset* m_model;
 
 		//HandlerId m_handlerId = 0;
 		//int m_dataIndex;
