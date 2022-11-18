@@ -26,9 +26,9 @@ namespace engone {
 		// struct size is sizeof your particle
 		void initT(Window* window, Shader* shader, int pSize, int iSize, Flags flags=0);
 
-		//void update(engone::UpdateInfo& info);
+		//void update(engone::LoopInfo& info);
 		// Will update projection and bind shader
-		void render(engone::RenderInfo& info);
+		void render(engone::LoopInfo& info);
 
 		struct ret { void* info; void* parts; };
 		// will allocate particles for you to change.

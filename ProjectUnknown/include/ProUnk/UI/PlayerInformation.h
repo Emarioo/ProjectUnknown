@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Engone/LoopInfo.h"
-#include "ProUnk/Objects/Player.h"
+#include "ProUnk/PlayerController.h"
 
 namespace prounk {
-	void RenderPlayerInformation(engone::RenderInfo& info, Player* player);
+	void RenderPlayerInformation(engone::LoopInfo& info, PlayerController* playerController);
 }

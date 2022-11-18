@@ -4,7 +4,7 @@
 #include "Engone/AssetModule.h"
 #include "Engone/LoopInfo.h"
 #include "Engone/Utilities/RuntimeStats.h"
-#include "Engone/World/GameGround.h"
+#include "Engone/World/EngineWorld.h"
 
 namespace engone {
 
@@ -21,13 +21,13 @@ namespace engone {
 				delete m_windows[i];
 			}
 			m_windows.clear();
-			delete m_ground;
+			delete m_world;
 		}
 
 		// these virtual functions should be = 0 but for test purposes they are not.
 
-		virtual void update(UpdateInfo& info) {};
-		virtual void render(RenderInfo& info) {};
+		virtual void update(LoopInfo& info) {};
+		virtual void render(LoopInfo& info) {};
 
 		// will be called when a window closes.
 		virtual void onClose(Window* window) {};
@@ -63,8 +63,8 @@ namespace engone {
 		}
 
 		// virtual because you may want your GameGround instead of the default.
-		virtual inline GameGround* getGround() { return m_ground; }
-		virtual inline void setGround(GameGround* pg) { m_ground=pg; }
+		virtual inline EngineWorld* getWorld() { return m_world; }
+		virtual inline void setWorld(EngineWorld* world) { m_world=world; }
 
 		bool isRenderingWindow() const { return m_renderingWindows; }
 
@@ -72,7 +72,7 @@ namespace engone {
 
 		static TrackerId trackerId;
 	private:
-		GameGround* m_ground=nullptr;
+		EngineWorld* m_world=nullptr;
 
 		bool m_stopped = false;
 		std::vector<Window*> m_windows;

@@ -462,7 +462,7 @@ namespace launcher {
 			return false;
 		}
 	}
-	void LauncherApp::update(engone::UpdateInfo& info) {
+	void LauncherApp::update(engone::LoopInfo& info) {
 		loadingTime += info.timeStep;
 		if (delaySwitch.run(info)) {
 			switchState(LauncherSetting);
@@ -471,7 +471,7 @@ namespace launcher {
 			infoText.text = "Sorry to break it to you, but downloading failed\n";
 		}
 	}
-	void LauncherApp::render(engone::RenderInfo& info) {
+	void LauncherApp::render(engone::LoopInfo& info) {
 		using namespace engone;
 
 		//-- Menu / Colors

@@ -202,7 +202,7 @@ namespace engone {
 		//AddListener(new Listener(EventType::Resize, 9999, DrawOnResize));
 		setActiveRenderer();
 	}
-	void Renderer::DrawQuad(RenderInfo& info) {
+	void Renderer::DrawQuad(LoopInfo& info) {
 		//Assets* assets = info.window->getAssets();
 		//Shader* guiShader = assets->get<Shader>("gui");
 
@@ -873,7 +873,7 @@ namespace engone {
 	void Renderer::setActiveRenderer() {
 		g_activeRenderer = this;
 	}
-	void Renderer::render(RenderInfo& info) {
+	void Renderer::render(LoopInfo& info) {
 		GLFWwindow* match = glfwGetCurrentContext();
 		//log::out << "Win:"<<info.window << "\n";
 		if (!m_parent) {

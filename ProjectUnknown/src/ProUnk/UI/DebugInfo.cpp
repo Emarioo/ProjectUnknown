@@ -5,7 +5,7 @@
 
 namespace prounk {
 
-	void DebugInfo(engone::RenderInfo& info, GameApp* app) {
+	void DebugInfo(engone::LoopInfo& info, GameApp* app) {
 		using namespace engone;
 		
 		float sw = GetWidth();
@@ -17,7 +17,7 @@ namespace prounk {
 		const int BUFFER_SIZE = 50;
 		char str[BUFFER_SIZE];
 		int bufferSize = BUFFER_SIZE;
-		float sps = app->getGround()->getBytesSentPerSecond();
+		float sps = app->getWorld()->getBytesSentPerSecond();
 		int at = 0;
 		at += snprintf(str, bufferSize, "sending ");
 		//if (sps<1000) {
@@ -36,7 +36,7 @@ namespace prounk {
 		sent.y = 10;
 		ui::Draw(sent);
 		
-		float rps = app->getGround()->getBytesReceivedPerSecond();
+		float rps = app->getWorld()->getBytesReceivedPerSecond();
 		at = 0;
 		bufferSize = BUFFER_SIZE;
 		at += snprintf(str, bufferSize, "receiving ");

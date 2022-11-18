@@ -9,6 +9,7 @@ namespace prounk {
 	class Item {
 	public:
 		Item() = default;
+		Item(int count, const std::string& name) : m_count(count), m_name(name) {}
 		//Item(const std::string& name);
 		//Item(const std::string& name, int count);
 
@@ -32,6 +33,7 @@ namespace prounk {
 		//HandlerId m_handlerId = 0;
 		//int m_dataIndex;
 
+		friend class InventoryHandler;
 	};
 	class Inventory {
 	public:
@@ -46,13 +48,16 @@ namespace prounk {
 		// 
 
 		// no bound check
-		Item* getItem(int index) { return m_items[index]; }
+		Item& getItem(int index) { return m_items[index]; }
+		void addItem(Item item) { m_items.push_back(item); }
+
+		std::vector<Item>& getList() { return m_items; };
 
 		int size() { return m_items.size(); }
 
 	private:
 
-		std::vector<Item*> m_items; // all slots
+		std::vector<Item> m_items; // all slots
 	};
 	class InventoryHandler : public DataHandler {
 	public:
@@ -65,6 +70,10 @@ namespace prounk {
 		// of one read for each item. all the items would be read into the correct location at once.
 		void serialize() override;
 		void deserialize() override;
+
+		// no bounds check
+		Inventory* getInventory(int id);
+		int addInventory();
 
 	private:
 

@@ -101,7 +101,7 @@ namespace engone {
 			}
 			return false;
 		}
-		bool run(UpdateInfo& info) {
+		bool run(LoopInfo& info) {
 			return run(info.timeStep);
 		}
 
@@ -109,7 +109,7 @@ namespace engone {
 		static void Start(int id, float waitSeconds);
 		static void Stop(int id, float waitSeconds);
 		static bool Run(int id, float deltaTime);
-		static bool Run(int id, UpdateInfo& info);
+		static bool Run(int id, LoopInfo& info);
 
 	private:
 		bool running = false;
@@ -238,4 +238,20 @@ namespace engone {
 	// This only works in visual studios debugger.
 	// An alternative is SetThreadDescription but it is not available in Windows 8.1 which I am using.
 	void SetThreadName(DWORD dwThreadID, const char* threadName);
+
+	class DepthMutex {
+	public:
+		DepthMutex() = default;
+
+		void lock();
+		void unlock();
+
+	private:
+		
+		std::thread::id m_threadId;
+		int depth = 0;
+		std::mutex m_mutex;
+		std::mutex m_internalMutex;
+
+	};
 }

@@ -4,5 +4,5 @@
 
 namespace prounk {
 	class GameApp;
-	void ParticleMagicTest(engone::RenderInfo& info, GameApp* app);
+	void ParticleMagicTest(engone::LoopInfo& info, GameApp* app);
 }

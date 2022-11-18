@@ -28,7 +28,7 @@ namespace prounk {
 		};
 
 		ModelId getNewId() { return m_newId++; }
-		ModelId m_newId = 0; // id -1 is seen as invalid
+		ModelId m_newId = 1; // id 0 is seen as invalid
 
 		std::vector<Entry> m_entries;
 

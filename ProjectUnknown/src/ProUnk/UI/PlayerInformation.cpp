@@ -2,8 +2,10 @@
 
 #include "Engone/Engone.h"
 
+#include "ProUnk/Combat/CombatData.h"
+
 namespace prounk {
-	void RenderPlayerInformation(engone::RenderInfo& info, Player* player) {
+	void RenderPlayerInformation(engone::LoopInfo& info, PlayerController* playerController) {
 		using namespace engone;
 		float sw = GetWidth();
 		float sh = GetHeight();
@@ -17,7 +19,8 @@ namespace prounk {
 		ui::Box healthBack = { 10,10,sw * 0.2,50,{0.5f,0.5f,0.5f,0.5f} };
 		ui::Draw(healthBack);
 
-		CombatData* combatData = (CombatData*)player->userData;
+		
+		CombatData* combatData = playerController->m_world->entityHandler.getEntry(playerController->getPlayerObject()->userData).combatData;
 
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();

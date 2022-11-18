@@ -8,26 +8,23 @@
 
 namespace engone {
 	
-#define GAME_OBJECT_EXTRA_DATA void* userData;
-//#define GAME_OBJECT_EXTRA_DATA struct { int handlerId; int index; };
-
 	class Engone;
-	class GameGround;
+	class EngineWorld;
 	// move function bodies to cpp file. having them in the header feels bad
-	class GameObject {
+	class EngineObject {
 	public:
 		//-- flags
 		static const uint32_t PENDING_COLLIDERS=1;
 		static const uint32_t ONLY_TRIGGER=2; // all colliders are triggers
 		// make only trigger flag
 
-		//GameObject() = default;
-		GameObject() : m_uuid(UUID::New()) {};
+		//EngineObject() = default;
+		EngineObject() : m_uuid(UUID::New()) {};
 		// uuid as 0 will generate a new UUID
-		GameObject(UUID uuid) : m_uuid(uuid!=0?uuid:UUID::New()) { };
-		virtual ~GameObject() {}
+		EngineObject(UUID uuid) : m_uuid(uuid!=0?uuid:UUID::New()) { };
+		virtual ~EngineObject() {}
 
-		virtual void update(UpdateInfo& info) {};
+		virtual void update(LoopInfo& info) {};
 
 		UUID getUUID() const { return m_uuid; }
 		ModelAsset* modelAsset=nullptr;
@@ -35,24 +32,15 @@ namespace engone {
 		uint32_t flags=0; // make it private and provide methods?
 		uint32_t objectType = 0;
 
-		GAME_OBJECT_EXTRA_DATA
-		//void* userData=nullptr; // combatdata for example
-
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* rigidBody=nullptr;
-		rp3d::CollisionBody* collisionBody=nullptr;
 		// a matrix, without scale
 		glm::mat4 getTransform() const {
 			if (rigidBody) 
 				return ToMatrix(rigidBody->getTransform());
-			if (collisionBody) 
-				return ToMatrix(collisionBody->getTransform());
 			return glm::mat4(1);
 		}
 		virtual void setTransform(glm::mat4 mat) {
-			if (collisionBody) {
-				collisionBody->setTransform(ToTransform(mat));
-			}
 			if (rigidBody) {
 				rigidBody->setTransform(ToTransform(mat));
 			}
@@ -60,8 +48,6 @@ namespace engone {
 		glm::vec3 getPosition() {
 			if(rigidBody)
 				return ToGlmVec3(rigidBody->getTransform().getPosition());
-			if (collisionBody)
-				return ToGlmVec3(collisionBody->getTransform().getPosition());
 			return { 0,0,0 };
 		}
 		virtual void setTransform(glm::vec3 vec) {
@@ -73,7 +59,7 @@ namespace engone {
 		// Will load colliders whenever requirements are meet. This method is asynchronous.
 		// These are: modelAsset is valid, rigidbody is valid.
 		// The ground parameter is used by the engine and not relevant to you.
-		void loadColliders(GameGround* ground=nullptr);
+		void loadColliders(EngineWorld* world=nullptr);
 
 		// sets user data for all colliders of the rigidbody.
 		// if colliders aren't loaded. it will be set when they are.
@@ -88,6 +74,8 @@ namespace engone {
 			} 
 		}
 #endif
+
+		int userData=0;
 
 	private:
 		UUID m_uuid=0;

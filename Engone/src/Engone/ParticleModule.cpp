@@ -28,7 +28,7 @@ namespace engone {
 		m_pSize = pSize;
 		m_flags = flags;
 	}
-	//void ParticleGroup::update(engone::UpdateInfo& info) {
+	//void ParticleGroup::update(engone::LoopInfo& info) {
 		//float delta = info.timeStep;
 		//for (int i = 0; i < m_count; i++) {
 		//	Particle& part = m_particles[i];
@@ -68,7 +68,7 @@ namespace engone {
 		//}
 		//m_updateBuffer = true;
 	//}
-	void ParticleGroupT::render(engone::RenderInfo& info) {
+	void ParticleGroupT::render(engone::LoopInfo& info) {
 		if (m_count == 0 || !m_parent || !m_shader) return;
 		if (!m_shaderBuffer.initialized()) return;
 
@@ -405,7 +405,7 @@ namespace engone {
 	//	m_count += count;
 	//	return out;
 	//}
-	//void ParticleModule::update(UpdateInfo& info) {
+	//void ParticleModule::update(LoopInfo& info) {
 	//	//for (int i = 0;i < m_count; i++) {
 	//	//	m_particleInfos[i].life -= info.timeStep;
 
@@ -422,7 +422,7 @@ namespace engone {
 	//	//}
 	//	//m_updateBuffer = true;
 	//}
-	//void ParticleModule::render(RenderInfo& info) {
+	//void ParticleModule::render(LoopInfo& info) {
 	//	if (m_count == 0||!m_parent) return;
 
 	//	//EnableDepth();

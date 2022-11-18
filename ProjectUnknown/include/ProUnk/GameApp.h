@@ -2,14 +2,15 @@
 
 #include "Engone/Engone.h"
 #include "Objects/BasicObjects.h"
-#include "Objects/Player.h"
-//#include "Objects/Terrain.h"
 
-#include "ProUnk/NetGameGround.h"
+#include "ProUnk/World.h"
 
 #include "Engone/ParticleModule.h"
 
 #include "ProUnk/Combat/CombatData.h"
+
+#include "ProUnk/PlayerController.h"
+#include "ProUnk/DataHandlers/InventoryHandler.h"
 
 namespace prounk {
 
@@ -36,21 +37,20 @@ namespace prounk {
 		~GameApp() { cleanup(); }
 		void cleanup() {}
 
-		void update(engone::UpdateInfo& info) override;
-		void render(engone::RenderInfo& info) override;
+		void update(engone::LoopInfo& info) override;
+		void render(engone::LoopInfo& info) override;
 		void onClose(engone::Window* window) override;
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
 		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
-		void dealCombat(engone::GameObject* atkObj, engone::GameObject* collider);
+		void dealCombat(engone::EngineObject* atkObj, engone::EngineObject* collider);
 
-		Player* player = nullptr;
-		//Terrain* terrain = nullptr;
+		PlayerController playerController;
 
 		engone::DelayCode delayed;
 
-		inline NetGameGround* getGround() override { return (NetGameGround*)Application::getGround(); }
-		inline void setGround(NetGameGround* ground) { Application::setGround(ground); }
+		inline World* getWorld() override { return (World*)Application::getWorld(); }
+		inline void setWorld(World* world) { Application::setWorld(world); }
 
 		// request system for particles.
 		void doParticles(glm::vec3 pos) {
@@ -67,9 +67,5 @@ namespace prounk {
 		bool paused = true;
 
 		engone::Window* m_window=nullptr;
-
-		//Sword* sword = nullptr;
-
-		//void UiTest();
 	};
 }

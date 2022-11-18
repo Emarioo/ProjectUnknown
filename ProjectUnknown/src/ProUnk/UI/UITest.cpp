@@ -62,14 +62,14 @@ namespace prounk {
 	};
 	std::unordered_map<GameApp*, Stuff> app_data;
 
-	void Stop(engone::RenderInfo& info) {
+	void Stop(engone::LoopInfo& info) {
 		GameApp* app = (GameApp*)info.window->getParent();
-		NetGameGround* ground = app->getGround();
-		if (ground->getServer().isRunning()) {
-			ground->getServer().stop();
+		World* world = app->getWorld();
+		if (world->getServer().isRunning()) {
+			world->getServer().stop();
 		}
-		if (ground->getClient().isRunning()) {
-			ground->getClient().stop();
+		if (world->getClient().isRunning()) {
+			world->getClient().stop();
 		}
 	}
 	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip) {
@@ -81,11 +81,11 @@ namespace prounk {
 			find->second.portBox.text = port;
 		}
 	}
-	void Connect(engone::RenderInfo& info) {
+	void Connect(engone::LoopInfo& info) {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
 		Stuff& stuff = app_data[app];
-		NetGameGround* ground = app->getGround();
+		World* world = app->getWorld();
 
 		// Nothing will happen if client or server is active. You have to stop first.
 		// NOTE: restarting server is a bit tricky because you can't call stop and then start because stop is asynchronous and when start is called the server is still running
@@ -95,20 +95,20 @@ namespace prounk {
 		//      doing the actions while the thread calling stop and start is asynchronous.
 		//		THIS idea has been added to the TODO list in Engone for Networking. Change this code when it is implemented.
 
-		if (!ground->getServer().isRunning()&&!ground->getClient().isRunning()) {
+		if (!world->getServer().isRunning()&&!world->getClient().isRunning()) {
 			bool result = false;
 			// TODO: handle potential error messages.
 			if (stuff.type == "Client") {
-				result = ground->getClient().start(stuff.ipBox.text, stuff.portBox.text);
+				result = world->getClient().start(stuff.ipBox.text, stuff.portBox.text);
 			} else if (stuff.type == "Server") {
-				result = ground->getServer().start(stuff.portBox.text);
+				result = world->getServer().start(stuff.portBox.text);
 			}
 			if (!result) {
 				log::out << log::RED << "UITest::Connect - Server/Client::start failed\n";
 			}
 		}
 	}
-	void RenderServerClientMenu(engone::RenderInfo& info) {
+	void RenderServerClientMenu(engone::LoopInfo& info) {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
 
@@ -119,21 +119,21 @@ namespace prounk {
 		if (find == app_data.end())
 			app_data[app] = {};
 
-		NetGameGround* ground = ((GameApp*)info.window->getParent())->getGround();
+		World* world = ((GameApp*)info.window->getParent())->getWorld();
 		
 		Stuff& stuff = app_data[app];
 		if (!stuff.once) {
 			stuff.once = true;
 			
-			if (ground->getServer().isRunning()) {
+			if (world->getServer().isRunning()) {
 				stuff.type = "Server";
-				stuff.ipBox.text = ground->getServer().getIP();
-				stuff.portBox.text = ground->getServer().getPort();
+				stuff.ipBox.text = world->getServer().getIP();
+				stuff.portBox.text = world->getServer().getPort();
 			}
-			if (ground->getClient().isRunning()) {
+			if (world->getClient().isRunning()) {
 				stuff.type = "Client";
-				stuff.ipBox.text = ground->getClient().getIP();
-				stuff.portBox.text = ground->getClient().getPort();
+				stuff.ipBox.text = world->getClient().getIP();
+				stuff.portBox.text = world->getClient().getPort();
 			}
 			// specify default values with SetDefaultIPPort
 		}
@@ -190,7 +190,7 @@ namespace prounk {
 		ui::Edit(&stuff.ipBox);
 		ui::Draw(stuff.ipBox);
 
-		if (ground->getServer().isRunning() || ground->getClient().isRunning()) {
+		if (world->getServer().isRunning() || world->getClient().isRunning()) {
 			ui::TextBox stopBox = { "Stop",stuff.ipBox.x,stuff.ipBox.y + stuff.ipBox.h,25,consolas, textColor };
 			if (ui::Clicked(stopBox) == 1) {
 				Stop(info);

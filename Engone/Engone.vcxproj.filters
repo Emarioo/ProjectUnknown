@@ -75,7 +75,7 @@
     <ClInclude Include="include\Engone\EngoneFlag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\GameObject.h">
+    <ClInclude Include="include\Engone\EngineObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h">
@@ -90,7 +90,7 @@
     <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\World\GameGround.h">
+    <ClInclude Include="include\Engone\World\EngineWorld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Utilities\rp3d.h">
@@ -236,7 +236,7 @@
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\GameObject.cpp">
+    <ClCompile Include="src\Engone\EngineObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\ParticleModule.cpp">
@@ -263,7 +263,7 @@
     <ClCompile Include="src\Engone\Assets\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\GameGround.cpp">
+    <ClCompile Include="src\Engone\EngineWorld.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp">

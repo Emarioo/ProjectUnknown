@@ -5,7 +5,7 @@
 namespace prounk {
 
 	engone::ModelAsset* ModelHandler::getModel(ModelId id) {
-		return m_entries[id].model;
+		return m_entries[id-1].model;
 	}
 	ModelId ModelHandler::registerModel(engone::ModelAsset* model) {
 		using namespace engone;
@@ -19,12 +19,12 @@ namespace prounk {
 		for (int i = 0; i < m_entries.size();i++){
 			Entry& entry = m_entries[i];
 			if (entry.name == model->getLoadName()) {
-				id = i;
+				id = i+1;
 				break;
 			}
 		}
 
-		if (id == -1) {
+		if (id == 0) {
 			// not found, register new
 			id = getNewId();
 
@@ -34,27 +34,25 @@ namespace prounk {
 
 			log::out << "Registered NEW model '" << model->getLoadName() << "' as " << id << "\n";
 			
-			return id;
 		}
 		else {
 			// found
-			Entry& entry = m_entries[id];
+			Entry& entry = m_entries[id-1];
 			if (entry.model) {
 				log::out <<log::RED<< "Model '" << model->getLoadName() << "' already registered\n";
-			}
-			else {
+			} else {
 				entry.model = model;
 				log::out << "Registered model '" << model->getLoadName() << "' as " << id << "\n";
-				return id;
 			}
 		}
-		return -1;
+		return id;
 	}
 	void ModelHandler::serialize() {
 		using namespace engone;
 
 		FileWriter file("modelHandler.dat");
-
+		if (!file)
+			return;
 		int size = m_entries.size();
 		file.write(&size);
 		for (int i = 0; i < size;i++) {
@@ -66,7 +64,8 @@ namespace prounk {
 		using namespace engone;
 
 		FileReader file("modelHandler.dat");
-
+		if (!file)
+			return;
 		int size;
 		file.read(&size);
 		for (int i = 0; i < size; i++) {

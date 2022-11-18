@@ -6,19 +6,23 @@
 
 namespace prounk {
 
-	//struct EntityData {
-	//	CombatData* data=0;
-	//	int inventoryIndex=0;
-	//};
-	//class EntityHandler : public DataHandler {
-	//public:
-	//	EntityHandler() : DataHandler("entity_handler") {}
+	class EntityHandler : public DataHandler {
+	public:
+		EntityHandler() : DataHandler("entity_handler") {}
 
-	//	void serialize();
-	//	void deserialize();
+		void serialize();
+		void deserialize();
 
-	//	
-	//private:
+		struct Entry {
+			CombatData* combatData=nullptr;
+			int inventoryIndex = 0;
+		};
+		Entry& getEntry(int id);
+		int addEntry();
+		
+	private:
 
-	//};
+		std::vector<Entry> m_entries;
+
+	};
 }

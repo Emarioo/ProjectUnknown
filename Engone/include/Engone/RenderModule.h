@@ -102,11 +102,11 @@ namespace engone {
 		//void DrawLine(glm::vec3 a, glm::vec3 b);
 		void DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		
-		void render(RenderInfo& info);
+		void render(LoopInfo& info);
 
 		// will draw a vertex buffer with two triangles.
 		// Set shader, texture, uniforms before.
-		void DrawQuad(RenderInfo& info);
+		void DrawQuad(LoopInfo& info);
 
 		Window* getParent() const { return m_parent; }
 

@@ -58,7 +58,7 @@
     <ClInclude Include="include\Engone\Assets\TextureAsset.h" />
     <ClInclude Include="include\Engone\Defs\DEFS_BASE.h" />
     <ClInclude Include="include\Engone\Error.h" />
-    <ClInclude Include="include\Engone\GameObject.h" />
+    <ClInclude Include="include\Engone\EngineObject.h" />
     <ClInclude Include="include\Engone\Logger.h" />
     <ClInclude Include="include\Engone\ModuleDefs.h" />
     <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
@@ -73,7 +73,7 @@
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
     <ClInclude Include="include\Engone\Utilities\Tracker.h" />
-    <ClInclude Include="include\Engone\World\GameGround.h" />
+    <ClInclude Include="include\Engone\World\EngineWorld.h" />
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
     <ClInclude Include="include\Engone\vendor\Libaudio.h" />
@@ -103,12 +103,12 @@
     <ClCompile Include="src\Engone\Assets\Animator.cpp" />
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="include\Engone\LoopInfo.h" />
-    <ClCompile Include="src\Engone\GameGround.cpp" />
+    <ClCompile Include="src\Engone\EngineWorld.cpp" />
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp" />
     <ClCompile Include="src\Engone\Utilites\Alloc.cpp" />
     <ClCompile Include="src\Engone\Application.cpp" />
     <ClCompile Include="src\Engone\Assets\Asset.cpp" />
-    <ClCompile Include="src\Engone\GameObject.cpp" />
+    <ClCompile Include="src\Engone\EngineObject.cpp" />
     <ClCompile Include="src\Engone\IMPLS.cpp" />
     <ClCompile Include="src\Engone\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />

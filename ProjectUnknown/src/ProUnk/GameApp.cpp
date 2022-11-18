@@ -3,7 +3,6 @@
 #include "Engone/EventModule.h"
 
 #include "ProUnk/Keybindings.h"
-#include "ProUnk/Objects/Player.h"
 //#include "ProUnk/Objects/Sword.h"
 //#include "ProUnk/Objects/Dummy.h"
 
@@ -53,11 +52,17 @@ namespace prounk {
 	//}
 
 	// arguments passed to function cannot be nullptr
-	void GameApp::dealCombat(engone::GameObject* atkObj, engone::GameObject* defObj) {
+	void GameApp::dealCombat(engone::EngineObject* atkObj, engone::EngineObject* defObj) {
 		using namespace engone;
 
-		CombatData* atkData=(CombatData*)atkObj->userData;
-		CombatData* defData=(CombatData*)defObj->userData;
+		int atkId = atkObj->userData;
+		int defId = defObj->userData;
+		if (!atkId || !defId) {
+			log::out << log::RED << "GameApp::dealCombat - one of the object's id are 0\n";
+			return;
+		}
+		CombatData* atkData=(CombatData*)getWorld()->entityHandler.getEntry(atkObj->userData).combatData;
+		CombatData* defData=(CombatData*)getWorld()->entityHandler.getEntry(defObj->userData).combatData;
 
 		if (!atkData || !defData) {
 			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
@@ -81,7 +86,7 @@ namespace prounk {
 		defData->health -= atk;
 		if (defData->health < 0) defData->health = 0;
 
-		getGround()->netDamageObject(defObj->getUUID(), atk);
+		getWorld()->netDamageObject(defObj->getUUID(), atk);
 
 		// send updated health.
 		// what if someone else also updates health? then do addition or subtraction on health.
@@ -139,8 +144,8 @@ namespace prounk {
 		for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
 			auto pair = callbackData.getContactPair(pairI);
 
-			GameObject* ptr1 = (GameObject*)pair.getBody1()->getUserData();
-			GameObject* ptr2 = (GameObject*)pair.getBody2()->getUserData();
+			EngineObject* ptr1 = (EngineObject*)pair.getBody1()->getUserData();
+			EngineObject* ptr2 = (EngineObject*)pair.getBody2()->getUserData();
 
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
 
@@ -164,8 +169,8 @@ namespace prounk {
 			//auto pair = pair.getEventType();
 			//rp3d::OverlapCallback::OverlapPair::EventType::
 
-			GameObject* ptr1 = (GameObject*)pair.getBody1()->getUserData();
-			GameObject* ptr2 = (GameObject*)pair.getBody2()->getUserData();
+			EngineObject* ptr1 = (EngineObject*)pair.getBody1()->getUserData();
+			EngineObject* ptr2 = (EngineObject*)pair.getBody2()->getUserData();
 
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
 
@@ -199,8 +204,10 @@ namespace prounk {
 		//particleGroup->init(m_window, shaderPart);
 		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
 		//engone->addParticleGroup(particleGroup);
-		NetGameGround* ground = new NetGameGround(this);
-		setGround(ground);
+		World* world= new World(this);
+		setWorld(world);
+
+		playerController.setWorld(world);
 
 		//-- setup some particles
 		Shader* combatPart = new Shader(combatParticlesGLSL);
@@ -215,7 +222,7 @@ namespace prounk {
 		//	parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
 		//	parts[i].lifeTime = 30+GetRandom()*10.f;
 		//}
-		ground->addParticleGroup(combatParticles);
+		world->addParticleGroup(combatParticles);
 
 		//-- Assets
 		//assets->set("depth")
@@ -234,44 +241,50 @@ namespace prounk {
 			CreateDefualtKeybindings();
 		//}
 
-		ground->m_pWorld->setIsDebugRenderingEnabled(true);
-		rp3d::DebugRenderer& debugRenderer = ground->m_pWorld->getDebugRenderer();
+		world->m_pWorld->setIsDebugRenderingEnabled(true);
+		rp3d::DebugRenderer& debugRenderer = world->m_pWorld->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
-		ground->m_pWorld->setEventListener(this);
+		world->m_pWorld->setEventListener(this);
+	
+		EngineObject* player = CreatePlayer(world);
+		playerController.setPlayerObject(player);
 
-		player = new Player(ground);
-		//player = CreatePlayer(ground);
-		player->flags |= NetGameGround::OBJECT_NETMOVE;
+		EntityHandler::Entry& entry = world->entityHandler.getEntry(player->userData);
+		entry.inventoryIndex = world->inventoryHandler.addInventory();
+		Inventory* inv = world->inventoryHandler.getInventory(entry.inventoryIndex);
+		inv->addItem(Item(1, "Sword"));
+
+		player->flags |= World::OBJECT_NETMOVE;
 		player->setTransform({ 0,0,0 });
-		ground->addObject(player);
+		world->addObject(player);
 
-		GameObject* sword = CreateSword(ground);
-		player->inventorySword = sword;
-		sword->flags |= NetGameGround::OBJECT_NETMOVE;
+		EngineObject* sword = CreateSword(world);
+		playerController.inventorySword = sword;
+		sword->flags |= World::OBJECT_NETMOVE;
 		sword->setTransform({2,0,0});
-		ground->addObject(sword);
+		world->addObject(sword);
 
 		if (info.flags & START_SERVER) {
-			GameObject* dummy = CreateDummy(ground);
+			EngineObject* dummy = CreateDummy(world);
 			dummy->setTransform({ 4,7,8 });
-			dummy->flags |= NetGameGround::OBJECT_NETMOVE;
+			dummy->flags |= World::OBJECT_NETMOVE;
 			//dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-			ground->addObject(dummy);
+			world->addObject(dummy);
 
-			GameObject* terrain = CreateTerrain(ground);
-			terrain->flags |= NetGameGround::OBJECT_NETMOVE;
-			ground->addObject(terrain);
+			EngineObject* terrain = CreateTerrain(world);
+			terrain->flags |= World::OBJECT_NETMOVE;
+			world->addObject(terrain);
 			terrain->setTransform({ 0,-2,0 });
 
 			player->setTransform({ 1,0,0 });
-			ground->getServer().start(info.port);
+			world->getServer().start(info.port);
 
 		} else if (info.flags & START_CLIENT) {
-			ground->getClient().start(info.ip,info.port);
+			world->getClient().start(info.ip,info.port);
 		} else {
 			SetDefaultPortIP(this, info.port, info.ip);
 		}
@@ -294,7 +307,7 @@ namespace prounk {
 	bool once = false;
 
 	float deathTime=0;
-	void GameApp::update(engone::UpdateInfo& info) {
+	void GameApp::update(engone::LoopInfo& info) {
 		using namespace engone;
 		if (engone::IsKeybindingPressed(KeyPause)) {
 			if(engone::GetActiveWindow()->isCursorLocked()){
@@ -317,6 +330,8 @@ namespace prounk {
 			partRequested = false;
 		}
 
+		playerController.update(info);
+
 		//float t = info.timeStep;
 		//float vx = (wantX - x)/t;
 		//vx *= 0.5;
@@ -330,7 +345,7 @@ namespace prounk {
 		//	velX = 0;
 		//}
 	}
-	void GameApp::render(engone::RenderInfo& info) {
+	void GameApp::render(engone::LoopInfo& info) {
 		using namespace engone;
 
 		//ParticleMagicTest(info,this);
@@ -338,19 +353,20 @@ namespace prounk {
 		//ui::Box box = {x-25,100,50,50};
 		//ui::Draw(box);
 
-		RenderPlayerInformation(info, player);
+		RenderPlayerInformation(info, &playerController);
 		RenderServerClientMenu(info);
 
 		DebugInfo(info,this);
 
+		EngineObject* player = playerController.getPlayerObject();
 		if (player) {
-			if (player->rigidBody&&!player->isDead()) {
+			if (player->rigidBody&&!playerController.isDead()) {
 				glm::vec3 pos = player->getPosition();
 				Camera* cam = m_window->getRenderer()->getCamera();
 				float camH = 2.4;
 				glm::mat4 camMat = glm::translate(pos + glm::vec3(0, camH, 0));
-				if (player->zoom != 0) {
-					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, player->zoom));
+				if (playerController.zoom != 0) {
+					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, playerController.zoom));
 				}
 				cam->setPosition(camMat[3]);
 			}

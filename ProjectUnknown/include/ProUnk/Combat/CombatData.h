@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engone/LoopInfo.h"
-#include "Engone/GameObject.h"
+#include "Engone/EngineObject.h"
 #include "ProUnk/Combat/Skills.h"
 
 namespace prounk {
@@ -14,7 +14,7 @@ namespace prounk {
 
 		// useful if weapon uses combat data which is also used by player.
 		// dealDamage could then get the owner which is the player can do something with the player's rotation
-		engone::GameObject* owner = nullptr;
+		engone::EngineObject* owner = nullptr;
 		float animationTime = 0; // endFrame-currentFrame in seconds
 		
 		bool attacking = false; // should be true when dealing damage
@@ -41,7 +41,7 @@ namespace prounk {
 
 		void attack() { attacking = true; hitObjects.clear(); }
 
-		void update(engone::UpdateInfo& info) {
+		void update(engone::LoopInfo& info) {
 			using namespace engone;
 			//log::out << "animtime " << animationTime << "\n";
 			animationTime -= info.timeStep;

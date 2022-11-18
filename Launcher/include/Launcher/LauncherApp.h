@@ -17,8 +17,8 @@ namespace launcher {
 		LauncherApp(engone::Engone* engone,const std::string& settings="settings.dat");
 		~LauncherApp() { }
 
-		void update(engone::UpdateInfo& info) override;
-		void render(engone::RenderInfo& info) override;
+		void update(engone::LoopInfo& info) override;
+		void render(engone::LoopInfo& info) override;
 		void onClose(engone::Window* window) override;
 
 		// this will check current settings, and start server/client or error message

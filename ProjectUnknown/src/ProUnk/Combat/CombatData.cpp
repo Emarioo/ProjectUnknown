@@ -1,7 +1,7 @@
 #include "ProUnk/Combat/CombatData.h"
 
 namespace prounk {
-	//-- flags on GameObject
+	//-- flags on EngineObject
 	uint32_t OBJECT_HAS_COMBATDATA = 0xF0000000;
 
 	//-- flags in userdata

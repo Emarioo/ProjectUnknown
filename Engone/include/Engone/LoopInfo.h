@@ -3,13 +3,11 @@
 namespace engone {
 	class Application;
 	class Window;
-	struct UpdateInfo {
+	// timeStep, app, window, interpolation
+	struct LoopInfo {
 		float timeStep;
 		Application* app;
-	};
-	struct RenderInfo {
-		float interpolation;
 		Window* window;
-		float timeStep;
+		float interpolation;
 	};
 }

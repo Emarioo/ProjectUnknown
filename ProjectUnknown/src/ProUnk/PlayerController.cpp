@@ -1,66 +1,48 @@
-#include "ProUnk/Objects/Player.h"
+#include "ProUnk/PlayerController.h"
 
 #include "Engone/EventModule.h"
 #include "ProUnk/Keybindings.h"
 #include "Engone/Window.h"
 
-#include "GLFW/glfw3.h"
+//#include "GLFW/glfw3.h"
 
-#include "Engone/Utilities/rp3d.h"
+//#include "Engone/Utilities/rp3d.h"
 
 #include "ProUnk/GameApp.h"
 
 #include "ProUnk/Combat/Combat.h"
 
 namespace prounk {
-	Player::Player(engone::GameGround* ground) : GameObject() {
-		rp3d::Transform t;
-		rigidBody = ground->m_pWorld->createRigidBody(t);
-		rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
-		rigidBody->setIsAllowedToSleep(false);
+	PlayerController::PlayerController() {
+		
+	}
+	void PlayerController::setPlayerObject(engone::EngineObject* player) {
+		m_player = player;
 
 		setFlight(true);
-
-		objectType = OBJECT_PLAYER;
-
-		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		modelAsset = assets->load<engone::ModelAsset>("Player/Player");
-		animator.asset = modelAsset;
-
-		this->ground = (NetGameGround*)ground;
-
-		CombatData* data = new CombatData();
-		data->owner = this;
-		userData = data;
-		flags |= OBJECT_HAS_COMBATDATA;
-
-		rigidBody->setUserData(this);
-
-		setColliderUserData((void*)COLLIDER_IS_HEALTH);
-		loadColliders();
 	}
-	void Player::update(engone::UpdateInfo& info) {
+	void PlayerController::update(engone::LoopInfo& info) {
 		//animator.update(info.timeStep);
 		Input(info);
 		Movement(info);
 		WeaponUpdate(info);
 	}
-	void Player::WeaponUpdate(engone::UpdateInfo& info) {
+	void PlayerController::WeaponUpdate(engone::LoopInfo& info) {
 		using namespace engone;
 
 		if (!heldWeapon) return;
 
-		auto transforms = modelAsset->getParentTransforms(nullptr);
+		auto transforms = m_player->modelAsset->getParentTransforms(nullptr);
 
 		rp3d::Transform swordTrans;
 
-		glm::mat4 modelMatrix = ToMatrix(rigidBody->getTransform());
+		glm::mat4 modelMatrix = ToMatrix(m_player->rigidBody->getTransform());
 
 		AssetInstance* inst = nullptr;
 		ArmatureAsset* arm = nullptr;
 		glm::mat4 instMat;
-		for (int i = 0; i < modelAsset->instances.size(); i++) {
-			auto& instance = modelAsset->instances[i];
+		for (int i = 0; i < m_player->modelAsset->instances.size(); i++) {
+			auto& instance = m_player->modelAsset->instances[i];
 			if (instance.asset->type == ArmatureAsset::TYPE) {
 				inst = &instance;
 				arm = (ArmatureAsset*)inst->asset;
@@ -69,7 +51,7 @@ namespace prounk {
 		}
 		if (inst != nullptr) {
 			std::vector<glm::mat4> baseBoneMats;
-			std::vector<glm::mat4> boneMats = modelAsset->getArmatureTransforms(&animator, instMat, inst, arm, &baseBoneMats);
+			std::vector<glm::mat4> boneMats = m_player->modelAsset->getArmatureTransforms(&m_player->animator, instMat, inst, arm, &baseBoneMats);
 			Bone& lastBone = arm->bones.back();
 
 			glm::mat4 gripMat = baseBoneMats.back();
@@ -77,39 +59,39 @@ namespace prounk {
 		}
 
 		heldWeapon->rigidBody->setTransform(swordTrans);
-			
-		heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
-		heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
+
+		heldWeapon->rigidBody->setAngularVelocity(m_player->rigidBody->getAngularVelocity());
+		heldWeapon->rigidBody->setLinearVelocity(m_player->rigidBody->getLinearVelocity());
 		heldWeapon->rigidBody->resetForce();
 		heldWeapon->rigidBody->resetTorque();
 
 		//heldWeapon->rigidBody->enableGravity(rigidBody->isGravityEnabled());
 		//weaponState.sample(heldWeapon);
 	}
-	void Player::setFlight(bool yes) {
+	void PlayerController::setFlight(bool yes) {
 		flight = yes;
-		rigidBody->enableGravity(!yes);
+		m_player->rigidBody->enableGravity(!yes);
 		if (!yes)
-			rigidBody->setLinearDamping(0.f);
+			m_player->rigidBody->setLinearDamping(0.f);
 		else
-			rigidBody->setLinearDamping(7.f);
+			m_player->rigidBody->setLinearDamping(7.f);
 	}
-	void Player::setNoClip(bool yes) {
+	void PlayerController::setNoClip(bool yes) {
 		noclip = yes;
-		setOnlyTrigger(yes);
+		m_player->setOnlyTrigger(yes);
 	}
-	void Player::setWeapon(engone::UpdateInfo& info, engone::GameObject* weapon) {
+	void PlayerController::setWeapon(engone::LoopInfo& info, engone::EngineObject* weapon) {
 		using namespace engone;
 		if (heldWeapon) {
 			heldWeapon->setOnlyTrigger(false);
-			ground->netEditObject(heldWeapon->getUUID(), 0, false);
+			m_world->netEditObject(heldWeapon->getUUID(), 0, false);
 
 			//heldWeapon->rigidBody->enableGravity(weaponState.gravity);
 			//heldWeapon->rigidBody->setLinearVelocity(ToRp3dVec3(weaponState.sampledVelocity()));
 			//weaponState.reset();
 
-			SetCombatData(this,heldWeapon,false);
-			ground->netEditCombatData(heldWeapon->getUUID(), this->getUUID(), false);
+			SetCombatData(m_player, heldWeapon, false);
+			m_world->netEditCombatData(heldWeapon->getUUID(), m_player->getUUID(), false);
 			//if (heldWeapon->rigidBody->getNbColliders() != 0) {
 			//	heldWeapon->rigidBody->getCollider(0)->setUserData(0);
 			//	heldWeapon->flags &= ~OBJECT_HAS_COMBATDATA;
@@ -125,9 +107,9 @@ namespace prounk {
 		// destroy joint to previous weapon.
 		heldWeapon = weapon;
 		// collider should exist for now
-		SetCombatData(this, heldWeapon, true);
-		ground->netEditCombatData(heldWeapon->getUUID(), this->getUUID(), true);
-		
+		SetCombatData(m_player, heldWeapon, true);
+		m_world->netEditCombatData(heldWeapon->getUUID(), m_player->getUUID(), true);
+
 		//if (heldWeapon->rigidBody->getNbColliders() != 0) {
 		//	heldWeapon->rigidBody->getCollider(0)->setUserData((void*)COLLIDER_IS_DAMAGE);
 		//	heldWeapon->flags |= OBJECT_HAS_COMBATDATA;
@@ -137,18 +119,18 @@ namespace prounk {
 		//}
 		//weaponState.gravity = weapon->rigidBody->isGravityEnabled();
 
-		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
+		std::vector<glm::mat4> transforms = m_player->modelAsset->getParentTransforms(nullptr);
 
 		rp3d::Vector3 anchor;
 		rp3d::Transform swordTrans;
 
-		glm::mat4 modelMatrix = ToMatrix(rigidBody->getTransform());
+		glm::mat4 modelMatrix = ToMatrix(m_player->rigidBody->getTransform());
 
 		AssetInstance* inst = nullptr;
 		ArmatureAsset* arm = nullptr;
 		glm::mat4 instMat;
-		for (int i = 0; i < modelAsset->instances.size(); i++) {
-			auto& instance = modelAsset->instances[i];
+		for (int i = 0; i < m_player->modelAsset->instances.size(); i++) {
+			auto& instance = m_player->modelAsset->instances[i];
 			if (instance.asset->type == ArmatureAsset::TYPE) {
 				inst = &instance;
 				arm = (ArmatureAsset*)inst->asset;
@@ -157,7 +139,7 @@ namespace prounk {
 		}
 		if (inst != nullptr) {
 			std::vector<glm::mat4> baseBoneMats;
-			std::vector<glm::mat4> boneMats = modelAsset->getArmatureTransforms(&animator, instMat, inst, arm, &baseBoneMats);
+			std::vector<glm::mat4> boneMats = m_player->modelAsset->getArmatureTransforms(&m_player->animator, instMat, inst, arm, &baseBoneMats);
 			Bone& lastBone = arm->bones.back();
 
 			glm::mat4 gripMat = baseBoneMats.back();
@@ -167,7 +149,7 @@ namespace prounk {
 
 		rp3d::Vector3 baseVec;
 		weapon->setOnlyTrigger(true);
-		ground->netEditObject(weapon->getUUID(),0,true);
+		m_world->netEditObject(weapon->getUUID(), 0, true);
 
 		//heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
 		//heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
@@ -175,7 +157,7 @@ namespace prounk {
 		//weapon->rigidBody->resetTorque();
 		//weapon->rigidBody->setTransform(swordTrans);
 	}
-	void Player::Input(engone::UpdateInfo& info) {
+	void PlayerController::Input(engone::LoopInfo& info) {
 		using namespace engone;
 		if (IsKeyPressed(GLFW_KEY_G)) {
 			setFlight(!flight);
@@ -191,16 +173,20 @@ namespace prounk {
 					setWeapon(info, inventorySword);
 			}
 		}
-		CombatData* combatData = (CombatData*)userData;
+		CombatData* combatData = nullptr;
+		if (m_player->userData) {
+			EntityHandler::Entry& entry = m_world->entityHandler.getEntry(m_player->userData);
+			combatData = entry.combatData;
+		}
 		if (IsKeyPressed(GLFW_KEY_R)) {
 			if (isDead()) {
 				deathTime = 0;
 				setDead(false);
-				rigidBody->setAngularLockAxisFactor({ 0,1,0 });
+				m_player->rigidBody->setAngularLockAxisFactor({ 0,1,0 });
 				//auto tr = rigidBody->getTransform(); // only reset orientation
 				//tr.setOrientation({ 0,0,0,1.f });
 				//rigidBody->setTransform(tr);
-				rigidBody->setTransform({}); // reset position too
+				m_player->rigidBody->setTransform({}); // reset position too
 
 				combatData->health = combatData->getMaxHealth();
 			}
@@ -212,9 +198,9 @@ namespace prounk {
 			if (!combatData->attacking) {
 				combatData->skillType = SKILL_SLASH;
 				combatData->attack();
-				animator.enable("Player", "PlayerDownSwing", { false,1,1,0 });
-				ground->netAnimateObject(getUUID(), "Player", "PlayerDownSwing", false, 1, 1, 0);
-				AnimatorProperty* prop = animator.getProp("Player");
+				m_player->animator.enable("Player", "PlayerDownSwing", { false,1,1,0 });
+				m_world->netAnimateObject(m_player->getUUID(), "Player", "PlayerDownSwing", false, 1, 1, 0);
+				AnimatorProperty* prop = m_player->animator.getProp("Player");
 				if (prop) {
 					combatData->animationTime = prop->getRemainingSeconds();
 				}
@@ -224,16 +210,16 @@ namespace prounk {
 			if (!combatData->attacking) {
 				combatData->skillType = SKILL_SIDE_SLASH;
 				combatData->attack();
-				animator.enable("Player", "PlayerSideSwing", { false,1,1,0 });
-				ground->netAnimateObject(getUUID(), "Player", "PlayerSideSwing", false, 1, 1, 0);
-				AnimatorProperty* prop = animator.getProp("Player");
+				m_player->animator.enable("Player", "PlayerSideSwing", { false,1,1,0 });
+				m_world->netAnimateObject(m_player->getUUID(), "Player", "PlayerSideSwing", false, 1, 1, 0);
+				AnimatorProperty* prop = m_player->animator.getProp("Player");
 				if (prop) {
 					combatData->animationTime = prop->getRemainingSeconds();
 				}
 			}
 		}
 	}
-	void Player::Movement(engone::UpdateInfo& info) {
+	void PlayerController::Movement(engone::LoopInfo& info) {
 		using namespace engone;
 
 		Window* window = engone::GetActiveWindow();
@@ -294,42 +280,46 @@ namespace prounk {
 		}
 
 		// death logic
-		CombatData* data = (CombatData*)userData;
+		CombatData* combatData = nullptr;
+		if (m_player->userData) {
+			EntityHandler::Entry& entry = m_world->entityHandler.getEntry(m_player->userData);
+			combatData = entry.combatData;
+		}
 		deathTime -= info.timeStep;
 		//printf("%f\n", deathTime);
 		if (deathTime < 0) {
 			deathTime = 0;
 			if (isDead()) {
 				setDead(false);
-				rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
-				setTransform({ 0,0,0 });
-				rigidBody->setLinearVelocity({ 0,0,0 });
-				rigidBody->setAngularVelocity({ 0,0,0 });
-				data->health = data->getMaxHealth();
+				m_player->rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
+				m_player->setTransform({ 0,0,0 });
+				m_player->rigidBody->setLinearVelocity({ 0,0,0 });
+				m_player->rigidBody->setAngularVelocity({ 0,0,0 });
+				combatData->health = combatData->getMaxHealth();
 			}
 		}
-		if (!isDead() && data->health == 0) {
+		if (!isDead() && combatData->health == 0) {
 			deathTime = 5;
 
 			setDead(true);
 			zoom = 4;
-			
+
 			setFlight(false);
 			if (heldWeapon)
 				setWeapon(info, nullptr);
 
-			rigidBody->setAngularLockAxisFactor({ 1,1,1 }); // only allow spin (y rotation)
+			m_player->rigidBody->setAngularLockAxisFactor({ 1,1,1 }); // only allow spin (y rotation)
 
-			float angleStrength = 200.f*deathShockStrength;
-			rp3d::Vector3 angRand= {(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
+			float angleStrength = 200.f * deathShockStrength;
+			rp3d::Vector3 angRand = { (float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
 			angRand *= angleStrength;
-			rigidBody->applyLocalTorque(angRand);
+			m_player->rigidBody->applyLocalTorque(angRand);
 
-			float velStrength = 200.0f* deathShockStrength;
-			rp3d::Vector3 velRand = { (float)GetRandom()-0.5f,(float)GetRandom()/2.f,(float)GetRandom() - 0.5f };
+			float velStrength = 200.0f * deathShockStrength;
+			rp3d::Vector3 velRand = { (float)GetRandom() - 0.5f,(float)GetRandom() / 2.f,(float)GetRandom() - 0.5f };
 			velRand *= velStrength;
 			//log::out << angRand << " " << velRand << "\n";
-			rigidBody->applyWorldForceAtCenterOfMass(velRand);
+			m_player->rigidBody->applyWorldForceAtCenterOfMass(velRand);
 		}
 
 		//log::out << "speed: " << zoomSpeed << " "<<zoom<<"\n";
@@ -356,8 +346,8 @@ namespace prounk {
 				}
 			}
 		}
-		if (rigidBody&&!isDead()) {
-			rp3d::Vector3 rot = ToEuler(rigidBody->getTransform().getOrientation());
+		if (m_player->rigidBody && !isDead()) {
+			rp3d::Vector3 rot = ToEuler(m_player->rigidBody->getTransform().getOrientation());
 			float realY = rot.y;
 			float wantY = realY;
 
@@ -369,19 +359,19 @@ namespace prounk {
 
 			float dv = AngleDifference(wantY, realY) / (info.timeStep);
 			dv *= 0.3; // snap speed
-			float velRotY = dv - rigidBody->getAngularVelocity().y;
+			float velRotY = dv - m_player->rigidBody->getAngularVelocity().y;
 			// inertia tensor needs to be accounted for when applying torque.
 
 			//rp3d::Vector3 newVel = rigidBody->getAngularVelocity();
 			//newVel.y += velRotY;
 			rp3d::Vector3 newVel = { 0,dv,0 };
-			rigidBody->setAngularVelocity(newVel);
+			m_player->rigidBody->setAngularVelocity(newVel);
 
 			//log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
 			//log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
 			//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
 
-			glm::vec3 bodyVel = ToGlmVec3(rigidBody->getLinearVelocity());
+			glm::vec3 bodyVel = ToGlmVec3(m_player->rigidBody->getLinearVelocity());
 			float keepY = bodyVel.y;
 			float moveDirY = moveDir.y;
 			if (!flight) {
@@ -390,7 +380,7 @@ namespace prounk {
 			}
 			glm::vec3 flatVelDiff = moveDir - bodyVel;
 			bool dontMove = false;
-			if (!rigidBody->isGravityEnabled() && glm::length(moveDir) == 0) {
+			if (!m_player->rigidBody->isGravityEnabled() && glm::length(moveDir) == 0) {
 				dontMove = true;
 			}
 			if (!dontMove) {
@@ -399,13 +389,13 @@ namespace prounk {
 					glm::vec3 other{};
 					if (!flight)
 						other.y = keepY + moveDirY;
-					rigidBody->setLinearVelocity(ToRp3dVec3(other));
+					m_player->rigidBody->setLinearVelocity(ToRp3dVec3(other));
 				} else {
 					flatVelDiff *= 0.25;
 					if (!flight)
 						flatVelDiff.y = moveDirY;
 					flatVelDiff /= info.timeStep;
-					rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
+					m_player->rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
 				}
 			}
 		}

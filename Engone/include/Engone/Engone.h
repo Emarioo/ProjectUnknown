@@ -16,7 +16,7 @@
 #include "Engone/Rendering/Camera.h"
 
 #include "Engone/Utilities/rp3d.h"
-#include "Engone/GameObject.h"
+#include "Engone/EngineObject.h"
 #include "Engone/Utilities/RuntimeStats.h"
 #include "Engone/ParticleModule.h"
 
@@ -62,7 +62,7 @@ namespace engone {
 		*/
 		void start();
 		// don't add nullptr, object is assumed to be valid.
-		//void addObject(GameObject* object);
+		//void addObject(EngineObject* object);
 
 		//Playground& getPlayground() { return playground; };
 
@@ -104,68 +104,9 @@ namespace engone {
 		std::vector<uint16_t> m_appSizes{}; // used for tracker
 		std::vector<TrackerId> m_appIds{}; // used for tracker
 
-		void update(UpdateInfo& info);
+		void update(LoopInfo& info);
 		// only renders objects at the moment
-		void render(RenderInfo& info);
-		void renderObjects(RenderInfo& info);
-
-
-		friend class Playground;
+		void render(LoopInfo& info);
+		void renderObjects(LoopInfo& info);
 	};
-
-	//void Initialize(EngoneOption hints=EngoneOption::None);
-
-	/*
-	Start the loop running the applications.
-	When all windows of all applications are closed the loop will end.
-	*/
-	//void Start();
-	//void AddApplication(Application* app);
-
-	//FrameBuffer& GetDepthBuffer();
-
-	//Camera* GetCamera();
-
-	/*
-	Update objects and camera (viewMatrix)
-	 also dimensions but they should be moved somewhere else.
-	*/
-	//void UpdateObjects(float delta);
-
-	/*
-	Render objects, hitboxes with the appropriate shaders.
-	*/
-	//void RenderObjects(float lag);
-	/*
-	Render objects without doing anything but calling the object's draw function.
-	*/
-	//void RenderRawObjects(Shader* shader, float lag);
-
-	/*
-	Render objects, ui, debug tool
-	*/
-	//void RenderEngine(float lag);
-	/*
-	Update objects, ui, debug tool
-	*/
-	//void UpdateEngine(float delta);
-
-	//struct Delayed {
-	//	float time;
-	//	std::function<void()> func;
-	//};
-
-	//void AddTimer(float time, std::function<void()> func);
-	//void UpdateTimers(float delta);
-
-	// Light
-	//void AddLight(Light* l);
-	//void RemoveLight(Light* l);
-
-	/*
-	Binds light to current shader
-	 If one of the four closest light are already bound then don't rebind them [Not added]
-	*/
-	//void BindLights(Shader* shader, glm::vec3 objectPos);
-	//std::vector<Light*>& GetLights();
 }

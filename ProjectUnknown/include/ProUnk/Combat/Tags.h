@@ -21,6 +21,8 @@
 
 namespace prounk {
 
+#define OBJECT_IS_DEAD 0x00200000
+
 #define GAME_TAG_LIMIT 32
 	typedef uint32_t TagBit;
 

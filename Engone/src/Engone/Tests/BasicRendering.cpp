@@ -21,7 +21,7 @@ namespace engone {
 		static Shader* shader3 = nullptr;
 		static bool init_test2d=false;
 		static bool init_test3d=false;
-		void Test2D(RenderInfo& info) {
+		void Test2D(LoopInfo& info) {
 			if (!shader2) {
 
 				shader2 = new Shader(test2dGLSL);
@@ -40,7 +40,7 @@ namespace engone {
 			shader2->bind();
 			VAO.draw(&IBO);
 		}
-		void Test3D(RenderInfo& info) {
+		void Test3D(LoopInfo& info) {
 			if (!shader3) {
 				shader3 = new Shader(test3dGLSL);
 				float fArray[]{
@@ -67,7 +67,7 @@ namespace engone {
 		};
 		static ParticleGroup<DefaultParticle> partGroup{};
 		static Shader* shaderPart = nullptr;
-		void TestParticles(RenderInfo& info) {
+		void TestParticles(LoopInfo& info) {
 			if (!shaderPart) {
 				shaderPart = new Shader(particlesGLSL);
 				partGroup.init(info.window, shaderPart);
