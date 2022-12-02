@@ -61,6 +61,7 @@ namespace prounk {
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->modelAsset = assets->load<engone::ModelAsset>("SwordBase/SwordBase");
+		//out->modelAsset = assets->load<engone::ModelAsset>("Pickaxe/Pickaxe");
 		out->animator.asset = out->modelAsset;
 
 		rp3d::Transform t;
@@ -96,7 +97,6 @@ namespace prounk {
 		using namespace engone;
 		EngineObject* out = new EngineObject(uuid);
 		out->objectType = OBJECT_PLAYER;
-
 
 		CombatData* data = new CombatData();
 		data->owner = out;

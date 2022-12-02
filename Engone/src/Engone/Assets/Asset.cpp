@@ -868,6 +868,33 @@ namespace engone {
 		}
 		if ((flags & LoadData)&&!m_error) {
 			try {
+				
+				// TODO: hardcoded numbers is bad. Change them.
+				// find boundingPoint
+				glm::vec3 minPoint = {999999,999999,999999};
+				glm::vec3 maxPoint = {-999999,-999999,-999999};
+				for (int i = 0; i < pointCount;i++) {
+					glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
+					minPoint.x = minPoint.x < vec.x ? minPoint.x : vec.x;
+					minPoint.y = minPoint.y < vec.y ? minPoint.y : vec.y;
+					minPoint.z = minPoint.z < vec.z ? minPoint.z : vec.z;
+					maxPoint.x = maxPoint.x > vec.x ? maxPoint.x : vec.x;
+					maxPoint.y = maxPoint.y > vec.y ? maxPoint.y : vec.y;
+					maxPoint.z = maxPoint.z > vec.z ? maxPoint.z : vec.z;
+				}
+				boundingPoint = (minPoint + maxPoint) / 2.f;
+				// find boundingRadius
+				boundingRadius = 0;
+				for (int i = 0; i < pointCount; i++) {
+					glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
+					float radius = glm::length(vec-boundingPoint);
+					if (radius>boundingRadius) {
+						boundingRadius = radius;
+					}
+				}
+
+				//log::out << "Mesh " << getLoadName() << " " << minPoint << " " << maxPoint << "\n";
+
 				std::vector<uint16_t> indexNormal;
 				std::vector<float> uNormal;
 				for (uint32_t i = 0; i < triangleCount; ++i) {
@@ -1288,13 +1315,85 @@ namespace engone {
 						animations.push_back(as);
 					}
 				}
-				m_state = Loaded; // doesn't have any opengl stuff
-				out = 0;
+				out = LoadData;
+				//m_state = Loaded; // doesn't have any opengl stuff
+				//out = 0;
 			} catch (Error err) {
 				m_error = err;
 				out = 0;
 				m_state = Failed;
 				//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
+			}
+		} else if ((flags & LoadData) && !m_error) {
+			// check if assets are fully loaded
+			bool ready = true;
+			for (AssetInstance& inst : instances) {
+				if (inst.asset->type == MeshAsset::TYPE) {
+					if (inst.asset->getState() != Asset::Loaded) {
+						ready = false;
+						break;
+					}
+				}
+			}
+			if (ready) {
+				m_state = Loaded; // Needs to be loaded for getParentTransforms to work
+				out = 0;
+
+				struct InstSphere {
+					glm::vec3 centerPoint;
+					float radius;
+				};
+
+				std::vector<InstSphere> spheres;
+
+				minPoint = { 999999, 999999, 999999 };
+				maxPoint = {-999999,-999999,-999999};
+
+				auto transforms = getParentTransforms(nullptr);
+
+				for (int i = 0; i < instances.size(); i++) {
+					AssetInstance& inst = instances[i];
+					if (inst.asset->type == MeshAsset::TYPE) {
+						// TODO: Not considering armature meshes. They may work with this code too but maybe not.
+						MeshAsset* mesh = (MeshAsset*)inst.asset;
+						
+						glm::vec3 instBoundingPoint = (transforms[i] * inst.localMat * glm::translate(mesh->boundingPoint))[3];
+						glm::vec3 instPointWithRadius = (transforms[i] * inst.localMat * glm::translate(mesh->boundingPoint + glm::vec3(mesh->boundingRadius, 0.f, 0.f)))[3];
+						float newRadius = glm::length(instPointWithRadius - instBoundingPoint);
+
+						spheres.push_back({ instBoundingPoint,newRadius });
+
+						glm::vec3 testPoints[]{
+							instBoundingPoint + glm::vec3(newRadius,0.f,0.f),
+							instBoundingPoint + glm::vec3(-newRadius,0.f,0.f),
+							instBoundingPoint + glm::vec3(0.f,newRadius,0.f),
+							instBoundingPoint + glm::vec3(0.f,-newRadius,0.f),
+							instBoundingPoint + glm::vec3(0.f,0.f,newRadius),
+							instBoundingPoint + glm::vec3(0.f,0.f,-newRadius) };
+
+						for (glm::vec3& point : testPoints) {
+							minPoint.x = minPoint.x < point.x ? minPoint.x : point.x;
+							minPoint.y = minPoint.y < point.y ? minPoint.y : point.y;
+							minPoint.z = minPoint.z < point.z ? minPoint.z : point.z;
+							maxPoint.x = maxPoint.x > point.x ? maxPoint.x : point.x;
+							maxPoint.y = maxPoint.y > point.y ? maxPoint.y : point.y;
+							maxPoint.z = maxPoint.z > point.z ? maxPoint.z : point.z;
+						}
+					}
+				}
+				boundingPoint = (minPoint + maxPoint) / 2.f;
+
+				boundingRadius = 0;
+				for (InstSphere& sphere : spheres) {
+					float boundPointToSphereCenter = glm::length(sphere.centerPoint - boundingPoint);
+					float radius = boundPointToSphereCenter + sphere.radius;
+					if (radius > boundingRadius) {
+						boundingRadius = radius;
+					}
+				}
+			} else {
+				// not ready, do more work later
+				out = LoadData;
 			}
 		}
 		return out;
@@ -1424,23 +1523,24 @@ namespace engone {
 				glm::mat4 quater = glm::mat4(1);
 
 				short usedChannels = 0;
+				if (animator) {
+					for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
+						if (animator->enabledAnimations[k].asset) {
 
-				for (uint32_t k = 0; k < Animator::maxAnimations; ++k) {
-					if (animator->enabledAnimations[k].asset) {
+							AnimatorProperty& prop = animator->enabledAnimations[k];
+							for (uint32_t j = 0; j < animations.size(); ++j) {
+								AnimationAsset* animation = animations[j];
 
-						AnimatorProperty& prop = animator->enabledAnimations[k];
-						for (uint32_t j = 0; j < animations.size(); ++j) {
-							AnimationAsset* animation = animations[j];
+								if (prop.asset == animation &&
+									prop.instanceName == instance->name) {
 
-							if (prop.asset == animation &&
-								prop.instanceName == instance->name) {
+									if (animation->objects.count((uint16_t)i) > 0u) {
 
-								if (animation->objects.count((uint16_t)i) > 0u) {
-
-									animation->objects[(uint16_t)i].getValues((int)prop.frame, prop.blend,
-										pos, euler, scale, quater, &usedChannels);
-									//log::out << " " << pos.y << " " << i << " " << k << " " << j << "\n";
-									//log::out << quater<<"\n";
+										animation->objects[(uint16_t)i].getValues((int)prop.frame, prop.blend,
+											pos, euler, scale, quater, &usedChannels);
+										//log::out << " " << pos.y << " " << i << " " << k << " " << j << "\n";
+										//log::out << quater<<"\n";
+									}
 								}
 							}
 						}

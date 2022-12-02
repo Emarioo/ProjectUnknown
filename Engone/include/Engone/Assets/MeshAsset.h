@@ -27,6 +27,9 @@ namespace engone {
 		IndexBuffer indexBuffer;
 		VertexArray vertexArray;
 
+		glm::vec3 boundingPoint = { 0,0,0 }; // not average point
+		float boundingRadius = 0.f;
+
 		static TrackerId trackerId;
 	private:
 		// This is a lot of data.

@@ -77,7 +77,8 @@ namespace engone {
 		//-- Flags for methods
 		static const uint8_t SYNC = 1; // Perform function synchronously. Applies to AssetStorage::load and set
 		//static const uint8_t FORCE_RELOAD = 2;// Load were supposed to always load asset even if it had been loaded. BUT, it will now reload automatically.
-		static const uint8_t DEFAULT_FLAGS = SYNC;
+		static const uint8_t DEFAULT_FLAGS = 0;
+		//static const uint8_t DEFAULT_FLAGS = SYNC;
 
 		// load asset from path
 		template<class T>

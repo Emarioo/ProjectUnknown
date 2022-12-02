@@ -5,6 +5,7 @@
 namespace prounk {
 
 	Inventory* InventoryHandler::getInventory(int id) {
+		if (id == 0) return nullptr;
 		return m_inventories[id-1]; // id-1 because 0 is seen as null while 1 is seen as the first element
 	}
 	int InventoryHandler::addInventory() {

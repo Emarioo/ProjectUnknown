@@ -23,11 +23,9 @@ uniform mat4 uLightSpaceMatrix;
 
 void main()
 {
-	mat4 iMat = mat4(iPos1,iPos2,iPos3,iPos4);
-	
 	mat4 transform = uTransform;
-	if(uTransform[0][0]==0){
-		transform = iMat;
+	if(uTransform[0][0]==0){ // do we use instancing?
+		transform = mat4(iPos1,iPos2,iPos3,iPos4);
 	}
 	fPos = vec3(transform * vec4(vPos,1));
 

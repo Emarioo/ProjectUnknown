@@ -56,9 +56,9 @@ namespace engone {
 		void Edit(TextBox* text, bool stopEditWithEnter = true);
 
 		// 1: clicked, 0: didn't click, -1: clicked but missed box
-		int Clicked(Box& box);
+		int Clicked(Box& box, int mouseKey=GLFW_MOUSE_BUTTON_1);
 		// 1: clicked, 0: didn't click, -1: clicked but missed box
-		int Clicked(TextBox& box);
+		int Clicked(TextBox& box, int mouseKey = GLFW_MOUSE_BUTTON_1);
 		bool Hover(Box& box);
 		bool Hover(TextBox& box);
 
@@ -77,9 +77,11 @@ namespace engone {
 
 		Camera* getCamera();
 		glm::mat4& getLightProj();
-		void setProjection(float ratio);
+		void setProjection();
+		void setOrthogonal();
 		//void updateViewMatrix(double lag);
 		void updateProjection(Shader* shader);
+		void updateProjection(Shader* shader, glm::mat4 viewMatrix);
 
 		/*
 		set uniforms before. uPos, USize, uColor, uTextured. Make sure Blending is on, make sure uWindows is set.
@@ -102,6 +104,12 @@ namespace engone {
 		//void DrawLine(glm::vec3 a, glm::vec3 b);
 		void DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		
+		// Uses standard viewMatrix from camera
+		void DrawModel(ModelAsset* modelAsset, glm::mat4 matrix);
+		
+		// Draws model orthogonally
+		void DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix);
+		
 		void render(LoopInfo& info);
 
 		// will draw a vertex buffer with two triangles.
@@ -112,6 +120,8 @@ namespace engone {
 
 		// ui::Draw amongst others will use the active renderer.
 		void setActiveRenderer();
+
+		VertexBuffer& getInstanceBuffer() { return instanceBuffer; }
 
 		static const int TEXT_BATCH = 40;
 		static const int MAX_BOX_BATCH = 100;
@@ -157,6 +167,13 @@ namespace engone {
 		VertexArray quadVA;
 
 		VertexBuffer instanceBuffer;
+
+		struct ModelDraw {
+			ModelAsset* modelAsset;
+			glm::mat4 matrix;
+			bool isOrthogonal;
+		};
+		std::vector<ModelDraw> modelObjects;
 
 		std::vector<Cube> cubeObjects;
 

@@ -209,6 +209,8 @@ namespace prounk {
 
 		playerController.setWorld(world);
 
+		//world->modelHandler
+
 		//-- setup some particles
 		Shader* combatPart = new Shader(combatParticlesGLSL);
 		combatParticles = new ParticleGroup<CombatParticle>();
@@ -255,29 +257,53 @@ namespace prounk {
 
 		EntityHandler::Entry& entry = world->entityHandler.getEntry(player->userData);
 		entry.inventoryIndex = world->inventoryHandler.addInventory();
-		Inventory* inv = world->inventoryHandler.getInventory(entry.inventoryIndex);
-		inv->addItem(Item(1, "Sword"));
 
-		player->flags |= World::OBJECT_NETMOVE;
-		player->setTransform({ 0,0,0 });
-		world->addObject(player);
+		InventoryPanel* inventoryPanel = new InventoryPanel(this);
+		panelHandler.addPanel(inventoryPanel);
+		inventoryPanel->setPosition(100, 100);
+		inventoryPanel->setSize(100, 200);
+		inventoryPanel->setInventory(entry.inventoryIndex);
+
+		Inventory* inv = world->inventoryHandler.getInventory(entry.inventoryIndex);
+
+		ModelAsset* playerAsset = player->modelAsset;
+		ModelId playerModelId = world->modelHandler.registerModel(playerAsset);
 
 		EngineObject* sword = CreateSword(world);
 		playerController.inventorySword = sword;
 		sword->flags |= World::OBJECT_NETMOVE;
 		sword->setTransform({2,0,0});
 		world->addObject(sword);
+		//sword->rigidBody->enableGravity(false);
+
+		ModelAsset* swordAsset = sword->modelAsset;
+		ModelId swordModelId = world->modelHandler.registerModel(swordAsset);
+		ModelAsset* plat = assets->load<engone::ModelAsset>("Platform/Platform");
+		ModelId platId = world->modelHandler.registerModel(plat);
+		ModelAsset* dag = assets->load<engone::ModelAsset>("Dagger/Dagger");
+		ModelId dagId = world->modelHandler.registerModel(dag);
+
+		inv->addItem(Item(1, "Player", playerModelId));
+		inv->addItem(Item(1, "?", platId));
+		inv->addItem(Item(1, "Sword", swordModelId));
+		//inv->addItem(Item(1, "Sword", swordModelId));
+
+		player->flags |= World::OBJECT_NETMOVE;
+		player->setTransform({ 0,0,0 });
+		world->addObject(player);
+
+		EngineObject* terrain = CreateTerrain(world);
+		terrain->flags |= World::OBJECT_NETMOVE;
+		world->addObject(terrain);
+		//terrain->setTransform({ 0,10,0 });
 
 		if (info.flags & START_SERVER) {
-			EngineObject* dummy = CreateDummy(world);
-			dummy->setTransform({ 4,7,8 });
-			dummy->flags |= World::OBJECT_NETMOVE;
-			//dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-			world->addObject(dummy);
-
-			EngineObject* terrain = CreateTerrain(world);
-			terrain->flags |= World::OBJECT_NETMOVE;
-			world->addObject(terrain);
+			//EngineObject* dummy = CreateDummy(world);
+			//dummy->setTransform({ 4,7,8 });
+			//dummy->flags |= World::OBJECT_NETMOVE;
+			////dummy->rigidBody->setLinearVelocity({ 9,0,0 });
+			//world->addObject(dummy);
+			
 			terrain->setTransform({ 0,-2,0 });
 
 			player->setTransform({ 1,0,0 });
@@ -315,7 +341,7 @@ namespace prounk {
 			} else {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
-		}		
+		}
 		if (partRequested) {
 			CombatParticle* parts = combatParticles->getParticles();
 			for (int i = 0; i < combatParticles->getCount(); i++) {
@@ -359,6 +385,9 @@ namespace prounk {
 		DebugInfo(info,this);
 
 		EngineObject* player = playerController.getPlayerObject();
+		
+		panelHandler.render(info);
+
 		if (player) {
 			if (player->rigidBody&&!playerController.isDead()) {
 				glm::vec3 pos = player->getPosition();

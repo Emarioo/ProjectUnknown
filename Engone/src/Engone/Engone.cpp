@@ -31,7 +31,7 @@ namespace engone {
 
 	Engone::Engone() {}
 	Engone::~Engone() {
-		for (int i = 0; i < m_applications.size();i++) {
+		for (int i = 0; i < m_applications.size(); i++) {
 			delete m_applications[i];
 		}
 		m_applications.clear();
@@ -42,7 +42,7 @@ namespace engone {
 		DestroyNetworking();
 	}
 	void Engone::start() {
-		
+
 		// Filters don't work with multithreading
 		//log::out.setConsoleFilter(log::out.consoleFilter() | log::Disable);
 		//GetTracker().printMemory();
@@ -79,7 +79,7 @@ namespace engone {
 			printTime += delta;
 
 			m_runtimeStats.nextSample(delta);
-			
+
 			for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 				Application* app = m_applications[appIndex];
 				// Close window and applications if needed.
@@ -100,7 +100,7 @@ namespace engone {
 					// app should be safe to delete
 					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
 					delete app;
-					 //FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
+					//FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
 					m_applications.erase(m_applications.begin() + appIndex);
 					m_appSizes.erase(m_appSizes.begin() + appIndex);
 					m_appIds.erase(m_appIds.begin() + appIndex);
@@ -119,8 +119,7 @@ namespace engone {
 			if (m_applications.size() == 0) // might as well quit
 				break;
 			//Timer tim("update");
-			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime|| m_flags & EngoneFixedLoop)
-			{
+			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime || m_flags & EngoneFixedLoop) {
 				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
 
 				m_runtimeStats.incrUpdates();
@@ -158,8 +157,8 @@ namespace engone {
 			}
 			//tim.stop();
 			//Timer timer("frame");
-			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime||m_flags&EngoneFixedLoop) {
-			//if(true){
+			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime || m_flags & EngoneFixedLoop) {
+				//if(true){
 				m_runtimeStats.frame_accumulator -= m_runtimeStats.frameTime;
 				m_runtimeStats.incrFrames();
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
@@ -191,14 +190,15 @@ namespace engone {
 						//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-						// 3d stuf
-						float ratio = GetWidth() / GetHeight();
-						if(isfinite(ratio))
-							win->getRenderer()->setProjection(ratio);
+						// 3d stuff
+						//float ratio = GetWidth() / GetHeight();
+						//if (isfinite(ratio))
+						win->getRenderer()->setProjection();
 
 						app->render(info);
 
 						render(info);
+
 						GetActiveRenderer()->render(info);
 
 						glfwSwapInterval(0); // turning off vsync?
@@ -217,12 +217,12 @@ namespace engone {
 			} else {
 				double sleepTime = m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator;
 				m_runtimeStats.sleepTime += sleepTime;
-				std::this_thread::sleep_for(std::chrono::microseconds((int)(sleepTime* 1000000.0)));
+				std::this_thread::sleep_for(std::chrono::microseconds((int)(sleepTime * 1000000.0)));
 			}
 			//timer.stop();
 
 			if (printTime > 0.7f) {
-				printTime -=0.7f;
+				printTime -= 0.7f;
 				//m_runtimeStats.print(RuntimeStats::PrintSamples);
 			}
 
@@ -233,27 +233,26 @@ namespace engone {
 			//poll.stop();
 		}
 		glfwTerminate();
-		 
+
 		// doesn't have to be a memory leak, it depends on the users code.
 		// they may have allocated memory in global scope and never deleted it. But only if they used the tracker functions.
 		//GetTracker().clear();
-		
+
 		GetTracker().printInfo();
 		// The tracker may a little tricky to analyize correctly sometimes. Just don't get too fixated on it.
 
 		// this means that the Memory usage is somewhat high because of io_context (and glfw, and reactphysics)
-		
+
 		DestroyNetworking();
 
 		uint32_t expectedMem = 0;
 		if (GetTracker().getMemory() > expectedMem) {
-			log::out << "Memory leak? "<<GetTracker().getMemory()<<" expected "<<expectedMem << "\n";
+			log::out << "Memory leak? " << GetTracker().getMemory() << " expected " << expectedMem << "\n";
 			GetTracker().printMemory();
 		} else {
 			log::out << "No tracked memory leak\n";
 		}
 	}
-
 
 	//FrameBuffer depthBuffer;
 	//glm::mat4 lightProjection;

@@ -24,7 +24,7 @@ namespace prounk {
 			}
 		}
 
-		if (id == 0) {
+		if (id == -1) {
 			// not found, register new
 			id = getNewId();
 

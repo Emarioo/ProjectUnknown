@@ -12,6 +12,8 @@
 #include "ProUnk/PlayerController.h"
 #include "ProUnk/DataHandlers/InventoryHandler.h"
 
+#include "ProUnk/UI/InventoryPanel.h"
+
 namespace prounk {
 
 	struct CombatParticle {
@@ -46,6 +48,8 @@ namespace prounk {
 		void dealCombat(engone::EngineObject* atkObj, engone::EngineObject* collider);
 
 		PlayerController playerController;
+
+		PanelHandler panelHandler;
 
 		engone::DelayCode delayed;
 

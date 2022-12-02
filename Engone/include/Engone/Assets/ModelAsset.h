@@ -38,7 +38,15 @@ namespace engone {
 		std::vector<AssetInstance> instances;
 		std::vector<AnimationAsset*> animations;
 
+		// min max of all mesh vertices. Does not take animations into account.
+		// these are not accurate if instances are reloaded
+		glm::vec3 minPoint;
+		glm::vec3 maxPoint;
+		glm::vec3 boundingPoint;
+		float boundingRadius;
+
 		// Will give a list of combined parent matrices to instances, do mats[i] * instance.localMat to get whole transform
+		// Asset has to be loaded for this to work
 		std::vector<glm::mat4> getParentTransforms(Animator* animator);
 
 		// will find the first instance with asset type T
@@ -53,9 +61,8 @@ namespace engone {
 		//	return nullptr;
 		//}
 
-		/*
-		@instance: The armature instance. Not the mesh instance
-		*/
+		// instance: The armature instance. Not the mesh instance
+		// Asset has to be loaded for this to work
 		std::vector<glm::mat4> getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset, std::vector<glm::mat4>* boneMats = nullptr);
 
 		static TrackerId trackerId;

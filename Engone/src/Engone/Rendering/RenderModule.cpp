@@ -85,7 +85,7 @@ namespace engone {
 		float near_plane = 1.f, far_plane = 20.5f;
 		lightProjection = glm::ortho(-10.f, 10.f, -10.f, 10.f, near_plane, far_plane);
 
-		setProjection(GetWidth()/GetHeight());
+		setProjection();
 
 		// ISSUE: how to deal with tracking of assets, when window is destroyed, free assets.
 		//	What if you have added an asset twice with different names
@@ -236,9 +236,17 @@ namespace engone {
 	glm::mat4& Renderer::getLightProj() {
 		return lightProjection;
 	}
-	void Renderer::setProjection(float ratio) {
-		if (ratio == -NAN) log::out << "Renderer::SetProjection ratio was bad\n";
-		projMatrix = glm::perspective(fov, ratio, zNear, zFar);
+	void Renderer::setProjection() {
+		//if (ratio == -NAN) log::out << "Renderer::SetProjection ratio was bad\n";
+		float ratio = GetWidth() / GetHeight();
+		if (isfinite(ratio))
+			projMatrix = glm::perspective(fov, ratio, zNear, zFar);
+	}
+	void Renderer::setOrthogonal() {
+		//float ratio = GetWidth() / GetHeight();
+		//projMatrix = glm::ortho(-ratio, ratio, -1.f, 1.f, zNear, zFar);
+		// you need to apply the ratio to the models yourself
+		projMatrix = glm::ortho(-1.f, 1.f, -1.f, 1.f, zNear, zFar);
 	}
 	// Should be done once in the render loop, currently done in Engone::render
 	//void Renderer::updateViewMatrix(double lag) {
@@ -251,6 +259,10 @@ namespace engone {
 	void Renderer::updateProjection(Shader* shader) {
 		if (shader != nullptr)
 			shader->setMat4("uProj", projMatrix * camera.getViewMatrix());
+	}
+	void Renderer::updateProjection(Shader* shader, glm::mat4 viewMatrix) {
+		if (shader != nullptr)
+			shader->setMat4("uProj", projMatrix * viewMatrix);
 	}
 	static void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3) {
 		ar[ind] = f0;
@@ -708,7 +720,12 @@ namespace engone {
 		DrawLine(b,c);
 		DrawLine(c,a);
 	}
-
+	void Renderer::DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix) {
+		modelObjects.push_back({ modelAsset, matrix, true });
+	}
+	void Renderer::DrawModel(ModelAsset* modelAsset, glm::mat4 matrix) {
+		modelObjects.push_back({ modelAsset, matrix, false});
+	}
 	// global ui pipeline
 	namespace ui {
 		struct PipeTextBox {
@@ -819,8 +836,8 @@ namespace engone {
 			}
 			return box.x<x&& box.x + w>x && box.y<y&& box.y + box.h>y;
 		}
-		int Clicked(Box& box) {
-			if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+		int Clicked(Box& box, int mouseKey) {
+			if (IsKeyPressed(mouseKey)) {
 				float x = GetMouseX();
 				float y = GetMouseY();
 				if (inside(box, x, y)) {
@@ -830,8 +847,8 @@ namespace engone {
 			}
 			return 0;
 		}
-		int Clicked(TextBox& box) {
-			if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+		int Clicked(TextBox& box, int mouseKey) {
+			if (IsKeyPressed(mouseKey)) {
 				float x = GetMouseX();
 				float y = GetMouseY();
 				if (inside(box, x, y)) {
@@ -885,16 +902,15 @@ namespace engone {
 		}
 		EnableDepth();
 
-		ShaderAsset* shad = m_parent->getStorage()->get<ShaderAsset>("renderer");
-		//Shader* shad = m_parent->getAssets()->get<Shader>("renderer");
-		if (shad) {
-			shad->bind();
-			updateProjection(shad);
-			shad->setVec3("uCamera", camera.getPosition());
+		ShaderAsset* shader = m_parent->getStorage()->get<ShaderAsset>("renderer");
+		if (shader) {
+			shader->bind();
+			updateProjection(shader);
+			shader->setVec3("uCamera", camera.getPosition());
 			uint32_t drawnCubes = 0;
 			uint32_t cubeCount = 0;
 
-			getParent()->getParent()->getEngine()->bindLights(shad, { 0,0,0 });
+			getParent()->getParent()->getEngine()->bindLights(shader, { 0,0,0 });
 
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_BOX_BATCH, cubeObjects.size() - drawnCubes);
@@ -907,24 +923,30 @@ namespace engone {
 			}
 			cubeObjects.clear();
 		}
-		shad = m_parent->getStorage()->get<ShaderAsset>("lines3d");
-		if (shad) {
-			shad->bind();
-			updateProjection(shad);
+		shader = m_parent->getStorage()->get<ShaderAsset>("lines3d");
+		if (shader) {
+			shader->bind();
+			updateProjection(shader);
 			glLineWidth(2.f);
 			//shad->setVec3("uColor", { 0.3,0.8,0.3 });
-			shad->setVec3("uColor", { 0.9,0.2,0.2 });
+			shader->setVec3("uColor", { 0.9,0.2,0.2 });
 
 			uint32_t drawnLines = 0;
 
 			while (drawnLines * 12 < pipe3lines.size()) {
+				// lines to draw
 				uint32_t lineCount = min(PIPE3_LINE_BATCH_LIMIT, pipe3lines.size() / 12 - drawnLines);
+				
 				if (lineCount < PIPE3_LINE_BATCH_LIMIT) {
-					if (pipe3lines.size() % (PIPE3_LINE_BATCH_LIMIT * 12) == 0) {
-						pipe3lines.resize((pipe3lines.size() + PIPE3_LINE_BATCH_LIMIT - lineCount) * 12, 0);
-					} else {
-						memset(pipe3lines.data() + (drawnLines + lineCount) * 12, 0, 12 * (PIPE3_LINE_BATCH_LIMIT - lineCount) * sizeof(float));
+					int diff = pipe3lines.size() % (PIPE3_LINE_BATCH_LIMIT * 12);
+					if (diff != 0) {
+						// resize so that the batch size isn't off
+						pipe3lines.resize(pipe3lines.size() + PIPE3_LINE_BATCH_LIMIT*12-diff, 0);
 					}
+					// set the lines that aren't drawn in the batch to zero
+					int offset = (drawnLines + lineCount) * 12;
+					int size = 12 * (PIPE3_LINE_BATCH_LIMIT - lineCount);
+					memset(pipe3lines.data() + offset, 0, size * sizeof(float));
 				}
 				pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT * 12 * sizeof(float), pipe3lines.data() + drawnLines * 12);
 				pipe3lineVA.drawLines(&pipe3lineIB);
@@ -1035,5 +1057,171 @@ namespace engone {
 		}
 		uiObjects.clear();
 		uiStrings.clear();
+
+		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
+
+		shader = m_parent->getStorage()->get<ShaderAsset>("object");
+		if (!shader->getError()) {
+			shader->bind();
+			shader->setVec3("uCamera", camera.getPosition());
+			for (int i = 0; i < modelObjects.size(); i++) {
+				ModelAsset* modelAsset = modelObjects[i].modelAsset;
+				glm::mat4& modelMatrix = modelObjects[i].matrix;
+				//glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
+
+				if (!modelAsset) return;
+				if (!modelAsset->valid()) return;
+
+				//Animator* animator = &obj->animator;
+
+				// Get individual transforms
+				std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
+				/*
+				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+					+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+					(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+					continue;
+				}
+				*/
+				// Draw instances
+				for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
+					AssetInstance& instance = modelAsset->instances[i];
+					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+					if (instance.asset->type == MeshAsset::TYPE) {
+						MeshAsset* asset = (MeshAsset*)instance.asset;
+
+						if (asset->meshType == MeshAsset::MeshType::Normal) {
+							glm::mat4 out;
+
+							//if (animator->asset)
+							out = modelMatrix * transforms[i] * instance.localMat;
+							//else
+								//out = modelMatrix * instance.localMat;
+
+							if (normalObjects.count(asset) > 0) {
+								normalObjects[asset].push_back(out);
+							} else {
+								normalObjects[asset] = std::vector<glm::mat4>();
+								normalObjects[asset].push_back(out);
+							}
+						}
+					}
+				}
+
+				if (modelObjects[i].isOrthogonal) {
+					setOrthogonal();
+					updateProjection(shader, glm::mat4(1));
+				} else {
+					setProjection();
+					updateProjection(shader);
+				}
+				//bindLights(shader, { 0,0,0 });
+				shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
+				for (auto& [asset, vector] : normalObjects) {
+					//if (asset->meshType == MeshAsset::MeshType::Normal) {
+					for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
+						asset->materials[j]->bind(shader, j);
+					}
+					//}
+					uint32_t remaining = vector.size();
+					while (remaining > 0) {
+						uint32_t batchAmount = std::min(remaining, Renderer::INSTANCE_BATCH);
+
+						getInstanceBuffer().setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size() - remaining));
+
+						asset->vertexArray.selectBuffer(3, &getInstanceBuffer());
+						asset->vertexArray.draw(&asset->indexBuffer, batchAmount);
+						remaining -= batchAmount;
+					}
+				}
+				normalObjects.clear();
+			}
+		}
+		shader = m_parent->getStorage()->get<ShaderAsset>("armature");
+		if (!shader->getError()) {
+			shader->bind();
+			//renderer->updateProjection(shader);
+			//shader->setVec3("uCamera", camera->getPosition());
+
+			//EngineObjectIterator iterator = world->getIterator();
+			//EngineObject* obj;
+			//while (obj = iterator.next()) {
+				//for (int oi = 0; oi < objects.size(); ++oi) {
+					//EngineObject* obj = objects[oi];
+			for (int i = 0; i < modelObjects.size(); i++) {
+				ModelAsset* modelAsset = modelObjects[i].modelAsset;
+
+				if (!modelAsset) continue;
+				if (!modelAsset->valid()) continue;
+
+
+				glm::mat4 modelMatrix = modelObjects[i].matrix;
+				//ToMatrix(obj->rigidBody->getTransform());
+
+				//Animator* animator = &obj->animator;
+
+				if (modelObjects[i].isOrthogonal) {
+					setOrthogonal();
+					updateProjection(shader,glm::mat4(1)); // <- Hello, change this ortho thing because it's easy to forget the glm::mat4(1) argument as the viewMatrix. And yes, this comment should be put in a better spot.
+				} else {
+					setProjection();
+					updateProjection(shader);
+				}
+
+				//bindLights(shader, modelMatrix[3]);
+
+				// Get individual transforms
+				std::vector<glm::mat4> transforms;
+				transforms = modelAsset->getParentTransforms(nullptr);
+
+				//-- Draw instances
+				AssetInstance* armatureInstance = nullptr;
+				ArmatureAsset* armatureAsset = nullptr;
+				if (transforms.size() == modelAsset->instances.size()) {
+					for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
+						AssetInstance& instance = modelAsset->instances[i];
+
+						if (instance.asset->type == AssetArmature) {
+							armatureInstance = &instance;
+							armatureAsset = (ArmatureAsset*)instance.asset;
+						} else if (instance.asset->type == AssetMesh) {
+							if (!armatureInstance)
+								continue;
+
+							MeshAsset* meshAsset = (MeshAsset*)instance.asset;
+							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
+								if (instance.parent == -1)
+									continue;
+
+								std::vector<glm::mat4> boneMats;
+								std::vector<glm::mat4> boneTransforms = modelAsset->getArmatureTransforms(nullptr, transforms[i], armatureInstance, armatureAsset, &boneMats);
+
+								//-- For rendering bones
+								//glm::mat4 basePos = modelMatrix* transforms[i];
+								//glm::mat4 boneLast;
+								//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
+								//for (int j = 0; j < boneMats.size(); j++) {
+								//	glm::mat4 boneMat = basePos*boneMats[j];
+								//	if(j!=0) // skip first boneLast 
+								//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
+								//	boneLast = boneMat;
+								//}
+
+								for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
+									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
+								}
+
+								for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
+									meshAsset->materials[j]->bind(shader, j);
+								}
+								shader->setMat4("uTransform", modelMatrix * transforms[i]);
+								meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
+							}
+						}
+					}
+				}
+			}
+		}
+		modelObjects.clear();
 	}
 }

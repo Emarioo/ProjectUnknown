@@ -14,6 +14,27 @@ void runApp(int argc, char** argv) {
 
 	//DataHandlerTest();
 
+	//float w = 200;
+	//float h = 160;
+	//int items = 28;
+
+	//float sqr = sqrt(items);
+	//
+	//float cols = w / h * sqr;
+	//float rows = h / w * sqr;
+	//
+	//if (cols - (int)cols != 0) {
+	//	cols = (int)cols;
+	//	rows = (int)(rows + 1);
+	//}
+	//if (rows - (int)rows != 0) {
+	//	rows = (int)(rows + 1);
+	//}
+
+	//float size = w / cols;
+
+	//printf("yay %d\n",size);
+
 	//return;
 
 	Engone engine;
@@ -21,7 +42,7 @@ void runApp(int argc, char** argv) {
 	//overrideArgs = true;
 	//ConvertArguments("--server", argc, argv);
 	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
-	ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
+	//ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
 	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.

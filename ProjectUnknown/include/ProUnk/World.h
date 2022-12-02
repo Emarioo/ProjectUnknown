@@ -117,6 +117,7 @@ namespace prounk {
 
 		EntityHandler entityHandler;
 		InventoryHandler inventoryHandler;
+		ModelHandler modelHandler;
 		CombatData* getCombatData(engone::EngineObject* object);
 		Inventory* getInventory(engone::EngineObject* object);
 

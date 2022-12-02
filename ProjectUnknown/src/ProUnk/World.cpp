@@ -84,6 +84,7 @@ namespace prounk {
 					//newObject->modelAsset = m_app->getStorage()->load<ModelAsset>(modelAsset, 0);
 					//newObject->animator.asset = newObject->modelAsset;
 					//newObject->loadColliders(this);
+
 					addObject(newObject);
 
 					if (clientUUID != 0) {
@@ -372,14 +373,14 @@ namespace prounk {
 		m_client.setOnReceive(onRecv);
 	}
 	void World::cleanup() {
-		World::cleanup();
+		EngineWorld::cleanup();
 	}
 	void World::update(engone::LoopInfo& info) {
 		using namespace engone;
 		EngineWorld::update(info); // lock this with mutex? maybe not?
 
 		// dummy AI (not efficient)
-		
+		lock();
 		EngineObjectIterator iterator = getIterator();
 		EngineObject* obj;
 		while (obj = iterator.next()){
@@ -445,6 +446,8 @@ namespace prounk {
 				}
 			}
 		}
+		unlock();
+		lock();
 		// combatdata
 		iterator = getIterator();
 		//EngineObject* obj;
@@ -463,6 +466,8 @@ namespace prounk {
 				}
 			}
 		}
+		unlock();
+		lock();
 		iterator = getIterator();
 		//EngineObject* obj;
 		while (obj = iterator.next()) {
@@ -473,22 +478,10 @@ namespace prounk {
 				combatData->wasUpdated=false;
 			}
 		}
+		unlock();
 		//m_objectMutex.unlock();
 		updateSample(info.timeStep);
 	}
-	//void World::netSyncObjects() {
-	//	using namespace engone;
-	//	// When client connects, it requests uuids from server.
-	//	// server sends them. ehm, this is complex. Simular complexity to UniSync where messages are sent back and forth.
-	//	
-	//	//-- Prepare message
-	//	//MessageBuffer msg;
-	//	//msg.push(SyncObjects);
-	//	//int count = 0;
-	//	//msg.push(count);
-	//
-	//	//-- send
-	//}
 
 	void World::netMoveObject(engone::EngineObject* object) {
 		using namespace engone;
@@ -516,27 +509,6 @@ namespace prounk {
 		if (m_client.isRunning())
 			m_client.send(msg);
 	}
-	//void World::netMoveObject(engone::UUID uuid, const rp3d::Transform& transform, const rp3d::Vector3& velocity, const rp3d::Vector3& angular) {
-	//	using namespace engone;
-	//	if (!m_server.isRunning() && !m_client.isRunning()) {
-	//		//log::out << "World::netMoveObject - neither server or client is running\n";
-	//		return;
-	//	}
-	//	//-- Prepare message
-	//	MessageBuffer msg;
-	//	NetCommand cmd = MoveObject;
-	//	msg.push(cmd);
-	//	msg.push(&uuid);
-	//	msg.push(&transform);
-	//	msg.push(&velocity);
-	//	msg.push(&angular);
-
-	//	//-- Send message
-	//	if (m_server.isRunning())
-	//		m_server.send(msg, 0, true);
-	//	if (m_client.isRunning())
-	//		m_client.send(msg);
-	//}
 	void World::netAddObject(engone::UUID uuid, engone::EngineObject* object) {
 		using namespace engone;
 		if (!m_server.isRunning() && !m_client.isRunning()) {
@@ -566,7 +538,6 @@ namespace prounk {
 			//log::out << log::RED << "World::addObject - neither server or client is running\n";
 			return;
 		}
-		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
 		//-- Prepare message
 		MessageBuffer msg;

@@ -42,7 +42,7 @@ namespace engone {
 #endif
 	}
 	void EngineWorld::update(LoopInfo& info) {
-		//m_mutex.lock();
+		m_mutex.lock();
 		EngineObjectIterator iterator = getIterator();
 		EngineObject* obj;
 		while(obj=iterator.next()) {
@@ -58,7 +58,7 @@ namespace engone {
 		if (m_pWorld)
 			m_pWorld->update(info.timeStep);
 #endif
-		//m_mutex.unlock();
+		m_mutex.unlock();
 	}
 	EngineObject* EngineWorld::getObject(UUID uuid) {
 		if (uuid == 0) return nullptr;
@@ -74,7 +74,9 @@ namespace engone {
 	}
 
 	void EngineWorld::addObject(EngineObject* object) {
+		m_mutex.lock();
 		m_objects.push_back(object);
+		m_mutex.unlock();
 	}
 
 	EngineObjectIterator EngineWorld::getIterator() {

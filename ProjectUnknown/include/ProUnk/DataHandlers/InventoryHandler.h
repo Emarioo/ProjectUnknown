@@ -9,7 +9,7 @@ namespace prounk {
 	class Item {
 	public:
 		Item() = default;
-		Item(int count, const std::string& name) : m_count(count), m_name(name) {}
+		Item(int count, const std::string& name, ModelId modelId) : m_count(count), m_name(name), m_modelId(modelId) {}
 		//Item(const std::string& name);
 		//Item(const std::string& name, int count);
 
@@ -38,7 +38,7 @@ namespace prounk {
 	class Inventory {
 	public:
 		Inventory() = default;
-		~Inventory();
+		//~Inventory();
 
 		//-- Potential functions
 		// transferItem

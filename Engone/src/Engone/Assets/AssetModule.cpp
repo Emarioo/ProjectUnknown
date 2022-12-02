@@ -170,7 +170,7 @@ namespace engone {
 		if (!m_running) {
 			m_running = true;
 			m_thread = std::thread([this]() {
-				std::string name = "AProc. ";
+				std::string name = "Proc. ";
 				name += ToString(m_processType);
 				engone::SetThreadName(-1, name.c_str());
 
@@ -199,9 +199,10 @@ namespace engone {
 			// process it
 			//log::out << "Process("<<m_processType<<"): " << task.asset->getPath() << "\n";
 			// 
-			//if (task.asset->getPath() == "assets/models/Platform/PlatformMesh.mesh"&&m_processType==Asset::LoadData) {
-			//	//DebugBreak();
+			//if (this->m_processType == Asset::LoadGraphic) {
+			//	DebugBreak();
 			//}
+			
 			// NOTE: loading and asset twice with the same type would cause errors.
 			//   loading mesh twice with type LoadData for example.
 			Asset::LoadFlags flags = task.asset->load(m_processType);
