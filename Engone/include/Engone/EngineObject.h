@@ -56,6 +56,10 @@ namespace engone {
 		void setOnlyTrigger(bool yes);
 		bool isOnlyTrigger();
 
+		// loadColliders will be called and will require a rigidBody
+		void setModel(ModelAsset* asset);
+		void createRigidBody(EngineWorld* world);
+
 		// Will load colliders whenever requirements are meet. This method is asynchronous.
 		// These are: modelAsset is valid, rigidbody is valid.
 		// The ground parameter is used by the engine and not relevant to you.

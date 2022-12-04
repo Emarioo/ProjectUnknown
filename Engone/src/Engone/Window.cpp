@@ -162,10 +162,20 @@ namespace engone {
 	}
 	static void ResizeCallback(GLFWwindow* window, int width, int height) {
 		Window* win = GetMappedWindow(window);
-		if (win) {
-			win->w = (float)width;
-			win->h = (float)height;
+		if (!win){
+			log::out << "Window isn't mapped\n";
+			return;
 		}
+
+		Event e{ EventResize };
+		e.width = (float)width;
+		e.height = (float)height;
+		e.window = win;
+		win->addEvent(e);
+		win->runListeners();
+
+		win->w = (float)width;
+		win->h = (float)height;
 	}
 	static void CloseCallback(GLFWwindow* window) {
 		Window* win = GetMappedWindow(window);
@@ -240,7 +250,8 @@ namespace engone {
 		if (detail.h == -1) h = (float)vidmode->height / 1.5f;
 		else h = (float)detail.h;
 
-		attachListener(EventMove, 9998, FirstPerson);
+		m_firstPersonListener = new Listener(EventMove, 9998, FirstPerson);
+		attachListener(m_firstPersonListener);
 
 		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
@@ -263,6 +274,8 @@ namespace engone {
 				delete l;
 			}
 		}
+		delete m_firstPersonListener;
+		m_firstPersonListener = nullptr;
 		//log::out << "deleted window\n";
 
 		// then we set it to nullptr
@@ -362,20 +375,6 @@ namespace engone {
 		} else {
 			return m_tickScrollY;
 		}
-	}
-	void Window::attachListener(EventTypes eventTypes, std::function<EventTypes(Event&)> func) {
-		Listener* l = new Listener(eventTypes, func);
-		if (!l) return;
-		GetTracker().track(l);
-		l->m_ownedByWindow = true;
-		attachListener(l);
-	}
-	void Window::attachListener(EventTypes eventTypes, int priority, std::function<EventTypes(Event&)> func) {
-		Listener* l = new Listener(eventTypes, priority, func);
-		if (!l) return;
-		GetTracker().track(l);
-		l->m_ownedByWindow = true;
-		attachListener(l);
 	}
 	void Window::attachListener(Listener* listener) {
 		// Prevent duplicates

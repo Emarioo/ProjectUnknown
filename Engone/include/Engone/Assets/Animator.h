@@ -16,6 +16,7 @@ namespace engone {
 	class Animator {
 	public:
 		Animator() = default;
+		void cleanup();
 
 		ModelAsset* asset; // animations are stored in here
 		// may not need to store this here, because if animator exists,

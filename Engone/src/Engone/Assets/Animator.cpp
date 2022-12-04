@@ -6,11 +6,16 @@
 
 namespace engone {
 
-
 	float AnimatorProperty::getRemainingSeconds() const {
 		float out = asset->frameEnd - frame;
 		out *= speed / asset->defaultSpeed;
 		return out;
+	}
+	void Animator::cleanup() {
+		asset = nullptr;
+		for (uint32_t i = 0; i < maxAnimations; ++i) {
+			enabledAnimations[i].asset = nullptr;
+		}
 	}
 	void Animator::update(float delta) {
 		if (asset != nullptr) {

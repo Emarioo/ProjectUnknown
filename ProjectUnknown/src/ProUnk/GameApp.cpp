@@ -14,7 +14,6 @@
 
 #include "ProUnk/Magic/Magic.h"
 
-#include "ProUnk/UI/PlayerInformation.h"
 #include "ProUnk/UI/UIMenus.h"
 
 namespace prounk {
@@ -234,8 +233,8 @@ namespace prounk {
 		assets->load<FontAsset>("fonts/consolas42");
 
 		//-- Event and game loop functions
-		m_window->attachListener(EventKey, OnKey);
-		m_window->attachListener(EventClick, OnMouse);
+		//m_window->attachListener(EventKey, OnKey);
+		//m_window->attachListener(EventClick, OnMouse);
 
 		// ISSUE: if default keybindings change but keybindings.dat exists then the new keybinds won't apply.
 		//		Temp. fix by always creating default bindings.
@@ -263,6 +262,11 @@ namespace prounk {
 		inventoryPanel->setPosition(100, 100);
 		inventoryPanel->setSize(100, 200);
 		inventoryPanel->setInventory(entry.inventoryIndex);
+
+		PlayerBarPanel* playerBarPanel = new PlayerBarPanel(this);
+		panelHandler.addPanel(playerBarPanel);
+		playerBarPanel->setPosition(10, 10);
+		playerBarPanel->setSize(100, 200);
 
 		Inventory* inv = world->inventoryHandler.getInventory(entry.inventoryIndex);
 
@@ -379,7 +383,7 @@ namespace prounk {
 		//ui::Box box = {x-25,100,50,50};
 		//ui::Draw(box);
 
-		RenderPlayerInformation(info, &playerController);
+		//RenderPlayerInformation(info, &playerController);
 		RenderServerClientMenu(info);
 
 		DebugInfo(info,this);

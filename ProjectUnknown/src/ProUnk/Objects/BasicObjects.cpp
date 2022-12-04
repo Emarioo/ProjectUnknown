@@ -27,11 +27,10 @@ namespace prounk {
 		EngineObject* out = new EngineObject(uuid);
 		out->objectType = OBJECT_DUMMY;
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->modelAsset = assets->load<engone::ModelAsset>("Dummy/Dummy");
-		out->animator.asset = out->modelAsset;
 
-		rp3d::Transform t;
-		out->rigidBody = world->m_pWorld->createRigidBody(t);
+		out->createRigidBody(world);
+		out->setModel(assets->load<engone::ModelAsset>("Dummy/Dummy"));
+
 		out->rigidBody->setType(rp3d::BodyType::DYNAMIC);
 		out->rigidBody->setIsAllowedToSleep(false);
 		out->rigidBody->enableGravity(false);
@@ -60,12 +59,10 @@ namespace prounk {
 		out->objectType = OBJECT_SWORD;
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->modelAsset = assets->load<engone::ModelAsset>("SwordBase/SwordBase");
-		//out->modelAsset = assets->load<engone::ModelAsset>("Pickaxe/Pickaxe");
-		out->animator.asset = out->modelAsset;
+		out->createRigidBody(world);
+		out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
+		//out->setModel(assets->load<engone::ModelAsset>("Pickaxe/Pickaxe"));
 
-		rp3d::Transform t;
-		out->rigidBody = world->m_pWorld->createRigidBody(t);
 		out->rigidBody->setType(rp3d::BodyType::DYNAMIC);
 		out->rigidBody->setIsAllowedToSleep(false);
 
@@ -81,11 +78,9 @@ namespace prounk {
 		out->objectType = OBJECT_TERRAIN;
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->modelAsset = assets->load<engone::ModelAsset>("Platform/Platform");
-		out->animator.asset = out->modelAsset;
+		out->createRigidBody(world);
+		out->setModel(assets->load<engone::ModelAsset>("Platform/Platform"));
 
-		rp3d::Transform t;
-		out->rigidBody = world->m_pWorld->createRigidBody(t);
 		out->rigidBody->setType(rp3d::BodyType::STATIC);
 
 		out->rigidBody->setUserData(out);
@@ -108,11 +103,9 @@ namespace prounk {
 		out->flags |= OBJECT_HAS_COMBATDATA;
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->modelAsset = assets->load<engone::ModelAsset>("Player/Player");
-		out->animator.asset = out->modelAsset;
+		out->createRigidBody(world);
+		out->setModel(assets->load<engone::ModelAsset>("Player/Player"));
 
-		rp3d::Transform t;
-		out->rigidBody = world->m_pWorld->createRigidBody(t);
 		out->rigidBody->setType(rp3d::BodyType::DYNAMIC);
 		out->rigidBody->setAngularLockAxisFactor({ 0,1,0 }); // only allow spin (y rotation)
 		out->rigidBody->setIsAllowedToSleep(false);

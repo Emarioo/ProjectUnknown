@@ -720,14 +720,18 @@ namespace engone {
 		DrawLine(b,c);
 		DrawLine(c,a);
 	}
-	void Renderer::DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix) {
-		modelObjects.push_back({ modelAsset, matrix, true });
-	}
-	void Renderer::DrawModel(ModelAsset* modelAsset, glm::mat4 matrix) {
-		modelObjects.push_back({ modelAsset, matrix, false});
-	}
+	//void Renderer::DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix) {
+	//	modelObjects.push_back({ modelAsset, matrix, true });
+	//}
+	//void Renderer::DrawModel(ModelAsset* modelAsset, glm::mat4 matrix) {
+	//	modelObjects.push_back({ modelAsset, matrix, false});
+	//}
 	// global ui pipeline
 	namespace ui {
+		float TextBox::getWidth() {
+			if (!font) return 0;
+			return font->getWidth(text, h);
+		}
 		struct PipeTextBox {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
 			uint32_t text_index=0;
@@ -735,6 +739,10 @@ namespace engone {
 			FontAsset* font = nullptr;
 			Color rgba;
 			uint32_t at = -1;
+		};
+		struct ModelBox {
+			uint32_t model_text_index = 0;
+			glm::mat4 matrix;
 		};
 		void Draw(Box box) {
 			if (!GetActiveRenderer()) return;
@@ -770,6 +778,13 @@ namespace engone {
 			a.at = box.at;
 
 			GetActiveRenderer()->uiObjects.writeMemory<PipeTextBox>('S', &a);
+		}
+		void Draw(ModelAsset* asset, glm::mat4 matrix) {
+			if (!GetActiveRenderer()) return;
+			ModelBox box = { 0,matrix };
+			GetActiveRenderer()->uiStrings.push_back(asset->getLoadName());
+			box.model_text_index = GetActiveRenderer()->uiStrings.size() - 1;
+			GetActiveRenderer()->uiObjects.writeMemory<ModelBox>('M', &box);
 		}
 
 		void Edit(std::string& str, int& at,bool& editing, bool stopEditWithEnter) {
@@ -898,7 +913,7 @@ namespace engone {
 			return;
 		}
 		if (match != m_parent->glfw()) {
-			log::out << "NOT MATCH\n";
+			log::out << "Renderer::render - glfw context differs!\n";
 		}
 		EnableDepth();
 
@@ -973,11 +988,27 @@ namespace engone {
 
 		pipeShad->bind();
 		pipeShad->setVec2("uWindow", { GetWidth(), GetHeight() });
-
 		// needs to be done once
 		for (int i = 0; i < 8; i++) {
 			pipeShad->setInt("uSampler[" + std::to_string(i) + std::string("]"), i);
 		}
+
+		ShaderAsset* objectShad = m_parent->getStorage()->get<ShaderAsset>("object");
+		if (!objectShad) return;
+
+		objectShad->bind();
+		setOrthogonal();
+		updateProjection(objectShad, glm::mat4(1));
+		shader->setVec3("uCamera", camera.getPosition());
+
+		ShaderAsset* armatureShad = m_parent->getStorage()->get<ShaderAsset>("armature");
+		if (!armatureShad) return;
+
+		armatureShad->bind();
+		setOrthogonal();
+		updateProjection(armatureShad, glm::mat4(1));
+		shader->setVec3("uCamera", camera.getPosition());
+
 	
 		// Method one
 		int floatIndex = 0;
@@ -1014,9 +1045,11 @@ namespace engone {
 
 			} else if (type == 'S') {
 				// Is done below
+			} else if (type == 'M') {
+
 			}
 
-			if (floatIndex == MAX_BOX_BATCH || boundTextures.size() >= 7 || (type == 0 && floatIndex != 0)||(type=='S'&&lastShader!='P'&&lastShader!=0)) {
+			if (floatIndex == MAX_BOX_BATCH || boundTextures.size() >= 7 || (type == 0 && floatIndex != 0)||((type=='S'||type=='M') && lastShader != 'P' && lastShader != 0)) {
 
 				for (auto [texture, index] : boundTextures) {
 					texture->bind(index);
@@ -1051,39 +1084,23 @@ namespace engone {
 				// don't continue with other stuff
 				continue;
 			}
-			lastShader = 1;
-			if (type == 0)
-				break;
-		}
-		uiObjects.clear();
-		uiStrings.clear();
-
-		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
-
-		shader = m_parent->getStorage()->get<ShaderAsset>("object");
-		if (!shader->getError()) {
-			shader->bind();
-			shader->setVec3("uCamera", camera.getPosition());
-			for (int i = 0; i < modelObjects.size(); i++) {
-				ModelAsset* modelAsset = modelObjects[i].modelAsset;
-				glm::mat4& modelMatrix = modelObjects[i].matrix;
+			if (type == 'M') {
+				ui::ModelBox* box = uiObjects.readItem<ui::ModelBox>();
+				
+				lastShader = 'O';
+				
+				ModelAsset* modelAsset = m_parent->getStorage()->get<ModelAsset>(uiStrings[box->model_text_index]);
+				glm::mat4& modelMatrix = box->matrix;
 				//glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
 				if (!modelAsset) return;
 				if (!modelAsset->valid()) return;
 
-				//Animator* animator = &obj->animator;
-
 				// Get individual transforms
 				std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
-				/*
-				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
-					+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
-					(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
-					continue;
-				}
-				*/
-				// Draw instances
+
+				std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
+				// get final matrices for instances
 				for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
 					AssetInstance& instance = modelAsset->instances[i];
 					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
@@ -1093,10 +1110,7 @@ namespace engone {
 						if (asset->meshType == MeshAsset::MeshType::Normal) {
 							glm::mat4 out;
 
-							//if (animator->asset)
 							out = modelMatrix * transforms[i] * instance.localMat;
-							//else
-								//out = modelMatrix * instance.localMat;
 
 							if (normalObjects.count(asset) > 0) {
 								normalObjects[asset].push_back(out);
@@ -1108,120 +1122,245 @@ namespace engone {
 					}
 				}
 
-				if (modelObjects[i].isOrthogonal) {
-					setOrthogonal();
-					updateProjection(shader, glm::mat4(1));
-				} else {
-					setProjection();
-					updateProjection(shader);
-				}
-				//bindLights(shader, { 0,0,0 });
-				shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
-				for (auto& [asset, vector] : normalObjects) {
-					//if (asset->meshType == MeshAsset::MeshType::Normal) {
-					for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
-						asset->materials[j]->bind(shader, j);
-					}
-					//}
-					uint32_t remaining = vector.size();
-					while (remaining > 0) {
-						uint32_t batchAmount = std::min(remaining, Renderer::INSTANCE_BATCH);
+				shader = m_parent->getStorage()->get<ShaderAsset>("object");
+				if (!shader->getError()) {
+					shader->bind();
 
-						getInstanceBuffer().setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size() - remaining));
+					//bindLights(shader, { 0,0,0 });
+					shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
+					for (auto& [asset, vector] : normalObjects) {
+						for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
+							asset->materials[j]->bind(shader, j);
+						}
+						uint32_t remaining = vector.size();
+						while (remaining > 0) {
+							uint32_t batchAmount = std::min(remaining, Renderer::INSTANCE_BATCH);
 
-						asset->vertexArray.selectBuffer(3, &getInstanceBuffer());
-						asset->vertexArray.draw(&asset->indexBuffer, batchAmount);
-						remaining -= batchAmount;
-					}
-				}
-				normalObjects.clear();
-			}
-		}
-		shader = m_parent->getStorage()->get<ShaderAsset>("armature");
-		if (!shader->getError()) {
-			shader->bind();
-			//renderer->updateProjection(shader);
-			//shader->setVec3("uCamera", camera->getPosition());
+							getInstanceBuffer().setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size() - remaining));
 
-			//EngineObjectIterator iterator = world->getIterator();
-			//EngineObject* obj;
-			//while (obj = iterator.next()) {
-				//for (int oi = 0; oi < objects.size(); ++oi) {
-					//EngineObject* obj = objects[oi];
-			for (int i = 0; i < modelObjects.size(); i++) {
-				ModelAsset* modelAsset = modelObjects[i].modelAsset;
-
-				if (!modelAsset) continue;
-				if (!modelAsset->valid()) continue;
-
-
-				glm::mat4 modelMatrix = modelObjects[i].matrix;
-				//ToMatrix(obj->rigidBody->getTransform());
-
-				//Animator* animator = &obj->animator;
-
-				if (modelObjects[i].isOrthogonal) {
-					setOrthogonal();
-					updateProjection(shader,glm::mat4(1)); // <- Hello, change this ortho thing because it's easy to forget the glm::mat4(1) argument as the viewMatrix. And yes, this comment should be put in a better spot.
-				} else {
-					setProjection();
-					updateProjection(shader);
-				}
-
-				//bindLights(shader, modelMatrix[3]);
-
-				// Get individual transforms
-				std::vector<glm::mat4> transforms;
-				transforms = modelAsset->getParentTransforms(nullptr);
-
-				//-- Draw instances
-				AssetInstance* armatureInstance = nullptr;
-				ArmatureAsset* armatureAsset = nullptr;
-				if (transforms.size() == modelAsset->instances.size()) {
-					for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
-						AssetInstance& instance = modelAsset->instances[i];
-
-						if (instance.asset->type == AssetArmature) {
-							armatureInstance = &instance;
-							armatureAsset = (ArmatureAsset*)instance.asset;
-						} else if (instance.asset->type == AssetMesh) {
-							if (!armatureInstance)
-								continue;
-
-							MeshAsset* meshAsset = (MeshAsset*)instance.asset;
-							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
-								if (instance.parent == -1)
-									continue;
-
-								std::vector<glm::mat4> boneMats;
-								std::vector<glm::mat4> boneTransforms = modelAsset->getArmatureTransforms(nullptr, transforms[i], armatureInstance, armatureAsset, &boneMats);
-
-								//-- For rendering bones
-								//glm::mat4 basePos = modelMatrix* transforms[i];
-								//glm::mat4 boneLast;
-								//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
-								//for (int j = 0; j < boneMats.size(); j++) {
-								//	glm::mat4 boneMat = basePos*boneMats[j];
-								//	if(j!=0) // skip first boneLast 
-								//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
-								//	boneLast = boneMat;
-								//}
-
-								for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
-									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
-								}
-
-								for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
-									meshAsset->materials[j]->bind(shader, j);
-								}
-								shader->setMat4("uTransform", modelMatrix * transforms[i]);
-								meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
-							}
+							asset->vertexArray.selectBuffer(3, &getInstanceBuffer());
+							asset->vertexArray.draw(&asset->indexBuffer, batchAmount);
+							remaining -= batchAmount;
 						}
 					}
+					normalObjects.clear();
 				}
+				shader = m_parent->getStorage()->get<ShaderAsset>("armature");
+				lastShader = 'A';
+				if (!shader->getError()) {
+					shader->bind();
+						
+					//bindLights(shader, modelMatrix[3]);
+					//-- Draw instances
+					AssetInstance* armatureInstance = nullptr;
+					ArmatureAsset* armatureAsset = nullptr;
+					if (transforms.size() == modelAsset->instances.size()) {
+						for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
+							AssetInstance& instance = modelAsset->instances[i];
+
+							if (instance.asset->type == AssetArmature) {
+								armatureInstance = &instance;
+								armatureAsset = (ArmatureAsset*)instance.asset;
+							} else if (instance.asset->type == AssetMesh) {
+								if (!armatureInstance)
+									continue;
+
+								MeshAsset* meshAsset = (MeshAsset*)instance.asset;
+								if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
+									if (instance.parent == -1)
+										continue;
+
+									std::vector<glm::mat4> boneMats;
+									std::vector<glm::mat4> boneTransforms = modelAsset->getArmatureTransforms(nullptr, transforms[i], armatureInstance, armatureAsset, &boneMats);
+
+									for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
+										shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
+									}
+
+									for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
+										meshAsset->materials[j]->bind(shader, j);
+									}
+									shader->setMat4("uTransform", modelMatrix * transforms[i]);
+									meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
+								}
+								}
+							}
+					}
+				}
+
+				continue;
 			}
+			lastShader = 1;
+			if (type == 0)
+				break;
 		}
-		modelObjects.clear();
+		uiObjects.clear();
+		uiStrings.clear();
+
+		//std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
+
+		//shader = m_parent->getStorage()->get<ShaderAsset>("object");
+		//if (!shader->getError()) {
+		//	shader->bind();
+		//	shader->setVec3("uCamera", camera.getPosition());
+		//	for (int i = 0; i < modelObjects.size(); i++) {
+		//		ModelAsset* modelAsset = modelObjects[i].modelAsset;
+		//		glm::mat4& modelMatrix = modelObjects[i].matrix;
+		//		//glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
+
+		//		if (!modelAsset) return;
+		//		if (!modelAsset->valid()) return;
+
+		//		//Animator* animator = &obj->animator;
+
+		//		// Get individual transforms
+		//		std::vector<glm::mat4> transforms = modelAsset->getParentTransforms(nullptr);
+		//		/*
+		//		if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+		//			+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+		//			(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+		//			continue;
+		//		}
+		//		*/
+		//		// Draw instances
+		//		for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
+		//			AssetInstance& instance = modelAsset->instances[i];
+		//			//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+		//			if (instance.asset->type == MeshAsset::TYPE) {
+		//				MeshAsset* asset = (MeshAsset*)instance.asset;
+
+		//				if (asset->meshType == MeshAsset::MeshType::Normal) {
+		//					glm::mat4 out;
+
+		//					//if (animator->asset)
+		//					out = modelMatrix * transforms[i] * instance.localMat;
+		//					//else
+		//						//out = modelMatrix * instance.localMat;
+
+		//					if (normalObjects.count(asset) > 0) {
+		//						normalObjects[asset].push_back(out);
+		//					} else {
+		//						normalObjects[asset] = std::vector<glm::mat4>();
+		//						normalObjects[asset].push_back(out);
+		//					}
+		//				}
+		//			}
+		//		}
+
+		//		if (modelObjects[i].isOrthogonal) {
+		//			setOrthogonal();
+		//			updateProjection(shader, glm::mat4(1));
+		//		} else {
+		//			setProjection();
+		//			updateProjection(shader);
+		//		}
+		//		//bindLights(shader, { 0,0,0 });
+		//		shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
+		//		for (auto& [asset, vector] : normalObjects) {
+		//			//if (asset->meshType == MeshAsset::MeshType::Normal) {
+		//			for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
+		//				asset->materials[j]->bind(shader, j);
+		//			}
+		//			//}
+		//			uint32_t remaining = vector.size();
+		//			while (remaining > 0) {
+		//				uint32_t batchAmount = std::min(remaining, Renderer::INSTANCE_BATCH);
+
+		//				getInstanceBuffer().setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size() - remaining));
+
+		//				asset->vertexArray.selectBuffer(3, &getInstanceBuffer());
+		//				asset->vertexArray.draw(&asset->indexBuffer, batchAmount);
+		//				remaining -= batchAmount;
+		//			}
+		//		}
+		//		normalObjects.clear();
+		//	}
+		//}
+		//shader = m_parent->getStorage()->get<ShaderAsset>("armature");
+		//if (!shader->getError()) {
+		//	shader->bind();
+		//	//renderer->updateProjection(shader);
+		//	//shader->setVec3("uCamera", camera->getPosition());
+
+		//	//EngineObjectIterator iterator = world->getIterator();
+		//	//EngineObject* obj;
+		//	//while (obj = iterator.next()) {
+		//		//for (int oi = 0; oi < objects.size(); ++oi) {
+		//			//EngineObject* obj = objects[oi];
+		//	for (int i = 0; i < modelObjects.size(); i++) {
+		//		ModelAsset* modelAsset = modelObjects[i].modelAsset;
+
+		//		if (!modelAsset) continue;
+		//		if (!modelAsset->valid()) continue;
+
+
+		//		glm::mat4 modelMatrix = modelObjects[i].matrix;
+		//		//ToMatrix(obj->rigidBody->getTransform());
+
+		//		//Animator* animator = &obj->animator;
+
+		//		if (modelObjects[i].isOrthogonal) {
+		//			setOrthogonal();
+		//			updateProjection(shader,glm::mat4(1)); // <- Hello, change this ortho thing because it's easy to forget the glm::mat4(1) argument as the viewMatrix. And yes, this comment should be put in a better spot.
+		//		} else {
+		//			setProjection();
+		//			updateProjection(shader);
+		//		}
+
+		//		//bindLights(shader, modelMatrix[3]);
+
+		//		// Get individual transforms
+		//		std::vector<glm::mat4> transforms;
+		//		transforms = modelAsset->getParentTransforms(nullptr);
+
+		//		//-- Draw instances
+		//		AssetInstance* armatureInstance = nullptr;
+		//		ArmatureAsset* armatureAsset = nullptr;
+		//		if (transforms.size() == modelAsset->instances.size()) {
+		//			for (uint32_t i = 0; i < modelAsset->instances.size(); ++i) {
+		//				AssetInstance& instance = modelAsset->instances[i];
+
+		//				if (instance.asset->type == AssetArmature) {
+		//					armatureInstance = &instance;
+		//					armatureAsset = (ArmatureAsset*)instance.asset;
+		//				} else if (instance.asset->type == AssetMesh) {
+		//					if (!armatureInstance)
+		//						continue;
+
+		//					MeshAsset* meshAsset = (MeshAsset*)instance.asset;
+		//					if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
+		//						if (instance.parent == -1)
+		//							continue;
+
+		//						std::vector<glm::mat4> boneMats;
+		//						std::vector<glm::mat4> boneTransforms = modelAsset->getArmatureTransforms(nullptr, transforms[i], armatureInstance, armatureAsset, &boneMats);
+
+		//						//-- For rendering bones
+		//						//glm::mat4 basePos = modelMatrix* transforms[i];
+		//						//glm::mat4 boneLast;
+		//						//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
+		//						//for (int j = 0; j < boneMats.size(); j++) {
+		//						//	glm::mat4 boneMat = basePos*boneMats[j];
+		//						//	if(j!=0) // skip first boneLast 
+		//						//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
+		//						//	boneLast = boneMat;
+		//						//}
+
+		//						for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
+		//							shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
+		//						}
+
+		//						for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
+		//							meshAsset->materials[j]->bind(shader, j);
+		//						}
+		//						shader->setMat4("uTransform", modelMatrix * transforms[i]);
+		//						meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
+		//modelObjects.clear();
 	}
 }

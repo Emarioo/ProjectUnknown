@@ -2,6 +2,34 @@
 #include "Engone/Engone.h"
 
 namespace engone {
+
+	void EngineObject::setModel(ModelAsset* asset) {
+		if (modelAsset == asset)
+			return;
+
+		// cleanup previous model
+		if (modelAsset) {
+			while(rigidBody->getNbColliders()!=0) {
+				rp3d::Collider* col = rigidBody->getCollider(0);
+				rigidBody->removeCollider(col);
+			}
+			animator.cleanup();
+			modelAsset = nullptr;
+		}
+		
+		// set new model
+		modelAsset = asset;
+		animator.asset = modelAsset;
+		loadColliders();
+	}
+	void EngineObject::createRigidBody(EngineWorld* world) {
+		rp3d::Transform t;
+		if (world->m_pWorld) {
+			rigidBody = world->m_pWorld->createRigidBody(t);
+		} else {
+			log::out << log::RED << "EngineObject::createRigidBody - physics world was nullptr\n";
+		}
+	}
 #ifdef ENGONE_PHYSICS
 	void EngineObject::loadColliders(EngineWorld* world) {
 		if (!modelAsset) {

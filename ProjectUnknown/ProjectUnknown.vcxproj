@@ -104,6 +104,7 @@
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
     <ClCompile Include="src\ProUnk\UI\InventoryPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\PanelHandler.cpp" />
+    <ClCompile Include="src\ProUnk\UI\PlayerBarPanel.cpp" />
     <ClCompile Include="src\ProUnk\World.cpp" />
     <ClCompile Include="src\ProUnk\Objects\BasicObjects.cpp" />
     <ClCompile Include="src\ProUnk\Objects\Tags.cpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="include\ProUnk\DataHandlers\EntityHandler.h" />
     <ClInclude Include="include\ProUnk\UI\InventoryPanel.h" />
     <ClInclude Include="include\ProUnk\UI\PanelHandler.h" />
+    <ClInclude Include="include\ProUnk\UI\PlayerBarPanel.h" />
     <ClInclude Include="include\ProUnk\World.h" />
     <ClInclude Include="include\ProUnk\Objects\BasicObjects.h" />
     <ClInclude Include="include\ProUnk\Tests\AllTests.h" />

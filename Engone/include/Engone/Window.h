@@ -57,11 +57,7 @@ namespace engone {
 		inline AssetStorage* getStorage() { return &m_storage; }
 		inline Renderer* getRenderer() { return &m_renderer; }
 
-		 //will create a new listener which the window has ownership of. Meaning listener will be destroyed when window is.
-		void attachListener(EventTypes eventTypes, std::function<EventTypes(Event&)> func);
-		 //will create a new listener which the window has ownership of. Meaning listener will be destroyed when window is.
-		void attachListener(EventTypes eventTypes, int priority, std::function<EventTypes(Event&)> func);
-		 //Window will not destroy listener
+		// Window will not destroy listener. Should it?
 		void attachListener(Listener* listener);
 
 		void addEvent(Event& e) { m_events.push_back(e); }
@@ -110,6 +106,8 @@ namespace engone {
 		// The game loop will delete a window that should close because it nows when the window is being rendered to and not. Deleting a window while it is being rendered to is bad.
 		// if this window shares buffers with another unexepected things might happen.
 		~Window();
+
+		Listener* m_firstPersonListener=nullptr;
 
 		GLFWwindow* m_glfwWindow=nullptr;
 		Application* m_parent=nullptr;

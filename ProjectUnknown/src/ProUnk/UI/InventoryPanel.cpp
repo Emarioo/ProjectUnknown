@@ -19,11 +19,13 @@ namespace prounk {
 		//log::out << "scale " << itemScale << " "<<GetWidth() <<" "<< GetHeight() << "\n";
 		
 		if (inv) {
+			ui::Box area = getBox();
 			area.rgba = { 0.4,0.5,0.6,1 };
 			ui::Draw(area);
 
+
+
 			// calculate rows and columns for slots
-			area.w; area.h;
 			inv->size();
 
 			int rows = 0;
@@ -32,8 +34,8 @@ namespace prounk {
 
 			FontAsset* font = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
-			ui::TextBox sizes = { std::to_string(area.w) +" "+ std::to_string(area.h),200,20,20,font, {0.,0.2,1,1}};
-			ui::Draw(sizes);
+			//ui::TextBox sizes = { std::to_string(area.w) +" "+ std::to_string(area.h),200,20,20,font, {0.,0.2,1,1}};
+			//ui::Draw(sizes);
 			{
 				// equation (;
 				// fcols* frows = inv->size();
@@ -42,8 +44,8 @@ namespace prounk {
 				float fcols = sqrt(inv->size() * (area.w / area.h));
 				float frows = inv->size()/fcols;
 
-				ui::TextBox sizes2 = { std::to_string(fcols) + " " + std::to_string(frows),200,40,20,font, {0.,0.2,1,1} };
-				ui::Draw(sizes2);
+				//ui::TextBox sizes2 = { std::to_string(fcols) + " " + std::to_string(frows),200,40,20,font, {0.,0.2,1,1} };
+				//ui::Draw(sizes2);
 
 				cols = round(fcols);
 				rows = round(frows);
@@ -71,8 +73,8 @@ namespace prounk {
 				ModelId id = item.getModelId();
 				engone::ModelAsset* asset = world->modelHandler.getModel(id);
 				if (asset) {
-					float pixelX = area.x;
-					float pixelY = area.y;
+					float pixelX = m_left;
+					float pixelY = m_top;
 
 					int pixelSize = slotSize - 8;
 
@@ -103,9 +105,10 @@ namespace prounk {
 					modelY += (GetHeight()/2- slotSize /2-pixelY) * 2.f / GetHeight() / modelScale.y;
 
 					glm::mat4 matrix = glm::translate(glm::vec3(0, 0, -1.0))  * glm::scale(modelScale) * glm::translate(glm::vec3(modelX, modelY, 0));
-					renderer->DrawOrthoModel(asset, matrix);
+					//renderer->DrawOrthoModel(asset, matrix);
+					ui::Draw(asset, matrix);
 					{
-						ui::Box box = { pixelX,pixelY,slotSize,slotSize,{0.83,0.84,0.87,1} };
+						ui::Box box = { pixelX,pixelY,slotSize,slotSize,{0.0,0.0,0.0,0.1} };
 						ui::Draw(box);
 					}
 					//{

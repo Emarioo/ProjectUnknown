@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Engone/LoopInfo.h"
-
 #include "ProUnk/UI/PanelHandler.h"
 
 #include "Engone/Assets/ModelAsset.h"

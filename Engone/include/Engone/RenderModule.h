@@ -45,11 +45,15 @@ namespace engone {
 			Color rgba;
 			int at = -1;
 			bool editing = false;
+
+			float getWidth();
 		};
 
 		void Draw(Box box);
 		void Draw(TexturedBox box);
 		void Draw(TextBox& box);
+
+		void Draw(ModelAsset* modelAsset, glm::mat4 matrix);
 
 		void Edit(std::string& str, int& at, bool& editing, bool stopEditWithEnter=true);
 		void Edit(std::string& str);
@@ -104,11 +108,11 @@ namespace engone {
 		//void DrawLine(glm::vec3 a, glm::vec3 b);
 		void DrawTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
 		
-		// Uses standard viewMatrix from camera
-		void DrawModel(ModelAsset* modelAsset, glm::mat4 matrix);
-		
-		// Draws model orthogonally
-		void DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix);
+		//// Uses standard viewMatrix from camera
+		//void DrawModel(ModelAsset* modelAsset, glm::mat4 matrix);
+		//
+		//// Draws model orthogonally
+		//void DrawOrthoModel(ModelAsset* modelAsset, glm::mat4 matrix);
 		
 		void render(LoopInfo& info);
 
@@ -168,12 +172,12 @@ namespace engone {
 
 		VertexBuffer instanceBuffer;
 
-		struct ModelDraw {
-			ModelAsset* modelAsset;
-			glm::mat4 matrix;
-			bool isOrthogonal;
-		};
-		std::vector<ModelDraw> modelObjects;
+		//struct ModelDraw {
+		//	ModelAsset* modelAsset;
+		//	glm::mat4 matrix;
+		//	bool isOrthogonal;
+		//};
+		//std::vector<ModelDraw> modelObjects;
 
 		std::vector<Cube> cubeObjects;
 
@@ -195,6 +199,7 @@ namespace engone {
 		friend void ui::Draw(ui::Box box);
 		friend void ui::Draw(ui::TexturedBox box);
 		friend void ui::Draw(ui::TextBox& box);
+		friend void ui::Draw(ModelAsset* asset, glm::mat4 matrix);
 		friend class Window;
 		friend class Engone;
 	};

@@ -13,6 +13,7 @@
 #include "ProUnk/DataHandlers/InventoryHandler.h"
 
 #include "ProUnk/UI/InventoryPanel.h"
+#include "ProUnk/UI/PlayerBarPanel.h"
 
 namespace prounk {
 

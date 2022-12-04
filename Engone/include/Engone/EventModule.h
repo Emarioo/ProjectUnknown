@@ -12,6 +12,7 @@ namespace engone {
 		EventMove = 2,
 		EventScroll = 4,
 		EventKey = 8,
+		EventResize = 16,
 	};
 	typedef int EventTypes;
 	struct Keybinding {
@@ -30,6 +31,7 @@ namespace engone {
 		int action=0, button=0;
 		int key=0, scancode=0;
 		float mx=0, my=0, scrollX=0, scrollY=0;
+		float width=0, height=0; // resize
 		Window* window=nullptr;
 	};
 	// Can listen to multiple events. Attach it to a window with Window::attachListener
