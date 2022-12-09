@@ -44,6 +44,7 @@ namespace engone {
 		struct Action {
 			static const int START = 0;
 			static const int STOP = 1;
+
 			int type;
 			std::string ip;
 			std::string port;

@@ -1,16 +1,16 @@
-#include "ProUnk/DataHandlers/ModelHandler.h"
+#include "ProUnk/DataRegistries/ModelRegistry.h"
 
 #include "Engone/Utilities/FileUtility.h"
 
 namespace prounk {
 
-	engone::ModelAsset* ModelHandler::getModel(ModelId id) {
+	engone::ModelAsset* ModelRegistry::getModel(ModelId id) {
 		return m_entries[id-1].model;
 	}
-	ModelId ModelHandler::registerModel(engone::ModelAsset* model) {
+	ModelId ModelRegistry::registerModel(engone::ModelAsset* model) {
 		using namespace engone;
 		if (!model) {
-			log::out << log::RED << "ModelHandler::registerModel - model was nullptr\n";
+			log::out << log::RED << "ModelRegistry::registerModel - model was nullptr\n";
 			return -1;
 		}
 
@@ -47,10 +47,10 @@ namespace prounk {
 		}
 		return id;
 	}
-	void ModelHandler::serialize() {
+	void ModelRegistry::serialize() {
 		using namespace engone;
 
-		FileWriter file("modelHandler.dat");
+		FileWriter file("ModelRegistry.dat");
 		if (!file)
 			return;
 		int size = m_entries.size();
@@ -60,10 +60,10 @@ namespace prounk {
 			file.write(entry.name);
 		}
 	}
-	void ModelHandler::deserialize() {
+	void ModelRegistry::deserialize() {
 		using namespace engone;
 
-		FileReader file("modelHandler.dat");
+		FileReader file("ModelRegistry.dat");
 		if (!file)
 			return;
 		int size;

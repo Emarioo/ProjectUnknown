@@ -54,16 +54,13 @@ namespace engone {
 		std::thread m_workerThread;
 
 		struct Action {
-			//Action(int type, const std::string& port) : type(type), port(port) {}
-			Action(int type) : type(type), uuid(uuid) {}
-			Action(int type, UUID uuid) : type(type), uuid(uuid) {}
 			static const int START = 0;
 			static const int STOP = 1;
 			static const int DISCONNECT = 2; // disconnect a client/socket/connection
+
 			int type;
-			// use union here?
-			//std::string port;
 			UUID uuid;
+			std::string port;
 		};
 		std::vector<Action> m_workQueue;
 		std::mutex m_workMutex;

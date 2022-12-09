@@ -703,7 +703,7 @@ namespace prounk {
 		if (object->userData != 0) {
 			int inv = entityHandler.getEntry(object->userData).inventoryIndex;
 			if (inv != 0)
-				return inventoryHandler.getInventory(object->userData);
+				return InventoryRegistry.getInventory(object->userData);
 		}
 		return nullptr;
 	}

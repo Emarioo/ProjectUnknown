@@ -271,6 +271,13 @@ namespace engone {
 		unlock();
 		return *this;
 	}
+	Logger& Logger::TIME() {
+		char str[9];
+		str[8] = 0;
+		_GetClock(str);
+		log::out << str;
+		return *this;
+	}
 	Logger& Logger::operator<<(const std::string& value) {
 		int len = value.length();
 		if (len != 0) {

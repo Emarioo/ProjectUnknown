@@ -169,6 +169,8 @@ namespace engone {
 		Logger& operator<<(char* value); // treated as a string
 		Logger& operator<<(void* value);
 
+		Logger& TIME();
+
 		Logger& operator<<(const std::string& value);
 		//Logger& operator<<(std::string value);
 

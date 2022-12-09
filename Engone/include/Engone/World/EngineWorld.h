@@ -39,6 +39,7 @@ namespace engone {
 		// Should return nullptr if out of bounds
 		EngineObject* getObjectAt(int index);
 		EngineObject* getObject(UUID uuid);
+		int getObjectCount();
 
 		void deleteObject(EngineObject* object);
 		void deleteObjectAt(int index);

@@ -1,4 +1,4 @@
-#include "ProUnk/DataHandlers/EntityHandler.h"
+#include "ProUnk/DataRegistrys/EntityHandler.h"
 
 #include "Engone/Utilities/FileUtility.h"
 
@@ -32,7 +32,7 @@ namespace prounk {
 		//	}
 		//}
 
-		//log::out << "InventoryHandler serialized " << count << " inventories (total of " << totalItems << " items)\n";
+		//log::out << "InventoryRegistry serialized " << count << " inventories (total of " << totalItems << " items)\n";
 	}
 	void EntityHandler::deserialize() {
 		using namespace engone;
@@ -52,7 +52,7 @@ namespace prounk {
 		//		totalItems++;
 		//	}
 		//}
-		//log::out << "InventoryHandler loaded " << count << " inventories (total of " << totalItems << " items)\n";
+		//log::out << "InventoryRegistry loaded " << count << " inventories (total of " << totalItems << " items)\n";
 
 	}
 }

@@ -208,7 +208,7 @@ namespace prounk {
 
 		playerController.setWorld(world);
 
-		//world->modelHandler
+		//world->ModelRegistry
 
 		//-- setup some particles
 		Shader* combatPart = new Shader(combatParticlesGLSL);
@@ -255,23 +255,23 @@ namespace prounk {
 		playerController.setPlayerObject(player);
 
 		EntityHandler::Entry& entry = world->entityHandler.getEntry(player->userData);
-		entry.inventoryIndex = world->inventoryHandler.addInventory();
+		entry.inventoryIndex = world->InventoryRegistry.addInventory();
 
 		InventoryPanel* inventoryPanel = new InventoryPanel(this);
 		panelHandler.addPanel(inventoryPanel);
-		inventoryPanel->setPosition(100, 100);
-		inventoryPanel->setSize(100, 200);
+		inventoryPanel->setSize(100, 100);
+		inventoryPanel->setPosition(200, 200);
 		inventoryPanel->setInventory(entry.inventoryIndex);
 
 		PlayerBarPanel* playerBarPanel = new PlayerBarPanel(this);
 		panelHandler.addPanel(playerBarPanel);
-		playerBarPanel->setPosition(10, 10);
-		playerBarPanel->setSize(100, 200);
+		playerBarPanel->setSize(100, 100);
+		playerBarPanel->setPosition(100, 100);
 
-		Inventory* inv = world->inventoryHandler.getInventory(entry.inventoryIndex);
+		Inventory* inv = world->InventoryRegistry.getInventory(entry.inventoryIndex);
 
 		ModelAsset* playerAsset = player->modelAsset;
-		ModelId playerModelId = world->modelHandler.registerModel(playerAsset);
+		ModelId playerModelId = world->ModelRegistry.registerModel(playerAsset);
 
 		EngineObject* sword = CreateSword(world);
 		playerController.inventorySword = sword;
@@ -281,11 +281,11 @@ namespace prounk {
 		//sword->rigidBody->enableGravity(false);
 
 		ModelAsset* swordAsset = sword->modelAsset;
-		ModelId swordModelId = world->modelHandler.registerModel(swordAsset);
+		ModelId swordModelId = world->ModelRegistry.registerModel(swordAsset);
 		ModelAsset* plat = assets->load<engone::ModelAsset>("Platform/Platform");
-		ModelId platId = world->modelHandler.registerModel(plat);
+		ModelId platId = world->ModelRegistry.registerModel(plat);
 		ModelAsset* dag = assets->load<engone::ModelAsset>("Dagger/Dagger");
-		ModelId dagId = world->modelHandler.registerModel(dag);
+		ModelId dagId = world->ModelRegistry.registerModel(dag);
 
 		inv->addItem(Item(1, "Player", playerModelId));
 		inv->addItem(Item(1, "?", platId));

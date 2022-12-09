@@ -87,6 +87,9 @@ namespace engone {
 		if (index<0 || index>m_objects.size() - 1) return nullptr;
 		return m_objects[index];
 	}
+	int EngineWorld::getObjectCount() {
+		return m_objects.size();
+	}
 	void EngineWorld::deleteObject(EngineObject* object) {
 		for (int i = 0; i < m_objects.size(); i++) {
 			if (m_objects[i] == object) {

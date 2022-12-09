@@ -1,53 +1,54 @@
 #pragma once
 
 #include "Engone/Logger.h"
+#include "Engone/Utilities/FileUtility.h"
 
 namespace prounk {
-	typedef int HandlerId;
+	typedef int RegistryId;
 
-	class DataHandler {
+	class DataRegistry {
 	public:
-		DataHandler(const char* name) : m_name(name) {}
+		DataRegistry(const char* name) : m_name(name) {}
 
 		virtual void serialize() = 0;
 		virtual void deserialize() = 0;
 
 		const char* getName() { return m_name; };
-		HandlerId getId() { return m_id; };
+		RegistryId getId() { return m_id; };
 
 	private:
 
-		HandlerId m_id;
+		RegistryId m_id;
 		const char* m_name;
 
-		friend class DataHandlerRegistry;
+		friend class MasterRegistry;
 	};
 	/*
 		handler id 0 is seen as nullptr.
 	*/
-	class DataHandlerRegistry {
+	class MasterRegistry {
 	public:
-		DataHandlerRegistry() = default;
+		MasterRegistry() = default;
 
 		void serialize();
 		void deserialize();
 
 		// returns nullptr if id doesn't exist or if handler hasn't been registered
-		DataHandler* getHandler(HandlerId id);
+		DataRegistry* getRegistry(RegistryId id);
 		// returns nullptr if name doesn't exist or if handler hasn't been registered
-		DataHandler* getHandler(const std::string& name);
+		DataRegistry* getRegistry(const std::string& name);
 
-		HandlerId registerHandler(DataHandler* handler);
+		RegistryId registerRegistry(DataRegistry* handler);
 
 	private:
 
-		HandlerId getNewId() { return m_newId++; }
-		HandlerId m_newId=1;
+		RegistryId getNewId() { return m_newId++; }
+		RegistryId m_newId=1;
 
 		struct Entry {
 			std::string name;
-			HandlerId id;
-			DataHandler* handler;
+			RegistryId id;
+			DataRegistry* registry;
 		};
 		
 		// fast access to entries
@@ -55,7 +56,7 @@ namespace prounk {
 		// these maps are filled when handlers are registered
 		// maps are not serialized
 		std::unordered_map<std::string, int> m_nameEntries;
-		std::unordered_map<HandlerId, int> m_integerEntries;
+		std::unordered_map<RegistryId, int> m_integerEntries;
 
 		// this will be serialized
 		std::vector<Entry> m_entries;

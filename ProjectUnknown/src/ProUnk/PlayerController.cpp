@@ -398,6 +398,16 @@ namespace prounk {
 					m_player->rigidBody->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
 				}
 			}
+			if (!flight) {
+				rp3d::Vector3 extraDownForce = { 0,0,0 };
+				float mass = m_player->rigidBody->getMass();
+				extraDownForce.y += -0.34 * 9.82 * mass;
+				if (m_player->rigidBody->getLinearVelocity().y < 0) {
+					rp3d::Vector3 force = { 0,0,0 };
+					extraDownForce.y += -1.2 * 9.82 * mass;
+				}
+				m_player->rigidBody->applyLocalForceAtCenterOfMass(extraDownForce);
+			}
 		}
 	}
 }

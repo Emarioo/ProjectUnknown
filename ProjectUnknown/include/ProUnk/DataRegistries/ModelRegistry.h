@@ -1,15 +1,15 @@
 #pragma once
 
-#include "ProUnk/DataHandlers/DataHandlerRegistry.h"
+#include "ProUnk/DataRegistries/MasterRegistry.h"
 
 #include "Engone/AssetModule.h"
 
 namespace prounk {
 
 	typedef int ModelId;
-	class ModelHandler : public DataHandler {
+	class ModelRegistry : public DataRegistry {
 	public:
-		ModelHandler() : DataHandler("model_handler") {}
+		ModelRegistry() : DataRegistry("model_registry") {}
 
 		void serialize();
 		void deserialize();

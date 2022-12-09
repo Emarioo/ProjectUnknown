@@ -10,7 +10,7 @@
 #include "ProUnk/Combat/CombatData.h"
 
 #include "ProUnk/PlayerController.h"
-#include "ProUnk/DataHandlers/InventoryHandler.h"
+#include "ProUnk/DataRegistries/InventoryRegistry.h"
 
 #include "ProUnk/UI/InventoryPanel.h"
 #include "ProUnk/UI/PlayerBarPanel.h"

@@ -655,7 +655,7 @@ namespace engone {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
 		}
-		if (m_dirHandle) {
+		if (m_dirHandle!=NULL) {
 			CloseHandle(m_dirHandle);
 			m_dirHandle = NULL;
 		}
@@ -666,11 +666,19 @@ namespace engone {
 		//m_threadHandle = NULL;
 		if (m_buffer) {
 			alloc::free(m_buffer, m_bufferSize);
+			m_buffer = nullptr;
 		}
 		// m_running is set to false in thread
 	}
-	void FileMonitor::check(const std::string& path, std::function<void(const std::string&)> callback, int flags) {
+	void FileMonitor::check(const std::string& path, std::function<void(const std::string&,int)> callback, int flags) {
 		m_mutex.lock();
+
+		// Just a heads up for you. This functions is not beautiful.
+
+		if (m_root == path) { // no reason to check the same right?
+			m_mutex.unlock();
+			return;
+		}
 		//if (m_threadHandle) {
 		//	CancelSynchronousIo(m_threadHandle);
 		//}
@@ -711,7 +719,9 @@ namespace engone {
 				}
 			}
 			if (!failed) {
-				m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+				m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE,
+					FILE_NOTIFY_CHANGE_LAST_WRITE|FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME);
+
 				if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
 					failed = true;
 					m_changeHandle = NULL;
@@ -740,6 +750,7 @@ namespace engone {
 
 				//log::out << "FileMonitor::check - monitor " << m_root << "\n";
 				m_thread = std::thread([this]() {
+					SetThreadName(GetCurrentThreadId(), "FileMonitor");
 					//m_threadHandle = GetCurrentThread();
 					std::string temp;
 					DWORD waitStatus;
@@ -760,8 +771,8 @@ namespace engone {
 							}
 
 							DWORD bytes = 0;
-							BOOL err = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags & WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE, &bytes, NULL, NULL);
-
+							BOOL err = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags & WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME, &bytes, NULL, NULL);
+							//log::out << "ReadDir change\n";
 							if (bytes == 0) {
 								// try to read changes again but with bigger buffer? while loop?
 								log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
@@ -772,6 +783,7 @@ namespace engone {
 								) {
 								// this could also mean that we cancelled the read.
 								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges err(" << err << "): "<<m_root<<"\n";
+								break;
 							} else {
 								int offset = 0;
 								while (true) {
@@ -786,7 +798,14 @@ namespace engone {
 
 									if (m_dirPath == m_root || temp == m_root) {
 										//log::out << "FileMonitor::check - call callback " << temp << "\n";
-										m_callback(temp);
+										int type = 0;
+										if (info.Action == FILE_ACTION_MODIFIED||info.Action==FILE_ACTION_ADDED) type = FILE_MODIFIED;
+										if (info.Action == FILE_ACTION_REMOVED) type = FILE_REMOVED;
+										if (type == 0) {
+											log::out << log::YELLOW<<"FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
+											//DebugBreak();
+										}
+										m_callback(temp,type);
 									}
 
 									if (info.NextEntryOffset == 0)
@@ -820,8 +839,9 @@ namespace engone {
 						CloseHandle(m_dirHandle);
 						m_dirHandle = NULL;
 					}
+					m_root.clear();
 					m_mutex.unlock();
-
+					//log::out << "FileMonitor - finished thread\n";
 				});
 			}
 		}

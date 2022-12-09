@@ -1,20 +1,20 @@
-#include "ProUnk/DataHandlers/InventoryHandler.h"
+#include "ProUnk/DataRegistrys/InventoryRegistry.h"
 
 #include "Engone/Utilities/FileUtility.h"
 
 namespace prounk {
 
-	Inventory* InventoryHandler::getInventory(int id) {
+	Inventory* InventoryRegistry::getInventory(int id) {
 		if (id == 0) return nullptr;
 		return m_inventories[id-1]; // id-1 because 0 is seen as null while 1 is seen as the first element
 	}
-	int InventoryHandler::addInventory() {
+	int InventoryRegistry::addInventory() {
 		m_inventories.push_back(new Inventory());
 		return m_inventories.size();
 	}
-	void InventoryHandler::serialize() {
+	void InventoryRegistry::serialize() {
 		using namespace engone;
-		FileWriter file("inventoryHandler.dat");
+		FileWriter file("InventoryRegistry.dat");
 		if (!file)
 			return;
 		int totalItems = 0;
@@ -31,11 +31,11 @@ namespace prounk {
 			}
 		}
 
-		log::out << "InventoryHandler serialized " << count << " inventories (total of "<<totalItems<<" items)\n";
+		log::out << "InventoryRegistry serialized " << count << " inventories (total of "<<totalItems<<" items)\n";
 	}
-	void InventoryHandler::deserialize() {
+	void InventoryRegistry::deserialize() {
 		using namespace engone;
-		FileReader file("inventoryHandler.dat");
+		FileReader file("InventoryRegistry.dat");
 		if (!file)
 			return;
 		int totalItems = 0;
@@ -54,7 +54,7 @@ namespace prounk {
 				totalItems++;
 			}
 		}
-		log::out << "InventoryHandler loaded " << count << " inventories (total of " << totalItems << " items)\n";
+		log::out << "InventoryRegistry loaded " << count << " inventories (total of " << totalItems << " items)\n";
 
 	}
 }

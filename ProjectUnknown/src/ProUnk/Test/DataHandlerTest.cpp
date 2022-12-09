@@ -1,18 +1,18 @@
-#include "ProUnk/DataHandlers/InventoryHandler.h"
+#include "ProUnk/DataRegistrys/InventoryRegistry.h"
 
-void DataHandlerTest() {
+void DataRegistryTest() {
 	using namespace prounk;
 	
-	DataHandlerRegistry registry;
-	InventoryHandler invHandler;
+	MasterRegistry registry;
+	InventoryRegistry invHandler;
 
 	registry.deserialize();
 
-	DataHandler* ret = registry.getHandler("nops");
+	DataRegistry* ret = registry.getHandler("nops");
 	ret = registry.getHandler(201);
 	ret = registry.getHandler("inventory_handler");
 
-	HandlerId id = registry.registerHandler(&invHandler);
+	RegistryId id = registry.registerHandler(&invHandler);
 
 	ret = registry.getHandler("inventory_handler");
 

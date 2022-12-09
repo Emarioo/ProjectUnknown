@@ -1,30 +1,28 @@
-#include "ProUnk/DataHandlers/DataHandlerRegistry.h"
-
-#include "Engone/Utilities/FileUtility.h"
+#include "ProUnk/DataRegistries/MasterRegistry.h"
 
 namespace prounk {
 
-	DataHandler* DataHandlerRegistry::getHandler(HandlerId id) {
+	DataRegistry* MasterRegistry::getRegistry(RegistryId id) {
 		auto find = m_integerEntries.find(id);
 		if (find != m_integerEntries.end()) {
 			Entry& entry = m_entries[find->second];
-			return entry.handler;
+			return entry.registry;
 		}
 		return nullptr;
 	}
-	DataHandler* DataHandlerRegistry::getHandler(const std::string& name) {
+	DataRegistry* MasterRegistry::getRegistry(const std::string& name) {
 		auto find = m_nameEntries.find(name);
 		if (find != m_nameEntries.end()) {
 			Entry& entry = m_entries[find->second];
-			return entry.handler;
+			return entry.registry;
 		}
 		return nullptr;
 	}
 
-	HandlerId DataHandlerRegistry::registerHandler(DataHandler* handler) {
+	RegistryId MasterRegistry::registerRegistry(DataRegistry* registry) {
 		using namespace engone;
-		if (!handler) {
-			log::out << log::RED << "DataHandlerRegistry::registerHandler - handler cannot be nullptr\n";
+		if (!registry) {
+			log::out << log::RED << "MasterRegistry::registerHandler - handler cannot be nullptr\n";
 			return 0;
 		}
 
@@ -32,7 +30,7 @@ namespace prounk {
 		int entryIndex=-1;
 		for (int i = 0; i < m_entries.size();i++) {
 			Entry& entry = m_entries[i];
-			if (entry.name == handler->getName()) {
+			if (entry.name == registry->getName()) {
 				entryIndex = i;
 				break;
 			}
@@ -40,40 +38,40 @@ namespace prounk {
 
 		if (entryIndex == -1) {
 			// entry does not exist, we are registering a new handler which happens if you made new world
-			HandlerId handlerId = getNewId();
-			m_entries.push_back({ handler->getName(),handlerId, handler });
-			handler->m_id = handlerId;
+			RegistryId registryId = getNewId();
+			m_entries.push_back({ registry->getName(), registryId, registry });
+			registry->m_id = registryId;
 			
-			log::out << "Registering new handler '"<<handler->getName() << "' as "<<handlerId<<"\n";
+			log::out << "Registering new handler '"<< registry->getName() << "' as "<<registryId<<"\n";
 
-			m_nameEntries[handler->getName()] = m_entries.size()-1;
-			m_integerEntries[handler->getId()] = m_entries.size()-1;
+			m_nameEntries[registry->getName()] = m_entries.size()-1;
+			m_integerEntries[registry->getId()] = m_entries.size()-1;
 
-			return handlerId;
+			return registryId;
 		}
 		else {
 			// entry exists
 			Entry& entry = m_entries[entryIndex];
-			if (!entry.handler) {
+			if (!entry.registry) {
 				// handler has not been registered but has existed before serialization
-				entry.handler = handler;
-				handler->m_id = entry.id;
+				entry.registry = registry;
+				registry->m_id = entry.id;
 
-				log::out << "Registering handler '" << handler->getName() << "' as " << entry.id << "\n";
+				log::out << "Registering handler '" << registry->getName() << "' as " << entry.id << "\n";
 
 
-				m_nameEntries[handler->getName()] = m_entries.size() - 1;
-				m_integerEntries[handler->getId()] = m_entries.size() - 1;
+				m_nameEntries[registry->getName()] = m_entries.size() - 1;
+				m_integerEntries[registry->getId()] = m_entries.size() - 1;
 
 				return entry.id;
 			}
 			else {
-				log::out << log::RED << "DataHandlerRegistry::registerHandler - Handler " << handler->getName() << " is already registered!\n";
+				log::out << log::RED << "MasterRegistry::registerHandler - Handler " << registry->getName() << " is already registered!\n";
 				return 0;
 			}
 		}
 	}
-	void DataHandlerRegistry::serialize() {
+	void MasterRegistry::serialize() {
 		using namespace engone;
 		FileWriter file("handlerRegistry.dat");
 		if (!file) {
@@ -88,9 +86,9 @@ namespace prounk {
 			file.writeOne(entry.id);
 		}
 
-		log::out << "DataHandlerRegistry serialized "<<count<<" entries\n";
+		log::out << "MasterRegistry serialized "<<count<<" entries\n";
 	}
-	void DataHandlerRegistry::deserialize() {
+	void MasterRegistry::deserialize() {
 		using namespace engone;
 		FileReader file("handlerRegistry.dat");
 		if (!file) {
@@ -104,8 +102,8 @@ namespace prounk {
 		for (int i = 0; i < count;i++) {
 			file.read(m_entries[i].name);
 			file.readOne(m_entries[i].id);
-			m_entries[i].handler = nullptr;
+			m_entries[i].registry = nullptr;
 		}
-		log::out << "DataHandlerRegistry loaded " << count << " entries\n";
+		log::out << "MasterRegistry loaded " << count << " entries\n";
 	}
 }

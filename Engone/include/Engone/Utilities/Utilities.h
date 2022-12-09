@@ -204,6 +204,9 @@ namespace engone {
 		static const int WATCH_SUBTREE = 1;
 		static const int DEFAULT_FLAGS = 0;
 
+		static const int FILE_REMOVED = 1;
+		static const int FILE_MODIFIED = 2; // includes added file
+
 		FileMonitor() = default;
 		~FileMonitor() { cleanup(); }
 		void cleanup();
@@ -211,13 +214,15 @@ namespace engone {
 		// path can be file or directory
 		// calling this again will restart the tracking with new arguments.
 		// the argument in the callback is a relative path from root to the file that was changed.
-		void check(const std::string& root, std::function<void(const std::string&)> callback, int flags = DEFAULT_FLAGS);
+		void check(const std::string& root, std::function<void(const std::string&,int)> callback, int flags = DEFAULT_FLAGS);
 
-		inline std::function<void(const std::string&)>& getCallback() { return m_callback; }
+		inline const std::string& getRoot() { return m_root; }
+
+		inline std::function<void(const std::string&,int)>& getCallback() { return m_callback; }
 
 	private:
 		bool m_running = false;
-		std::function<void(const std::string&)> m_callback;
+		std::function<void(const std::string&,int)> m_callback;
 		std::string m_root; // path passed to check function
 		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
 		int m_flags = 0;

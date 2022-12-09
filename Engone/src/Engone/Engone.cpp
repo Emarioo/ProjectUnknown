@@ -372,8 +372,9 @@ namespace engone {
 		renderObjects(info);
 #else
 		// cannot render objects without physics
-		if (info.window->getParent()->getGround()->getObjects().size() > 0)
-			log::out << log::RED << "Cannot render objects without physics\n";
+		if(info.window->getParent()->getWorld())
+			if(info.window->getParent()->getWorld()->getObjectCount())
+				log::out << log::RED << "Cannot render objects without physics\n";
 #endif
 		/*
 		if (IsKeyDown(GLFW_KEY_K)) {
@@ -440,6 +441,7 @@ namespace engone {
 			// app without 3d rendering doesn't care about this
 			//log::out << log::YELLOW<<"Warning: rendering with no lights...\n";
 		}
+#ifdef ENGONE_PHYSICS
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
 		EngineWorld* world = info.window->getParent()->getWorld();
 		//std::vector<EngineObject*>& objects = ground->getObjects();
@@ -598,7 +600,7 @@ namespace engone {
 			}
 		}
 		world->unlock();
-
+#endif
 		//}
 		//Mesh* lightCube = GetMeshAsset("LightCube");
 		//if (lightCube!=nullptr) {

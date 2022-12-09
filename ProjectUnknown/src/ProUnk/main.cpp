@@ -12,7 +12,7 @@ void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
 
-	//DataHandlerTest();
+	//DataRegistryTest();
 
 	//float w = 200;
 	//float h = 160;

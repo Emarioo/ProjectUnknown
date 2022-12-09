@@ -11,7 +11,7 @@ namespace prounk {
 		EngineObject* object = m_app->playerController.getPlayerObject();
 		//Inventory* inv = world->getInventory(object);
 
-		Inventory* inv = world->inventoryHandler.getInventory(m_inventoryId);
+		Inventory* inv = world->InventoryRegistry.getInventory(m_inventoryId);
 
 		//if (IsScrolledY()) {
 		//	itemSize *= 1 + IsScrolledY()*0.1;
@@ -71,7 +71,7 @@ namespace prounk {
 			for (int i = 0; i < inv->size(); i++) {
 				Item& item = inv->getItem(i);
 				ModelId id = item.getModelId();
-				engone::ModelAsset* asset = world->modelHandler.getModel(id);
+				engone::ModelAsset* asset = world->ModelRegistry.getModel(id);
 				if (asset) {
 					float pixelX = m_left;
 					float pixelY = m_top;

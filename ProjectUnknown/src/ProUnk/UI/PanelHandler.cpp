@@ -71,12 +71,13 @@ namespace prounk {
 		ui::Box area = getBox();
 		Constraint& c = m_constraints[TOP];
 
-		m_height = m_bottom - m_top;
-		if (c.active && c.attached) {
-			//m_top = f;
-			c.offset = f - c.attached->m_bottom;
-			if (c.offset < c.minOffset)
-				c.offset = c.minOffset;
+		m_height = fabs(m_bottom - f);
+		if (c.active) {
+			if (c.attached) {
+				c.offset = f - c.attached->m_bottom;
+				if (c.offset < c.minOffset)
+					c.offset = c.minOffset;
+			}
 		} else {
 			m_top = f;
 		}
@@ -87,16 +88,12 @@ namespace prounk {
 		ui::Box area = getBox();
 		Constraint& c = m_constraints[LEFT];
 
-		m_width = m_right - f;
+		m_width = fabs(m_right - f);
 		if (c.active) {
-			//m_left = f;
 			if (c.attached) {
 				c.offset = f - c.attached->m_right;
 				if (c.offset < c.minOffset)
 					c.offset = c.minOffset;
-			} else {
-				// missing screen border
-				DebugBreak();
 			}
 		} else {
 			m_left = f;
@@ -108,16 +105,12 @@ namespace prounk {
 		ui::Box area = getBox();
 		Constraint& c = m_constraints[RIGHT];
 
-		m_width = f - m_left;
+		m_width = fabs(f - m_left);
 		if (c.active) {
-			//m_right = f;
 			if (c.attached) {
 				c.offset = -f + c.attached->m_left;
 				if (c.offset < c.minOffset)
 					c.offset = c.minOffset;
-			} else {
-				// missing screen border
-				DebugBreak();
 			}
 		} else {
 			m_right = f;
@@ -129,16 +122,12 @@ namespace prounk {
 		ui::Box area = getBox();
 		Constraint& c = m_constraints[BOTTOM];
 
-		m_height = m_bottom - m_top;
+		m_height = fabs(f - m_top);
 		if (c.active) {
-			//m_bottom = f;
 			if (c.attached) {
 				c.offset = -f + c.attached->m_top;
 				if (c.offset < c.minOffset)
 					c.offset = c.minOffset;
-			} else {
-				// missing screen border
-				DebugBreak();
 			}
 		} else {
 			m_bottom = f;
@@ -160,14 +149,14 @@ namespace prounk {
 	void Panel::setSize(float w, float h) {
 		setRight(m_left + w);
 		setBottom(m_top + h);
-		//setW(w);
-		//setH(h);
 	}
 	void Panel::setPosition(float x, float y) {
+		float w = m_right - m_left;
+		float h = m_bottom - m_top;
+		setRight(x+w);
 		setLeft(x);
+		setBottom(y+h);
 		setTop(y);
-		//setX(x);
-		//setY(y);
 	}
 	void Panel::updateConstraints() {
 		using namespace engone;
@@ -207,21 +196,41 @@ namespace prounk {
 		
 		// check minimums, forced change like pushing repelling magnets together
 		float w = m_right - m_left;
-		log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
 		if (w < m_minWidth) {
+			log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
 			if (prev[LEFT] == m_left) {
 				m_left = m_right - m_minWidth;
-				// CHANGE OFFSET!
-				log::out << "new left " << m_left << "\n";
+				if(m_constraints[LEFT].active)
+					if(m_constraints[LEFT].attached)
+						m_constraints[LEFT].offset = m_left - m_constraints[LEFT].attached->m_right;
+				//log::out << "new left " << m_left << "\n";
 			}
 			if(prev[RIGHT] == m_right) {
 				m_right = m_left + m_minWidth;
+				if (m_constraints[RIGHT].active)
+					if (m_constraints[RIGHT].attached)
+						m_constraints[RIGHT].offset = -m_right + m_constraints[RIGHT].attached->m_left;
+				//log::out << "new right " << m_right << "\n";
 			}
 		}
 		float h = m_bottom - m_top;
 		if(h < m_minHeight) {
-			//if (prev[TOP] == m_top) {
+			if (prev[TOP] == m_top) {
+				m_top = m_bottom - m_minHeight;
+				if (m_constraints[TOP].active)
+					if (m_constraints[TOP].attached)
+						m_constraints[TOP].offset = m_top - m_constraints[TOP].attached->m_bottom;
+				//log::out << "new left " << m_left << "\n";
+			}
+			if (prev[BOTTOM] == m_bottom) {
 				m_bottom = m_top + m_minHeight;
+				if (m_constraints[BOTTOM].active)
+					if (m_constraints[BOTTOM].attached)
+						m_constraints[BOTTOM].offset = -m_bottom + m_constraints[BOTTOM].attached->m_top;
+				//log::out << "new right " << m_right << "\n";
+			}
+			//if (prev[TOP] == m_top) {
+				//m_bottom = m_top + m_minHeight;
 			//} else {
 			//	m_top = m_bottom - m_minHeight;
 			//}
@@ -328,10 +337,11 @@ namespace prounk {
 					float ny = m_editFromY + GetMouseY();
 
 					auto box = m_editPanel->getBox();
-					m_editPanel->setLeft(nx);
-					m_editPanel->setRight(m_editPanel->m_left+box.w);
+					m_editPanel->setRight(nx+box.w);
+					m_editPanel->setLeft(m_editPanel->m_right-box.w);
+
 					m_editPanel->setTop(ny);
-					m_editPanel->setBottom(m_editPanel->m_top+box.h);
+					m_editPanel->setBottom(m_editPanel->m_top + box.h);
 
 					if (IsKeyReleased(GLFW_MOUSE_BUTTON_1)) {
 						m_editPanel = nullptr;

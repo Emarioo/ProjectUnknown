@@ -1,3 +1,3 @@
 #pragma once
 
-void DataHandlerTest();
+void DataRegistryTest();

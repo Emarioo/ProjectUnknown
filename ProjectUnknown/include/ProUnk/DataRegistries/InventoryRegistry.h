@@ -1,9 +1,9 @@
 #pragma once
 
-#include "ProUnk/DataHandlers/DataHandlerRegistry.h"
+#include "ProUnk/DataRegistries/MasterRegistry.h"
 #include "Engone/Assets/ModelAsset.h"
 
-#include "ProUnk/DataHandlers/ModelHandler.h"
+#include "ProUnk/DataRegistries/ModelRegistry.h"
 
 namespace prounk {
 	class Item {
@@ -30,10 +30,10 @@ namespace prounk {
 		ModelId m_modelId;
 		//engone::ModelAsset* m_model;
 
-		//HandlerId m_handlerId = 0;
+		//RegistryId m_RegistryId = 0;
 		//int m_dataIndex;
 
-		friend class InventoryHandler;
+		friend class InventoryRegistry;
 	};
 	class Inventory {
 	public:
@@ -59,9 +59,9 @@ namespace prounk {
 
 		std::vector<Item> m_items; // all slots
 	};
-	class InventoryHandler : public DataHandler {
+	class InventoryRegistry : public DataRegistry {
 	public:
-		InventoryHandler() : DataHandler("inventory_handler") {}
+		InventoryRegistry() : DataRegistry("inventory_registry") {}
 
 		// serialization should perhaps not load all inventories in the world at once.
 		// maybe load required inventories or so. Load upon request perhaps

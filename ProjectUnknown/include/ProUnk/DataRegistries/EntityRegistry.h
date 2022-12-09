@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ProUnk/DataHandlers/DataHandlerRegistry.h"
+#include "ProUnk/DataRegistries/MasterRegistry.h"
 
 #include "ProUnk/Combat/CombatData.h"
 
 namespace prounk {
 
-	class EntityHandler : public DataHandler {
+	class EntityHandler : public DataRegistry {
 	public:
-		EntityHandler() : DataHandler("entity_handler") {}
+		EntityHandler() : DataRegistry("entity_registry") {}
 
 		void serialize();
 		void deserialize();

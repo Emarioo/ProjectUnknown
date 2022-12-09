@@ -2,7 +2,7 @@
 #include "Engone/Engone.h"
 
 namespace engone {
-
+#ifdef ENGONE_PHYSICS
 	void EngineObject::setModel(ModelAsset* asset) {
 		if (modelAsset == asset)
 			return;
@@ -30,7 +30,6 @@ namespace engone {
 			log::out << log::RED << "EngineObject::createRigidBody - physics world was nullptr\n";
 		}
 	}
-#ifdef ENGONE_PHYSICS
 	void EngineObject::loadColliders(EngineWorld* world) {
 		if (!modelAsset) {
 			log::out << log::RED << "EngineObject::loadColliders - ModelAsset is null\n";
