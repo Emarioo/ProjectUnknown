@@ -11,10 +11,8 @@ namespace prounk {
 	}
 	void Panel::setDepth(float depth) {
 		m_depth = depth;
-		if (m_panelHandler)
+		if (m_panelHandler) // false if not added to panelHandler. Depth is always sorted on add so all is well.
 			m_panelHandler->m_pendingSort = true;
-		else
-			engone::log::out << engone::log::RED << "Panel::setDepth - handler not set\n";
 	}
 	void Panel::setMovable(bool yes) {
 		m_movable = yes;
@@ -246,6 +244,7 @@ namespace prounk {
 	}
 	void PanelHandler::addPanel(Panel* panel) {
 		m_panels.push_back(panel);
+		panel->m_panelHandler = this;
 		m_pendingSort = true;
 	}
 	void PanelHandler::sortPanels() {
@@ -316,13 +315,16 @@ namespace prounk {
 						m_editFromY = area.y-GetMouseY();
 						if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
 							if (clicked) {
+								ResetKey(GLFW_MOUSE_BUTTON_1);
 								m_editType = EDIT_CONSTRAIN;
 							}
 						} else {
 							if (clicked) {
+								ResetKey(GLFW_MOUSE_BUTTON_1);
 								m_editType = EDIT_MOVE;
 							}
 							if (clicked2) {
+								ResetKey(GLFW_MOUSE_BUTTON_2);
 								m_editType = EDIT_RESIZE;
 								m_editResizingX = 0;
 								m_editResizingY = 0;

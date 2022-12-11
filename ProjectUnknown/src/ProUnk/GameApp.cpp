@@ -16,6 +16,8 @@
 
 #include "ProUnk/UI/UIMenus.h"
 
+#include "ProUnk/UI/CraftingPanel.h"
+
 namespace prounk {
 
 	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
@@ -60,8 +62,8 @@ namespace prounk {
 			log::out << log::RED << "GameApp::dealCombat - one of the object's id are 0\n";
 			return;
 		}
-		CombatData* atkData=(CombatData*)getWorld()->entityHandler.getEntry(atkObj->userData).combatData;
-		CombatData* defData=(CombatData*)getWorld()->entityHandler.getEntry(defObj->userData).combatData;
+		CombatData* atkData=(CombatData*)getWorld()->entityRegistry.getEntry(atkObj->userData).combatData;
+		CombatData* defData=(CombatData*)getWorld()->entityRegistry.getEntry(defObj->userData).combatData;
 
 		if (!atkData || !defData) {
 			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
@@ -254,8 +256,8 @@ namespace prounk {
 		EngineObject* player = CreatePlayer(world);
 		playerController.setPlayerObject(player);
 
-		EntityHandler::Entry& entry = world->entityHandler.getEntry(player->userData);
-		entry.inventoryIndex = world->InventoryRegistry.addInventory();
+		EntityRegistry::Entry& entry = world->entityRegistry.getEntry(player->userData);
+		entry.inventoryIndex = world->inventoryRegistry.addInventory();
 
 		InventoryPanel* inventoryPanel = new InventoryPanel(this);
 		panelHandler.addPanel(inventoryPanel);
@@ -263,15 +265,25 @@ namespace prounk {
 		inventoryPanel->setPosition(200, 200);
 		inventoryPanel->setInventory(entry.inventoryIndex);
 
+		masterInventoryPanel = new MasterInventoryPanel(this);
+		masterInventoryPanel->setDepth(9999);
+		panelHandler.addPanel(masterInventoryPanel);
+		// master has no position or size.
+
+		CraftingPanel* craftingPanel = new CraftingPanel(this);
+		panelHandler.addPanel(craftingPanel);
+		craftingPanel->setSize(100, 100);
+		craftingPanel->setPosition(300, 400);
+
 		PlayerBarPanel* playerBarPanel = new PlayerBarPanel(this);
 		panelHandler.addPanel(playerBarPanel);
 		playerBarPanel->setSize(100, 100);
 		playerBarPanel->setPosition(100, 100);
 
-		Inventory* inv = world->InventoryRegistry.getInventory(entry.inventoryIndex);
+		Inventory* inv = world->inventoryRegistry.getInventory(entry.inventoryIndex);
 
 		ModelAsset* playerAsset = player->modelAsset;
-		ModelId playerModelId = world->ModelRegistry.registerModel(playerAsset);
+		ModelId playerModelId = world->modelRegistry.registerModel(playerAsset);
 
 		EngineObject* sword = CreateSword(world);
 		playerController.inventorySword = sword;
@@ -281,15 +293,19 @@ namespace prounk {
 		//sword->rigidBody->enableGravity(false);
 
 		ModelAsset* swordAsset = sword->modelAsset;
-		ModelId swordModelId = world->ModelRegistry.registerModel(swordAsset);
+		ModelId swordModelId = world->modelRegistry.registerModel(swordAsset);
 		ModelAsset* plat = assets->load<engone::ModelAsset>("Platform/Platform");
-		ModelId platId = world->ModelRegistry.registerModel(plat);
+		ModelId platId = world->modelRegistry.registerModel(plat);
 		ModelAsset* dag = assets->load<engone::ModelAsset>("Dagger/Dagger");
-		ModelId dagId = world->ModelRegistry.registerModel(dag);
+		ModelId dagId = world->modelRegistry.registerModel(dag);
 
-		inv->addItem(Item(1, "Player", playerModelId));
-		inv->addItem(Item(1, "?", platId));
-		inv->addItem(Item(1, "Sword", swordModelId));
+		ItemType playerType = world->itemTypeRegistry.registerType("Player", playerModelId);
+		ItemType platformType = world->itemTypeRegistry.registerType("Platform", platId);
+		ItemType swordType = world->itemTypeRegistry.registerType("Sword", swordModelId);
+
+		inv->addItem(Item(playerType, 1));
+		inv->addItem(Item(platformType, 1));
+		inv->addItem(Item(swordType, 1));
 		//inv->addItem(Item(1, "Sword", swordModelId));
 
 		player->flags |= World::OBJECT_NETMOVE;

@@ -1,4 +1,4 @@
-#include "ProUnk/DataRegistrys/InventoryRegistry.h"
+#include "ProUnk/DataRegistries/InventoryRegistry.h"
 
 void DataRegistryTest() {
 	using namespace prounk;
@@ -8,15 +8,15 @@ void DataRegistryTest() {
 
 	registry.deserialize();
 
-	DataRegistry* ret = registry.getHandler("nops");
-	ret = registry.getHandler(201);
-	ret = registry.getHandler("inventory_handler");
+	DataRegistry* ret = registry.getRegistry("nops");
+	ret = registry.getRegistry(201);
+	ret = registry.getRegistry("inventory_handler");
 
-	RegistryId id = registry.registerHandler(&invHandler);
+	RegistryId id = registry.registerRegistry(&invHandler);
 
-	ret = registry.getHandler("inventory_handler");
+	ret = registry.getRegistry("inventory_handler");
 
-	ret = registry.getHandler(id);
+	ret = registry.getRegistry(id);
 
 	registry.serialize();
 

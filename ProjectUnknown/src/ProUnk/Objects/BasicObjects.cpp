@@ -39,8 +39,8 @@ namespace prounk {
 		data->owner = out;
 		data->totalFlatAtk = 1;
 
-		int id = world->entityHandler.addEntry();
-		world->entityHandler.getEntry(id).combatData = data;
+		int id = world->entityRegistry.addEntry();
+		world->entityRegistry.getEntry(id).combatData = data;
 		out->userData = id;
 
 		out->flags |= OBJECT_HAS_COMBATDATA;
@@ -96,8 +96,8 @@ namespace prounk {
 		CombatData* data = new CombatData();
 		data->owner = out;
 
-		int id = world->entityHandler.addEntry();
-		world->entityHandler.getEntry(id).combatData = data;
+		int id = world->entityRegistry.addEntry();
+		world->entityRegistry.getEntry(id).combatData = data;
 		out->userData = id;
 
 		out->flags |= OBJECT_HAS_COMBATDATA;

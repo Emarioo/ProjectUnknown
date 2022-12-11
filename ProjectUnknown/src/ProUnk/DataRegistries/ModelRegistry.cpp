@@ -5,6 +5,8 @@
 namespace prounk {
 
 	engone::ModelAsset* ModelRegistry::getModel(ModelId id) {
+		if (id < 1 || id > m_entries.size())
+			return nullptr;
 		return m_entries[id-1].model;
 	}
 	ModelId ModelRegistry::registerModel(engone::ModelAsset* model) {

@@ -175,7 +175,7 @@ namespace prounk {
 		}
 		CombatData* combatData = nullptr;
 		if (m_player->userData) {
-			EntityHandler::Entry& entry = m_world->entityHandler.getEntry(m_player->userData);
+			EntityRegistry::Entry& entry = m_world->entityRegistry.getEntry(m_player->userData);
 			combatData = entry.combatData;
 		}
 		if (IsKeyPressed(GLFW_KEY_R)) {
@@ -282,7 +282,7 @@ namespace prounk {
 		// death logic
 		CombatData* combatData = nullptr;
 		if (m_player->userData) {
-			EntityHandler::Entry& entry = m_world->entityHandler.getEntry(m_player->userData);
+			EntityRegistry::Entry& entry = m_world->entityRegistry.getEntry(m_player->userData);
 			combatData = entry.combatData;
 		}
 		deathTime -= info.timeStep;

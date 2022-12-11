@@ -1,37 +1,35 @@
 #pragma once
 
 #include "ProUnk/DataRegistries/MasterRegistry.h"
-#include "Engone/Assets/ModelAsset.h"
-
 #include "ProUnk/DataRegistries/ModelRegistry.h"
+#include "ProUnk/DataRegistries/ItemTypeRegistry.h"
+
+#include "Engone/Assets/ModelAsset.h"
 
 namespace prounk {
 	class Item {
 	public:
 		Item() = default;
-		Item(int count, const std::string& name, ModelId modelId) : m_count(count), m_name(name), m_modelId(modelId) {}
-		//Item(const std::string& name);
-		//Item(const std::string& name, int count);
+		Item(ItemType type, int count);
+		//Item(ItemType type, int count, const std::string& name, ModelId modelId) : m_count(count), m_name(name), m_modelId(modelId) {}
 
-		const std::string& getName() { return m_name; }
-		void setName(const std::string& name) { m_name = name; }
+		ItemType getType();
+		void setType(ItemType type);
 
-		int getCount() { return m_count; }
-		void setCount(int count) { m_count = count; }
+		const std::string& getName();
+		void setName(const std::string& name);
 
-		//engone::ModelAsset* getModelId() { return m_modelId; }
-		ModelId getModelId() { return m_modelId; }
-		// not sure about this function
-		void setModelId(ModelId modelId){ m_modelId = modelId; }
+		int getCount();
+		void setCount(int count);
+
+		ModelId getModelId();
+		void setModelId(ModelId modelId);
 
 	private:
+		ItemType m_type=0;
 		int m_count = 0;
 		std::string m_name;
-		ModelId m_modelId;
-		//engone::ModelAsset* m_model;
-
-		//RegistryId m_RegistryId = 0;
-		//int m_dataIndex;
+		ModelId m_modelId=0;
 
 		friend class InventoryRegistry;
 	};
@@ -50,6 +48,7 @@ namespace prounk {
 		// no bound check
 		Item& getItem(int index) { return m_items[index]; }
 		void addItem(Item item) { m_items.push_back(item); }
+		void removeItem(int index) { m_items.erase(m_items.begin()+index); }
 
 		std::vector<Item>& getList() { return m_items; };
 
@@ -57,7 +56,7 @@ namespace prounk {
 
 	private:
 
-		std::vector<Item> m_items; // all slots
+		std::vector<Item> m_items;
 	};
 	class InventoryRegistry : public DataRegistry {
 	public:

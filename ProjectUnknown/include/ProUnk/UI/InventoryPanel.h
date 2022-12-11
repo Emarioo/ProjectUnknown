@@ -8,16 +8,6 @@ namespace prounk {
 	
 	class GameApp;
 
-	//class MasterInventoryPanel : public Panel {
-	//public:
-	//	MasterInventoryPanel(GameApp* app) : m_app(app) {}
-
-	//	void render(engone::LoopInfo& info) override;
-
-
-	//private:
-	//	GameApp* m_app;
-	//};
 	class InventoryPanel : public Panel {
 	public:
 		InventoryPanel(GameApp* app) : m_app(app) {}

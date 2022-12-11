@@ -2,6 +2,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/UI/InvUtility.h"
+
 namespace prounk {
 
 	void InventoryPanel::render(engone::LoopInfo& info) {
@@ -9,21 +11,13 @@ namespace prounk {
 		Renderer* renderer = info.window->getRenderer();
 		World* world = m_app->getWorld();
 		EngineObject* object = m_app->playerController.getPlayerObject();
-		//Inventory* inv = world->getInventory(object);
 
-		Inventory* inv = world->InventoryRegistry.getInventory(m_inventoryId);
+		Inventory* inv = world->inventoryRegistry.getInventory(m_inventoryId);
 
-		//if (IsScrolledY()) {
-		//	itemSize *= 1 + IsScrolledY()*0.1;
-		//}
-		//log::out << "scale " << itemScale << " "<<GetWidth() <<" "<< GetHeight() << "\n";
-		
 		if (inv) {
 			ui::Box area = getBox();
 			area.rgba = { 0.4,0.5,0.6,1 };
 			ui::Draw(area);
-
-
 
 			// calculate rows and columns for slots
 			inv->size();
@@ -33,6 +27,26 @@ namespace prounk {
 			float slotSize = 0;
 
 			FontAsset* font = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+
+			while (true) {
+				int index = inv->size() - 1;
+				if (index < 1) {
+					if (!inv->getItem(index).getType()) {
+						inv->addItem({});
+					}
+					break;
+				}
+				if (!inv->getItem(index).getType()) {
+					if (!inv->getItem(index - 1).getType()) {
+						inv->removeItem(index);
+					} else {
+						break;
+					}
+				} else {
+					inv->addItem({});
+					break;
+				}
+			}
 
 			//ui::TextBox sizes = { std::to_string(area.w) +" "+ std::to_string(area.h),200,20,20,font, {0.,0.2,1,1}};
 			//ui::Draw(sizes);
@@ -47,8 +61,8 @@ namespace prounk {
 				//ui::TextBox sizes2 = { std::to_string(fcols) + " " + std::to_string(frows),200,40,20,font, {0.,0.2,1,1} };
 				//ui::Draw(sizes2);
 
-				cols = round(fcols);
-				rows = round(frows);
+				cols = ceil(fcols);
+				rows = ceil(frows);
 
 				if (rows == 0)
 					rows = 1;
@@ -57,7 +71,7 @@ namespace prounk {
 
 				if (rows == 1)
 					cols = inv->size();
-				else if (cols == 1) 
+				else if (cols == 1)
 					rows = inv->size();
 				
 				float maybe1 = area.w / cols;
@@ -67,59 +81,57 @@ namespace prounk {
 				else
 					slotSize = maybe2;
 			}
+			// fill slots
+			//log::out << inv->size() << " " << (rows * cols) << "\n";
+			//while (inv->size() < cols * rows) {
+			//	inv->addItem({});
+			//}
+
+			// where to do trimming of items?
+
+			// should also remove slots if necessary
 
 			for (int i = 0; i < inv->size(); i++) {
 				Item& item = inv->getItem(i);
-				ModelId id = item.getModelId();
-				engone::ModelAsset* asset = world->ModelRegistry.getModel(id);
-				if (asset) {
-					float pixelX = m_left;
-					float pixelY = m_top;
+				
+				float pixelX = m_left;
+				float pixelY = m_top;
 
-					int pixelSize = slotSize - 8;
+				int pixelSize = slotSize - 8;
 
-					float slotX = (i % cols) * slotSize;
-					float slotY = (i / cols) * slotSize;
-					// item/slot position
-					pixelX += slotX;
-					pixelY += slotY;
+				float slotX = (i % cols) * slotSize;
+				float slotY = (i / cols) * slotSize;
+				// item/slot position
+				pixelX += slotX;
+				pixelY += slotY;
 
-					// model offset
-					float modelX = -asset->boundingPoint.x; // where to render model in model space
-					float modelY = -asset->boundingPoint.y;
-
-					glm::vec3 modelScale = { 1,1,1 };
-					modelScale.x = 2.f * pixelSize / GetWidth();
-					modelScale.y = 2.f * pixelSize / GetHeight();
-
-					float scaleW = asset->maxPoint.x - asset->minPoint.x;
-					float scaleH = asset->maxPoint.y - asset->minPoint.y;
-					if (scaleW > scaleH) {
-						modelScale /= scaleW;
-					} else {
-						modelScale /= scaleH;
+				if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+					if (MouseInsideSlot(pixelX, pixelY, slotSize)) {
+						//bool yes = m_app->masterInventoryPanel->giveItem(item);
+						//if (yes) {
+						//	item = {}; // reset item slot
+						//	//inv->removeItem(i);
+						//}
+						if (item.getType()) {
+							// pick up item
+							bool yes = m_app->masterInventoryPanel->giveItem(item);
+							if (yes) {
+								// disable stuff for next round
+								item.setType(0);
+							}
+						} else {
+							// place item
+							Item newItem = m_app->masterInventoryPanel->takeItem();
+							if (newItem.getType()) {
+								item = newItem;
+							}
+						}
 					}
-
-					// pixel to model
-					modelX += (pixelX+ slotSize /2-GetWidth() / 2) * 2.f / GetWidth() / modelScale.x;
-					modelY += (GetHeight()/2- slotSize /2-pixelY) * 2.f / GetHeight() / modelScale.y;
-
-					glm::mat4 matrix = glm::translate(glm::vec3(0, 0, -1.0))  * glm::scale(modelScale) * glm::translate(glm::vec3(modelX, modelY, 0));
-					//renderer->DrawOrthoModel(asset, matrix);
-					ui::Draw(asset, matrix);
-					{
-						ui::Box box = { pixelX,pixelY,slotSize,slotSize,{0.0,0.0,0.0,0.1} };
-						ui::Draw(box);
-					}
-					//{
-					//	ui::Box box = { pixelX,pixelY,pixelSize,pixelSize,{0.9,0.9,0.9,1} };
-					//	//box.x -= box.w / 2;
-					//	//box.y -= box.h / 2;
-					//	ui::Draw(box);
-					//}
-				} else {
-					log::out << log::RED << "RenderInv - asset is null\n";
 				}
+
+				DrawSlot(pixelX, pixelY, slotSize);
+				if(item.getType())
+					DrawItem(pixelX, pixelY, pixelSize, item);
 			}
 		}
 	}

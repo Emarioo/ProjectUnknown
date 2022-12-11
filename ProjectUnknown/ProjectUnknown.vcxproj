@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <!--  <ProjectConfiguration Include="Debug|Win32">
@@ -99,11 +99,15 @@
     <ClCompile Include="src\ProUnk\DataRegistries\EntityRegistry.cpp" />
     <ClCompile Include="src\ProUnk\DataRegistries\InventoryRegistry.cpp" />
     <ClCompile Include="src\ProUnk\DataRegistries\ModelRegistry.cpp" />
+    <ClCompile Include="src\ProUnk\DataRegistries\RecipeRegistry.cpp" />
     <ClCompile Include="src\ProUnk\GameApp.cpp" />
     <ClCompile Include="src\ProUnk\Magic.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
+    <ClCompile Include="src\ProUnk\UI\CraftingPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\InventoryPanel.cpp" />
+    <ClCompile Include="src\ProUnk\UI\InvUtility.cpp" />
+    <ClCompile Include="src\ProUnk\UI\MasterInventoryPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\PanelHandler.cpp" />
     <ClCompile Include="src\ProUnk\UI\PlayerBarPanel.cpp" />
     <ClCompile Include="src\ProUnk\World.cpp" />
@@ -124,7 +128,11 @@
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
     <ClInclude Include="include\ProUnk\DataRegistries\EntityRegistry.h" />
+    <ClInclude Include="include\ProUnk\DataRegistries\RecipeRegistry.h" />
+    <ClInclude Include="include\ProUnk\UI\CraftingPanel.h" />
     <ClInclude Include="include\ProUnk\UI\InventoryPanel.h" />
+    <ClInclude Include="include\ProUnk\UI\InvUtility.h" />
+    <ClInclude Include="include\ProUnk\UI\MasterInventoryPanel.h" />
     <ClInclude Include="include\ProUnk\UI\PanelHandler.h" />
     <ClInclude Include="include\ProUnk\UI\PlayerBarPanel.h" />
     <ClInclude Include="include\ProUnk\World.h" />

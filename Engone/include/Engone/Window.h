@@ -84,6 +84,7 @@ namespace engone {
 		bool isKeyPressed(int code);
 		bool isKeyReleased(int code);
 
+		void resetKey(int code);
 		void resetEvents();
 
 		void enableFirstPerson(bool yes);

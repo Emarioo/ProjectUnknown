@@ -20,7 +20,7 @@ namespace prounk {
 		ui::Draw(healthBack);
 
 		
-		CombatData* combatData = playerController->m_world->entityHandler.getEntry(playerController->getPlayerObject()->userData).combatData;
+		CombatData* combatData = playerController->m_world->entityRegistry.getEntry(playerController->getPlayerObject()->userData).combatData;
 
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();

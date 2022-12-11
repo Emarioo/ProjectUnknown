@@ -9,7 +9,7 @@ namespace prounk {
 		Renderer* renderer = info.window->getRenderer();
 		PlayerController* playerController = &m_app->playerController;
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
-		CombatData* combatData = playerController->m_world->entityHandler.getEntry(playerController->getPlayerObject()->userData).combatData;
+		CombatData* combatData = playerController->m_world->entityRegistry.getEntry(playerController->getPlayerObject()->userData).combatData;
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();
 		float atk = combatData->getAttack();

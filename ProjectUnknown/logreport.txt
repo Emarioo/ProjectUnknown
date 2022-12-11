@@ -1,7 +1,10 @@
-[13:55:13] Registered NEW model 'Player/Player' as 1
-[13:55:13] Registered NEW model 'SwordBase/SwordBase' as 2
-[13:55:13] Registered NEW model 'Platform/Platform' as 3
-[13:55:13] Registered NEW model 'Dagger/Dagger' as 4
-[13:57:03] ProUnk::Server::onEvent - Stopped
-[13:57:03] Queues: 30 / 30 Track/Untracks: 30 / 30  AddMem/SubMem: 15 / 4
-[13:57:03] No tracked memory leak
+[13:44:03] Registered NEW model 'Player/Player' as 1
+[13:44:03] Registered NEW model 'SwordBase/SwordBase' as 2
+[13:44:03] Registered NEW model 'Platform/Platform' as 3
+[13:44:03] Registered NEW model 'Dagger/Dagger' as 4
+[13:44:03] Registered NEW ItemType 'Player' as 1
+[13:44:03] Registered NEW ItemType 'Platform' as 2
+[13:44:03] Registered NEW ItemType 'Sword' as 3
+[13:44:03] 100.000000 200.000000 100.000000 100.000000
+[13:45:19] Queues: 27 / 27 Track/Untracks: 27 / 27  AddMem/SubMem: 16 / 6
+[13:45:19] No tracked memory leak

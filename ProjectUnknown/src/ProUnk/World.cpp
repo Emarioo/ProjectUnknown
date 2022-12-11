@@ -189,7 +189,7 @@ namespace prounk {
 
 				if (object) {
 					m_mutex.lock();
-					CombatData* combatData = entityHandler.getEntry(object->userData).combatData;
+					CombatData* combatData = entityRegistry.getEntry(object->userData).combatData;
 					combatData->health -= damage;
 					if(combatData->health<0) combatData->health = 0;
 
@@ -455,7 +455,7 @@ namespace prounk {
 		//for (int i = 0; i < m_objects.size(); i++) {
 			//GameObject* obj = m_objects[i];
 			if (obj->flags & OBJECT_HAS_COMBATDATA) {
-				CombatData* combatData = entityHandler.getEntry(obj->userData).combatData;
+				CombatData* combatData = entityRegistry.getEntry(obj->userData).combatData;
 
 				// wasUpdate is temporary. objects may share combatData and it may therefore be updated multiple times.
 				// this prevents that. A permanant solution would be to have combatData in an contigouous list
@@ -474,7 +474,7 @@ namespace prounk {
 		//for (int i = 0; i < m_objects.size(); i++) {
 			//GameObject* obj = m_objects[i];
 			if (obj->flags & OBJECT_HAS_COMBATDATA) {
-				CombatData* combatData = entityHandler.getEntry(obj->userData).combatData;
+				CombatData* combatData = entityRegistry.getEntry(obj->userData).combatData;
 				combatData->wasUpdated=false;
 			}
 		}
@@ -695,15 +695,15 @@ namespace prounk {
 	}
 	CombatData* World::getCombatData(engone::EngineObject* object) {
 		if (object->userData != 0) {
-			return entityHandler.getEntry(object->userData).combatData;
+			return entityRegistry.getEntry(object->userData).combatData;
 		}
 		return nullptr;
 	}
 	Inventory* World::getInventory(engone::EngineObject* object) {
 		if (object->userData != 0) {
-			int inv = entityHandler.getEntry(object->userData).inventoryIndex;
+			int inv = entityRegistry.getEntry(object->userData).inventoryIndex;
 			if (inv != 0)
-				return InventoryRegistry.getInventory(object->userData);
+				return inventoryRegistry.getInventory(object->userData);
 		}
 		return nullptr;
 	}

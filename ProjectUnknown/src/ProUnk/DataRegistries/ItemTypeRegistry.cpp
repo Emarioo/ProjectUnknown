@@ -40,7 +40,7 @@ namespace prounk {
 		log::out << "ItemTypeRegistry loaded " << count << " entries\n";
 	}
 	const ItemTypeInfo* ItemTypeRegistry::getType(ItemType type) {
-		if (type < 0 || type >= m_itemTypes.size())
+		if (type < 1 || type > m_itemTypes.size())
 			return nullptr;
 		return &m_itemTypes[type - 1]; // <- visual studio complains about some wider type and overflow
 	}
@@ -60,8 +60,9 @@ namespace prounk {
 			name++;
 		}
 		return true;
+
 	}
-	ItemType ItemTypeRegistry::registerType(const std::string& name) {
+	ItemType ItemTypeRegistry::registerType(const std::string& name, ModelId modelId) {
 		using namespace engone;
 		if (name.empty()) {
 			log::out << log::RED << "ItemTypeRegistry - Cannot register '"<<name<<"' (empty string)\n";
@@ -71,7 +72,10 @@ namespace prounk {
 			log::out << log::RED << "ItemTypeRegistry - Cannot register '" << name << "' (only 'a' to 'z' and '_' are allowed)\n";
 			return 0;
 		}
-
+		if (!modelId) {
+			log::out << log::RED <<"ItemTypeRegistry - Cannot register '" << name << "' with 0 as modelId\n";
+			return 0;
+		}
 		int itemType = 0;
 		// find name of model
 		for (int i = 0; i < m_itemTypes.size(); i++) {
@@ -89,6 +93,7 @@ namespace prounk {
 			m_itemTypes.push_back({});
 			m_itemTypes.back().itemType = itemType;
 			m_itemTypes.back().name = name;
+			m_itemTypes.back().modelId = modelId;
 
 			log::out << "Registered NEW ItemType '" << name << "' as " << itemType << "\n";
 

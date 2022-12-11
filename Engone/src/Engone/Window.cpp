@@ -112,6 +112,8 @@ namespace engone {
 		win->setMouseY((float)my);
 		win->setInput(button, action != 0);
 
+		//log::out << "click " << button << "\n";
+
 		Event e{ EventClick };
 		e.button = button;
 		e.action = action;
@@ -429,6 +431,18 @@ namespace engone {
 			}
 		}
 		return false;
+	}
+	void Window::resetKey(int code) {
+		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+			if (m_inputs[i].code == code) {
+				if (m_parent->isRenderingWindow()) {
+					m_inputs[i].framePressed = 0;
+				} else {
+					m_inputs[i].tickPressed = 0;
+				}
+				break;
+			}
+		}
 	}
 	bool Window::isKeyReleased(int code) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {

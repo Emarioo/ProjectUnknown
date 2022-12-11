@@ -1,18 +1,18 @@
-#include "ProUnk/DataRegistrys/EntityHandler.h"
+#include "ProUnk/DataRegistries/EntityRegistry.h"
 
 #include "Engone/Utilities/FileUtility.h"
 
 namespace prounk {
 
-	EntityHandler::Entry& EntityHandler::getEntry(int id) {
+	EntityRegistry::Entry& EntityRegistry::getEntry(int id) {
 		return m_entries[id-1];
 	}
-	int EntityHandler::addEntry() {
+	int EntityRegistry::addEntry() {
 		m_entries.push_back({});
 		return m_entries.size();
 	}
 
-	void EntityHandler::serialize() {
+	void EntityRegistry::serialize() {
 		using namespace engone;
 		//FileWriter file("handlerRegistry.dat");
 		//if (!file)
@@ -34,7 +34,7 @@ namespace prounk {
 
 		//log::out << "InventoryRegistry serialized " << count << " inventories (total of " << totalItems << " items)\n";
 	}
-	void EntityHandler::deserialize() {
+	void EntityRegistry::deserialize() {
 		using namespace engone;
 		//FileReader file("handlerRegistry.dat");
 		//if (!file)

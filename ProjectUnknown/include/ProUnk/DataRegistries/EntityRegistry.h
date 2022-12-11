@@ -6,9 +6,9 @@
 
 namespace prounk {
 
-	class EntityHandler : public DataRegistry {
+	class EntityRegistry : public DataRegistry {
 	public:
-		EntityHandler() : DataRegistry("entity_registry") {}
+		EntityRegistry() : DataRegistry("entity_registry") {}
 
 		void serialize();
 		void deserialize();

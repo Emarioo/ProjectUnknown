@@ -14,6 +14,7 @@
 
 #include "ProUnk/UI/InventoryPanel.h"
 #include "ProUnk/UI/PlayerBarPanel.h"
+#include "ProUnk/UI/MasterInventoryPanel.h"
 
 namespace prounk {
 
@@ -51,6 +52,8 @@ namespace prounk {
 		PlayerController playerController;
 
 		PanelHandler panelHandler;
+		
+		MasterInventoryPanel* masterInventoryPanel=nullptr;
 
 		engone::DelayCode delayed;
 

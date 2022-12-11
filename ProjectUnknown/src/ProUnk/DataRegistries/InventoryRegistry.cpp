@@ -1,8 +1,40 @@
-#include "ProUnk/DataRegistrys/InventoryRegistry.h"
+#include "ProUnk/DataRegistries/InventoryRegistry.h"
 
 #include "Engone/Utilities/FileUtility.h"
 
+#include "ProUnk/GameApp.h"
+
 namespace prounk {
+	
+	Item::Item(ItemType type, int count) : m_type(type), m_count(count) {
+		auto win = engone::GetActiveWindow();
+		World* world = (World*)win->getParent()->getWorld();
+		auto info = world->itemTypeRegistry.getType(type);
+		if (info) {
+			m_name = info->name;
+			m_modelId = info->modelId;
+		}
+	}
+	ItemType Item::getType() { return m_type; }
+	void Item::setType(ItemType type) { 
+		m_type = type;
+		auto win = engone::GetActiveWindow();
+		World* world = (World*)win->getParent()->getWorld();
+		auto info = world->itemTypeRegistry.getType(type);
+		if (info) {
+			m_name = info->name;
+			m_modelId = info->modelId;
+		}
+	}
+
+	const std::string& Item::getName() { return m_name; }
+	void Item::setName(const std::string& name) { m_name = name; }
+
+	int Item::getCount() { return m_count; }
+	void Item::setCount(int count) { m_count = count; }
+
+	ModelId Item::getModelId() { return m_modelId; }
+	void Item::setModelId(ModelId modelId) { m_modelId = modelId; }
 
 	Inventory* InventoryRegistry::getInventory(int id) {
 		if (id == 0) return nullptr;
@@ -14,7 +46,7 @@ namespace prounk {
 	}
 	void InventoryRegistry::serialize() {
 		using namespace engone;
-		FileWriter file("InventoryRegistry.dat");
+		FileWriter file("inventoryRegistry.dat");
 		if (!file)
 			return;
 		int totalItems = 0;
@@ -35,7 +67,7 @@ namespace prounk {
 	}
 	void InventoryRegistry::deserialize() {
 		using namespace engone;
-		FileReader file("InventoryRegistry.dat");
+		FileReader file("inventoryRegistry.dat");
 		if (!file)
 			return;
 		int totalItems = 0;

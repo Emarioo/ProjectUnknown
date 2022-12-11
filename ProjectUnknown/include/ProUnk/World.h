@@ -115,9 +115,11 @@ namespace prounk {
 
 		GameApp* getApp() { return (GameApp*)m_app; }
 
-		EntityHandler entityHandler;
-		InventoryRegistry InventoryRegistry;
-		ModelRegistry ModelRegistry;
+		EntityRegistry entityRegistry;
+		InventoryRegistry inventoryRegistry;
+		ModelRegistry modelRegistry;
+		ItemTypeRegistry itemTypeRegistry;
+
 		CombatData* getCombatData(engone::EngineObject* object);
 		Inventory* getInventory(engone::EngineObject* object);
 

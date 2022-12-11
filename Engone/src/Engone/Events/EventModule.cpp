@@ -65,6 +65,11 @@ namespace engone {
 		if (win) return win->isKeyReleased(code);
 		return 0;
 	}
+	void ResetKey(int code) {
+		Window* win = GetActiveWindow();
+		if (win)
+			win->resetKey(code);
+	}
 	bool IsKeybindingDown(uint16_t id) {
 		if (keybindings.count(id)) {
 			Keybinding& bind = keybindings[id];

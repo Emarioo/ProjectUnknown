@@ -70,6 +70,7 @@ namespace engone {
 	// returns true if the key was pressed this refresh/frame/update.
 	bool IsKeyPressed(int code);
 	bool IsKeyReleased(int code);
+	void ResetKey(int code);
 
 	bool IsKeybindingDown(uint16_t id);
 	bool IsKeybindingPressed(uint16_t id);

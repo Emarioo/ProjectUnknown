@@ -2,11 +2,14 @@
 
 #include "ProUnk/DataRegistries/MasterRegistry.h"
 
+#include "ProUnk/DataRegistries/ModelRegistry.h"
+
 namespace prounk {
 	typedef int ItemType;
 	struct ItemTypeInfo {
 		ItemType itemType;
-		std::string name;
+		std::string name; // default name
+		ModelId modelId; // default model
 	};
 	class ItemTypeRegistry : public DataRegistry {
 	public:
@@ -15,10 +18,12 @@ namespace prounk {
 		void serialize() override;
 		void deserialize() override;
 
+		// may return nullptr;
 		const ItemTypeInfo* getType(ItemType type);
+		// may return nullptr;
 		const ItemTypeInfo* getType(const std::string& name);
 
-		ItemType registerType(const std::string& name);
+		ItemType registerType(const std::string& name, ModelId modelId);
 
 	private:
 
