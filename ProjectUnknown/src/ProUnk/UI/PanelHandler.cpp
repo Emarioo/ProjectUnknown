@@ -195,7 +195,7 @@ namespace prounk {
 		// check minimums, forced change like pushing repelling magnets together
 		float w = m_right - m_left;
 		if (w < m_minWidth) {
-			log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
+			//log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
 			if (prev[LEFT] == m_left) {
 				m_left = m_right - m_minWidth;
 				if(m_constraints[LEFT].active)

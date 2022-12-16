@@ -180,6 +180,15 @@
     <ClInclude Include="include\Engone\Utilities\LogLevels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\Registries\ObjectRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Registries\MasterRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Registries\WorldRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
@@ -273,6 +282,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Registries\MasterRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Registries\ObjectRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

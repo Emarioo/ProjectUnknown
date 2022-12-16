@@ -8,9 +8,6 @@ const char* test2dGLSL = {
 };
 #include "Engone/Tests/BasicRendering.h"
 
-// used to get the sizeof context because it affects getMemory
-//#include "asio.hpp"
-
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
 }
@@ -41,6 +38,14 @@ namespace engone {
 		m_lights.clear();
 		DestroyNetworking();
 	}
+	void Engone::addApplication(Application* app) {
+		//T* app = new T(this);
+		GetTracker().track(app);
+		m_applications.push_back(app);
+		m_appSizes.push_back(sizeof(Application));
+		m_appIds.push_back(Application::trackerId);
+	}
+	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
 
 		// Filters don't work with multithreading

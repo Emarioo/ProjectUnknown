@@ -46,7 +46,7 @@ ISSUE: playground can have both a server and a client at the same time. This is 
 #pragma once
 
 #include "Engone/World/EngineWorld.h"
-#include "Engone/EngineObject.h"
+//#include "Engone/EngineObject.h"
 
 #include "ProUnk/DataRegistries/EntityRegistry.h"
 #include "ProUnk/DataRegistries/InventoryRegistry.h"

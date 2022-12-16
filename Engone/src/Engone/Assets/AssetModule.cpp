@@ -12,7 +12,7 @@ namespace engone {
 		cleanup();
 	}
 	void AssetStorage::cleanup() {
-		ENGONE_DEBUG(log::out << "AssetStorage::cleanup - begun\n", ASSET_LEVEL,1)
+		//ENGONE_DEBUG(log::out << "AssetStorage::cleanup - begun\n", ASSET_LEVEL,1)
 		m_ioProcMutex.lock();
 		for (int i = 0; i < m_ioProcessors.size(); i++) {
 			delete m_ioProcessors[i];
@@ -52,7 +52,7 @@ namespace engone {
 		// But say you want to only clean AssetStorage without destroying the window, then this WOULD be an issue.
 		//log::out << log::RED << "AssetStorage::cleanup - some assets are not deleted on the opengl context!\n";
 		m_assetMutex.unlock();
-		ENGONE_DEBUG(log::out << "AssetStorage::cleanup - finished\n", ASSET_LEVEL, 1)
+		//ENGONE_DEBUG(log::out << "AssetStorage::cleanup - finished\n", ASSET_LEVEL, 1)
 	}
 	void AssetStorage::addIOProcessor() {
 		m_ioProcMutex.lock();
@@ -174,7 +174,7 @@ namespace engone {
 				name += ToString(m_processType);
 				engone::SetThreadName(-1, name.c_str());
 
-				ENGONE_DEBUG(log::out << "AssetProcessor::start - started thread\n", ASSET_LEVEL, 1)
+				//ENGONE_DEBUG(log::out << "AssetProcessor::start - started thread\n", ASSET_LEVEL, 1)
 				while (m_running) {
 
 					process();
@@ -182,7 +182,7 @@ namespace engone {
 					std::unique_lock<std::mutex> lock(m_waitMutex);
 
 					m_wait.wait(lock, [this]() {return m_queue.size() != 0||!m_running; });
-					ENGONE_DEBUG(log::out << "AssetProcessor::start - stopped waiting\n", ASSET_LEVEL, 1)
+					//ENGONE_DEBUG(log::out << "AssetProcessor::start - stopped waiting\n", ASSET_LEVEL, 1)
 				}
 			});
 		}
@@ -209,14 +209,14 @@ namespace engone {
 			task.asset->m_flags = flags;
 			if (task.asset->m_error != Error::ErrorNone) {
 				task.asset->m_flags = Asset::LoadNone;
-				log::out << log::RED<<"Failed loading: " << task.asset->getPath() << "\n";
+				//log::out << log::RED<<"Failed loading: " << task.asset->getPath() << "\n";
 			}
 			if (task.asset->m_state & Asset::Loaded) {
 				if (task.asset->getPath().size() != 0) {
-					ENGONE_DEBUG(log::out << "Loaded " << task.asset->getPath()<<"\n", ASSET_LEVEL, 2)
+					//ENGONE_DEBUG(log::out << "Loaded " << task.asset->getPath()<<"\n", ASSET_LEVEL, 2)
 				}
 			} else {
-				ENGONE_DEBUG(log::out << "Loaded " << task.asset->getPath() << " next: " << flags << "\n", ASSET_LEVEL, 1)
+				//ENGONE_DEBUG(log::out << "Loaded " << task.asset->getPath() << " next: " << flags << "\n", ASSET_LEVEL, 1)
 			}
 			//task.nextFlags = flags;
 			// depending on asset type
@@ -232,7 +232,7 @@ namespace engone {
 		m_wait.notify_one();
 	}
 	void AssetProcessor::queue(AssetTask task) {
-		ENGONE_DEBUG(log::out << "Queue Task: " << task.asset->getPath() << " " << (Asset::LoadFlag)task.asset->m_flags << "\n", ASSET_LEVEL, 1)
+		//ENGONE_DEBUG(log::out << "Queue Task: " << task.asset->getPath() << " " << (Asset::LoadFlag)task.asset->m_flags << "\n", ASSET_LEVEL, 1)
 		std::lock_guard lk(m_waitMutex);
 		m_queueMutex.lock();
 		m_queue.push_back(task);

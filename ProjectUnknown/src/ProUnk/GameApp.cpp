@@ -270,10 +270,10 @@ namespace prounk {
 		panelHandler.addPanel(masterInventoryPanel);
 		// master has no position or size.
 
-		CraftingPanel* craftingPanel = new CraftingPanel(this);
-		panelHandler.addPanel(craftingPanel);
-		craftingPanel->setSize(100, 100);
-		craftingPanel->setPosition(300, 400);
+		//CraftingPanel* craftingPanel = new CraftingPanel(this);
+		//panelHandler.addPanel(craftingPanel);
+		//craftingPanel->setSize(100, 100);
+		//craftingPanel->setPosition(300, 400);
 
 		PlayerBarPanel* playerBarPanel = new PlayerBarPanel(this);
 		panelHandler.addPanel(playerBarPanel);

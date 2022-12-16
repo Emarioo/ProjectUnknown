@@ -33,40 +33,16 @@ namespace engone {
 
 		// Will create an application in the engine.
 		// The created app will be tracked which means it requires TrackerId. I would recommend looking at an Application example.
-		template<class T>
-		T* createApplication() {
-			T* app = new T(this);
-			GetTracker().track(app);
-			m_applications.push_back(app);
-			m_appSizes.push_back(sizeof(T));
-			m_appIds.push_back(T::trackerId);
-			return app;
-		}
-		// See other overloaded function.
-		template<class T, typename A>
-		T* createApplication(const A& arg) {
-			T* app = new T(this, arg);
-			GetTracker().track(app);
+		void addApplication(Application* app);
 
-			m_applications.push_back(app);
-			m_appSizes.push_back(sizeof(T));
-			m_appIds.push_back(T::trackerId);
-			return app;
-		}
 		// I wouldn't recommend adding or removing apps from the vector.
 		// Instead use createApplication or Application::stop if you want to add or remove an app.
-		std::vector<Application*>& getApplications() { return m_applications; }
+		std::vector<Application*>& getApplications();
 
 		/*
 		Start the engine loop which will run applications until their windows are closed.
 		*/
 		void start();
-		// don't add nullptr, object is assumed to be valid.
-		//void addObject(EngineObject* object);
-
-		//Playground& getPlayground() { return playground; };
-
-		//void addParticleGroup(ParticleGroupT* group);
 
 		// the run time of stats
 		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
@@ -84,7 +60,7 @@ namespace engone {
 		RuntimeStats& getStats() { return m_runtimeStats; }
 		
 		void bindLights(Shader* shader, glm::vec3 objectPos);
-
+		
 		static TrackerId trackerId;
 	private:
 		RuntimeStats m_runtimeStats;

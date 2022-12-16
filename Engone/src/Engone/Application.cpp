@@ -9,4 +9,7 @@ namespace engone {
 			m_windows[i]->close();
 		}
 	}
+	rp3d::PhysicsCommon* Application::getPhysicsCommon() {
+		return m_pCommon;
+	}
 }

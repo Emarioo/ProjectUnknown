@@ -9,7 +9,8 @@ namespace prounk {
 		OBJECT_DUMMY=0,
 		OBJECT_SWORD,
 		OBJECT_TERRAIN,
-		OBJECT_PLAYER
+		OBJECT_PLAYER,
+		OBJECT_ITEM,
 	};
 
 	engone::EngineObject* CreateObject(int type, World* world, engone::UUID uuid = 0);

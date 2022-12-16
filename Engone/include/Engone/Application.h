@@ -70,6 +70,8 @@ namespace engone {
 
 		bool isStopped() const { return m_stopped; }
 
+		rp3d::PhysicsCommon* getPhysicsCommon();
+		
 		static TrackerId trackerId;
 	private:
 		EngineWorld* m_world=nullptr;
@@ -78,6 +80,9 @@ namespace engone {
 		std::vector<Window*> m_windows;
 		bool m_renderingWindows=false;
 		Engone* m_engone=nullptr;
+
+		rp3d::PhysicsCommon* m_pCommon = nullptr;
+		
 		friend class Engone;
 		friend class Window;
 

@@ -34,6 +34,8 @@ namespace engone {
 		virtual void cleanup();
 
 		void addObject(EngineObject* object);
+
+		EngineObject* createObject(UUID);
 		
 		EngineObjectIterator getIterator();
 		// Should return nullptr if out of bounds
@@ -50,12 +52,10 @@ namespace engone {
 
 		virtual void update(LoopInfo& info);
 
-		Application* getApp() { return m_app; }
+		rp3d::PhysicsCommon* getPhysicsCommon();
+		rp3d::PhysicsWorld* getPhysicsWorld();
 
-#ifdef ENGONE_PHYSICS
-		rp3d::PhysicsWorld* m_pWorld = nullptr;
-		rp3d::PhysicsCommon* m_pCommon = nullptr;
-#endif
+		Application* getApp() { return m_app; }
 
 		DepthMutex m_mutex; // mutex for objects
 		void lock() {
@@ -66,6 +66,10 @@ namespace engone {
 		}
 
 	protected:
+#ifdef ENGONE_PHYSICS
+		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
+#endif
+
 		// you may want to make an entity component system or something
 		std::vector<ParticleGroupT*> m_particleGroups;
 		std::vector<EngineObject*> m_objects;

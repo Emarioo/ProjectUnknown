@@ -46,14 +46,12 @@ unless storage is being destroyed on render thread in which case it might lock i
 
 */
 
+#define ASSET_LEVEL_ALL 0xffffffff
+#define ASSET_LEVEL_INFO 0x01
+#define ASSET_LEVEL_WARNING 0x02
+#define ASSET_LEVEL_ERROR 0x04
+
 namespace engone {
-	extern int ASSET_LEVEL;
-
-	// Update
-	// Render
-	// glfw event
-	// Update...
-
 	struct AssetTask {
 		//AssetTask(Asset* asset, Asset::LoadFlags flags) : asset(asset) , nextFlags(flags) {}
 		AssetTask(Asset* asset) : asset(asset) {}
@@ -120,14 +118,14 @@ namespace engone {
 				asset->m_flags = asset->load(Asset::LoadIO | Asset::LoadData);
 				if (asset->m_error != Error::ErrorNone) {
 					asset->m_flags = Asset::LoadNone;
-					log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
+					//log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
 				}
 				if (asset->m_state & Asset::Loaded) {
 					if (asset->getPath().size() != 0) {
-						ENGONE_DEBUG(log::out << "Loaded " << asset->getPath() << "\n", ASSET_LEVEL, 2)
+						//ENGONE_DEBUG(log::out << "Loaded " << asset->getPath() << "\n", ASSET_LEVEL, 2)
 					}
 				} else {
-					ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+					//ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
 				}
 				AssetTask task(asset);
 				processTask(task);
@@ -150,7 +148,7 @@ namespace engone {
 			auto find = list.find(path);
 			if (find != list.end()) {
 				if (find->second->m_state == Asset::Processing) {
-					log::out << "AssetStorage::unload - Asset cannot be unloaded while being processed!\n";
+					//log::out << "AssetStorage::unload - Asset cannot be unloaded while being processed!\n";
 				} else {
 					delete find->second; // can asset be deleted?
 					GetTracker().untrack(find->second);
@@ -193,7 +191,7 @@ namespace engone {
 				} else {
 					// not fine
 					// should maybe warn here
-					log::out << log::YELLOW << "AssetStorage::set - overwriting asset, deleting old one.\n";
+					//log::out << log::YELLOW << "AssetStorage::set - overwriting asset, deleting old one.\n";
 					delete t; // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
 					t = asset;
 					doStuff = true;
@@ -216,14 +214,14 @@ namespace engone {
 						t->m_flags = t->load(Asset::LoadIO | Asset::LoadData);
 						if (t->m_error != Error::ErrorNone) {
 							t->m_flags = Asset::LoadNone;
-							log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
+							//log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
 						}
 						if (t->m_state & Asset::Loaded) {
 							if (t->getPath().size() != 0) {
-								ENGONE_DEBUG(log::out << "Loaded " << t->getPath() << "\n", ASSET_LEVEL, 2)
+								//ENGONE_DEBUG(log::out << "Loaded " << t->getPath() << "\n", ASSET_LEVEL, 2)
 							}
 						} else {
-							ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+							//ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
 						}
 						AssetTask task(t);
 						processTask(task);

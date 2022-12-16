@@ -157,6 +157,33 @@ namespace prounk {
 		//weapon->rigidBody->resetTorque();
 		//weapon->rigidBody->setTransform(swordTrans);
 	}
+	rp3d::decimal PlayerController::notifyRaycastHit(const rp3d::RaycastInfo& raycastInfo) {
+
+		// check if item
+		int id = (int)raycastInfo.body->getUserData();
+		if (id) {
+			auto& entity = m_world->entityRegistry.getEntry(id);
+			if (entity.object) {
+				if (entity.object->objectType == OBJECT_ITEM) {
+					// collision happened;
+					// move into inventory
+					if (entity.item.getType()) {
+						int entityId = m_player->userData;
+
+						auto& plrEntity = m_world->entityRegistry.getEntry(entityId);
+						Inventory* inv = m_world->inventoryRegistry.getInventory(plrEntity.inventoryIndex);
+
+						inv->addItem(entity.item);
+
+						m_world->deleteObject(plrEntity.object);
+
+						return 0.0; // we are done with raycast.
+					}
+				}
+			}
+		}
+		return 1.0f;
+	}
 	void PlayerController::Input(engone::LoopInfo& info) {
 		using namespace engone;
 		if (IsKeyPressed(GLFW_KEY_G)) {
@@ -166,6 +193,16 @@ namespace prounk {
 			setNoClip(!noclip);
 		}
 		if (IsKeyPressed(GLFW_KEY_Q)) { // drop/pickup weapon
+			int entityId = m_player->userData;
+			
+			auto& entity = m_world->entityRegistry.getEntry(entityId);
+			Inventory* inv = m_world->inventoryRegistry.getInventory(entity.inventoryIndex);
+			
+			// do raycast, pick up item if it is an item.
+			rp3d::Ray ray({ 0,0,0 }, {0,0,0});
+			
+			m_world->m_pWorld->raycast(ray, this);
+				
 			if (!isDead()) {
 				if (heldWeapon)
 					setWeapon(info, nullptr);

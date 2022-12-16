@@ -10,7 +10,7 @@ namespace prounk {
 
 	// Since the game is based on a registry, entity component and more data oriented there is not a Player EngineObject class.
 	// This will be the replacement for that.
-	class PlayerController {
+	class PlayerController : public rp3d::RaycastCallback {
 	public:
 		PlayerController();
 
@@ -26,6 +26,8 @@ namespace prounk {
 		// This updates the position of the weapon when held
 		void WeaponUpdate(engone::LoopInfo& info);
 
+		rp3d::decimal notifyRaycastHit(const rp3d::RaycastInfo& raycastInfo) override;
+
 		// Movement and camera
 		float zoom = 3;
 		float zoomSpeed = 0;
@@ -33,8 +35,11 @@ namespace prounk {
 		inline void setWorld(World* world) { m_world = world; }
 		World* m_world = nullptr;
 
+		// temporary
 		engone::EngineObject* inventorySword = nullptr;
-		engone::EngineObject* heldWeapon = nullptr;
+		
+		// object held in hand
+		engone::EngineObject* heldObject = nullptr;
 
 		// info exists as an argument because NetGameGround is required.
 		void setWeapon(engone::LoopInfo& info, engone::EngineObject* weapon);

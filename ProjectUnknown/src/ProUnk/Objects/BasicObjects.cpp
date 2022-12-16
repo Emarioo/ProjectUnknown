@@ -16,41 +16,46 @@ namespace prounk {
 		return nullptr;
 	}
 	void DeleteObject(World* world, engone::EngineObject* object) {
-		if (object->rigidBody) {
-			world->m_pWorld->destroyRigidBody(object->rigidBody);
+		using namespace engone;
+		if (object->getRigidBody()) {
+			world->getPhysicsWorld()->destroyRigidBody(object->getRigidBody());
 		}
+		log::out <<log::RED<< __FILE__ << " Memory leak!\n";
 		delete object;
 	}
 	engone::EngineObject* CreateDummy(World* world, engone::UUID uuid) {
 		using namespace engone;
 
-		EngineObject* out = new EngineObject(uuid);
-		out->objectType = OBJECT_DUMMY;
+		EngineObject* obj = world->createObject(uuid);
+
+		obj->setObjectType(OBJECT_DUMMY);
+
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 
-		out->createRigidBody(world);
-		out->setModel(assets->load<engone::ModelAsset>("Dummy/Dummy"));
+		obj->setModel(assets->load<engone::ModelAsset>("Dummy/Dummy"));
 
-		out->rigidBody->setType(rp3d::BodyType::DYNAMIC);
-		out->rigidBody->setIsAllowedToSleep(false);
-		out->rigidBody->enableGravity(false);
+		obj->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+		obj->getRigidBody()->setIsAllowedToSleep(false);
+		obj->getRigidBody()->enableGravity(false);
 
 		CombatData* data = new CombatData();
-		data->owner = out;
+		data->owner = obj;
 		data->totalFlatAtk = 1;
+
+		
 
 		int id = world->entityRegistry.addEntry();
 		world->entityRegistry.getEntry(id).combatData = data;
-		out->userData = id;
+		obj->userData = id;
 
-		out->flags |= OBJECT_HAS_COMBATDATA;
+		obj->flags |= OBJECT_HAS_COMBATDATA;
 
-		out->rigidBody->setUserData(out);
+		obj->rigidBody->setUserData(out);
 
 		//out->setOnlyTrigger(true);
-		out->setColliderUserData((void*)(COLLIDER_IS_HEALTH|COLLIDER_IS_DAMAGE));
-		out->loadColliders();
-		return out;
+		obj->setColliderUserData((void*)(COLLIDER_IS_HEALTH|COLLIDER_IS_DAMAGE));
+		//obj->loadColliders();
+		return obj;
 	}
 	engone::EngineObject* CreateSword(World* world, engone::UUID uuid) {
 		using namespace engone;

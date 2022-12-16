@@ -17,8 +17,8 @@ namespace engone {
 	EngineWorld::EngineWorld() {
 #ifdef ENGONE_PHYSICS
 		//if (!noPhysics) {
-		m_pCommon = new rp3d::PhysicsCommon();
-		m_pWorld = m_pCommon->createPhysicsWorld();
+		//m_pCommon = new rp3d::PhysicsCommon();
+		//m_pWorld = m_pCommon->createPhysicsWorld();
 		//}
 #endif
 	}
@@ -34,11 +34,11 @@ namespace engone {
 		//m_objects.clear(); // should clear itself
 		//m_mutex.unlock();
 #ifdef ENGONE_PHYSICS
-		if (m_pCommon) {
-			delete m_pCommon; // should delete everything
-			m_pCommon = nullptr;
-			m_pWorld = nullptr;
-		}
+		//if (m_pCommon) {
+		//	delete m_pCommon; // should delete everything
+		//	m_pCommon = nullptr;
+		//	m_pWorld = nullptr;
+		//}
 #endif
 	}
 	void EngineWorld::update(LoopInfo& info) {
@@ -47,16 +47,16 @@ namespace engone {
 		EngineObject* obj;
 		while(obj=iterator.next()) {
 #ifdef ENGONE_PHYSICS
-			if (obj->flags&EngineObject::PENDING_COLLIDERS) {
+			if (obj->m_flags&EngineObject::PENDING_COLLIDERS) {
 				obj->loadColliders(this);
 			}
 #endif
-			obj->update(info);
-			obj->animator.update(info.timeStep);
+			//obj->update(info);
+			//obj->animator.update(info.timeStep);
 		}
 #ifdef ENGONE_PHYSICS
-		if (m_pWorld)
-			m_pWorld->update(info.timeStep);
+		if (m_physicsWorld)
+			m_physicsWorld->update(info.timeStep);
 #endif
 		m_mutex.unlock();
 	}
@@ -72,13 +72,13 @@ namespace engone {
 		}
 		return nullptr;
 	}
-
-	void EngineWorld::addObject(EngineObject* object) {
-		m_mutex.lock();
-		m_objects.push_back(object);
-		m_mutex.unlock();
+	EngineObject* EngineWorld::createObject(UUID uuid) {
+		EngineObject* obj = new EngineObject(uuid);
+		m_objects.push_back(obj);
+		rp3d::Transform t;
+		obj->m_rigidBody = m_physicsWorld->createRigidBody(t);
+		return obj;
 	}
-
 	EngineObjectIterator EngineWorld::getIterator() {
 		return EngineObjectIterator(this);
 	}
@@ -93,6 +93,7 @@ namespace engone {
 	void EngineWorld::deleteObject(EngineObject* object) {
 		for (int i = 0; i < m_objects.size(); i++) {
 			if (m_objects[i] == object) {
+				log::out << "EngineWorld::deleteObject - memory leak!\n";
 				m_objects.erase(m_objects.begin() + i);
 				return;
 			}
@@ -104,5 +105,12 @@ namespace engone {
 
 	void EngineWorld::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);
+	}
+	rp3d::PhysicsCommon* EngineWorld::getPhysicsCommon() {
+		if (!m_app) return nullptr;
+		return m_app->getPhysicsCommon();
+	}
+	rp3d::PhysicsWorld* EngineWorld::getPhysicsWorld() {
+		return m_physicsWorld;
 	}
 }
