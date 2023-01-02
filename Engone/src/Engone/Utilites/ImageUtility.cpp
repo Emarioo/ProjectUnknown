@@ -15,7 +15,7 @@ namespace engone {
 		if (!img) return nullptr;
 		if (!img->m_data) return nullptr;
 
-		RawImage* out = new RawImage();
+		RawImage* out = ALLOC_NEW(RawImage)();
 
 		char* imgData = img->m_data + sizeof(BITMAPINFOHEADER);
 
@@ -53,7 +53,7 @@ namespace engone {
 			log::out << log::RED << "BMP image failed allocating memory\n";
 			return nullptr;
 		}
-		BMP* out = new BMP();
+		BMP* out = ALLOC_NEW(BMP)();
 		out->m_data = newData;
 		out->m_flags = OwnerSelf;
 		out->m_size = total;
@@ -108,7 +108,7 @@ namespace engone {
 		if (!newData) {
 			return nullptr;
 		}
-		RawImage* out = new RawImage();
+		RawImage* out = ALLOC_NEW(RawImage)();
 		out->m_data = newData;
 		out->width = width;
 		out->height = height;
@@ -148,7 +148,7 @@ namespace engone {
 			log::out << log::RED << "BMP image failed allocating memory\n";
 			return nullptr;
 		}
-		BMP* out = new BMP();
+		BMP* out = ALLOC_NEW(BMP)();
 		out->m_data = newData;
 		out->m_flags = OwnerSelf;
 		out->m_size = size;
@@ -163,6 +163,8 @@ namespace engone {
 			return nullptr;
 		}
 		std::ifstream file(path, std::ios::binary);
+		if (!file.is_open())
+			return nullptr;
 		file.seekg(0, file.end);
 		uint32_t size = file.tellg();
 		file.seekg(0, file.beg);
@@ -172,7 +174,7 @@ namespace engone {
 			log::out << log::RED << "Image::ReadFile - failed allocating memory\n";
 			return nullptr;
 		}
-		T* img = new T();
+		T* img = ALLOC_NEW(T)();
 		img->m_data = newData;
 		img->m_size = size;
 		img->m_flags = StripInternal(img->m_flags) | OwnerSelf;
@@ -186,7 +188,8 @@ namespace engone {
 		if (!m_data) return;
 
 		std::ofstream file(path, std::ios::binary);
-
+		if (!file.is_open())
+			return;
 		file.write(m_data, m_size);
 
 		file.close();
@@ -226,7 +229,7 @@ namespace engone {
 		if (!newData) {
 			return nullptr;
 		}
-		RawImage* img = new RawImage();
+		RawImage* img = ALLOC_NEW(RawImage)();
 		img->m_data = newData;
 		img->width = width;
 		img->height = height;
@@ -251,7 +254,7 @@ namespace engone {
 		if (!newData) {
 			return nullptr;
 		}
-		RawImage* img = new RawImage();
+		RawImage* img = ALLOC_NEW(RawImage)();
 		img->m_data = newData;
 		img->width = width;
 		img->height = height;
@@ -270,7 +273,7 @@ namespace engone {
 		void* ptr = LockResource(hg);
 		DWORD size = SizeofResource(NULL, hs);
 
-		PNG* img = new PNG();
+		PNG* img = ALLOC_NEW(PNG)();
 		img->m_data = (char*)ptr;
 		img->m_size = size;
 		img->m_flags = 0;
@@ -290,7 +293,7 @@ namespace engone {
 		void* ptr = LockResource(hg);
 		DWORD size = SizeofResource(NULL, hs);
 
-		ICO* img = new ICO();
+		ICO* img = ALLOC_NEW(ICO)();
 		img->m_data = (char*)ptr;
 		img->m_size = size;
 		img->m_flags = 0;
@@ -307,7 +310,7 @@ namespace engone {
 			log::out << log::RED << "ICO::CreateEmpty - image failed allocating memory\n";
 			return {};
 		}
-		ICO* img = new ICO();
+		ICO* img = ALLOC_NEW(ICO)();
 		img->m_data = newData;
 		img->m_flags = OwnerSelf;
 		img->m_size = total;

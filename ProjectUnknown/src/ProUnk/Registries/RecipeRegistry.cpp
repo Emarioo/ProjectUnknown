@@ -1,5 +1,5 @@
 
-#include "ProUnk/DataRegistries/RecipeRegistry.h"
+#include "ProUnk/Registries/RecipeRegistry.h"
 
 namespace prounk {
 	void SimpleRecipe::addInput(SimpleIngredient ingredient) {

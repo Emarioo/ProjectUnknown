@@ -29,11 +29,13 @@ namespace engone {
 	Engone::Engone() {}
 	Engone::~Engone() {
 		for (int i = 0; i < m_applications.size(); i++) {
-			delete m_applications[i];
+			//delete m_applications[i];
+			ALLOC_DELETE(Application, m_applications[i]);
 		}
 		m_applications.clear();
 		for (int i = 0; i < m_lights.size(); i++) {
-			delete m_lights[i];
+			//delete m_lights[i];
+			ALLOC_DELETE(Light, m_lights[i]);
 		}
 		m_lights.clear();
 		DestroyNetworking();
@@ -54,29 +56,34 @@ namespace engone {
 		//GetTracker().printInfo();
 		//log::out.setConsoleFilter(log::out.consoleFilter() & (~log::Disable));
 
-		float printTime = 0;
+		double printTime = 0;
 		double lastTime = GetSystemTime();
+		m_runtimeStats.startTime = lastTime;
 		while (true) {
 			double now = GetSystemTime();
 			double delta = now - lastTime;
 			lastTime = now;
+			
+			m_runtimeStats.applyNewLimits();
+
 			//const double fixed = 1 / 144.f;
 			//m_runtimeStats.updateTime = fixed;
-			if (m_flags & EngoneFixedLoop) {
-				double sleeping = m_runtimeStats.frameTime - delta;
-				//log::out << delta <<" "<< sleeping <<"\n";
-				delta = m_runtimeStats.frameTime;
-				if (sleeping > 0) {
-					m_runtimeStats.sleepTime += sleeping;
-					std::this_thread::sleep_for(std::chrono::microseconds((int)(sleeping * 1000000)));
-					lastTime = GetSystemTime(); // this doesn't time accurate.
-				}
-			}
+			
+			//if (m_flags & EngoneFixedLoop) {
+			//	double sleeping = m_runtimeStats.frameTime - delta;
+			//	//log::out << delta <<" "<< sleeping <<"\n";
+			//	delta = m_runtimeStats.frameTime;
+			//	if (sleeping > 0) {
+			//		m_runtimeStats.sleepTime += sleeping;
+			//		std::this_thread::sleep_for(std::chrono::microseconds((int)(sleeping * 1000000)));
+			//		lastTime = GetSystemTime(); // this doesn't time accurate.
+			//	}
+			//}
 
 			// high delta will cause a series of consecuative updates which will freeze the apps. This is unwanted.
 			// Limit delta to fix it.
-			double limit = 8 * m_runtimeStats.updateTime;
-			if (delta > limit) delta = limit;
+			//double limit = 8 * m_runtimeStats.updateTime;
+			//if (delta > limit) delta = limit;
 
 			m_runtimeStats.runTime += delta;
 			m_runtimeStats.update_accumulator += delta;
@@ -85,6 +92,7 @@ namespace engone {
 
 			m_runtimeStats.nextSample(delta);
 
+			//-- Terminate Windows and Applications (if requested)
 			for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 				Application* app = m_applications[appIndex];
 				// Close window and applications if needed.
@@ -93,7 +101,8 @@ namespace engone {
 					// Potentially close window
 					if (!win->isOpen()) {
 						GetTracker().untrack(win);
-						delete win;
+						ALLOC_DELETE(Window, win);
+						//delete win;
 						app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
 						--winIndex;
 						continue;
@@ -104,7 +113,8 @@ namespace engone {
 					// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 					// app should be safe to delete
 					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
-					delete app;
+					ALLOC_DELETE(Application, app);
+					//delete app;
 					//FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
 					m_applications.erase(m_applications.begin() + appIndex);
 					m_appSizes.erase(m_appSizes.begin() + appIndex);
@@ -124,29 +134,31 @@ namespace engone {
 			if (m_applications.size() == 0) // might as well quit
 				break;
 			//Timer tim("update");
-			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime || m_flags & EngoneFixedLoop) {
+			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime
+				//|| m_flags & EngoneFixedLoop
+				) {
 				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
 
 				m_runtimeStats.incrUpdates();
-				LoopInfo info = { m_runtimeStats.updateTime };
-				if (m_flags & EngoneFixedLoop)
-					info.timeStep = m_runtimeStats.frameTime;
+				currentLoopInfo = { m_runtimeStats.updateTime*m_runtimeStats.gameSpeed };
+				//if (m_flags & EngoneFixedLoop)
+				//	info.timeStep = m_runtimeStats.frameTime;
 				//LoopInfo info = { delta, nullptr };
 				// 
 				//update(info);
 				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
 					Application* app = m_applications[appIndex];
-					info.app = app;
+					currentLoopInfo.app = app;
 
 					// IsKeyPressed should work on current app and the first window.
 					if (app->getWindow(0))
 						app->getWindow(0)->setActiveContext();
 
-					info.window = app->getWindow(0);
+					currentLoopInfo.window = app->getWindow(0);
 
-					app->update(info);
+					app->update(currentLoopInfo);
 					//Timer tim("update");
-					update(info); // should maybe be moved outside loop?
+					update(currentLoopInfo); // should maybe be moved outside loop?
 					//tim.stop();
 					// update reset for all windows.
 					// The global variable IsKeyPressed only works for the active window
@@ -173,12 +185,13 @@ namespace engone {
 					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
 						Window* win = app->getWindow(winIndex);
 						if (!win->isOpen()) continue;
-						float interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
-						LoopInfo info = { m_runtimeStats.updateTime,app,win,interpolation };
-						if (m_flags & EngoneFixedLoop) {
-							info.timeStep = m_runtimeStats.frameTime;
-							info.interpolation = 0;
-						}
+						double interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
+						
+						currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+						//if (m_flags & EngoneFixedLoop) {
+						//	currentLoopInfo.timeStep = m_runtimeStats.frameTime;
+						//	currentLoopInfo.interpolation = 0;
+						//}
 						win->setActiveContext();
 
 						if (!win->getStorage()->getGraphicProcessors().empty()) {
@@ -200,11 +213,12 @@ namespace engone {
 						//if (isfinite(ratio))
 						win->getRenderer()->setProjection();
 
-						app->render(info);
+						app->render(currentLoopInfo);
 
-						render(info);
+						render(currentLoopInfo);
 
-						GetActiveRenderer()->render(info);
+						// pipeline stuff
+						GetActiveRenderer()->render(currentLoopInfo);
 
 						glfwSwapInterval(0); // turning off vsync?
 						//Timer swapT("glSwapBuffers");
@@ -228,6 +242,10 @@ namespace engone {
 
 			if (printTime > 0.7f) {
 				printTime -= 0.7f;
+				// check if delta is accurate
+				//log::out << m_runtimeStats.runTime << " - " << (now - m_runtimeStats.startTime)<<" "<<abs(m_runtimeStats.runTime - (now - m_runtimeStats.startTime)) << "\n";
+				
+				// other info
 				//m_runtimeStats.print(RuntimeStats::PrintSamples);
 			}
 
@@ -283,8 +301,10 @@ namespace engone {
 		return EventNone;
 	}
 	void Engone::update(LoopInfo& info) {
-		if(info.app->getWorld())
-			info.app->getWorld()->update(info);
+		for (int i = 0; i < info.app->m_worlds.size(); i++) {
+			EngineWorld* world = info.app->m_worlds[i];
+			world->update(info);
+		}
 	}
 	float testTime = 0;
 	void Engone::render(LoopInfo& info) {
@@ -311,8 +331,8 @@ namespace engone {
 		else {
 		}
 		//EnableBlend(); <- done in particle render
-		if (info.window->getParent()->getWorld()) {
-			auto& groups = info.window->getParent()->getWorld()->getParticleGroups();
+		for (int i = 0; i < info.app->m_worlds.size(); i++) {
+			auto& groups = info.app->m_worlds[i]->getParticleGroups();
 			for (int i = 0; i < groups.size(); i++) {
 				groups[i]->render(info);
 			}
@@ -377,9 +397,9 @@ namespace engone {
 		renderObjects(info);
 #else
 		// cannot render objects without physics
-		if(info.window->getParent()->getWorld())
-			if(info.window->getParent()->getWorld()->getObjectCount())
-				log::out << log::RED << "Cannot render objects without physics\n";
+		//if(info.window->getParent()->getWorld())
+		//	if(info.window->getParent()->getWorld()->getObjectCount())
+		//		log::out << log::RED << "Cannot render objects without physics\n";
 #endif
 		/*
 		if (IsKeyDown(GLFW_KEY_K)) {
@@ -413,25 +433,38 @@ namespace engone {
 
 		// Physics debug
 #ifdef ENGONE_PHYSICS
-		rp3d::PhysicsWorld* world = info.window->getParent()->getWorld()->m_pWorld;
-		if (world) {
-			if (world->getIsDebugRenderingEnabled()) {
-				rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
-				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
-				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
-					auto& line = debugRenderer.getLinesArray()[i];
-					info.window->getRenderer()->DrawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
-				}
-				//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
-				//shad->bind();
-				//shad->setVec3("uColor", { 0.9,0.2,0.2 });
-				for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
-					auto& tri = debugRenderer.getTrianglesArray()[i];
-					info.window->getRenderer()->DrawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
-				}
+		for (int i = 0; i < info.app->m_worlds.size(); i++) {
+			rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+			if (!world) continue;
+			if (!world->getIsDebugRenderingEnabled()) continue;
+
+			rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
+			//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
+			for (int i = 0; i < debugRenderer.getNbLines(); i++) {
+				auto& line = debugRenderer.getLinesArray()[i];
+				info.window->getRenderer()->DrawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
+			}
+			//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
+			//shad->bind();
+			//shad->setVec3("uColor", { 0.9,0.2,0.2 });
+			for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
+				auto& tri = debugRenderer.getTrianglesArray()[i];
+				info.window->getRenderer()->DrawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
 			}
 		}
 #endif
+		if (m_flags & EngoneEnableDebugInfo) {
+			// Toggle Basic Info
+			if (IsKeyDown(GLFW_KEY_F3) && IsKeyPressed(GLFW_KEY_B)) {
+				if (m_flags & EngoneShowBasicDebugInfo)
+					m_flags &= ~EngoneShowBasicDebugInfo;
+				else
+					m_flags |= EngoneShowBasicDebugInfo;
+			}
+			
+			if (m_flags & EngoneShowBasicDebugInfo)
+				renderBasicDebugInfo(info);
+		}
 	}
 	bool warnNoLights = false;
 	void Engone::renderObjects(LoopInfo& info) {
@@ -448,59 +481,58 @@ namespace engone {
 		}
 #ifdef ENGONE_PHYSICS
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
-		EngineWorld* world = info.window->getParent()->getWorld();
-		//std::vector<EngineObject*>& objects = ground->getObjects();
-		world->lock();
+		for (EngineWorld* world : info.app->m_worlds) {
+			world->lock();
 
-		EngineObjectIterator iterator = world->getIterator();
-		EngineObject* obj = 0;
-		while (obj = iterator.next()) {
-			glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
+			EngineObjectIterator* iterator = world->createIterator();
+			EngineObject* obj = 0;
+			while (obj = iterator->next()) {
 
-			if (!obj->modelAsset) continue;
-			if (!obj->modelAsset->valid()) continue;
+				ModelAsset* model = obj->getModel();
+				rp3d::RigidBody* body = obj->getRigidBody();
 
-			Animator* animator = &obj->animator;
+				if (!model) continue;
+				if (!model->valid()) continue;
 
-			// Get individual transforms
-			std::vector<glm::mat4> transforms = obj->modelAsset->getParentTransforms(nullptr);
+				glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+				//Animator* animator = &obj->animator;
 
-			/*
-			if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
-				+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
-				(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
-				continue;
-			}
-			*/
+				// Get individual transforms
+				std::vector<glm::mat4> transforms = model->getParentTransforms(nullptr);
+
+				/*
+				if ((transform->position.x-camPos.x)* (transform->position.x - camPos.x)
+					+(transform->position.y - camPos.y)*(transform->position.y - camPos.y)+
+					(transform->position.z - camPos.z)*(transform->position.z - camPos.z)>200*200) {
+					continue;
+				}
+				*/
 				// Draw instances
-			for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
-				AssetInstance& instance = obj->modelAsset->instances[i];
-				//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
-				if (instance.asset->type == MeshAsset::TYPE) {
+				for (uint32_t i = 0; i < model->instances.size(); ++i) {
+					AssetInstance& instance = model->instances[i];
+					//log::out << " " << instance.asset->filePath<< " " << (int)instance.asset->type << " "<< (int)asset->meshType << "\n";
+					if (instance.asset->type != MeshAsset::TYPE) continue;
+
 					MeshAsset* asset = (MeshAsset*)instance.asset;
 
-					if (asset->meshType == MeshAsset::MeshType::Normal) {
-						glm::mat4 out;
+					if (asset->meshType != MeshAsset::MeshType::Normal) continue;
 
-						//if (animator->asset)
-						out = modelMatrix * transforms[i] * instance.localMat;
-						//else
-							//out = modelMatrix * instance.localMat;
+					glm::mat4 out;
+					out = modelMatrix * transforms[i] * instance.localMat;
 
+					//out = glm::rotate(-20 * glm::pi<float>() / 180.f, glm::vec3(1, 0, 0));
 
-						//out = glm::rotate(-20 * glm::pi<float>() / 180.f, glm::vec3(1, 0, 0));
-
-						if (normalObjects.count(asset) > 0) {
-							normalObjects[asset].push_back(out);
-						} else {
-							normalObjects[asset] = std::vector<glm::mat4>();
-							normalObjects[asset].push_back(out);
-						}
+					if (normalObjects.count(asset) > 0) {
+						normalObjects[asset].push_back(out);
+					} else {
+						normalObjects[asset] = std::vector<glm::mat4>();
+						normalObjects[asset].push_back(out);
 					}
 				}
 			}
+			world->unlock();
+			world->deleteIterator(iterator);
 		}
-		world->unlock();
 		//world->m_mutex.unlock();
 		ShaderAsset* shader = assets->get<ShaderAsset>("object");
 		if (!shader->getError()) {
@@ -511,6 +543,9 @@ namespace engone {
 			bindLights(shader, { 0,0,0 });
 			shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
 			for (auto& [asset, vector] : normalObjects) {
+
+				//log::out << "render " << asset->getLoadName()<< "\n";
+
 				//if (asset->meshType == MeshAsset::MeshType::Normal) {
 				for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
 					asset->materials[j]->bind(shader, j);
@@ -530,38 +565,40 @@ namespace engone {
 			}
 		}
 		shader = assets->get<ShaderAsset>("armature");
-		world->lock();
 		if (!shader->getError()) {
 			shader->bind();
 			renderer->updateProjection(shader);
 			shader->setVec3("uCamera", camera->getPosition());
+			for (EngineWorld* world : info.app->m_worlds) {
+				world->lock();
 
-			EngineObjectIterator iterator = world->getIterator();
-			EngineObject* obj;
-			while(obj = iterator.next()){
-			//for (int oi = 0; oi < objects.size(); ++oi) {
-				//EngineObject* obj = objects[oi];
+				EngineObjectIterator* iterator = world->createIterator();
+				EngineObject* obj;
+				while (obj = iterator->next()) {
 
-				if (!obj->modelAsset) continue;
-				if (!obj->modelAsset->valid()) continue;
+					ModelAsset* model = obj->getModel();
+					rp3d::RigidBody* body = obj->getRigidBody();
+					Animator* animator = obj->getAnimator();
 
+					if (!model) continue;
+					if (!model->valid()) continue;
 
-				glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
+					glm::mat4 modelMatrix = ToMatrix(body->getTransform());
 
-				Animator* animator = &obj->animator;
+					bindLights(shader, modelMatrix[3]);
 
-				bindLights(shader, modelMatrix[3]);
+					// Get individual transforms
+					std::vector<glm::mat4> transforms;
+					transforms = model->getParentTransforms(nullptr);
 
-				// Get individual transforms
-				std::vector<glm::mat4> transforms;
-				transforms = obj->modelAsset->getParentTransforms(nullptr);
+					if (transforms.size() != model->instances.size()) continue;
 
-				//-- Draw instances
-				AssetInstance* armatureInstance = nullptr;
-				ArmatureAsset* armatureAsset = nullptr;
-				if (transforms.size() == obj->modelAsset->instances.size()) {
-					for (uint32_t i = 0; i < obj->modelAsset->instances.size(); ++i) {
-						AssetInstance& instance = obj->modelAsset->instances[i];
+					//-- Draw instances
+					AssetInstance* armatureInstance = nullptr;
+					ArmatureAsset* armatureAsset = nullptr;
+
+					for (uint32_t i = 0; i < model->instances.size(); ++i) {
+						AssetInstance& instance = model->instances[i];
 
 						if (instance.asset->type == AssetArmature) {
 							armatureInstance = &instance;
@@ -571,40 +608,39 @@ namespace engone {
 								continue;
 
 							MeshAsset* meshAsset = (MeshAsset*)instance.asset;
-							if (meshAsset->meshType == MeshAsset::MeshType::Boned) {
-								if (instance.parent == -1)
-									continue;
+							if (meshAsset->meshType != MeshAsset::MeshType::Boned) continue;
+							if (instance.parent == -1) continue;
 
-								std::vector<glm::mat4> boneMats;
-								std::vector<glm::mat4> boneTransforms = obj->modelAsset->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset, &boneMats);
+							std::vector<glm::mat4> boneMats;
+							std::vector<glm::mat4> boneTransforms = model->getArmatureTransforms(animator, transforms[i], armatureInstance, armatureAsset, &boneMats);
 
-								//-- For rendering bones
-								//glm::mat4 basePos = modelMatrix* transforms[i];
-								//glm::mat4 boneLast;
-								//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
-								//for (int j = 0; j < boneMats.size(); j++) {
-								//	glm::mat4 boneMat = basePos*boneMats[j];
-								//	if(j!=0) // skip first boneLast 
-								//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
-								//	boneLast = boneMat;
-								//}
+							//-- For rendering bones
+							//glm::mat4 basePos = modelMatrix* transforms[i];
+							//glm::mat4 boneLast;
+							//// one bone is missing. the first bone goes from origin to origin which makes it seem like a bone is missing
+							//for (int j = 0; j < boneMats.size(); j++) {
+							//	glm::mat4 boneMat = basePos*boneMats[j];
+							//	if(j!=0) // skip first boneLast 
+							//		info.window->getRenderer()->DrawLine(boneLast[3], boneMat[3]);
+							//	boneLast = boneMat;
+							//}
 
-								for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
-									shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
-								}
-
-								for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
-									meshAsset->materials[j]->bind(shader, j);
-								}
-								shader->setMat4("uTransform", modelMatrix * transforms[i]);
-								meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
+							for (uint32_t j = 0; j < boneTransforms.size(); ++j) {
+								shader->setMat4("uBoneTransforms[" + std::to_string(j) + "]", boneTransforms[j] * instance.localMat);
 							}
+
+							for (uint32_t j = 0; j < meshAsset->materials.size(); ++j) {// Maximum of 4 materials
+								meshAsset->materials[j]->bind(shader, j);
+							}
+							shader->setMat4("uTransform", modelMatrix * transforms[i]);
+							meshAsset->vertexArray.draw(&meshAsset->indexBuffer);
 						}
 					}
 				}
+				world->unlock();
+				world->deleteIterator(iterator);
 			}
 		}
-		world->unlock();
 #endif
 		//}
 		//Mesh* lightCube = GetMeshAsset("LightCube");
@@ -628,8 +664,110 @@ namespace engone {
 		//}
 		//normalObjects.clear();
 	}
+	void Engone::renderBasicDebugInfo(LoopInfo& info) {
+		float sw = GetWidth();
+		float sh = GetHeight();
+		
+		const int bufferSize = 50;
+		char str[bufferSize];
+
+		float rightEdge = sw - 3;
+		float upEdge = 3;
+
+		// should be changed
+		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+
+		auto& stats = info.app->getEngine()->getStats();
+		float scroll = IsScrolledY();
+		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+			scroll *= 100;
+		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+			scroll *= 10;
+		}
+
+		const ui::Color highlighted = { 0.5f,0.8f,1.f,1.f };
+		const ui::Color normalColor = { 1.f,1.0f,1.0f,1.f };
+
+		std::string runStr = "Runtime ";
+		runStr += FormatTime(stats.getRunTime(),true,FormatTimeH|FormatTimeM|FormatTimeS|FormatTimeMS);
+		ui::TextBox runtimeBox = { runStr, 0,0,20,consolas,normalColor};
+		runtimeBox.x = rightEdge - runtimeBox.getWidth();
+		runtimeBox.y = upEdge;
+		upEdge = runtimeBox.y + runtimeBox.h;
+
+		std::string sleepStr = "Sleep time ";
+		snprintf(str, bufferSize, "(%.1f%%) ", 100*stats.getSleepTime()/stats.getRunTime());
+		sleepStr += str;
+		sleepStr += FormatTime(stats.getSleepTime(),true, FormatTimeH | FormatTimeM | FormatTimeS | FormatTimeMS);
+		ui::TextBox sleepBox = { sleepStr, 0,0,20,consolas,normalColor };
+		sleepBox.x = rightEdge - sleepBox.getWidth();
+		sleepBox.y = upEdge;
+		upEdge = sleepBox.y + sleepBox.h;
+
+		snprintf(str, bufferSize, "%.2f (%.2f) FPS", stats.getFPS(), stats.getFPSLimit());
+		ui::TextBox fpsBox = { str,0,0,20,consolas,normalColor };
+		fpsBox.x = rightEdge - fpsBox.getWidth();
+		fpsBox.y = upEdge;
+		upEdge = fpsBox.y + fpsBox.h;
+
+		snprintf(str, bufferSize, "%.2f (%.2f) UPS", stats.getUPS(), stats.getUPSLimit());
+
+		ui::TextBox upsBox = { str,0,0,20,consolas,normalColor };
+		upsBox.x = rightEdge - upsBox.getWidth();
+		upsBox.y = upEdge;
+		upEdge = upsBox.y + upsBox.h;
+
+		snprintf(str, bufferSize, "%.2f%% Game Speed", stats.getGameSpeed()*100);
+
+		ui::TextBox speedBox = { str,0,0,20,consolas,normalColor };
+		speedBox.x = rightEdge - speedBox.getWidth();
+		speedBox.y = upEdge;
+		upEdge = speedBox.y + speedBox.h;
+
+		if (ui::Hover(fpsBox)) {
+			fpsBox.rgba = highlighted;
+			if (scroll != 0) {
+				stats.setFPSLimit(stats.getFPSLimit() + scroll);
+			}
+		}
+		if (ui::Hover(upsBox)) {
+			upsBox.rgba = highlighted;
+			if (scroll != 0) {
+				stats.setUPSLimit(stats.getUPSLimit() + scroll);
+			}
+		}
+		if (ui::Hover(speedBox)) {
+			speedBox.rgba = highlighted;
+			if (scroll != 0) {
+				stats.setGameSpeed(stats.getGameSpeed() + scroll/100);
+			}
+		}
+
+		const ui::Color areaColor = { 0,0.3 };
+		float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth(), sleepBox.getWidth(),speedBox.getWidth()};
+		float areaW = 0;
+		for (int i = 0; i < sizeof(stoof) / sizeof(float); i++) {
+			if (stoof[i] > areaW) {
+				areaW = stoof[i];
+			}
+		}
+		float areaH = upsBox.y + upsBox.h;
+		ui::Box area = { 0,0,areaW+6,areaH+6,areaColor };
+		area.x = sw - area.w;
+		area.y = 0;
+
+		ui::Draw(area);
+		ui::Draw(runtimeBox);
+		ui::Draw(sleepBox);
+		ui::Draw(fpsBox);
+		ui::Draw(upsBox);
+		ui::Draw(speedBox);
+	}
 	void Engone::addLight(Light* l) {
 		m_lights.push_back(l);
+	}
+	LoopInfo& Engone::getLoopInfo() {
+		return currentLoopInfo;
 	}
 	void Engone::removeLight(Light* l) {
 		for (uint32_t i = 0; i < m_lights.size(); ++i) {

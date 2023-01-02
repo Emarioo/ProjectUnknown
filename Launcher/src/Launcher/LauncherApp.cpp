@@ -21,7 +21,7 @@ namespace launcher {
 		m_window = createWindow({ WindowMode::ModeBorderless,600,150 });
 		m_window->setTitle("Launcher");
 
-		consolas = getStorage()->set<FontAsset>("consolas", new FontAsset(IDB_PNG1, "4\n35"));
+		consolas = getStorage()->set<FontAsset>("consolas", ALLOC_NEW(FontAsset)(IDB_PNG1, "4\n35"));
 
 		bool yes = m_settings.load(settings);
 		std::string someIp = m_settings.get("ip");
@@ -43,7 +43,7 @@ namespace launcher {
 						} else {
 							auto find = gameFileEntries.find(split[0]);
 							if (find == gameFileEntries.end()) {
-								EntryInfo info = { split[0], split[1], new FileMonitor() };
+								EntryInfo info = { split[0], split[1], ALLOC_NEW(FileMonitor)() };
 								gameFileEntries[split[0]] = info;
 								std::string source = info.source;
 
@@ -261,14 +261,15 @@ namespace launcher {
 						log::out << log::RED <<"Client recv "<< err.what() << "\n";
 					}
 
-					writer = new FileWriter(fullPath,true);
+					writer = ALLOC_NEW(FileWriter)(fullPath,true);
 					GetTracker().track(writer);
 					if (writer->isOpen()) {
 						lastDownloadedFile = path;
 						fileDownloads[fileUuid] = writer;
 						m_cache.set({ path, time });
 					} else {
-						delete writer;
+						ALLOC_DELETE(FileWriter, writer);
+						//delete writer;
 						GetTracker().untrack(writer);
 						int index = fullPath.find_last_of(".exe");
 						if (index != -1) {
@@ -295,7 +296,8 @@ namespace launcher {
 
 				if (state &StreamEnd) { // last package
 					GetTracker().untrack(writer);
-					delete writer; // this will also close writer
+					//delete writer; // this will also close writer
+					ALLOC_DELETE(FileWriter, writer);
 
 					fileDownloads.erase(fileUuid);
 				}

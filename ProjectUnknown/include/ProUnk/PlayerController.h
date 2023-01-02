@@ -2,15 +2,16 @@
 
 #include "Engone/EngineObject.h"
 
-#include "ProUnk/World.h"
-
 #include "ProUnk/Combat/Tags.h"
+
+#include "ProUnk/Registries/InventoryRegistry.h"
 
 namespace prounk {
 
+	class GameApp;
 	// Since the game is based on a registry, entity component and more data oriented there is not a Player EngineObject class.
 	// This will be the replacement for that.
-	class PlayerController : public rp3d::RaycastCallback {
+	class PlayerController {
 	public:
 		PlayerController();
 
@@ -20,29 +21,44 @@ namespace prounk {
 		engone::EngineObject* m_player=nullptr;
 
 		void update(engone::LoopInfo& info);
+		void render(engone::LoopInfo& info);
 		void Movement(engone::LoopInfo& info);
 		void Input(engone::LoopInfo& info);
+
+		void performSkills(engone::LoopInfo& info);
 
 		// This updates the position of the weapon when held
 		void WeaponUpdate(engone::LoopInfo& info);
 
-		rp3d::decimal notifyRaycastHit(const rp3d::RaycastInfo& raycastInfo) override;
+		std::string hoveredItem;
 
+		// object the player is looking at
+		engone::EngineObject* getSeenObject();
+
+		Inventory* getInventory();
+
+		// turns the object into a chicken. no haha.
+		// it turns the object into an item and destroys the object.
+		// things may fail.
+		bool pickupItem(engone::EngineObject* object);
+
+		// drops the item in the first slot
+		void dropItem(int slotIndex);
+
+		void dropAllItems();
+		bool keepInventory=false;
+		
 		// Movement and camera
 		float zoom = 3;
 		float zoomSpeed = 0;
 
-		inline void setWorld(World* world) { m_world = world; }
-		World* m_world = nullptr;
+		glm::vec3 camOffset = {0,2.4f,0}; // offset from player position
 
-		// temporary
-		engone::EngineObject* inventorySword = nullptr;
-		
 		// object held in hand
 		engone::EngineObject* heldObject = nullptr;
 
 		// info exists as an argument because NetGameGround is required.
-		void setWeapon(engone::LoopInfo& info, engone::EngineObject* weapon);
+		//void setWeapon(engone::EngineObject* weapon);
 
 		bool noclip = false;
 		bool flight = false;
@@ -50,16 +66,15 @@ namespace prounk {
 		void setNoClip(bool yes);
 
 		float deathTime = 0;
-		float deathShockStrength = 1.f; // how much the player "jumps" when it dies.
-		//bool isDead = false;
+		float deathShockStrength = 1.f; // how much the player "jumps" when they die.
 		void setDead(bool yes) {
 			if (yes)
-				m_player->flags |= OBJECT_IS_DEAD;
+				m_player->setFlags(m_player->getFlags() | OBJECT_IS_DEAD);
 			else
-				m_player->flags &= ~OBJECT_IS_DEAD;
+				m_player->setFlags(m_player->getFlags() & (~OBJECT_IS_DEAD));
 		}
 		bool isDead() {
-			return m_player->flags & OBJECT_IS_DEAD;
+			return m_player->getFlags() & OBJECT_IS_DEAD;
 		}
 
 		float flySpeed = 8.f;
@@ -68,9 +83,15 @@ namespace prounk {
 		float sprintSpeed = 15.f;
 		float jumpForce = 10.f;
 
+		ItemType lastItemType=0;
+
+
+		
 		//engone::Camera testCam;
 
 		bool onGround = false;
+
+		GameApp* app=nullptr;
 
 	private:
 		float animBlending = 0;

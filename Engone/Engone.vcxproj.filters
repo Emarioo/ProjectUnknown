@@ -90,9 +90,6 @@
     <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\World\EngineWorld.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Utilities\rp3d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -180,13 +177,22 @@
     <ClInclude Include="include\Engone\Utilities\LogLevels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Registries\ObjectRegistry.h">
+    <ClInclude Include="include\Engone\World\EngineWorld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Registries\MasterRegistry.h">
+    <ClInclude Include="include\Engone\Utilities\EngoneInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Registries\WorldRegistry.h">
+    <ClInclude Include="include\Engone\Utilities\HashMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\StableArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Stack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\LinkedArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -272,9 +278,6 @@
     <ClCompile Include="src\Engone\Assets\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\EngineWorld.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -284,10 +287,16 @@
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Registries\MasterRegistry.cpp">
+    <ClCompile Include="src\Engone\EngineWorld.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Registries\ObjectRegistry.cpp">
+    <ClCompile Include="src\Engone\Utilites\HashMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Engone\Utilities\StableArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Engone\Utilities\Stack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

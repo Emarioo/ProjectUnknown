@@ -3,6 +3,13 @@
 #include "Engone/Networking/Server.h"
 #include "Engone/Networking/Client.h"
 
+#define NETWORK_LEVEL_ALL 0xffffffff
+#define NETWORK_LEVEL_INFO 0x01
+#define NETWORK_LEVEL_SPAM 0x08
+#define NETWORK_LEVEL_WARNING 0x02
+#define NETWORK_LEVEL_ERROR 0x04
+#define NETWORK_LEVEL 841725
+
 /*
 	Asynchronous Client/Server library using WinSock
 

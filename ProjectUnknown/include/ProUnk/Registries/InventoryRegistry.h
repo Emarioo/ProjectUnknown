@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ProUnk/DataRegistries/MasterRegistry.h"
-#include "ProUnk/DataRegistries/ModelRegistry.h"
-#include "ProUnk/DataRegistries/ItemTypeRegistry.h"
+#include "ProUnk/Registries/MasterRegistry.h"
+#include "ProUnk/Registries/ModelRegistry.h"
+#include "ProUnk/Registries/ItemTypeRegistry.h"
 
 #include "Engone/Assets/ModelAsset.h"
 
@@ -16,20 +16,44 @@ namespace prounk {
 		ItemType getType();
 		void setType(ItemType type);
 
-		const std::string& getName();
-		void setName(const std::string& name);
+		const std::string& getDisplayName();
+		void setDisplayName(const std::string& name);
 
-		int getCount();
-		void setCount(int count);
+		uint32_t getCount();
+		void setCount(uint32_t count);
 
 		ModelId getModelId();
 		void setModelId(ModelId modelId);
 
+		void setComplexData(int dataIndex);
+		int getComplexData();
+
+		bool sameAs(Item& item);
+
+		// Makes a copy of the item including independent complex data.
+		// This item is unaffected.
+		// if count argument is -1 then count of outItem is count of this item.
+		// Otherwise count of outItem is count argument
+		// function fails if this item and outItem are different or duplication of the item failed.
+		// outItem is never overwritten and function is safe.
+		bool copy(Item& outItem, uint32_t count=-1);
+
+		// returns false if function fails. (this item and target item may be different types)
+		// nothing is changed if function failed.
+		// this item is moved to target if possible.
+		// count desscribes how much to move. -1 moves everything.
+		bool transfer(Item& target, uint32_t count=-1);
+
+		bool swap(Item& target);
+
 	private:
-		ItemType m_type=0;
-		int m_count = 0;
-		std::string m_name;
-		ModelId m_modelId=0;
+		ItemType m_type = 0;
+		uint32_t m_count = 0;
+		//std::string m_name;
+		std::string m_displayName;
+		ModelId m_modelId = 0;
+
+		int m_complexDataIndex=0;
 
 		friend class InventoryRegistry;
 	};
@@ -39,28 +63,45 @@ namespace prounk {
 		//~Inventory();
 
 		//-- Potential functions
-		// transferItem
-		// addItem
-		// takeItem
 		// sort name, count...
-		// 
 
 		// no bound check
-		Item& getItem(int index) { return m_items[index]; }
-		void addItem(Item item) { m_items.push_back(item); }
-		void removeItem(int index) { m_items.erase(m_items.begin()+index); }
+		Item& getItem(int slotIndex);
 
-		std::vector<Item>& getList() { return m_items; };
+		// give item to inventory
+		// item is put in inventory if function returns true
+		bool transferItem(Item& item);
 
-		int size() { return m_items.size(); }
+		// Returns -1 if it failed
+		// Fail happens if slot wasn't found-
+		// Function acts as findEmptySlot if item's type is 0.
+		uint32_t findAvailableSlot(Item& item);
+		// Returns -1 if it failed
+		// Fail happens if slot wasn't found
+		uint32_t findEmptySlot();
+
+		// take item from inventory
+		// if true is returned, result is stored in outItem
+		// Initial data in outItem is overwritten without any considerations.
+		//bool takeItem(int slotIndex, Item& outItem);
+		// USE 'getItem(slotIndex).transfer(outItem)' instead
+
+		std::vector<Item>& getList();
+		// Will fail if items are lost during resize.
+		// This is to prevent where players lose items due to bugs.
+		bool resizeSlots(int newSlotSize);
+		// "lost items" during resize will be put into outItems.
+		// outItems can be nullptr if you want to ignore the lost items.
+		void resizeSlots(int newSlotSize, std::vector<Item>* outItems);
+		int getSlotSize();
 
 	private:
 
-		std::vector<Item> m_items;
+		std::vector<Item> m_slots;
 	};
-	class InventoryRegistry : public DataRegistry {
+	class InventoryRegistry : public Registry {
 	public:
-		InventoryRegistry() : DataRegistry("inventory_registry") {}
+		InventoryRegistry() : Registry("inventory_registry") {}
 
 		// serialization should perhaps not load all inventories in the world at once.
 		// maybe load required inventories or so. Load upon request perhaps
@@ -72,7 +113,7 @@ namespace prounk {
 
 		// no bounds check
 		Inventory* getInventory(int id);
-		int addInventory();
+		int createInventory();
 
 	private:
 

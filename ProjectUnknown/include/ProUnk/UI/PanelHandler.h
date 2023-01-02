@@ -80,7 +80,6 @@ namespace prounk {
 
 	private:
 		bool m_movable=true; // Some panels like MasterInventoryPanel cannot be moved.
-		
 		float m_depth=0; // panels are sorted by this
 
 		PanelHandler* m_panelHandler=nullptr; // used when updating depth
@@ -116,8 +115,6 @@ namespace prounk {
 		static const int EDIT_MOVE=0;
 		static const int EDIT_RESIZE=1;
 		static const int EDIT_CONSTRAIN=2;
-
-		engone::Listener* m_listener=nullptr;
 
 		bool m_pendingSort = false;
 		std::vector<Panel*> m_panels;

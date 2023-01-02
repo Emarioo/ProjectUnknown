@@ -13,22 +13,34 @@ namespace engone {
 		RuntimeStats() { setFPSLimit(60); setUPSLimit(60); }
 
 		// frames per second, 1-999
+		// Use applyNewLimits to apply changes. (IS DONE IN THE ENGINE LOOP. DO NOT DO IT YOURSELF)
 		void setFPSLimit(double num) {
 			num = std::clamp(num, 1.0, 999.0);
-			frameTime = 1.0 / num; real_fps = num; frame_accumulator = 0;
+			pendingFrameTime = 1.0 / num;
 		}
 		// updates per second, 1-999
+		// Use applyNewLimits to apply changes. (IS DONE IN THE ENGINE LOOP. DO NOT DO IT YOURSELF)
 		void setUPSLimit(double num) {
 			num = std::clamp(num, 1.0, 999.0);
-			updateTime = 1.0/num; real_ups = num; update_accumulator = 0; 
+			pendingUpdateTime = 1.0/num;
 		}
-		double getFPSLimit()const { return 1.0 / frameTime; }
-		double getUPSLimit() const { return 1.0 / frameTime; }
+		double getFPSLimit() const { return 1.0 / pendingFrameTime; }
+		double getUPSLimit() const { return 1.0 / pendingUpdateTime; }
+		
+		void applyNewLimits() {
+			updateTime = pendingUpdateTime;
+			frameTime = pendingFrameTime;
+			gameSpeed = pendingGameSpeed;
+		}
 
 		double getRunTime() const { return runTime; }
 		double getSleepTime() const { return sleepTime; }
 		uint64_t getTotalUpdates() { return totalUpdates; }
 		uint64_t getTotalUpdates() const { return totalFrames; }
+
+		double getGameSpeed() { return pendingGameSpeed; }
+		// minimum is 0.01
+		void setGameSpeed(double speed) { pendingGameSpeed = speed<0.01?0.01:speed; }
 
 		// real fps
 		double getFPS() const { return real_fps; }
@@ -58,6 +70,7 @@ namespace engone {
 
 		uint64_t totalLoops = 0; // FEATURE: maybe nice?
 	private:
+		double startTime = 0;
 		double runTime = 0;
 		double sleepTime = 0; // time sleeping, when skipping frame
 
@@ -69,6 +82,12 @@ namespace engone {
 
 		double real_fps = 0;
 		double real_ups = 0;
+
+		double gameSpeed = 1.;
+
+		double pendingUpdateTime;
+		double pendingFrameTime;
+		double pendingGameSpeed=1.;
 
 		// one sample per round in while-loop
 		static const int sample_count = 20;

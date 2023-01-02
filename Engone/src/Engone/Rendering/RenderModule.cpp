@@ -62,7 +62,7 @@ namespace engone {
 
 		// pipeline
 
-		assets->set<ShaderAsset>("uiPipeline", new ShaderAsset(uiPipelineGLSL));
+		assets->set<ShaderAsset>("uiPipeline", ALLOC_NEW(ShaderAsset)(uiPipelineGLSL));
 
 		boxVBO.setData(4 * VERTEX_SIZE * MAX_BOX_BATCH * sizeof(float), nullptr);
 
@@ -95,7 +95,7 @@ namespace engone {
 		//  maybe use tracker inside constructors, You can't have inside constructors because a stack allocated class would be tracked.
 
 		// Line pipeline
-		assets->set<ShaderAsset>("lines3d", new ShaderAsset(linesGLSL));
+		assets->set<ShaderAsset>("lines3d", ALLOC_NEW(ShaderAsset)(linesGLSL));
 		pipe3lines.reserve(PIPE3_LINE_RESERVE*12);
 		pipe3lineVB.setData(PIPE3_LINE_BATCH_LIMIT*12 * sizeof(float), nullptr);
 		uint32_t indLine[PIPE3_LINE_BATCH_LIMIT*2];
@@ -106,7 +106,7 @@ namespace engone {
 		pipe3lineVA.addAttribute(3);
 		pipe3lineVA.addAttribute(3, &pipe3lineVB);
 
-		assets->set<ShaderAsset>("renderer", new ShaderAsset(rendererGLSL));
+		assets->set<ShaderAsset>("renderer", ALLOC_NEW(ShaderAsset)(rendererGLSL));
 		float cubeVertices[48]{ // this is correct, the shader must be wrong. The latest index's normal is used.
 			0,0,0, 0,0,0,
 			1,0,0, 0,0,-1,
@@ -187,11 +187,11 @@ namespace engone {
 
 		instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 
-		assets->set<ShaderAsset>("gui", new ShaderAsset(guiShaderSource));
+		assets->set<ShaderAsset>("gui", ALLOC_NEW(ShaderAsset)(guiShaderSource));
 		
-		assets->set<ShaderAsset>("object", new ShaderAsset(objectSource));
-		assets->set<ShaderAsset>("armature", new ShaderAsset(armatureSource));
-		MaterialAsset* mat = new MaterialAsset();
+		assets->set<ShaderAsset>("object", ALLOC_NEW(ShaderAsset)(objectSource));
+		assets->set<ShaderAsset>("armature", ALLOC_NEW(ShaderAsset)(armatureSource));
+		MaterialAsset* mat = ALLOC_NEW(MaterialAsset)();
 
 		//mat->setBaseName("defaultMaterial");
 		assets->set<MaterialAsset>("defaultMaterial", mat);
@@ -732,6 +732,10 @@ namespace engone {
 			if (!font) return 0;
 			return font->getWidth(text, h);
 		}
+		float TextBox::getHeight() {
+			if (!font) return 0;
+			return font->getHeight(text, h);
+		}
 		struct PipeTextBox {
 			//TextBox(const std::string& text, float x, float y, float h) : text() {}
 			uint32_t text_index=0;
@@ -765,7 +769,8 @@ namespace engone {
 			}
 			if (!GetActiveRenderer()) return;
 			// ISSUE: width of str is used.  ( box.x+box.w<0 )
-			if (box.x>GetWidth() || box.y + box.h<0 || box.y>GetHeight())
+			float h = box.getHeight();
+			if (box.x>GetWidth() || box.y + h<0 || box.y>GetHeight())
 				return; // out of bounds
 			PipeTextBox a;
 			GetActiveRenderer()->uiStrings.push_back(box.text);

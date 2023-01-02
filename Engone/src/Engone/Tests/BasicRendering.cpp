@@ -24,7 +24,7 @@ namespace engone {
 		void Test2D(LoopInfo& info) {
 			if (!shader2) {
 
-				shader2 = new Shader(test2dGLSL);
+				shader2 = ALLOC_NEW(Shader)(test2dGLSL);
 				float fArray[]{
 					0,0,
 					1,0,
@@ -42,7 +42,7 @@ namespace engone {
 		}
 		void Test3D(LoopInfo& info) {
 			if (!shader3) {
-				shader3 = new Shader(test3dGLSL);
+				shader3 = ALLOC_NEW(Shader)(test3dGLSL);
 				float fArray[]{
 					0,0,-4,
 					1,0,-4,
@@ -69,7 +69,7 @@ namespace engone {
 		static Shader* shaderPart = nullptr;
 		void TestParticles(LoopInfo& info) {
 			if (!shaderPart) {
-				shaderPart = new Shader(particlesGLSL);
+				shaderPart = ALLOC_NEW(Shader)(particlesGLSL);
 				partGroup.init(info.window, shaderPart);
 				//partGroup.resize(10000000);
 				//uint32_t count = 18*pow(10,6);

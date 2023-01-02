@@ -122,8 +122,9 @@ namespace engone {
 
 		bool initializedGLEW = false;
 
-		uint32_t m_charCount = 0;
-		uint32_t m_readIndex = 0;
+		uint32_t m_charIn = 0;
+		uint32_t m_charOut = 0;
+		bool m_emptyCharArray = true;
 		static const uint32_t CHAR_ARRAY_SIZE = 20;
 		uint32_t m_charArray[CHAR_ARRAY_SIZE];
 

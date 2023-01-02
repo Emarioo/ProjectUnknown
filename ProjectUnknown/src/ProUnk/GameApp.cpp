@@ -3,8 +3,6 @@
 #include "Engone/EventModule.h"
 
 #include "ProUnk/Keybindings.h"
-//#include "ProUnk/Objects/Sword.h"
-//#include "ProUnk/Objects/Dummy.h"
 
 #include "ProUnk/Magic/Focals.h"
 
@@ -17,6 +15,7 @@
 #include "ProUnk/UI/UIMenus.h"
 
 #include "ProUnk/UI/CraftingPanel.h"
+#include "ProUnk/UI/CheatPanel.h"
 
 namespace prounk {
 
@@ -56,14 +55,17 @@ namespace prounk {
 	void GameApp::dealCombat(engone::EngineObject* atkObj, engone::EngineObject* defObj) {
 		using namespace engone;
 
-		int atkId = atkObj->userData;
-		int defId = defObj->userData;
+		int atkId = atkObj->getObjectInfo();
+		int defId = defObj->getObjectInfo();
 		if (!atkId || !defId) {
 			log::out << log::RED << "GameApp::dealCombat - one of the object's id are 0\n";
 			return;
 		}
-		CombatData* atkData=(CombatData*)getWorld()->entityRegistry.getEntry(atkObj->userData).combatData;
-		CombatData* defData=(CombatData*)getWorld()->entityRegistry.getEntry(defObj->userData).combatData;
+		// Todo: will crash if no dimension. not good but i want to get this stuff done
+		//Dimension* dim = m_session->getDimensions()[0];
+
+		CombatData* atkData = GetCombatData(m_session, atkObj);
+		CombatData* defData = GetCombatData(m_session, defObj);
 
 		if (!atkData || !defData) {
 			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
@@ -83,11 +85,18 @@ namespace prounk {
 
 		atkData->hitObjects.push_back(defObj->getUUID());
 
-		float atk = atkData->getAttack();
+		float atk=0;
+		if (atkData->damageType == CombatData::CONTINOUS_DAMAGE) {
+			atk = atkData->damagePerSecond*getEngine()->getLoopInfo().timeStep;
+		} else if (atkData->damageType == CombatData::SINGLE_DAMAGE) {
+			atk = atkData->singleDamage;
+		}
+		
+
 		defData->health -= atk;
 		if (defData->health < 0) defData->health = 0;
 
-		getWorld()->netDamageObject(defObj->getUUID(), atk);
+		//getWorld()->netDamageObject(defObj->getUUID(), atk);
 
 		// send updated health.
 		// what if someone else also updates health? then do addition or subtraction on health.
@@ -124,45 +133,48 @@ namespace prounk {
 		// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
 		//	Meaning no damage.
 
-		glm::vec3 diff = (defData->owner->getPosition() - atkData->owner->getPosition()) / 2.f;
+		float timeStep = getEngine()->getLoopInfo().timeStep;
+		float knockStrength = atkData->knockStrength;
+		glm::vec3 diff = (defData->owner->getPosition() - atkData->owner->getPosition());
 		glm::vec3 dir = glm::normalize(diff);
-		rp3d::Vector3 force = ToRp3dVec3(diff)*12.f;
-		force += atkData->owner->rigidBody->getLinearVelocity() - defData->owner->rigidBody->getLinearVelocity();
+		rp3d::Vector3 velocity = ToRp3dVec3(knockStrength *dir/timeStep);
+		velocity += atkData->owner->getRigidBody()->getLinearVelocity() - defData->owner->getRigidBody()->getLinearVelocity();
 
 		//rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
 		//rp3d::Vector3 force = { glm::sin(rot.y),0,glm::cos(rot.y) };
 		//log::out << force << "\n";
 		//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
 		//force.y = 1;
-		force *= 60.f;
+		rp3d::Vector3 force = velocity/timeStep;
 		//log::out << force << "\n";
 		 //for now, defense can be assumed to be a rigidbody
 
-		defObj->rigidBody->applyWorldForceAtCenterOfMass(force);
+		defObj->getRigidBody()->applyWorldForceAtCenterOfMass(force);
 	}
 	void GameApp::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
 		using namespace engone;
 		for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
 			auto pair = callbackData.getContactPair(pairI);
 
-			EngineObject* ptr1 = (EngineObject*)pair.getBody1()->getUserData();
-			EngineObject* ptr2 = (EngineObject*)pair.getBody2()->getUserData();
+			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
+			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
 
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
 
-			if (!ptr1 || !ptr2) continue;
+			if (!obj1 || !obj2) continue;
 
-			if ((ptr1->flags & OBJECT_HAS_COMBATDATA) && (ptr2->flags & OBJECT_HAS_COMBATDATA)) {
+			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
 				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
-					dealCombat(ptr1, ptr2);
+					dealCombat(obj1, obj2);
 				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
-					dealCombat(ptr2, ptr1);
+					dealCombat(obj2, obj1);
 			}
 		}
 	}
 	void GameApp::onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) {
 		using namespace engone;
+		//log::out << "TRIGGAR\n";
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
 			auto pair = callbackData.getOverlappingPair(pairI);
 			//pair.getEventType()
@@ -170,24 +182,22 @@ namespace prounk {
 			//auto pair = pair.getEventType();
 			//rp3d::OverlapCallback::OverlapPair::EventType::
 
-			EngineObject* ptr1 = (EngineObject*)pair.getBody1()->getUserData();
-			EngineObject* ptr2 = (EngineObject*)pair.getBody2()->getUserData();
+			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
+			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
 
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
 
-			if (!ptr1 || !ptr2) continue;
+			if (!obj1 || !obj2) continue;
 
-			if ((ptr1->flags & OBJECT_HAS_COMBATDATA )&&( ptr2->flags & OBJECT_HAS_COMBATDATA)) {
+			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
 				if(((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
-					dealCombat(ptr1, ptr2);
+					dealCombat(obj1, obj2);
 				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
-					dealCombat(ptr2, ptr1);
+					dealCombat(obj2, obj1);
 			}
 		}
 	}
-	engone::EventType OnKey(engone::Event& e);
-	engone::EventType OnMouse(engone::Event& e);
 	GameApp::GameApp(engone::Engone* engone, GameAppInfo info) : Application(engone) {
 		using namespace engone;
 		
@@ -198,23 +208,22 @@ namespace prounk {
 
 		AssetStorage* assets = getStorage();
 
-		ShaderAsset* blur = assets->set("blur", new ShaderAsset(blurGLSL));
+		ShaderAsset* blur = assets->set("blur", ALLOC_NEW(ShaderAsset)(blurGLSL));
 		
 		//Shader* shaderPart = new Shader(particleGLSL);
 		//particleGroup = new ParticleGroup<DefaultParticle>();
 		//particleGroup->init(m_window, shaderPart);
 		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
 		//engone->addParticleGroup(particleGroup);
-		World* world= new World(this);
-		setWorld(world);
 
-		playerController.setWorld(world);
+		m_session = ALLOC_NEW(Session)(this);
+		Dimension* firstDim = m_session->createDimension();
 
-		//world->ModelRegistry
+		playerController.app = this;
 
 		//-- setup some particles
-		Shader* combatPart = new Shader(combatParticlesGLSL);
-		combatParticles = new ParticleGroup<CombatParticle>();
+		Shader* combatPart = ALLOC_NEW(Shader)(combatParticlesGLSL);
+		combatParticles = ALLOC_NEW(ParticleGroup<CombatParticle>)();
 		combatParticles->init(m_window, combatPart);
 		CombatParticle* parts = combatParticles->createParticles(10000);
 		//for (int i = 0; i < combatParticles->getCount();i++) {
@@ -225,7 +234,8 @@ namespace prounk {
 		//	parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
 		//	parts[i].lifeTime = 30+GetRandom()*10.f;
 		//}
-		world->addParticleGroup(combatParticles);
+		
+		firstDim->getWorld()->addParticleGroup(combatParticles);
 
 		//-- Assets
 		//assets->set("depth")
@@ -235,8 +245,6 @@ namespace prounk {
 		assets->load<FontAsset>("fonts/consolas42");
 
 		//-- Event and game loop functions
-		//m_window->attachListener(EventKey, OnKey);
-		//m_window->attachListener(EventClick, OnMouse);
 
 		// ISSUE: if default keybindings change but keybindings.dat exists then the new keybinds won't apply.
 		//		Temp. fix by always creating default bindings.
@@ -244,93 +252,88 @@ namespace prounk {
 			CreateDefualtKeybindings();
 		//}
 
-		world->m_pWorld->setIsDebugRenderingEnabled(true);
-		rp3d::DebugRenderer& debugRenderer = world->m_pWorld->getDebugRenderer();
+		firstDim->getWorld()->getPhysicsWorld()->setIsDebugRenderingEnabled(true);
+		rp3d::DebugRenderer& debugRenderer = firstDim->getWorld()->getPhysicsWorld()->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
-		world->m_pWorld->setEventListener(this);
+		firstDim->getWorld()->getPhysicsWorld()->setEventListener(this);
 	
-		EngineObject* player = CreatePlayer(world);
+		EngineObject* player = CreatePlayer(firstDim);
 		playerController.setPlayerObject(player);
 
-		EntityRegistry::Entry& entry = world->entityRegistry.getEntry(player->userData);
-		entry.inventoryIndex = world->inventoryRegistry.addInventory();
+		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
+		playerInfo.inventoryId = m_session->inventoryRegistry.createInventory();
 
-		InventoryPanel* inventoryPanel = new InventoryPanel(this);
-		panelHandler.addPanel(inventoryPanel);
-		inventoryPanel->setSize(100, 100);
-		inventoryPanel->setPosition(200, 200);
-		inventoryPanel->setInventory(entry.inventoryIndex);
+		Inventory* inv = m_session->inventoryRegistry.getInventory(playerInfo.inventoryId);
+		inv->resizeSlots(16, nullptr);
 
-		masterInventoryPanel = new MasterInventoryPanel(this);
-		masterInventoryPanel->setDepth(9999);
-		panelHandler.addPanel(masterInventoryPanel);
-		// master has no position or size.
+		registerItems();
 
-		//CraftingPanel* craftingPanel = new CraftingPanel(this);
-		//panelHandler.addPanel(craftingPanel);
-		//craftingPanel->setSize(100, 100);
-		//craftingPanel->setPosition(300, 400);
+		//ModelAsset* playerAsset = player->getModel();
+		//ModelId playerModelId = m_session->modelRegistry.registerModel(playerAsset);
 
-		PlayerBarPanel* playerBarPanel = new PlayerBarPanel(this);
-		panelHandler.addPanel(playerBarPanel);
-		playerBarPanel->setSize(100, 100);
-		playerBarPanel->setPosition(100, 100);
+		ModelAsset* swordModel = assets->load<engone::ModelAsset>("SwordBase/SwordBase");
+		ModelId swordModelId = m_session->modelRegistry.registerModel(swordModel);
 
-		Inventory* inv = world->inventoryRegistry.getInventory(entry.inventoryIndex);
+		ItemType swordType = m_session->itemTypeRegistry.registerType("sword", swordModelId);
+		Item swordItem(swordType, 1);
 
-		ModelAsset* playerAsset = player->modelAsset;
-		ModelId playerModelId = world->modelRegistry.registerModel(playerAsset);
+		ComplexData& data = *m_session->complexDataRegistry.registerData();
+		ComplexPropertyType* atkProperty = m_session->complexDataRegistry.registerProperty("atk");
+		data.set(atkProperty, 30.f);
+		ComplexPropertyType* knockProperty = m_session->complexDataRegistry.registerProperty("knock");
+		data.set(knockProperty, 0.3f);
 
-		EngineObject* sword = CreateSword(world);
-		playerController.inventorySword = sword;
-		sword->flags |= World::OBJECT_NETMOVE;
-		sword->setTransform({2,0,0});
-		world->addObject(sword);
+
+		data.getMap().print();
+
+		createPanels();
+
+		swordItem.setComplexData(data.getDataIndex());
+
+		inv->transferItem(swordItem);
+		//EngineObject* sword = CreateItem(firstDim,swordItem);
+		//sword->setFlags(sword->getFlags() | Session::OBJECT_NETMOVE);
+		//sword->setPosition({ 2, 0, 0 });
+
 		//sword->rigidBody->enableGravity(false);
 
-		ModelAsset* swordAsset = sword->modelAsset;
-		ModelId swordModelId = world->modelRegistry.registerModel(swordAsset);
-		ModelAsset* plat = assets->load<engone::ModelAsset>("Platform/Platform");
-		ModelId platId = world->modelRegistry.registerModel(plat);
-		ModelAsset* dag = assets->load<engone::ModelAsset>("Dagger/Dagger");
-		ModelId dagId = world->modelRegistry.registerModel(dag);
+		//ModelAsset* platformModel = assets->load<engone::ModelAsset>("Platform/Platform");
+		//ModelAsset* daggerModel = assets->load<engone::ModelAsset>("Dagger/Dagger");
 
-		ItemType playerType = world->itemTypeRegistry.registerType("Player", playerModelId);
-		ItemType platformType = world->itemTypeRegistry.registerType("Platform", platId);
-		ItemType swordType = world->itemTypeRegistry.registerType("Sword", swordModelId);
+		//ModelId platId = m_session->modelRegistry.registerModel(platformModel);
+		//ModelId dagId = m_session->modelRegistry.registerModel(daggerModel);
 
-		inv->addItem(Item(playerType, 1));
-		inv->addItem(Item(platformType, 1));
-		inv->addItem(Item(swordType, 1));
-		//inv->addItem(Item(1, "Sword", swordModelId));
+		//ItemType playerType = m_session->itemTypeRegistry.registerType("Player", playerModelId);
+		//ItemType platformType = m_session->itemTypeRegistry.registerType("Platform", platId);
+		//ItemType swordType = m_session->itemTypeRegistry.registerType("Sword", swordModelId);
 
-		player->flags |= World::OBJECT_NETMOVE;
-		player->setTransform({ 0,0,0 });
-		world->addObject(player);
+		//inv->addItem(Item(playerType, 1));
+		//inv->addItem(Item(platformType, 1));
+		//inv->addItem(Item(swordType, 1));
 
-		EngineObject* terrain = CreateTerrain(world);
-		terrain->flags |= World::OBJECT_NETMOVE;
-		world->addObject(terrain);
+		player->setPosition({0,0,0});
+		player->setFlags(player->getFlags()| Session::OBJECT_NETMOVE);
+
+		EngineObject* terrain = CreateTerrain(firstDim);
+		terrain->setFlags(terrain->getFlags() | Session::OBJECT_NETMOVE);
 		//terrain->setTransform({ 0,10,0 });
 
+		//EngineObject* dummy = CreateDummy(firstDim);
+		//dummy->setPosition({ 4,7,8 });
+		//dummy->setFlags(dummy->getFlags()|Session::OBJECT_NETMOVE);
 		if (info.flags & START_SERVER) {
-			//EngineObject* dummy = CreateDummy(world);
-			//dummy->setTransform({ 4,7,8 });
-			//dummy->flags |= World::OBJECT_NETMOVE;
-			////dummy->rigidBody->setLinearVelocity({ 9,0,0 });
-			//world->addObject(dummy);
 			
-			terrain->setTransform({ 0,-2,0 });
+			terrain->setPosition({ 0,-2,0 });
 
-			player->setTransform({ 1,0,0 });
-			world->getServer().start(info.port);
+			player->setPosition({ 1,0,0 });
+			//world->getServer().start(info.port);
 
 		} else if (info.flags & START_CLIENT) {
-			world->getClient().start(info.ip,info.port);
+			//world->getClient().start(info.ip,info.port);
 		} else {
 			SetDefaultPortIP(this, info.port, info.ip);
 		}
@@ -342,19 +345,79 @@ namespace prounk {
 		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
 		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
 
-		DirLight* dir = new DirLight({ -0.2,-1,-0.2 });
+		DirLight* dir = ALLOC_NEW(DirLight)({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
 
 		delayed.start(1);
+	}
+	void GameApp::registerItems() {
+
+	}
+	void GameApp::createPanels() {
+		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(playerController.getPlayerObject()->getObjectInfo());
+
+		InventoryPanel* inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
+		panelHandler.addPanel(inventoryPanel);
+		inventoryPanel->setSize(100, 100);
+		inventoryPanel->setPosition(200, 200);
+		inventoryPanel->setInventory(playerInfo.inventoryId);
+
+		masterInventoryPanel = ALLOC_NEW(MasterInventoryPanel)(this);
+		masterInventoryPanel->setDepth(9999);
+		panelHandler.addPanel(masterInventoryPanel);
+		// master has no position or size.
+
+		//CraftingPanel* craftingPanel = new CraftingPanel(this);
+		//panelHandler.addPanel(craftingPanel);
+		//craftingPanel->setSize(100, 100);
+		//craftingPanel->setPosition(300, 400);
+
+		PlayerBarPanel* playerBarPanel = ALLOC_NEW(PlayerBarPanel)(this);
+		panelHandler.addPanel(playerBarPanel);
+		playerBarPanel->setSize(100, 100);
+		playerBarPanel->setPosition(100, 100);
+
+		CheatPanel* cheatPanel = ALLOC_NEW(CheatPanel)(this);
+		panelHandler.addPanel(cheatPanel);
+		cheatPanel->setSize(100, 100);
+		cheatPanel->setPosition(100, engone::GetHeight()-100);
 	}
 	//float wantX=500;
 	//float x = 100;
 	//float velX = 0;
 	bool once = false;
 
-	float deathTime=0;
+	double travel = 0;
+	int stage = 0;
+	double startTime=0;
 	void GameApp::update(engone::LoopInfo& info) {
 		using namespace engone;
+		//if (startTime == 0) {
+		//	startTime = GetSystemTime();
+		//}
+		//travel += 10 * info.timeStep;
+		//if(stage==0) {
+		//	if (travel >= 100) {
+		//		double now = GetSystemTime();
+		//		double diff = (now - startTime);
+		//		log::out << "Done: " << diff<<" seconds ts: "<<info.timeStep<<" Travel: " << travel << " stage: " << stage << " Avg:"<< (travel/diff) << "\n";
+		//		startTime = now;
+		//		travel = 0;
+		//		stage++;
+		//		info.app->getEngine()->getStats().setUPSLimit(5);
+		//	}
+		//} else if(stage==1) {
+		//	if (travel >= 100) {
+		//		double now = GetSystemTime();
+		//		double diff = (now - startTime);
+		//		log::out << "Done: " << diff << " seconds ts: " << info.timeStep << " Travel: "<<travel<<" stage: "<<stage<<" Avg:" << (travel / diff) << "\n";
+		//		startTime = now;
+		//		stage = 0;
+		//		info.app->getEngine()->getStats().setUPSLimit(60);
+		//		travel = 0;
+		//	}
+		//}
+		//log::out << "travel: "<<travel << " stage: " << stage << " \n";
 		if (engone::IsKeybindingPressed(KeyPause)) {
 			if(engone::GetActiveWindow()->isCursorLocked()){
 				engone::GetActiveWindow()->lockCursor(false);
@@ -378,6 +441,8 @@ namespace prounk {
 
 		playerController.update(info);
 
+		m_session->update(info);
+
 		//float t = info.timeStep;
 		//float vx = (wantX - x)/t;
 		//vx *= 0.5;
@@ -399,79 +464,19 @@ namespace prounk {
 		//ui::Box box = {x-25,100,50,50};
 		//ui::Draw(box);
 
-		//RenderPlayerInformation(info, &playerController);
 		RenderServerClientMenu(info);
 
-		DebugInfo(info,this);
-
-		EngineObject* player = playerController.getPlayerObject();
+		// send and receive stats.
+		//DebugInfo(info,this);
 		
 		panelHandler.render(info);
 
-		if (player) {
-			if (player->rigidBody&&!playerController.isDead()) {
-				glm::vec3 pos = player->getPosition();
-				Camera* cam = m_window->getRenderer()->getCamera();
-				float camH = 2.4;
-				glm::mat4 camMat = glm::translate(pos + glm::vec3(0, camH, 0));
-				if (playerController.zoom != 0) {
-					camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) * glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) * glm::translate(glm::vec3(0, 0, playerController.zoom));
-				}
-				cam->setPosition(camMat[3]);
-			}
-		}
+		playerController.render(info);
 	}
 	void GameApp::onClose(engone::Window* window) {
 		stop();
 	}
-	engone::EventType OnKey(engone::Event& e) {
-		//if (engone::CheckState(GameState::RenderGame)) {
-		if (e.action == 1) {
-			if (e.key == GLFW_KEY_O) {
-				/*engone::ReadOptions();
-				if (engone::GetDimension() != nullptr)
-					engone::GetDimension()->UpdateAllChunks();*/
-			}
-			if (e.key == GLFW_KEY_G) {// what in the world does this mean ->   AT: Magic Editor
-				/*IElement* el = GetElement("editor_script");
-				if (el != nullptr) {
-					if (!el->selected) {
-
-						if (HasTag(8)) {
-							//DelTag(8);
-
-							renderer::SetCursorMode(false);
-							// Pause game?
-						} else {
-							//AddTag(8);
-							renderer::SetCursorMode(true);
-							// Other things?
-						}
-					}
-				}*/
-			}
-			if (engone::IsKeybindingDown(KeyPause)) {
-				//if (engone::CheckState(GameState::Paused)) {
-				//	engone::SetState(GameState::Paused, false);
-				//	engone::GetActiveWindow()->lockCursor(true);
-				//} else {
-				//	engone::SetState(GameState::Paused, true);
-				//	engone::GetActiveWindow()->lockCursor(false);
-				//}
-			}
-		}
-		//}
-		return engone::EventNone;
-	}
-	engone::EventType OnMouse(engone::Event& e) {
-		//bug::out < elementName < (elementName=="uiFade")<bug::end;
-		/*if (IsGameState(Play)) {
-			if (action == 0) {
-				if (engine::GetPauseMode()) { // Unpause in pause menu if clicking on anything
-					engine::SetPauseMode(false);
-				}
-			}
-		}*/
-		return engone::EventNone;
+	Session* GameApp::getActiveSession() {
+		return m_session;
 	}
 }

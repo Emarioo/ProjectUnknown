@@ -1,20 +1,26 @@
 #include "Engone/EngineObject.h"
 #include "Engone/Engone.h"
+#include "Engone/World/EngineWorld.h"
 
 namespace engone {
-	EngineObject::EngineObject() : m_uuid(UUID::New()) {};
-	EngineObject::EngineObject(UUID uuid) : m_uuid(uuid != 0 ? uuid : UUID::New()) { };
+	EngineObject::EngineObject() : m_uuid(UUID::New()) {}
+	EngineObject::EngineObject(UUID uuid) : m_uuid(uuid != 0 ? uuid : UUID::New()) { }
+	//EngineObject::~EngineObject() {
+
+	//}
 
 	void EngineObject::setOnlyTrigger(bool yes) {
-		if (m_rigidBody) {
-			if (yes)
-				m_flags |= ONLY_TRIGGER;
-			else
-				m_flags &= ~ONLY_TRIGGER;
-			for (int i = 0; i < m_rigidBody->getNbColliders(); i++) {
-				auto col = m_rigidBody->getCollider(i);
-				col->setIsTrigger(yes);
-			}
+		if (!m_rigidBody)
+			return;
+		if ((m_flags & ONLY_TRIGGER) == yes)
+			return;
+			
+		if (yes) m_flags |= ONLY_TRIGGER;
+		else m_flags &= ~ONLY_TRIGGER;
+			
+		for (int i = 0; i < m_rigidBody->getNbColliders(); i++) {
+			auto col = m_rigidBody->getCollider(i);
+			col->setIsTrigger(yes);
 		}
 	}
 	bool EngineObject::isOnlyTrigger() {
@@ -32,28 +38,40 @@ namespace engone {
 					m_rigidBody->removeCollider(col);
 				}
 			}
-			//animator.cleanup();
+			if (m_animator)
+				m_animator->cleanup(); // cleanup instead of delete since you may still want an animator if you change the models
+				//delete m_animator;
 			m_modelAsset = nullptr;
 		}
 
 		// set new model
 		m_modelAsset = asset;
-		//animator.asset = modelAsset;
+		if (m_animator) {
+			m_animator->asset = m_modelAsset;
+		}
 		loadColliders();
 	}
-	//void EngineObject::createRigidBody() {
-	//	if (m_rigidBody)
-	//		return; // already have rigidBody
-
-	//	//rp3d::Transform t;
-	//	//if (world->m_pWorld) {
-	//	//	rigidBody = world->m_pWorld->createRigidBody(t);
-	//	//} else {
-	//	//	log::out << log::RED << "EngineObject : createRigidBody - physics world was nullptr\n";
-	//	//}
-	//}
 	rp3d::RigidBody* EngineObject::getRigidBody() {
 		return m_rigidBody;
+	}
+	ModelAsset* EngineObject::getModel() {
+		return m_modelAsset;
+	}
+	Animator* EngineObject::getAnimator() {
+		return m_animator;
+	}
+	void EngineObject::removeAnimator() {
+		ALLOC_DELETE(Animator, m_animator);
+		m_animator = nullptr;
+	}
+	Animator* EngineObject::createAnimator() {
+		if (m_animator) {
+			log::out << log::RED << "EngineObject : Cannot create an animator when one already exists\n";
+			return m_animator;
+		}
+		m_animator = ALLOC_NEW(Animator)();
+		m_animator->asset = m_modelAsset;
+		return m_animator;
 	}
 	void EngineObject::setObjectType(int type) {
 		m_objectType = type;
@@ -67,7 +85,13 @@ namespace engone {
 	int EngineObject::getObjectInfo() {
 		return m_objectInfo;
 	}
-	void EngineObject::loadColliders(EngineWorld* world = nullptr) {
+	void EngineObject::setFlags(int flags) {
+		m_flags = flags;
+	}
+	int EngineObject::getFlags() {
+		return m_flags;
+	}
+	void EngineObject::loadColliders(EngineWorld* world) {
 		if (!m_modelAsset) {
 			log::out << log::RED << "EngineObject : Cannot load colliders when modelAsset is null\n";
 			return;
@@ -153,6 +177,14 @@ namespace engone {
 				m_rigidBody->getCollider(i)->setUserData(m_colliderData);
 			}
 		} 
+	}
+	const glm::vec3& EngineObject::getPosition() {
+		return *(const glm::vec3*)&m_rigidBody->getTransform().getPosition();
+	}
+	void EngineObject::setPosition(const glm::vec3& position) {
+		rp3d::Transform temp = m_rigidBody->getTransform();
+		temp.setPosition(*(const rp3d::Vector3*)&position);
+		m_rigidBody->setTransform(temp);
 	}
 //#ifdef ENGONE_PHYSICS
 //	void EngineObject::setModel(ModelAsset* asset) {

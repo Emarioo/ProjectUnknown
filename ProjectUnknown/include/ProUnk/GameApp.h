@@ -3,18 +3,20 @@
 #include "Engone/Engone.h"
 #include "Objects/BasicObjects.h"
 
-#include "ProUnk/World.h"
+//#include "ProUnk/World.h"
 
 #include "Engone/ParticleModule.h"
 
 #include "ProUnk/Combat/CombatData.h"
 
 #include "ProUnk/PlayerController.h"
-#include "ProUnk/DataRegistries/InventoryRegistry.h"
+#include "ProUnk/Registries/InventoryRegistry.h"
 
 #include "ProUnk/UI/InventoryPanel.h"
 #include "ProUnk/UI/PlayerBarPanel.h"
 #include "ProUnk/UI/MasterInventoryPanel.h"
+
+#include "ProUnk/Session.h"
 
 namespace prounk {
 
@@ -57,8 +59,15 @@ namespace prounk {
 
 		engone::DelayCode delayed;
 
-		inline World* getWorld() override { return (World*)Application::getWorld(); }
-		inline void setWorld(World* world) { Application::setWorld(world); }
+		//inline World* getWorld() override { return (World*)Application::getWorld(); }
+		//inline void setWorld(World* world) { Application::setWorld(world); }
+
+		Session* m_session=nullptr;
+		Session* getActiveSession();
+
+		void createPanels();
+
+		void registerItems();
 
 		// request system for particles.
 		void doParticles(glm::vec3 pos) {

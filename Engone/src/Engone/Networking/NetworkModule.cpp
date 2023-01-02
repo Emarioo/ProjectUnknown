@@ -23,8 +23,7 @@
 //#include <memory>
 //#include <thread>
 
-//#define ENGONE_DEBUG(x) x;
-//#define ENGONE_DEBUG(x)
+#define IF_LEVEL(level) if (HasLogLevel(NETWORK_LEVEL, level))
 
 namespace engone {
 #ifdef ENGONE_TRACKER
@@ -311,16 +310,21 @@ namespace engone {
 			m_cv.notify_one();
 			if (m_readThread) {
 				m_readThread->join();
-				delete m_readThread;
+				using namespace std;
+				ALLOC_DELETE(thread, m_readThread);
+				//delete m_readThread;
 				m_readThread = nullptr;
 			}
 			if (m_writeThread) {
 				m_writeThread->join();
-				delete m_writeThread;
+				using namespace std;
+				ALLOC_DELETE(thread, m_writeThread);
+				//delete m_writeThread;
 				m_writeThread = nullptr;
 			}
 			if (m_buffer) {
-				delete m_buffer;
+				ALLOC_DELETE(MessageBuffer, m_buffer);
+				//delete m_buffer;
 				m_buffer = nullptr;
 			}
 			m_outMessages.clear();
@@ -346,7 +350,7 @@ namespace engone {
 		}
 		m_readMutex.lock();
 		if (!m_buffer) {
-			m_buffer = new MessageBuffer();
+			m_buffer = ALLOC_NEW(MessageBuffer)();
 			//GetTracker().track(m_buffer);
 			m_buffer->resize(100);
 			// prevent the data of this buffer from being deleted out of this scope
@@ -359,7 +363,8 @@ namespace engone {
 		}
 		// if the client send head and then a smaller size then expected. readBody will freeze until that data has come through.
 		// This will only happend if the a programmer tampers with the client code. The same is true for server.
-		m_readThread = new std::thread([this]() {
+		using namespace std;
+		m_readThread = ALLOC_NEW(thread)([this]() {
 			if (m_server)
 				engone::SetThreadName(-1, "Server recv");
 			else if (m_client)
@@ -455,7 +460,8 @@ namespace engone {
 					if (expectingSize != readBytes) {
 						log::out << log::YELLOW << "Connection::readThread - readBytes did not match header's size "<<readBytes<<" != "<<expectingSize << "\n";
 					}
-					ENGONE_DEBUG(log::out << m_uuid << " recieved " << readBytes << "\n", NETWORKING_LEVEL, 1);
+					IF_LEVEL(NETWORK_LEVEL_SPAM)
+						log::out << m_uuid << " recieved " << readBytes << "\n";
 					//MessageBuffer copy = *m_buffer;
 					//copy.m_sharing = true;
 					if (m_server) {
@@ -510,10 +516,12 @@ namespace engone {
 			m_writeThread->join();
 
 		m_writeMutex.lock();
-		delete m_writeThread;
+		using namespace std;
+		ALLOC_DELETE(thread, m_writeThread);
+		//delete m_writeThread;
 		m_writeThread = nullptr;
 		m_writing = true;
-		m_writeThread = new std::thread([this]() {
+		m_writeThread = ALLOC_NEW(std::thread)([this]() {
 			if (m_server)
 				engone::SetThreadName(-1, "Server send");
 			else if (m_client)
@@ -541,7 +549,8 @@ namespace engone {
 					// write thread can close quitely.
 					break;
 				}
-				ENGONE_DEBUG(log::out << m_uuid <<" sent "<<error<<"\n", NETWORKING_LEVEL, 1);
+				IF_LEVEL(NETWORK_LEVEL_SPAM)
+					log::out << m_uuid <<" sent "<<error<<"\n";
 				if (m_server) {
 					//ENGONE_DEBUG(log::out << "wt trylock server\n";)
 					m_server->m_mutex.lock();
@@ -587,7 +596,8 @@ namespace engone {
 	*/
 	Server::~Server() {
 		cleanup();
-		ENGONE_DEBUG(log::out << "Server::~Server - finished\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Server::~Server - finished\n";
 	}
 	bool Server::start(const std::string& port) {
 		m_port = port;
@@ -620,7 +630,8 @@ namespace engone {
 			m_workerThread = std::thread([this]() {
 				engone::SetThreadName(-1, "Server worker");
 
-				ENGONE_DEBUG(log::out << "Server::work - worker thread started\n", NETWORKING_LEVEL, 2);
+				IF_LEVEL(NETWORK_LEVEL_INFO)
+					log::out << "Server::work - worker thread started\n";
 				m_workMutex.lock();
 				while (!m_workQueue.empty()) {
 					Action action = m_workQueue.front();
@@ -715,7 +726,7 @@ namespace engone {
 												//UUID uuid = rand();
 												UUID uuid = UUID::New();
 
-												Connection* conn = new Connection(newSocket);
+												Connection* conn = ALLOC_NEW(Connection)(newSocket);
 												conn->m_uuid = uuid;
 												conn->m_server = this;
 												//GetTracker().track(conn);
@@ -729,7 +740,8 @@ namespace engone {
 
 												if (!keep) {
 													m_connectionsMutex.lock();
-													delete conn;
+													ALLOC_DELETE(Connection, conn);
+													//delete conn;
 													m_connections.erase(uuid);
 													m_connectionsMutex.unlock();
 													continue;
@@ -758,7 +770,8 @@ namespace engone {
 					} else if (action.type == Action::DISCONNECT) {
 						m_connectionsMutex.lock();
 						auto find = m_connections.find(action.uuid);
-						delete find->second;
+						//delete find->second;
+						ALLOC_DELETE(Connection, find->second);
 						m_connections.erase(find);
 						m_connectionsMutex.unlock();
 					}
@@ -768,14 +781,16 @@ namespace engone {
 				m_working = false;
 				m_workMutex.unlock();
 
-				ENGONE_DEBUG(log::out << "Server::work - worker thread started\n", NETWORKING_LEVEL, 2);
+				IF_LEVEL(NETWORK_LEVEL_INFO)
+					log::out << "Server::work - worker thread started\n";
 			});
 		}
 		m_workMutex.unlock();
 	}
 	void Server::cleanup() {
 		//if (!keepRunning) return; // already cleaned or being cleaned up. workthread will no join if work cleansup.
-		ENGONE_DEBUG(log::out << "Server::cleanup - started\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Server::cleanup - started\n";
 
 		keepRunning = false;
 		if ((SOCKET)m_socket != INVALID_SOCKET) {
@@ -791,7 +806,8 @@ namespace engone {
 		//		are being looped through? use mutex lock for connections?
 		m_connectionsMutex.lock();
 		for (auto [id, conn] : m_connections) {
-			delete conn;
+			//delete conn;
+			ALLOC_DELETE(Connection, conn);
 		}
 		//m_connections.clear(); // <- not necessary because deleting connection will queue disconnect work for worker thread.
 		m_connectionsMutex.unlock();
@@ -803,7 +819,8 @@ namespace engone {
 		// wait for work to finish
 		if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
 			m_workerThread.join();
-		ENGONE_DEBUG(log::out << "Server::cleanup - finished\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Server::cleanup - finished\n";
 	}
 	void Server::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -871,7 +888,8 @@ namespace engone {
 	*/
 	Client::~Client() {
 		cleanup();
-		ENGONE_DEBUG(log::out << "Client::~Client - finished\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Client::~Client - finished\n";
 	}
 	bool Client::start(const std::string& ip, const std::string& port) {
 		m_workMutex.lock();
@@ -911,7 +929,8 @@ namespace engone {
 				m_workerThread.join();
 			m_workerThread = std::thread([this]() {
 				engone::SetThreadName(-1, "Client worker");
-				ENGONE_DEBUG(log::out << "Client::work - worker thread started\n", NETWORKING_LEVEL, 2);
+				IF_LEVEL(NETWORK_LEVEL_INFO)
+					log::out << "Client::work - worker thread started\n";
 				m_workMutex.lock();
 				while (!m_workQueue.empty()) {
 					Action action = m_workQueue.front();
@@ -969,7 +988,7 @@ namespace engone {
 											m_onEvent(NetEvent::Failed, 0);
 										} else {
 
-											m_connection = new Connection(newSocket);
+											m_connection = ALLOC_NEW(Connection)(newSocket);
 											m_connection->m_uuid = 0; // ISSUE: this was 9999 before i switched to UUID maybe bad?
 											m_connection->m_client = this;
 
@@ -1000,14 +1019,16 @@ namespace engone {
 				}
 				m_working = false;
 				m_workMutex.unlock();
-				ENGONE_DEBUG(log::out << "Client::work - worker thread finished\n", NETWORKING_LEVEL, 2);
+				IF_LEVEL(NETWORK_LEVEL_INFO)
+					log::out << "Client::work - worker thread finished\n";
 			});
 		}
 		m_workMutex.unlock();
 	}
 	void Client::cleanup() {
 		//if (!keepRunning) return; // already cleaned or being cleaned. ALTOUGH if worker cleanups then the work thread itself will not be cleaned.
-		ENGONE_DEBUG(log::out << "Client::cleanup - started\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Client::cleanup - started\n";
 
 		// here you should disallow start work to happen.
 		// you don't want the client to start back up if is being destroyed.
@@ -1021,7 +1042,8 @@ namespace engone {
 		m_ip.clear();
 		m_port.clear();
 		if (m_connection) {
-			delete m_connection;
+			//delete m_connection;
+			ALLOC_DELETE(Connection, m_connection);
 			m_connection = nullptr;
 		}
 		unlock();
@@ -1030,7 +1052,8 @@ namespace engone {
 		if (m_workerThread.joinable()&&std::this_thread::get_id()!=m_workerThread.get_id()) {
 			m_workerThread.join();
 		}
-		ENGONE_DEBUG(log::out << "Client::cleanup - finished\n", NETWORKING_LEVEL, 2);
+		IF_LEVEL(NETWORK_LEVEL_INFO)
+			log::out << "Client::cleanup - finished\n";
 	}
 	void Client::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;

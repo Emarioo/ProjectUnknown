@@ -555,11 +555,12 @@ namespace engone {
 				totalSize += length + 1;
 			}
 			//printf("size: %d index: %d\n", totalSize,index);
-			argv = (char**)malloc(totalSize);
+			argv = (char**)alloc::malloc(totalSize);
 			char* argData = (char*)argv + index;
 			if (!argv) {
 				log::out << log::RED << "ConverArguments - allocation failed\n";
 			}else{
+				index = 0;
 				for (int i = 0; i < argc; i++) {
 					int length = wcslen(wargv[i]);
 
@@ -602,7 +603,7 @@ namespace engone {
 			int index = argc * sizeof(char*);
 			int totalSize = index + dataSize;
 			//printf("size: %d index: %d\n", totalSize,index);
-			argv = (char**)malloc(totalSize);
+			argv = (char**)alloc::malloc(totalSize);
 			char* argData = (char*)argv + index;
 			if (!argv) {
 				log::out << log::RED << "ConverArguments - allocation failed\n";
@@ -632,7 +633,14 @@ namespace engone {
 		}
 	}
 	void FreeArguments(int argc, char** argv) {
-		free(argv);
+		int totalSize = argc * sizeof(char*);
+		int index = totalSize;
+		for (int i = 0; i < argc; i++) {
+			int length = strlen(argv[i]);
+			//printf("len: %d\n", length);
+			totalSize += length + 1;
+		}
+		alloc::free(argv,totalSize);
 	}
 	void CreateConsole() {
 		bool b = AllocConsole();

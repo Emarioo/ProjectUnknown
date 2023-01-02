@@ -8,34 +8,37 @@
 
 #include "ProUnk/Tests/AllTests.h"
 
+#include "Engone/Utilities/Alloc.h"
+
+#include "Engone/Utilities/HashMap.h"
+
+#include "Engone/Utilities/Stack.h"
+#include "Engone/Utilities/StableArray.h"
+
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
 
-	//DataRegistryTest();
+	//HashMapTestCase();
+	//EngoneStackTest();
+	//EngoneStableArrayTest();
 
-	//float w = 200;
-	//float h = 160;
-	//int items = 28;
+	//std::string eh;
 
-	//float sqr = sqrt(items);
-	//
-	//float cols = w / h * sqr;
-	//float rows = h / w * sqr;
-	//
-	//if (cols - (int)cols != 0) {
-	//	cols = (int)cols;
-	//	rows = (int)(rows + 1);
+	//uint8_t* raw = (uint8_t*) & eh;
+	//int cap = sizeof(std::string);
+	//for (int i = 0; i < cap; i++) {
+	//	printf("%u\n", raw[i]);
 	//}
-	//if (rows - (int)rows != 0) {
-	//	rows = (int)(rows + 1);
+	//memset(raw,0,cap);
+	//printf("--");
+	//for (int i = 0; i < cap; i++) {
+	//	printf("%u\n", raw[i]);
 	//}
+	//std::string other="yeet";
+	//eh = other;
 
-	//float size = w / cols;
-
-	//printf("yay %d\n",size);
-
-	//return;
+	//std::cin.get();
 
 	Engone engine;
 
@@ -55,7 +58,7 @@ void runApp(int argc, char** argv) {
 		if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-s") == 0) {
 			GameAppInfo info = { GameApp::START_SERVER, "1000" };
 			
-			GameApp* app = new GameApp(&engine, info);
+			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 			engine.addApplication(app);
 		}
 		if (strcmp(argv[i], "--client") == 0 || strcmp(argv[i], "-cl") == 0) {
@@ -65,7 +68,7 @@ void runApp(int argc, char** argv) {
 				i++;
 				std::string port = argv[i];
 				GameAppInfo info = { GameApp::START_CLIENT, port, ip };
-				GameApp* app = new GameApp(&engine, info);
+				GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 				engine.addApplication(app);
 			} else {
 				log::out << log::RED << "runApp - client argument is invalid\n";
@@ -74,12 +77,13 @@ void runApp(int argc, char** argv) {
 	}
 	if (engine.getApplications().size() == 0) {
 		GameAppInfo info = { 0, "1000", "127.0.0.1"};
-		GameApp* app = new GameApp(&engine, info);
+		GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 		engine.addApplication(app);
 	}
 
-	//engine.getStats().setFPSLimit(144);
-	//engine.getStats().setFPSLimit(144);
+	engine.getStats().setFPSLimit(60);
+	engine.getStats().setUPSLimit(60);
+	engine.setFlags(EngoneEnableDebugInfo);
 	engine.start();
 	//FreeArguments(argc, argv);
 
@@ -100,6 +104,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 }
 // Runs the game with a console
 int main(int argc, char** argv) {
+	using namespace engone;
+	//class Apple {
+	//public:
+	//	Apple(float sour, float size) : sour(sour), size(size) {}
+	//	~Apple() {}
+	//	float sour, size;
+	//};
+
+
+	//Apple* eh = NEW(Apple)(2, 5);
+
+	//DELETE(Apple, eh);
+
+	//eh->~Apple();
+	//alloc::free(eh, 8);
+
+	//std::cin.get();
 	runApp(argc,argv);
 	return 0;
 }

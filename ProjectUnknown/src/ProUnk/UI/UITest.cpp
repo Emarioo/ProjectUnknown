@@ -64,12 +64,12 @@ namespace prounk {
 
 	void Stop(engone::LoopInfo& info) {
 		GameApp* app = (GameApp*)info.window->getParent();
-		World* world = app->getWorld();
-		if (world->getServer().isRunning()) {
-			world->getServer().stop();
+		Session* session = app->getActiveSession();
+		if (session->getServer().isRunning()) {
+			session->getServer().stop();
 		}
-		if (world->getClient().isRunning()) {
-			world->getClient().stop();
+		if (session->getClient().isRunning()) {
+			session->getClient().stop();
 		}
 	}
 	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip) {
@@ -85,7 +85,7 @@ namespace prounk {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
 		Stuff& stuff = app_data[app];
-		World* world = app->getWorld();
+		Session* session = app->getActiveSession();
 
 		// Nothing will happen if client or server is active. You have to stop first.
 		// NOTE: restarting server is a bit tricky because you can't call stop and then start because stop is asynchronous and when start is called the server is still running
@@ -95,13 +95,13 @@ namespace prounk {
 		//      doing the actions while the thread calling stop and start is asynchronous.
 		//		THIS idea has been added to the TODO list in Engone for Networking. Change this code when it is implemented.
 
-		if (!world->getServer().isRunning()&&!world->getClient().isRunning()) {
+		if (!session->getServer().isRunning()&&!session->getClient().isRunning()) {
 			bool result = false;
 			// TODO: handle potential error messages.
 			if (stuff.type == "Client") {
-				result = world->getClient().start(stuff.ipBox.text, stuff.portBox.text);
+				result = session->getClient().start(stuff.ipBox.text, stuff.portBox.text);
 			} else if (stuff.type == "Server") {
-				result = world->getServer().start(stuff.portBox.text);
+				result = session->getServer().start(stuff.portBox.text);
 			}
 			if (!result) {
 				log::out << log::RED << "UITest::Connect - Server/Client::start failed\n";
@@ -119,21 +119,21 @@ namespace prounk {
 		if (find == app_data.end())
 			app_data[app] = {};
 
-		World* world = ((GameApp*)info.window->getParent())->getWorld();
+		Session* session = ((GameApp*)info.window->getParent())->getActiveSession();
 		
 		Stuff& stuff = app_data[app];
 		if (!stuff.once) {
 			stuff.once = true;
 			
-			if (world->getServer().isRunning()) {
+			if (session->getServer().isRunning()) {
 				stuff.type = "Server";
-				stuff.ipBox.text = world->getServer().getIP();
-				stuff.portBox.text = world->getServer().getPort();
+				stuff.ipBox.text = session->getServer().getIP();
+				stuff.portBox.text = session->getServer().getPort();
 			}
-			if (world->getClient().isRunning()) {
+			if (session->getClient().isRunning()) {
 				stuff.type = "Client";
-				stuff.ipBox.text = world->getClient().getIP();
-				stuff.portBox.text = world->getClient().getPort();
+				stuff.ipBox.text = session->getClient().getIP();
+				stuff.portBox.text = session->getClient().getPort();
 			}
 			// specify default values with SetDefaultIPPort
 		}
@@ -190,7 +190,7 @@ namespace prounk {
 		ui::Edit(&stuff.ipBox);
 		ui::Draw(stuff.ipBox);
 
-		if (world->getServer().isRunning() || world->getClient().isRunning()) {
+		if (session->getServer().isRunning() || session->getClient().isRunning()) {
 			ui::TextBox stopBox = { "Stop",stuff.ipBox.x,stuff.ipBox.y + stuff.ipBox.h,25,consolas, textColor };
 			if (ui::Clicked(stopBox) == 1) {
 				Stop(info);

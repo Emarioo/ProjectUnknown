@@ -10,6 +10,8 @@
 #include "Engone/Assets/TextureAsset.h"
 #include "Engone/Assets/ShaderAsset.h"
 
+#include "Engone/Utilities/Alloc.h"
+
 /* -- AssetModule --
 
 AssetStorage - Assets and processers are storeds here. (accessed from multiple threads)
@@ -97,7 +99,7 @@ namespace engone {
 
 			if (!asset) {
 				//log::out << "Load " << path << "\n";
-				asset = new T();
+				asset = ALLOC_NEW(T)();
 				asset->setStorage(this);
 				GetTracker().track(asset);
 				m_assets[T::TYPE][path] = asset;
@@ -118,7 +120,7 @@ namespace engone {
 				asset->m_flags = asset->load(Asset::LoadIO | Asset::LoadData);
 				if (asset->m_error != Error::ErrorNone) {
 					asset->m_flags = Asset::LoadNone;
-					//log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
+					log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
 				}
 				if (asset->m_state & Asset::Loaded) {
 					if (asset->getPath().size() != 0) {
@@ -127,6 +129,7 @@ namespace engone {
 				} else {
 					//ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
 				}
+				// may need to load graphics
 				AssetTask task(asset);
 				processTask(task);
 			} else {
@@ -150,7 +153,8 @@ namespace engone {
 				if (find->second->m_state == Asset::Processing) {
 					//log::out << "AssetStorage::unload - Asset cannot be unloaded while being processed!\n";
 				} else {
-					delete find->second; // can asset be deleted?
+					ALLOC_DELETE(Asset, find->second);
+					//delete find->second; // can asset be deleted?
 					GetTracker().untrack(find->second);
 					list.erase(find);
 				}
@@ -192,7 +196,7 @@ namespace engone {
 					// not fine
 					// should maybe warn here
 					//log::out << log::YELLOW << "AssetStorage::set - overwriting asset, deleting old one.\n";
-					delete t; // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
+					ALLOC_DELETE(T,t); // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
 					t = asset;
 					doStuff = true;
 				}
@@ -214,7 +218,7 @@ namespace engone {
 						t->m_flags = t->load(Asset::LoadIO | Asset::LoadData);
 						if (t->m_error != Error::ErrorNone) {
 							t->m_flags = Asset::LoadNone;
-							//log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
+							log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
 						}
 						if (t->m_state & Asset::Loaded) {
 							if (t->getPath().size() != 0) {

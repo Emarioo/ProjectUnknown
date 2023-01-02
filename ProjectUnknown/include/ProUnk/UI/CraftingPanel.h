@@ -4,7 +4,7 @@
 
 #include "Engone/Assets/ModelAsset.h"
 
-#include "ProUnk/DataRegistries/InventoryRegistry.h"
+#include "ProUnk/Registries/InventoryRegistry.h"
 
 namespace prounk {
 

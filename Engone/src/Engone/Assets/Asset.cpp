@@ -111,20 +111,25 @@ namespace engone {
 		LoadFlags out = 0;
 		if ((flags & LoadIO) && !m_error&&!m_path.empty()) {
 			FileReader file(m_path + ".txt", false);
-			try {
-				file.readAll(&widthValues);
-			} catch (Error err) {
-				m_error = err;
-				m_state = Failed;
-			}
-			png = PNG::ReadFile((m_path + ".png").c_str());
-			if (!png) {
+			if (!file.isOpen()) {
 				m_error = ErrorMissingFile;
 				m_state = Failed;
 			} else {
-				png->setFlags(FlipOnLoad, true);
-				if (m_error == ErrorNone)
-					out = LoadData;
+				try {
+					file.readAll(&widthValues);
+				} catch (Error err) {
+					m_error = err;
+					m_state = Failed;
+				}
+				png = PNG::ReadFile((m_path + ".png").c_str());
+				if (!png) {
+					m_error = ErrorMissingFile;
+					m_state = Failed;
+				} else {
+					png->setFlags(FlipOnLoad, true);
+					if (m_error == ErrorNone)
+						out = LoadData;
+				}
 			}
 		}
 		if ((flags & LoadData) && !m_error) {
@@ -149,7 +154,8 @@ namespace engone {
 			
 			if (png) {
 				rawImage = Image::Convert<PNG, RawImage>(png);
-				delete png;
+				ALLOC_DELETE(PNG, png);
+				//delete png;
 				png = nullptr;
 				out = LoadGraphic;
 			}
@@ -160,7 +166,8 @@ namespace engone {
 			// rawImage can only be nullptr if AssetStorage is broken or if you set LoadGraphic flag on an empty asset.
 
 			texture.init(rawImage);
-			delete rawImage;
+			//delete rawImage;
+			ALLOC_DELETE(RawImage, rawImage);
 			rawImage = nullptr;
 			m_state = Loaded;
 			out = 0;
@@ -214,6 +221,16 @@ namespace engone {
 		}
 		return maxWidth;
 	}
+	float FontAsset::getHeight(const std::string& str, float height) {
+		if (m_state != Loaded) return 0;
+		float maxHeight = height;
+		for (uint32_t i = 0; i < str.length(); ++i) {
+			unsigned char chr = str[i];
+			if (chr == '\n')
+				maxHeight += height;
+		}
+		return maxHeight;
+	}
 	void TextureAsset::cleanup() {
 		texture.cleanup();
 	}
@@ -233,8 +250,11 @@ namespace engone {
 				log::out << log::RED << "TextureAsset::load - rawImage is nullptr\n"; // a little log incase it happens
 			// rawImage should not be nullptr if we are here so m_state does not need to be set to Failed.
 
+			//std::destroy_at()
+
 			texture.init(rawImage);
-			delete rawImage;
+			//delete rawImage;
+			ALLOC_DELETE(RawImage, rawImage);
 			rawImage = nullptr;
 			m_state = Loaded;
 			out = 0;
@@ -271,7 +291,7 @@ namespace engone {
 					if (m_storage) {
 						diffuse_map = m_storage->load<TextureAsset>(root + diffuse_mapName);
 					} else {
-						diffuse_map = new TextureAsset();
+						diffuse_map = ALLOC_NEW(TextureAsset)();
 						diffuse_map->loadPath(root + diffuse_mapName, LoadAll);
 						GetTracker().track(diffuse_map);
 					}
@@ -605,7 +625,7 @@ namespace engone {
 						asset = m_storage->load<MaterialAsset>(root + materialName);
 						//asset = m_parent->set<MaterialAsset>(root + materialName);
 					} else {
-						asset = new MaterialAsset();
+						asset = ALLOC_NEW(MaterialAsset)();
 						asset->loadPath(root + materialName,LoadAll);
 						GetTracker().track(asset);
 					}
@@ -623,11 +643,11 @@ namespace engone {
 						// non-disc thing
 						asset = m_storage->get<MaterialAsset>("defaultMaterial");
 						if (!asset) {
-							asset = new MaterialAsset();
+							asset = ALLOC_NEW(MaterialAsset)();
 							m_storage->set<MaterialAsset>("defaultMaterial", asset);
 						}
 					} else {
-						asset = new MaterialAsset();
+						asset = ALLOC_NEW(MaterialAsset)();
 						GetTracker().track(asset);
 					}
 					materials.push_back(asset);
@@ -1193,7 +1213,8 @@ namespace engone {
 				AnimationAsset* anim = animations[i];
 				if (!anim->getStorage()) {
 					GetTracker().untrack(anim);
-					delete anim;
+					//delete anim;
+					ALLOC_DELETE(AnimationAsset, anim);
 				}
 			}
 			for (int i = 0; i < instances.size(); i++) {
@@ -1238,7 +1259,8 @@ namespace engone {
 			*/
 
 			// ISSUE: cleanup would be the easy way to do reload but not the fastest.
-			// The fastest would be to load model and compare old assets to new assets.
+			// The fastest would be to load model and compare old assets to 
+			//  assets.
 			//  and see which instances are the same
 			// and not. Then do a reload
 
@@ -1269,7 +1291,7 @@ namespace engone {
 							instance.asset = m_storage->load<MeshAsset>(root + name); // maybe this is fine?
 							//instance.asset = m_parent->set<MeshAsset>(root + name);
 						} else {
-							instance.asset = new MeshAsset();
+							instance.asset = ALLOC_NEW(MeshAsset)();
 							instance.asset->loadPath(root + name,LoadAll);
 							GetTracker().track((MeshAsset*)instance.asset);
 						}
@@ -1278,7 +1300,7 @@ namespace engone {
 						if (m_storage) {
 							instance.asset = m_storage->load<ArmatureAsset>(root + name);
 						} else {
-							instance.asset = new ArmatureAsset();
+							instance.asset = ALLOC_NEW(ArmatureAsset)();
 							instance.asset->loadPath(root + name, LoadAll);
 							GetTracker().track((ArmatureAsset*)instance.asset);
 						}
@@ -1287,7 +1309,7 @@ namespace engone {
 						if (m_storage) {
 							instance.asset = m_storage->load<ColliderAsset>(root + name);
 						} else {
-							instance.asset = new ColliderAsset();
+							instance.asset = ALLOC_NEW(ColliderAsset)();
 							instance.asset->loadPath(root + name, LoadAll);
 							GetTracker().track((ColliderAsset*)instance.asset);
 						}
@@ -1310,7 +1332,7 @@ namespace engone {
 					} else {
 						// ISSUE: Memory leak, this is not owned by assets, since assets doesn't exist, but it is still created.
 						// ModelAsset should destroy it but how would it know if it has "ownership". vector with bool for each animations?
-						AnimationAsset* as = new AnimationAsset();
+						AnimationAsset* as = ALLOC_NEW(AnimationAsset)();
 						as->loadPath(root + name, LoadAll);
 						animations.push_back(as);
 					}

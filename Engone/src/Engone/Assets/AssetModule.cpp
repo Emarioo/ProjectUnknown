@@ -15,22 +15,16 @@ namespace engone {
 		//ENGONE_DEBUG(log::out << "AssetStorage::cleanup - begun\n", ASSET_LEVEL,1)
 		m_ioProcMutex.lock();
 		for (int i = 0; i < m_ioProcessors.size(); i++) {
-			delete m_ioProcessors[i];
+			//delete m_ioProcessors[i];
+			ALLOC_DELETE(AssetProcessor, m_ioProcessors[i]);
 		}
 		m_ioProcessors.clear();
 		m_ioProcMutex.unlock();
 
 		m_dataProcMutex.lock();
 		for (int i = 0; i < m_dataProcessors.size(); i++) {
-			delete m_dataProcessors[i];
-		}
-		m_dataProcessors.clear();
-		m_dataProcMutex.unlock();
-
-
-		m_dataProcMutex.lock();
-		for (int i = 0; i < m_dataProcessors.size(); i++) {
-			delete m_dataProcessors[i];
+			//delete m_dataProcessors[i];
+			ALLOC_DELETE(AssetProcessor, m_dataProcessors[i]);
 		}
 		m_dataProcessors.clear();
 		m_dataProcMutex.unlock();
@@ -40,7 +34,7 @@ namespace engone {
 			for (auto& pair : map.second) {
 				GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
 				//GetTracker().untrack(, pair.second);
-				delete pair.second; // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
+				ALLOC_DELETE(Asset,pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
 			}
 		}
 		m_assets.clear();
@@ -57,7 +51,7 @@ namespace engone {
 	void AssetStorage::addIOProcessor() {
 		m_ioProcMutex.lock();
 		if (m_running) {
-			m_ioProcessors.push_back(new AssetProcessor(this, Asset::LoadIO));
+			m_ioProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadIO));
 			m_ioProcessors.back()->start();
 		}
 		m_ioProcMutex.unlock();
@@ -65,7 +59,7 @@ namespace engone {
 	void AssetStorage::addDataProcessor() {
 		m_dataProcMutex.lock();
 		if (m_running) {
-			m_dataProcessors.push_back(new AssetProcessor(this, Asset::LoadData));
+			m_dataProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadData));
 			m_dataProcessors.back()->start();
 		}
 		m_dataProcMutex.unlock();
@@ -76,7 +70,7 @@ namespace engone {
 			if (m_graphicProcessors.size() != 0) {
 				log::out << log::RED << "AssetStorage::addGraphicProcessor - OpenGL GraphicProcessors does not have their own thread. More processors would not improve anything.\n";
 			} else {
-				m_graphicProcessors.push_back(new AssetProcessor(this, Asset::LoadGraphic));
+				m_graphicProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadGraphic));
 				m_graphicProcessors.back()->start();
 			}
 		}
@@ -113,7 +107,7 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadIO) {
 			m_ioProcMutex.lock();
 			if (m_ioProcessors.size() == 0) {
-				m_ioProcessors.push_back(new AssetProcessor(this, Asset::LoadIO));
+				m_ioProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadIO));
 				m_ioProcessors.back()->start();
 			}
 			int index = m_ioNext;
@@ -126,7 +120,7 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadData) {
 			m_dataProcMutex.lock();
 			if (m_dataProcessors.size() == 0) {
-				m_dataProcessors.push_back(new AssetProcessor(this, Asset::LoadData));
+				m_dataProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadData));
 				m_dataProcessors.back()->start();
 			}
 			int index = m_dataNext;
@@ -139,7 +133,7 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadGraphic) {
 			m_graphicProcMutex.lock();
 			if (m_graphicProcessors.size() == 0) {
-				m_graphicProcessors.push_back(new AssetProcessor(this, Asset::LoadGraphic));
+				m_graphicProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadGraphic));
 				//m_graphicProcessors.back()->start(); // <- don't want to start it. It should run in OpenGL context thread
 			}
 			int index = m_graphicNext;
@@ -209,7 +203,7 @@ namespace engone {
 			task.asset->m_flags = flags;
 			if (task.asset->m_error != Error::ErrorNone) {
 				task.asset->m_flags = Asset::LoadNone;
-				//log::out << log::RED<<"Failed loading: " << task.asset->getPath() << "\n";
+				log::out << log::RED<<"Failed loading: " << task.asset->getPath() << "\n";
 			}
 			if (task.asset->m_state & Asset::Loaded) {
 				if (task.asset->getPath().size() != 0) {

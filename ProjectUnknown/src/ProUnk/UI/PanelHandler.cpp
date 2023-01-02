@@ -290,6 +290,16 @@ namespace prounk {
 		checkInput();
 		for (int i =0; i < m_panels.size(); i++) {
 			// first panel has lowest depth, last has highest. (if list is sorted)
+			if (m_panels[i] == m_editPanel) {
+				float border = 2;
+				ui::Box highlight = m_panels[i]->getBox();
+				highlight.rgba = { 1.0,1.0,0.1,1.f };
+				highlight.x -= border;
+				highlight.y -= border;
+				highlight.w += border*2;
+				highlight.h += border*2;
+				ui::Draw(highlight);
+			}
 			m_panels[i]->render(info);
 		}
 	}
@@ -299,6 +309,12 @@ namespace prounk {
 	void PanelHandler::checkInput() {
 		using namespace engone;
 
+		if (IsKeyDown(GLFW_KEY_LEFT_ALT)) {
+			m_canMovePanels = true;
+		} else {
+			m_canMovePanels = false;
+			m_editPanel = nullptr;
+		}
 		// if click was successful then no other clicks on other panels will be registered
 		if (m_canMovePanels) {
 			if (!m_editPanel) {
@@ -342,8 +358,11 @@ namespace prounk {
 					m_editPanel->setRight(nx+box.w);
 					m_editPanel->setLeft(m_editPanel->m_right-box.w);
 
-					m_editPanel->setTop(ny);
-					m_editPanel->setBottom(m_editPanel->m_top + box.h);
+					//m_editPanel->setTop(ny);
+					//m_editPanel->setBottom(m_editPanel->m_top + box.h);
+
+					m_editPanel->setBottom(ny + box.h);
+					m_editPanel->setTop(m_editPanel->m_bottom-box.h);
 
 					if (IsKeyReleased(GLFW_MOUSE_BUTTON_1)) {
 						m_editPanel = nullptr;
@@ -404,7 +423,7 @@ namespace prounk {
 
 					float mx = GetMouseX();
 					float my = GetMouseY();
-
+					//log::out << mx << " " << my << "\n";
 					ui::Box area = m_editPanel->getBox();
 
 					if (m_editResizingX == 0) {
@@ -472,14 +491,14 @@ namespace prounk {
 
 					if (IsKeyReleased(GLFW_MOUSE_BUTTON_2)) {
 						m_editPanel = nullptr;
+						//log::out << "Released 2\n";
 					}
 				}
 			}
 		}
-
-		if (IsKeyPressed(GLFW_KEY_P)) {
-			m_canMovePanels = !m_canMovePanels;
-			m_editPanel = nullptr;
-		}
+		//if (IsKeyPressed(GLFW_KEY_P)) {
+		//	m_canMovePanels = !m_canMovePanels;
+		//	m_editPanel = nullptr;
+		//}
 	}
 }

@@ -48,8 +48,8 @@ ISSUE: playground can have both a server and a client at the same time. This is 
 #include "Engone/World/EngineWorld.h"
 //#include "Engone/EngineObject.h"
 
-#include "ProUnk/DataRegistries/EntityRegistry.h"
-#include "ProUnk/DataRegistries/InventoryRegistry.h"
+#include "ProUnk/Registries/EntityRegistry.h"
+#include "ProUnk/Registries/InventoryRegistry.h"
 
 namespace prounk {
 
@@ -117,8 +117,8 @@ namespace prounk {
 
 		EntityRegistry entityRegistry;
 		InventoryRegistry inventoryRegistry;
-		ModelRegistry modelRegistry;
-		ItemTypeRegistry itemTypeRegistry;
+		//ModelRegistry modelRegistry;
+		//ItemTypeRegistry itemTypeRegistry;
 
 		CombatData* getCombatData(engone::EngineObject* object);
 		Inventory* getInventory(engone::EngineObject* object);

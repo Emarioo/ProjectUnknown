@@ -15,14 +15,11 @@ namespace engone {
 	class Application {
 	public:
 		Application(Engone* engone) : m_engone(engone) {}
-		virtual ~Application() {
-			for (int i = 0; i < m_windows.size();i++) {
-				GetTracker().untrack(m_windows[i]);
-				delete m_windows[i];
-			}
-			m_windows.clear();
-			delete m_world;
+		~Application() {
+			cleanup();
 		}
+		// frees allocated memory that the application is responsible for.
+		void cleanup();
 
 		// these virtual functions should be = 0 but for test purposes they are not.
 
@@ -34,6 +31,7 @@ namespace engone {
 
 		// will close all windows and close the app.
 		// will not delete windows from the list instantly. This is done in the game loop.
+		// function is somewhat asynchronous in this sense.
 		void stop();
 
 		inline Engone* getEngine() const { return m_engone; }
@@ -41,12 +39,7 @@ namespace engone {
 		// Will create a window which is attached to this application.
 		// detail will determine what kind properties the window will have.
 		// Window will be deleted when needed.
-		inline Window* createWindow(WindowDetail detail = {}) {
-			Window* win = new Window(this,detail);
-			GetTracker().track(win);
-			m_windows.push_back(win);
-			return win;
-		}
+		Window* createWindow(WindowDetail detail = {});
 		inline std::vector<Window*>& getAttachedWindows() { return m_windows; }
 		// Will return nullptr if index is out of bounds.
 		inline Window* getWindow(uint32_t index = 0) { if (index < m_windows.size()) return m_windows[index]; return nullptr; }
@@ -62,9 +55,8 @@ namespace engone {
 			return nullptr;
 		}
 
-		// virtual because you may want your GameGround instead of the default.
-		virtual inline EngineWorld* getWorld() { return m_world; }
-		virtual inline void setWorld(EngineWorld* world) { m_world=world; }
+		EngineWorld* createWorld();
+		std::vector<EngineWorld*>& getWorlds();
 
 		bool isRenderingWindow() const { return m_renderingWindows; }
 
@@ -74,14 +66,16 @@ namespace engone {
 		
 		static TrackerId trackerId;
 	private:
-		EngineWorld* m_world=nullptr;
+		//EngineWorld* m_world=nullptr;
 
 		bool m_stopped = false;
 		std::vector<Window*> m_windows;
 		bool m_renderingWindows=false;
 		Engone* m_engone=nullptr;
 
-		rp3d::PhysicsCommon* m_pCommon = nullptr;
+		std::vector<EngineWorld*> m_worlds;
+
+		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
 		
 		friend class Engone;
 		friend class Window;

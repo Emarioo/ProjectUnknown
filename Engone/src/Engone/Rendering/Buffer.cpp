@@ -3,6 +3,8 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+#include "Engone/Utilities/Alloc.h"
+
 #include "Engone/vendor/stb_image/stb_image.h"
 
 #define CHECK()  {int err = glGetError();if(err) {log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
@@ -682,13 +684,14 @@ namespace engone {
 		glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 		if (result == GL_FALSE) {
 			//error = 2;
-			int length; // null terminate is included
-			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+			int msgSize; // null terminate is included
+			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &msgSize);
 
-			char* msg = new char[length];// a bit extra for when memory is moved to fit in actual error line
-			memset(msg, 0, length);
+			char* msg = (char*)alloc::malloc(msgSize);// a bit extra for when memory is moved to fit in actual error line
+			memset(msg, 0, msgSize);
 
-			glGetShaderInfoLog(id, length, &length, msg); // length is alter and does no longer include null term char
+			int length=0;
+			glGetShaderInfoLog(id, msgSize, &length, msg); // length is alter and does no longer include null term char
 
 			//std::cout << "Compile error with " << filePath << " (" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << ")\n";
 
@@ -720,6 +723,8 @@ namespace engone {
 				log::out << "\n";
 
 			glDeleteShader(id);
+
+			alloc::free(msg, msgSize);
 
 			return 0;
 		}

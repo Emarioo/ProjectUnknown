@@ -24,6 +24,8 @@ namespace engone {
 	enum EngoneFlag : uint32_t {
 		EngoneNone = 0,
 		EngoneFixedLoop = 1, // update and frame will be called each game loop iteration. FPS will be used and UPS will be ignored.
+		EngoneEnableDebugInfo = 2,
+		EngoneShowBasicDebugInfo = 4,
 	};
 	typedef uint32_t EngoneFlags;
 	class Engone {
@@ -60,6 +62,8 @@ namespace engone {
 		RuntimeStats& getStats() { return m_runtimeStats; }
 		
 		void bindLights(Shader* shader, glm::vec3 objectPos);
+		// returns current loop info
+		LoopInfo& getLoopInfo();
 		
 		static TrackerId trackerId;
 	private:
@@ -76,6 +80,8 @@ namespace engone {
 		VertexBuffer quadBuffer;
 		VertexArray quadArray;
 
+		LoopInfo currentLoopInfo;
+
 		std::vector<Application*> m_applications{};
 		std::vector<uint16_t> m_appSizes{}; // used for tracker
 		std::vector<TrackerId> m_appIds{}; // used for tracker
@@ -84,5 +90,7 @@ namespace engone {
 		// only renders objects at the moment
 		void render(LoopInfo& info);
 		void renderObjects(LoopInfo& info);
+
+		void renderBasicDebugInfo(LoopInfo& info);
 	};
 }

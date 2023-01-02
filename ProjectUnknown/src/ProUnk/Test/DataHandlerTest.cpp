@@ -1,6 +1,6 @@
-#include "ProUnk/DataRegistries/InventoryRegistry.h"
+#include "ProUnk/Registries/InventoryRegistry.h"
 
-void DataRegistryTest() {
+void RegistryTest() {
 	using namespace prounk;
 	
 	MasterRegistry registry;
@@ -8,7 +8,7 @@ void DataRegistryTest() {
 
 	registry.deserialize();
 
-	DataRegistry* ret = registry.getRegistry("nops");
+	Registry* ret = registry.getRegistry("nops");
 	ret = registry.getRegistry(201);
 	ret = registry.getRegistry("inventory_handler");
 

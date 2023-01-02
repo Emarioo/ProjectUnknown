@@ -1,4 +1,4 @@
-#include "ProUnk/DataRegistries/ModelRegistry.h"
+#include "ProUnk/Registries/ModelRegistry.h"
 
 #include "Engone/Utilities/FileUtility.h"
 

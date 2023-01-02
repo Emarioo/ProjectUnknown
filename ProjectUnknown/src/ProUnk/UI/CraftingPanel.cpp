@@ -2,7 +2,7 @@
 
 #include "ProUnk/GameApp.h"
 
-#include "ProUnk/DataRegistries/RecipeRegistry.h"
+#include "ProUnk/Registries/RecipeRegistry.h"
 
 #include "ProUnk/UI/InvUtility.h"
 
@@ -11,7 +11,7 @@ namespace prounk {
 	void CraftingPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
 		Renderer* renderer = info.window->getRenderer();
-		World* world = m_app->getWorld();
+		//Session* session = m_app->getActiveSession();
 
 		//Inventory* inv = world->InventoryRegistry.getInventory(m_inventoryId);
 
@@ -42,20 +42,19 @@ namespace prounk {
 		}
 
 		if (clickedIndex != -1) {
+			Item& heldItem = m_app->masterInventoryPanel->getItem();
 			auto& slot = m_craftSlots[clickedIndex];
 			if (slot.item.getType()) {
 				// pick up item
-				bool yes = m_app->masterInventoryPanel->giveItem(slot.item);
+				bool yes = slot.item.transfer(heldItem);
 				if (yes) {
 					// disable stuff for next round
-					slot.item.setType(0);
 					removeNeighbourSlots(slot.x, slot.y);
 				}
 			} else {
 				// place item
-				Item item = m_app->masterInventoryPanel->takeItem();
-				if (item.getType()) {
-					slot.item = item;
+				bool yes = heldItem.transfer(slot.item);
+				if (yes) {
 					addNeighbourSlots(slot.x,slot.y);
 				}
 			}

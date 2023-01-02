@@ -14,8 +14,12 @@ namespace engone {
 
 	class Renderer;
 	namespace ui {
-		// r,g,b,a
+		// r,g,b,a OR rgba OR rgb,a
 		struct Color {
+			Color() = default;
+			Color(float rgba) : r(rgba),g(rgba),b(rgba),a(rgba){}
+			Color(float rgb, float a) : r(rgb),g(rgb),b(rgb),a(a){}
+			Color(float r, float g,float b,float a) : r(r),g(g),b(b),a(a){}
 			float r = 1.f, g = 1.f, b = 1.f, a = 1.f;
 		};
 		// x,y,w,h,color
@@ -47,6 +51,8 @@ namespace engone {
 			bool editing = false;
 
 			float getWidth();
+			// \n is taken into account
+			float getHeight();
 		};
 
 		void Draw(Box box);
@@ -166,9 +172,9 @@ namespace engone {
 		VertexBuffer cube2VBO{};
 		IndexBuffer cube2IBO{}; // NOTE: this is the same as cubeIBO. Could be removed.(altough, not removing this would ensure that changing the other cubes values won't affect this one)
 
-		VertexBuffer quadVB;
-		IndexBuffer quadIB;
-		VertexArray quadVA;
+		VertexBuffer quadVB{};
+		IndexBuffer quadIB{};
+		VertexArray quadVA{};
 
 		VertexBuffer instanceBuffer;
 

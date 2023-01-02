@@ -5,28 +5,19 @@
 #include "ProUnk/UI/InvUtility.h"
 
 namespace prounk {
-	bool MasterInventoryPanel::giveItem(Item item) {
-		if (m_heldItem.getType() != 0)
-			return false;
-
-		m_heldItem = item;
-		return true;
-	}
-	Item MasterInventoryPanel::takeItem() {
-		Item item = m_heldItem;
-		m_heldItem = {};
-		return item;
+	Item& MasterInventoryPanel::getItem() {
+		return m_heldItem;
 	}
 	void MasterInventoryPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
 		Renderer* renderer = info.window->getRenderer();
-		World* world = m_app->getWorld();
+		Session* session = m_app->getActiveSession();
 
 		if (!m_heldItem.getType())
 			return;
 
 		ModelId id = m_heldItem.getModelId();
-		engone::ModelAsset* asset = world->modelRegistry.getModel(id);
+		engone::ModelAsset* asset = session->modelRegistry.getModel(id);
 
 		if (!asset) {
 			log::out << log::RED << "MasterInventoryPanel::render - asset is null\n";

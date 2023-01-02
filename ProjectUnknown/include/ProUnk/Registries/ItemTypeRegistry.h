@@ -1,19 +1,20 @@
 #pragma once
 
-#include "ProUnk/DataRegistries/MasterRegistry.h"
+#include "ProUnk/Registries/MasterRegistry.h"
 
-#include "ProUnk/DataRegistries/ModelRegistry.h"
+#include "ProUnk/Registries/ModelRegistry.h"
 
 namespace prounk {
 	typedef int ItemType;
 	struct ItemTypeInfo {
 		ItemType itemType;
-		std::string name; // default name
+		std::string name; // registered name
+		std::string displayName; // default display name for item
 		ModelId modelId; // default model
 	};
-	class ItemTypeRegistry : public DataRegistry {
+	class ItemTypeRegistry : public Registry {
 	public:
-		ItemTypeRegistry() : DataRegistry("item_type_registry") {}
+		ItemTypeRegistry() : Registry("item_type_registry") {}
 
 		void serialize() override;
 		void deserialize() override;
@@ -21,9 +22,12 @@ namespace prounk {
 		// may return nullptr;
 		const ItemTypeInfo* getType(ItemType type);
 		// may return nullptr;
+		// name is not the display name
 		const ItemTypeInfo* getType(const std::string& name);
 
+		// name is the registered name not the display name!
 		ItemType registerType(const std::string& name, ModelId modelId);
+		ItemType registerType(const std::string& name, ModelId modelId, const std::string& displayName);
 
 	private:
 

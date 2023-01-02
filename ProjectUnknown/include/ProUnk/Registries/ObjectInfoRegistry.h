@@ -1,23 +1,28 @@
 #pragma once
 
-#include "Engone/Registries/MasterRegistry.h"
+#include "ProUnk/Registries/MasterRegistry.h"
 
-//#include "Engone/Assets/Animator.h"
 #include "ProUnk/Combat/CombatData.h"
 #include "ProUnk/Registries/InventoryRegistry.h"
 
 namespace prounk {
 
-	struct ObjectPlayerInfo {
-		CombatData* combatData=nullptr;
+	struct ObjectCreatureInfo {
+		//CombatData* combatData=nullptr;
+		CombatData combatData;
 		int inventoryId=0;
-		engone::Animator animator;
 	};
 	struct ObjectItemInfo {
 		Item item;
 	};
+	struct ObjectWeaponInfo {
+		//CombatData* combatData = nullptr;
+		CombatData combatData;
+	};
 
-	class ObjectInfoRegistry : public engone::Registry {
+	// This class has a lot of repetition in it.
+	// Can it be improved? macros perhaps?
+	class ObjectInfoRegistry : public Registry {
 	public:
 		ObjectInfoRegistry() : Registry("object_info_registry","object_info_registry.dat") {}
 
@@ -25,14 +30,18 @@ namespace prounk {
 		void deserialize();
 
 		ObjectItemInfo& getItemInfo(int id);
-		ObjectPlayerInfo& getPlayerInfo(int id);
-
 		int registerItemInfo();
-		int registerPlayerInfo();
+		
+		ObjectCreatureInfo& getCreatureInfo(int id);
+		int registerCreatureInfo();
+		
+		ObjectWeaponInfo& getWeaponInfo(int id);
+		int registerWeaponInfo();
 
 	private:
 		// this will be serialized
-		std::vector<ObjectPlayerInfo> m_playerInfos;
+		std::vector<ObjectCreatureInfo> m_creatureInfos;
 		std::vector<ObjectItemInfo> m_itemInfos;
+		std::vector<ObjectWeaponInfo> m_weaponInfos;
 	};
 }

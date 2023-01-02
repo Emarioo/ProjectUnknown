@@ -63,17 +63,19 @@
     <ClInclude Include="include\Engone\ModuleDefs.h" />
     <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
-    <ClInclude Include="include\Engone\Registries\MasterRegistry.h" />
-    <ClInclude Include="include\Engone\Registries\ObjectRegistry.h" />
-    <ClInclude Include="include\Engone\Registries\WorldRegistry.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
+    <ClInclude Include="include\Engone\Utilities\LinkedArray.h" />
+    <ClInclude Include="include\Engone\Utilities\StableArray.h" />
+    <ClInclude Include="include\Engone\Utilities\EngoneInfo.h" />
     <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
+    <ClInclude Include="include\Engone\Utilities\HashMap.h" />
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h" />
     <ClInclude Include="include\Engone\Utilities\LoggingModule.h" />
     <ClInclude Include="include\Engone\Utilities\LogLevels.h" />
     <ClInclude Include="include\Engone\Utilities\RandomUtility.h" />
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
+    <ClInclude Include="include\Engone\Utilities\Stack.h" />
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
     <ClInclude Include="include\Engone\Utilities\Tracker.h" />
     <ClInclude Include="include\Engone\World\EngineWorld.h" />
@@ -103,12 +105,13 @@
     <ClInclude Include="include\Engone\pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\Engone\Utilities\StableArray.cpp" />
+    <ClCompile Include="include\Engone\Utilities\Stack.cpp" />
     <ClCompile Include="src\Engone\Assets\Animator.cpp" />
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\EngineWorld.cpp" />
-    <ClCompile Include="src\Engone\Registries\MasterRegistry.cpp" />
-    <ClCompile Include="src\Engone\Registries\ObjectRegistry.cpp" />
+    <ClCompile Include="src\Engone\Utilites\HashMap.cpp" />
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp" />
     <ClCompile Include="src\Engone\Utilites\Alloc.cpp" />
     <ClCompile Include="src\Engone\Application.cpp" />

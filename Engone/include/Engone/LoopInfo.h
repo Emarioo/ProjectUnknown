@@ -5,9 +5,9 @@ namespace engone {
 	class Window;
 	// timeStep, app, window, interpolation
 	struct LoopInfo {
-		float timeStep;
-		Application* app;
-		Window* window;
-		float interpolation;
+		double timeStep=0;
+		Application* app=nullptr;
+		Window* window=nullptr;
+		double interpolation=0;
 	};
 }

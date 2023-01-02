@@ -45,7 +45,7 @@ namespace engone {
 		uint32_t getSize() const { return m_size; }
 
 	protected:
-		uint32_t m_size;
+		uint32_t m_size = 0;
 	};
 
 	class VertexBuffer : public GLBuffer {
@@ -107,7 +107,7 @@ namespace engone {
 		void drawPoints(int count, int bindingIndex);
 
 	private:
-		uint32_t m_vaId;
+		uint32_t m_vaId = 0;
 	};
 	class VertexArray : public GLObject {
 	public:

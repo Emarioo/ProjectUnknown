@@ -94,9 +94,11 @@
     <ClCompile Include="src\ProUnk\Combat\Combat.cpp" />
     <ClCompile Include="src\ProUnk\Combat\CombatData.cpp" />
     <ClCompile Include="src\ProUnk\Combat\Skills.cpp" />
+    <ClCompile Include="src\ProUnk\Dimension.cpp" />
+    <ClCompile Include="src\ProUnk\Registries\ComplexDataRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ItemTypeRegistry.cpp" />
-    <ClCompile Include="src\ProUnk\Registries\EntityRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\InventoryRegistry.cpp" />
+    <ClCompile Include="src\ProUnk\Registries\MasterRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ModelRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ObjectInfoRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\RecipeRegistry.cpp" />
@@ -104,13 +106,14 @@
     <ClCompile Include="src\ProUnk\Magic.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
+    <ClCompile Include="src\ProUnk\Session.cpp" />
+    <ClCompile Include="src\ProUnk\UI\CheatPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\CraftingPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\InventoryPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\InvUtility.cpp" />
     <ClCompile Include="src\ProUnk\UI\MasterInventoryPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\PanelHandler.cpp" />
     <ClCompile Include="src\ProUnk\UI\PlayerBarPanel.cpp" />
-    <ClCompile Include="src\ProUnk\World.cpp" />
     <ClCompile Include="src\ProUnk\Objects\BasicObjects.cpp" />
     <ClCompile Include="src\ProUnk\Objects\Tags.cpp" />
     <ClCompile Include="src\ProUnk\pch.cpp">
@@ -121,21 +124,24 @@
     <ClCompile Include="src\ProUnk\Test\DataHandlerTest.cpp" />
     <ClCompile Include="src\ProUnk\UI\DebugInfo.cpp" />
     <ClCompile Include="src\ProUnk\UI\IntroScene.cpp" />
-    <ClCompile Include="src\ProUnk\UI\PlayerInformation.cpp" />
     <ClCompile Include="src\ProUnk\UI\UITest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
-    <ClInclude Include="include\ProUnk\Registries\EntityRegistry.h" />
+    <ClInclude Include="include\ProUnk\Dimension.h" />
+    <ClInclude Include="include\ProUnk\Registries\ComplexDataRegistry.h" />
+    <ClInclude Include="include\ProUnk\Registries\MasterRegistry.h" />
+    <ClInclude Include="include\ProUnk\Registries\ObjectRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\RecipeRegistry.h" />
+    <ClInclude Include="include\ProUnk\Session.h" />
+    <ClInclude Include="include\ProUnk\UI\CheatPanel.h" />
     <ClInclude Include="include\ProUnk\UI\CraftingPanel.h" />
     <ClInclude Include="include\ProUnk\UI\InventoryPanel.h" />
     <ClInclude Include="include\ProUnk\UI\InvUtility.h" />
     <ClInclude Include="include\ProUnk\UI\MasterInventoryPanel.h" />
     <ClInclude Include="include\ProUnk\UI\PanelHandler.h" />
     <ClInclude Include="include\ProUnk\UI\PlayerBarPanel.h" />
-    <ClInclude Include="include\ProUnk\World.h" />
     <ClInclude Include="include\ProUnk\Objects\BasicObjects.h" />
     <ClInclude Include="include\ProUnk\Tests\AllTests.h" />
     <ClInclude Include="include\ProUnk\UI\PlayerInformation.h" />

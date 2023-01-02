@@ -6,7 +6,7 @@
 #include "Engone/LoopInfo.h"
 #include "Engone/Utilities/RandomUtility.h"
 
-#include "Engone/Registries/MasterRegistry.h"
+//#include "Engone/Registries/MasterRegistry.h"
 
 namespace engone {
 	//class EngineWorld;

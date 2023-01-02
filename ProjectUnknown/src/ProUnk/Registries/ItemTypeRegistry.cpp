@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProUnk/DataRegistries/ItemTypeRegistry.h"
+#include "ProUnk/Registries/ItemTypeRegistry.h"
 
 namespace prounk {
 
@@ -47,7 +47,7 @@ namespace prounk {
 	const ItemTypeInfo* ItemTypeRegistry::getType(const std::string& name) {
 		auto find = m_nameTypes.find(name);
 		if (find != m_nameTypes.end()) {
-			ItemTypeInfo& entry = m_itemTypes[find->second];
+			ItemTypeInfo& entry = m_itemTypes[find->second-1];
 			return &entry;
 		}
 		return nullptr;
@@ -62,13 +62,35 @@ namespace prounk {
 		return true;
 
 	}
+	// takes registered name and turns it into display name
+	std::string GenerateDisplayName(const std::string& name) {
+		std::string out;
+		out.reserve(name.length());
+		bool capital = true;
+		for (int i = 0; i < name.length();i++) {
+			char chr = name[i];
+			if (chr == '_') {
+				out += ' ';
+				capital = true;
+			}else if(capital) {
+				capital = false;
+				out += (chr - 'a' + 'A'); // lower case is assumed
+			} else {
+				out += chr;
+			}
+		}
+		return out;
+	}
 	ItemType ItemTypeRegistry::registerType(const std::string& name, ModelId modelId) {
+		return registerType(name, modelId, GenerateDisplayName(name));
+	}
+	ItemType ItemTypeRegistry::registerType(const std::string& name, ModelId modelId, const std::string& displayName) {
 		using namespace engone;
 		if (name.empty()) {
 			log::out << log::RED << "ItemTypeRegistry - Cannot register '"<<name<<"' (empty string)\n";
 			return 0;
 		}
-		if (IsNameValid(name.c_str())) {
+		if (!IsNameValid(name.c_str())) {
 			log::out << log::RED << "ItemTypeRegistry - Cannot register '" << name << "' (only 'a' to 'z' and '_' are allowed)\n";
 			return 0;
 		}
@@ -93,7 +115,10 @@ namespace prounk {
 			m_itemTypes.push_back({});
 			m_itemTypes.back().itemType = itemType;
 			m_itemTypes.back().name = name;
+			m_itemTypes.back().displayName = displayName;
 			m_itemTypes.back().modelId = modelId;
+			
+			m_nameTypes[name] = itemType;
 
 			log::out << "Registered NEW ItemType '" << name << "' as " << itemType << "\n";
 
@@ -101,6 +126,7 @@ namespace prounk {
 			// found, the info is already there.
 			// you may want to load more info into ItemTypeInfo.
 			log::out << log::RED << "ItemType '" << name << "' already registered\n";
+			m_nameTypes[name] = itemType;
 		}
 		return itemType;
 	}

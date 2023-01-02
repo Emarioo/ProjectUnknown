@@ -23,6 +23,8 @@ namespace engone {
 		//void load(const void* bufferImg, uint32_t size, const void* bufferTxt, uint32_t size2);
 
 		float getWidth(const std::string& str, float height);
+		// \n is included
+		float getHeight(const std::string& str, float height);
 
 		Texture texture;
 		int charWid[256];

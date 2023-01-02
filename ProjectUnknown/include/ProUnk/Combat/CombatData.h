@@ -5,12 +5,16 @@
 #include "ProUnk/Combat/Skills.h"
 
 namespace prounk {
-	extern uint32_t OBJECT_HAS_COMBATDATA;
 	extern uint32_t COLLIDER_IS_DAMAGE;
 	extern uint32_t COLLIDER_IS_HEALTH;
 	class CombatData {
 	public:
 		CombatData() {}
+		enum DamageType : int {
+			NONE,
+			CONTINOUS_DAMAGE,
+			SINGLE_DAMAGE,
+		};
 
 		// useful if weapon uses combat data which is also used by player.
 		// dealDamage could then get the owner which is the player can do something with the player's rotation
@@ -24,17 +28,25 @@ namespace prounk {
 		SkillType skillType = (SkillType)0;
 
 		//-- stats
-		float totalFlatAtk = 30;
-		float totalModAtk = 1;
 		float health = 100;
 		float totalFlatMaxHealth = 100;
 		float totalModMaxHealth = 1;
+		
+		DamageType damageType = NONE;
+		float damagePerSecond=0;
+		float singleDamage=0;
+		float knockStrength = 0.1f;
 
-		bool wasUpdated = false; // temporary
+		// attack types
+		//	continous damage )damage/second)
+		//	single damage
+		//	damage at certain frames?
 
-		inline float getAttack() {
-			return totalFlatAtk * totalModAtk;
-		}
+		//bool wasUpdated = false; // temporary
+
+		//inline float getAttack() {
+		//	return totalFlatAtk * totalModAtk;
+		//}
 		inline float getMaxHealth() {
 			return totalFlatMaxHealth * totalModMaxHealth;
 		}

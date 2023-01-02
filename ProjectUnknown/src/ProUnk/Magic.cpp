@@ -15,7 +15,7 @@ namespace prounk {
 		
 		EngineObject* player = app->playerController.getPlayerObject();
 
-		FocalPoint focalPoint0(ForceTypeAttractive, player->getPosition(),ToGlmVec3(player->rigidBody->getLinearVelocity()), 5, 0, 999);
+		FocalPoint focalPoint0(ForceTypeAttractive, player->getPosition(),ToGlmVec3(player->getRigidBody()->getLinearVelocity()), 5, 0, 999);
 		focalPoint0.bind(shad,0);
 		//FocalPoint focalPoint1(ForceTypeAttractive, player->getPosition(),-2,0,3);
 		//focalPoint1.bind(shad,1);
@@ -25,7 +25,7 @@ namespace prounk {
 			//focalPoint2.bind(shad, 0);
 			//FocalPoint focalPoint4(ForceTypeField, player->getPosition(), ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 4, 2);
 			//focalPoint4.bind(shad, 3);
-			FocalPlane focalPlane0(ForceTypeField, player->getPosition(), {0,1,0}, ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 1);
+			FocalPlane focalPlane0(ForceTypeField, player->getPosition(), {0,1,0}, ToGlmVec3(player->getRigidBody()->getLinearVelocity()), 1, 1);
 			focalPlane0.bind(shad, 0);
 			//FocalPlane focalPlane1(ForceTypeField, player->getPosition() + glm::vec3(0, 5, 0), { 0,-1,0 }, ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 0, 1);
 			//focalPlane1.bind(shad, 1);

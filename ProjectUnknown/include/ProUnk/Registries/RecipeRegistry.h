@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ProUnk/DataRegistries/MasterRegistry.h"
-#include "ProUnk/DataRegistries/ItemTypeRegistry.h"
+#include "ProUnk/Registries/MasterRegistry.h"
+#include "ProUnk/Registries/ItemTypeRegistry.h"
 
 namespace prounk {
 	typedef int RecipeId;
@@ -29,9 +29,9 @@ namespace prounk {
 		friend class RecipeRegistry;
 	};
 	
-	class RecipeRegistry : public DataRegistry {
+	class RecipeRegistry : public Registry {
 	public:
-		RecipeRegistry() : DataRegistry("recipe_registry") {}
+		RecipeRegistry() : Registry("recipe_registry") {}
 	
 		void serialize() override;
 		void deserialize() override;

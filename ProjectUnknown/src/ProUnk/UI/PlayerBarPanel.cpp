@@ -2,6 +2,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/UI/InvUtility.h"
+
 namespace prounk {
 
 	void PlayerBarPanel::render(engone::LoopInfo& info) {
@@ -9,10 +11,19 @@ namespace prounk {
 		Renderer* renderer = info.window->getRenderer();
 		PlayerController* playerController = &m_app->playerController;
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
-		CombatData* combatData = playerController->m_world->entityRegistry.getEntry(playerController->getPlayerObject()->userData).combatData;
+
+		CombatData* combatData = GetCombatData(playerController->app->getActiveSession(), playerController->getPlayerObject());
+		
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();
-		float atk = combatData->getAttack();
+		float atk = 0;
+		// Todo: displaying atk of weapon here is temporary and should be removed.
+		//		It is useful for debugging so display it in some debug menu.
+		EngineObject* weapon = playerController->heldObject;
+		if (weapon) {
+			CombatData* weaponData = GetCombatData(playerController->app->getActiveSession(), weapon);
+			atk = weaponData->singleDamage;
+		}
 
 		//-- panel background
 		ui::Box area = getBox();
@@ -36,7 +47,7 @@ namespace prounk {
 
 		char str[20];
 		memset(str, 0, sizeof(str));
-		snprintf(str, 20, "%d/%d", (int)health, (int)maxHealth);
+		snprintf(str, 20, "%.2f/%.2f", health, maxHealth);
 
 		ui::TextBox healthText = { str,healthBack.x,healthBack.y,healthBack.h,consolas,{1.f,1.f,1.f,1.f} };
 		healthText.x = healthBack.x + healthBack.w / 2 - healthText.getWidth() / 2;
@@ -48,7 +59,7 @@ namespace prounk {
 
 		//char str[20];
 		memset(str, 0, sizeof(str));
-		snprintf(str, 20, "atk: %d", (int)atk);
+		snprintf(str, 20, "atk: %.2f", atk);
 
 		ui::TextBox atkText = { str,atkBack.x,atkBack.y,atkBack.h,consolas,{1.f,1.f,1.f,1.f} };
 		atkText.x = atkBack.x + atkBack.w / 2 - atkText.getWidth()/2;
@@ -62,5 +73,7 @@ namespace prounk {
 		if (maxWidth < atkWidth)
 			maxWidth = atkWidth;
 		setMinWidth(maxWidth);
+
+		DrawToolTip(area.x + area.w, area.y, 20, 20, "Hello, random tooltip here.");
 	}
 }

@@ -58,16 +58,14 @@ namespace engone {
 			log::out << "Window isn't mapped\n";
 			return;
 		}
-		if (win->m_readIndex != 0) {
-			for (uint32_t i = win->m_readIndex; i < win->m_charCount; ++i)
-				win->m_charArray[i - win->m_readIndex] = win->m_charArray[win->m_readIndex];
-			win->m_charCount = win->m_charCount - win->m_readIndex;
-			win->m_readIndex = 0;
-			ZeroMemory(win->m_charArray + win->m_charCount, Window::CHAR_ARRAY_SIZE - win->m_charCount);
+		if (win->m_charIn == win->m_charOut && !win->m_emptyCharArray) {
+			log::out << log::RED << "CharCallback : m_charArray["<<Window::CHAR_ARRAY_SIZE<<"] of Window is full, skipping "<<chr<<" (increase size to prevent this).\n";
+			return; // list is full
 		}
-		if (win->m_charCount < Window::CHAR_ARRAY_SIZE) {
-			win->m_charArray[win->m_charCount++] = chr;
-		}
+
+		win->m_charArray[win->m_charIn] = chr;
+		win->m_charIn = (win->m_charIn+1)% Window::CHAR_ARRAY_SIZE;
+		win->m_emptyCharArray = false;
 	}
 	void DropCallback(GLFWwindow* window, int count, const char** paths) {
 		Window* win = GetMappedWindow(window);
@@ -112,7 +110,7 @@ namespace engone {
 		win->setMouseY((float)my);
 		win->setInput(button, action != 0);
 
-		//log::out << "click " << button << "\n";
+		//log::out << "click " << button << " " <<action<< "\n";
 
 		Event e{ EventClick };
 		e.button = button;
@@ -252,7 +250,7 @@ namespace engone {
 		if (detail.h == -1) h = (float)vidmode->height / 1.5f;
 		else h = (float)detail.h;
 
-		m_firstPersonListener = new Listener(EventMove, 9998, FirstPerson);
+		m_firstPersonListener = ALLOC_NEW(Listener)(EventMove, 9998, FirstPerson);
 		attachListener(m_firstPersonListener);
 
 		setMode(detail.mode,true);
@@ -273,10 +271,12 @@ namespace engone {
 		for (Listener* l : m_listeners) {
 			if (l->m_ownedByWindow) {
 				GetTracker().untrack(l);
-				delete l;
+				//delete l;
+				ALLOC_DELETE(Listener, l);
 			}
 		}
-		delete m_firstPersonListener;
+		ALLOC_DELETE(Listener, m_firstPersonListener);
+		//delete m_firstPersonListener;
 		m_firstPersonListener = nullptr;
 		//log::out << "deleted window\n";
 
@@ -401,12 +401,14 @@ namespace engone {
 		return path;
 	}
 	uint32_t Window::pollChar() {
-		if (m_readIndex < CHAR_ARRAY_SIZE) {
-			if (m_charArray[m_readIndex] != 0) {
-				return m_charArray[m_readIndex++];
-			}
-		}
-		return 0;
+		if (m_charIn == m_charOut)
+			return 0;
+		
+		uint32_t chr = m_charArray[m_charOut];
+		m_charOut = (m_charOut + 1) % CHAR_ARRAY_SIZE;
+		if (m_charIn == m_charOut)
+			m_emptyCharArray = true;
+		return chr;
 	}
 	bool Window::isKeyDown(int code) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
