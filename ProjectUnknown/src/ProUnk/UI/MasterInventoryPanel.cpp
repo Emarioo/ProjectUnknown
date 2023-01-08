@@ -10,7 +10,8 @@ namespace prounk {
 	}
 	void MasterInventoryPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		Renderer* renderer = info.window->getRenderer();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
 
 		if (!m_heldItem.getType())

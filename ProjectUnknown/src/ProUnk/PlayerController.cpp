@@ -14,10 +14,34 @@ namespace prounk {
 	PlayerController::PlayerController() {
 		
 	}
+	void PlayerController::setPlayerObject(engone::UUID player) {
+		m_playerId = player;
+
+		setFlight(true);
+	}
 	void PlayerController::setPlayerObject(engone::EngineObject* player) {
 		m_player = player;
 
 		setFlight(true);
+	}
+	engone::EngineObject* PlayerController::requestPlayer() {
+		Dimension* dim = app->getActiveSession()->getDimension("0");
+		engone::EngineObject* plr = dim->getWorld()->requestAccess(m_playerId);
+		return plr;
+	}
+	void PlayerController::releasePlayer(engone::EngineObject* plr) {
+		Dimension* dim = app->getActiveSession()->getDimension("0");
+		dim->getWorld()->releaseAccess(plr);
+	}
+	engone::EngineObject* PlayerController::requestHeldObject() {
+		Dimension* dim = app->getActiveSession()->getDimension("0");
+		engone::EngineObject* held = dim->getWorld()->requestAccess(heldObjectId);
+		return held;
+	}
+	void PlayerController::releaseHeldObject(engone::EngineObject* held) {
+		if (!held) return;
+		Dimension* dim = app->getActiveSession()->getDimension("0");
+		dim->getWorld()->releaseAccess(held);
 	}
 	void PlayerController::update(engone::LoopInfo& info) {
 		//animator.update(info.timeStep);
@@ -25,14 +49,40 @@ namespace prounk {
 		Movement(info);
 		WeaponUpdate(info);
 	}
+	void PlayerController::setDead(bool yes) {
+		engone::EngineObject* plr = requestPlayer();
+		if (plr) {
+			if (yes)
+				plr->setFlags(plr->getFlags() | OBJECT_IS_DEAD);
+			else
+				plr->setFlags(plr->getFlags() & (~OBJECT_IS_DEAD));
+		}
+		releasePlayer(plr);
+	}
+	bool PlayerController::isDead() {
+		engone::EngineObject* plr = requestPlayer();
+		bool yes = false;
+		if (plr) {
+			yes = plr->getFlags() & OBJECT_IS_DEAD;
+			releasePlayer(plr);
+		}
+		return yes;
+	}
 	void PlayerController::WeaponUpdate(engone::LoopInfo& info) {
 		using namespace engone;
 
+		EngineObject* plr = getPlayerObject();
+		if (!plr)
+			return;
 		// first slot in inventory is the held weapon.
-		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(m_player->getObjectInfo());
+		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
 		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryId);
 
 		Dimension* dim = app->getActiveSession()->getDimensions()[0];
+
+		//EngineObject* heldObject = requestHeldObject();
+
+		
 
 		if (inv->getSlotSize() != 0) {
 			auto& item = inv->getItem(0);
@@ -53,6 +103,7 @@ namespace prounk {
 						// create new object
 						heldObject = CreateWeapon(dim, item);
 						heldObject->setOnlyTrigger(true);
+						//releaseHeldObject(heldObject);
 					}
 					// damage in combat data is set when doing a skill
 				}
@@ -64,7 +115,10 @@ namespace prounk {
 
 		// maintain held object at right position
 
-		if (!heldObject) return;
+		if (!heldObject) {
+			
+			return;
+		}
 		if (m_player->getFlags() & OBJECT_IS_DEAD) {
 			heldObject->setOnlyTrigger(false);
 			return;
@@ -130,11 +184,9 @@ namespace prounk {
 	//	if (heldObject) {
 	//		heldObject->setOnlyTrigger(false);
 	//		m_world->netEditObject(heldObject->getUUID(), 0, false);
-
 	//		//heldWeapon->rigidBody->enableGravity(weaponState.gravity);
 	//		//heldWeapon->rigidBody->setLinearVelocity(ToRp3dVec3(weaponState.sampledVelocity()));
 	//		//weaponState.reset();
-
 	//		SetCombatData(m_player, heldObject, false);
 	//		m_world->netEditCombatData(heldObject->getUUID(), m_player->getUUID(), false);
 	//		//if (heldWeapon->rigidBody->getNbColliders() != 0) {
@@ -143,18 +195,15 @@ namespace prounk {
 	//		//	heldWeapon->userData = nullptr;
 	//		//}
 	//		//	//ground->netEditObject(heldWeapon->getUUID(), 1, 0, );
-
 	//		heldObject = nullptr;
 	//	}
 	//	if (!weapon) return; // we just wanted to get rid of the weapon.
 	//	//weaponState.reset();
-
 	//	// destroy joint to previous weapon.
 	//	heldObject = weapon;
 	//	// collider should exist for now
 	//	SetCombatData(m_player, heldObject, true);
 	//	m_world->netEditCombatData(heldObject->getUUID(), m_player->getUUID(), true);
-
 	//	//if (heldWeapon->rigidBody->getNbColliders() != 0) {
 	//	//	heldWeapon->rigidBody->getCollider(0)->setUserData((void*)COLLIDER_IS_DAMAGE);
 	//	//	heldWeapon->flags |= OBJECT_HAS_COMBATDATA;
@@ -163,14 +212,10 @@ namespace prounk {
 	//	//	
 	//	//}
 	//	//weaponState.gravity = weapon->rigidBody->isGravityEnabled();
-
 	//	std::vector<glm::mat4> transforms = m_player->getModel()->getParentTransforms(nullptr);
-
 	//	rp3d::Vector3 anchor;
 	//	rp3d::Transform swordTrans;
-
 	//	glm::mat4 modelMatrix = ToMatrix(m_player->getRigidBody()->getTransform());
-
 	//	AssetInstance* inst = nullptr;
 	//	ArmatureAsset* arm = nullptr;
 	//	glm::mat4 instMat;
@@ -186,16 +231,13 @@ namespace prounk {
 	//		std::vector<glm::mat4> baseBoneMats;
 	//		std::vector<glm::mat4> boneMats = m_player->getModel()->getArmatureTransforms(m_player->getAnimator(), instMat, inst, arm, &baseBoneMats);
 	//		Bone& lastBone = arm->bones.back();
-
 	//		glm::mat4 gripMat = baseBoneMats.back();
 	//		anchor = ToRp3dVec3(gripMat[3]);
 	//		swordTrans = ToTransform(modelMatrix * gripMat);
 	//	}
-
 	//	rp3d::Vector3 baseVec;
 	//	weapon->setOnlyTrigger(true);
 	//	m_world->netEditObject(weapon->getUUID(), 0, true);
-
 	//	//heldWeapon->rigidBody->setAngularVelocity(rigidBody->getAngularVelocity());
 	//	//heldWeapon->rigidBody->setLinearVelocity(rigidBody->getLinearVelocity());
 	//	//weapon->rigidBody->resetForce();
@@ -210,25 +252,20 @@ namespace prounk {
 	//		return 1.0;
 	//	if (object->getObjectType() != OBJECT_ITEM)
 	//		return 1.0;
-
 	//	auto& itemInfo = app->getActiveSession()->objectInfoRegistry.getItemInfo(object->getObjectInfo());
 	//	if (!itemInfo.item.getType())
 	//		return 1.0;
-
 	//	auto& dims = app->getActiveSession()->getDimensions();
 	//	if (dims.size() == 0)
 	//		return 1.0;
-
 	//	auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(m_player->getObjectInfo());
 	//	Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryId);
-
 	//	bool transferred = inv->transferItem(itemInfo.item);
 	//	
 	//	if (transferred) {
 	//		// delete item object if succefully added to inventory
 	//		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
 	//		EngineWorld* world = dim->getWorld();
-
 	//		DeleteObject(dim, object); // careful with memory leaks. functions is not complete
 	//	}
 	//	return 0.0; // we are done with raycast.
@@ -237,7 +274,12 @@ namespace prounk {
 		using namespace engone;
 		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(m_player->getObjectInfo());
 		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryId);
-		Camera* camera = engone::GetActiveWindow()->getRenderer()->getCamera();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		if (!renderer) {
+			log::out << log::RED << "PlayerController::getSeenObject : renderer is null\n";
+			return nullptr;
+		}
+		Camera* camera = renderer->getCamera();
 
 		auto& dims = app->getActiveSession()->getDimensions();
 		if (dims.size() == 0)
@@ -304,7 +346,7 @@ namespace prounk {
 		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(m_player->getObjectInfo());
 		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryId);
 
-		if (inv->getSlotSize() > slotIndex)
+		if (inv->getSlotSize() <=slotIndex)
 			return;
 
 		Item& item = inv->getItem(slotIndex);
@@ -316,6 +358,7 @@ namespace prounk {
 			return;
 		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
 
+		auto heldObject = requestHeldObject();
 		auto object = CreateItem(dim,item);
 		item = Item(); // clear slot
 		if (heldObject) {
@@ -323,6 +366,7 @@ namespace prounk {
 		} else {
 			object->setPosition(m_player->getPosition());
 		}
+		releaseHeldObject(heldObject);
 	}
 	void PlayerController::dropAllItems() {
 		using namespace engone;
@@ -333,7 +377,7 @@ namespace prounk {
 		if (dims.size() == 0)
 			return;
 		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
-
+		auto heldObject = requestHeldObject();
 		if (heldObject) {
 			if (inv->getSlotSize() != 0) {
 				Item& item = inv->getItem(0);
@@ -354,6 +398,7 @@ namespace prounk {
 
 			}
 		}
+		releaseHeldObject(heldObject);
 		for (int i = 0; i < inv->getSlotSize();i++) {
 			Item& item = inv->getItem(i);
 			if (item.getType() == 0)
@@ -378,12 +423,13 @@ namespace prounk {
 	void PlayerController::performSkills(engone::LoopInfo& info) {
 		using namespace engone;
 		CombatData* weaponCombat = nullptr;
+		//auto heldObject = requestHeldObject();
 		if (heldObject)
 			weaponCombat = GetCombatData(app->getActiveSession(), heldObject);
 
 		if (!weaponCombat)
 			return;
-
+		//releaseHeldObject(heldObject);
 		//log::out << "frame: " <<m_player->getAnimator()->enabledAnimations[0].frame << "\n";
 
 		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
@@ -393,6 +439,7 @@ namespace prounk {
 				Inventory* inv = getInventory();
 				Item& firstItem = inv->getItem(0);
 
+
 				ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
 				if (complexData) { // cannot attack without data
 					ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
@@ -400,7 +447,13 @@ namespace prounk {
 					weaponCombat->singleDamage = complexData->get(atkProperty);
 					weaponCombat->knockStrength = complexData->get(knockProperty);
 
+					char buffer[15];
+					snprintf(buffer,sizeof(buffer), "%.1f", weaponCombat->singleDamage);
 					// other things
+					glm::vec4 color = { GetRandom(),GetRandom(),GetRandom(),1 };
+					//glm::vec4 color = {1, 0.1, 0.05, 1};
+					app->visualEffects.addDamageNumber(buffer,heldObject->getPosition(), color);
+					
 					weaponCombat->skillType = SKILL_SLASH;
 					weaponCombat->attack();
 					m_player->getAnimator()->enable("Player", "PlayerDownSwing", { false,1,1,0 });
@@ -499,16 +552,21 @@ namespace prounk {
 		
 		if (m_player->getRigidBody() && !isDead()) {
 			glm::vec3 pos = m_player->getPosition();
-			Camera* cam = info.window->getRenderer()->getCamera();
-			//glm::mat4 camMat = glm::translate(pos + camOffset);
-			glm::vec3 camPos = pos + camOffset - cam->getLookVector()*zoom;
-			//if (zoom != 0) {
-			//	camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) 
-			//		* glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) 
-			//		* glm::translate(glm::vec3(0, 0, zoom));
-			//}
-			//cam->setPosition(camMat[3]);
-			cam->setPosition(camPos);
+			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			if (!renderer) {
+				log::out << log::RED << "PlayerController::render : renderer is null\n";
+			} else {
+				Camera* cam = renderer->getCamera();
+				//glm::mat4 camMat = glm::translate(pos + camOffset);
+				glm::vec3 camPos = pos + camOffset - cam->getLookVector() * zoom;
+				//if (zoom != 0) {
+				//	camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) 
+				//		* glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) 
+				//		* glm::translate(glm::vec3(0, 0, zoom));
+				//}
+				//cam->setPosition(camMat[3]);
+				cam->setPosition(camPos);
+			}
 		}
 	}
 	void PlayerController::Movement(engone::LoopInfo& info) {
@@ -516,7 +574,8 @@ namespace prounk {
 
 		Window* window = engone::GetActiveWindow();
 		if (!window) return;
-		Renderer* renderer = window->getRenderer(); // if window is valid, render and camera should as well. BUT i may change somethings which would break this assumption. So i'll keep it.
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = window->getRenderer(); // if window is valid, render and camera should as well. BUT i may change somethings which would break this assumption. So i'll keep it.
 		if (!renderer) return;
 		Camera* camera = renderer->getCamera();
 		if (!camera) return;

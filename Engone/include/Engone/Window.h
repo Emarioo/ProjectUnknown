@@ -55,7 +55,10 @@ namespace engone {
 
 		inline Application* getParent() { return m_parent; }
 		inline AssetStorage* getStorage() { return &m_storage; }
-		inline Renderer* getRenderer() { return &m_renderer; }
+		//inline Renderer* getRenderer() { return &m_renderer; }
+		inline RenderPipeline* getPipeline() {
+			return &m_renderPipeline;
+		}
 
 		// Window will not destroy listener. Should it?
 		void attachListener(Listener* listener);
@@ -114,7 +117,8 @@ namespace engone {
 		Application* m_parent=nullptr;
 		//Assets m_assets;
 		AssetStorage m_storage;
-		Renderer m_renderer;
+		//Renderer m_renderer;
+		RenderPipeline m_renderPipeline;
 		std::vector<Listener*> m_listeners;
 		std::vector<Event> m_events;
 		std::vector<EventInput> m_inputs;

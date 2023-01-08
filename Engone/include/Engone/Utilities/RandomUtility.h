@@ -31,7 +31,7 @@ namespace engone {
 		bool operator!=(const UUID& uuid) const;
 
 		// only intended for 0.
-		UUID(const int num);
+		UUID(const int zero);
 
 		// fullVersion as true will return the whole 16 bytes
 		// otherwise the first 8 will be returned
@@ -49,7 +49,7 @@ namespace engone {
 template<>
 struct std::hash<engone::UUID> {
 	std::size_t operator()(const engone::UUID& u) const {
-		return std::hash<uint64_t>{}(u.data[0]) ^ (std::hash<uint64_t>{}(u.data[1]) << 1);
+		return std::hash<uint64_t>{}(u.data[0]) ^ (std::hash<uint64_t>{}(u.data[1]));
 	}
 };
 #endif // ENGONE_RANDOMUTIL_GUARD

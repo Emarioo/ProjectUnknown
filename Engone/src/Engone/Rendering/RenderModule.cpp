@@ -5,7 +5,7 @@
 #include "Engone/EventModule.h"
 
 #include "Engone/Engone.h"
-
+#ifdef gone
 static const char* uiPipelineGLSL = {
 #include "Engone/Shaders/uiPipeline.glsl"
 };
@@ -241,6 +241,9 @@ namespace engone {
 		float ratio = GetWidth() / GetHeight();
 		if (isfinite(ratio))
 			projMatrix = glm::perspective(fov, ratio, zNear, zFar);
+	}
+	glm::mat4& Renderer::getProjection() {
+		return projMatrix;
 	}
 	void Renderer::setOrthogonal() {
 		//float ratio = GetWidth() / GetHeight();
@@ -904,12 +907,6 @@ namespace engone {
 	static int min(int a, int b) {
 		return a < b ? a : b;
 	}
-	Renderer* GetActiveRenderer() {
-		return g_activeRenderer;
-	}
-	void Renderer::setActiveRenderer() {
-		g_activeRenderer = this;
-	}
 	void Renderer::render(LoopInfo& info) {
 		GLFWwindow* match = glfwGetCurrentContext();
 		//log::out << "Win:"<<info.window << "\n";
@@ -1369,3 +1366,4 @@ namespace engone {
 		//modelObjects.clear();
 	}
 }
+#endif

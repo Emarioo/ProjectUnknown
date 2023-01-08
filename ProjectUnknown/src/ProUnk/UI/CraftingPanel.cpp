@@ -10,7 +10,8 @@ namespace prounk {
 
 	void CraftingPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		Renderer* renderer = info.window->getRenderer();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = info.window->getRenderer();
 		//Session* session = m_app->getActiveSession();
 
 		//Inventory* inv = world->InventoryRegistry.getInventory(m_inventoryId);
@@ -59,6 +60,7 @@ namespace prounk {
 				}
 			}
 		}
+		DrawToolTip(area.x + area.w, area.y, 20, 20, "This is Crafting");
 	}
 	void CraftingPanel::setInventory(int inventoryId) {
 		m_inventoryId = inventoryId;

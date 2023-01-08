@@ -882,29 +882,4 @@ namespace engone {
 #pragma warning(pop)
 	}
 
-	void DepthMutex::lock() {
-		//m_internalMutex.lock();
-		//if (m_threadId == std::this_thread::get_id()) {
-		//	depth++;
-		//} else {
-			m_mutex.lock();
-			//m_internalMutex.lock();
-			//m_threadId = std::this_thread::get_id();
-			//depth++;
-			//m_internalMutex.unlock();
-		//}
-		//m_internalMutex.unlock();
-	}
-	void DepthMutex::unlock() {
-		//if (m_threadId == std::this_thread::get_id()) {
-		//	depth--;
-		//} else {
-		//	if (depth != 0) {
-				//m_internalMutex.lock();
-				//depth--;
-		m_mutex.unlock();
-				//m_internalMutex.unlock();
-			//}
-		//}
-	}
 }

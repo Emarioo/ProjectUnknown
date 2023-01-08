@@ -3,11 +3,37 @@
 #include "Engone/World/EngineWorld.h"
 
 namespace engone {
-	EngineObject::EngineObject() : m_uuid(UUID::New()) {}
-	EngineObject::EngineObject(UUID uuid) : m_uuid(uuid != 0 ? uuid : UUID::New()) { }
-	//EngineObject::~EngineObject() {
+	EngineObject::~EngineObject() {
+		cleanup();
+	}
+	void EngineObject::cleanup() {
+		if (m_rigidBody)
+			m_world->getPhysicsWorld()->destroyRigidBody(m_rigidBody);
+		removeAnimator();
+	}
+	void EngineObject::init(EngineWorld* world, UUID uuid) {
+		if (!world) {
+			log::out << log::RED << "EngineObject : World is null\n";
+			return;
+		}
+		m_world = world;
+		if (uuid == 0)
+			m_uuid = UUID::New();
+		else
+			m_uuid = uuid;
 
-	//}
+		if (!world->getPhysicsWorld()) {
+			log::out << log::RED << "EngineObject : Physics world is null\n";
+			return;
+		}
+		rp3d::Transform t;
+		m_rigidBody = world->getPhysicsWorld()->createRigidBody(t); // PHYSICS WORLD DOES NOT HAVE MUTEX, DANGEROUS
+		if (!m_rigidBody) {
+			log::out << log::RED << "EngineObject : RigidBody is null\n";
+			return;
+		}
+		m_rigidBody->setUserData(this);
+	}
 
 	void EngineObject::setOnlyTrigger(bool yes) {
 		if (!m_rigidBody)
@@ -40,7 +66,6 @@ namespace engone {
 			}
 			if (m_animator)
 				m_animator->cleanup(); // cleanup instead of delete since you may still want an animator if you change the models
-				//delete m_animator;
 			m_modelAsset = nullptr;
 		}
 
@@ -61,8 +86,10 @@ namespace engone {
 		return m_animator;
 	}
 	void EngineObject::removeAnimator() {
-		ALLOC_DELETE(Animator, m_animator);
-		m_animator = nullptr;
+		if (m_animator) {
+			ALLOC_DELETE(Animator, m_animator);
+			m_animator = nullptr;
+		}
 	}
 	Animator* EngineObject::createAnimator() {
 		if (m_animator) {
@@ -91,7 +118,11 @@ namespace engone {
 	int EngineObject::getFlags() {
 		return m_flags;
 	}
-	void EngineObject::loadColliders(EngineWorld* world) {
+	void EngineObject::loadColliders() {
+		if (!m_world) {
+			log::out << log::RED << "EngineObject : Cannot load colliders when world is null\n";
+			return;
+		}
 		if (!m_modelAsset) {
 			log::out << log::RED << "EngineObject : Cannot load colliders when modelAsset is null\n";
 			return;
@@ -100,7 +131,7 @@ namespace engone {
 			log::out << log::RED << "EngineObject : Cannot load colliders when rigidBody is null\n";
 			return;
 		}
-		if (!m_modelAsset->valid() || world == nullptr) {
+		if (!m_modelAsset->valid()) {
 			m_flags |= PENDING_COLLIDERS; // try again in update loop of engine.
 			return;
 		}
@@ -125,7 +156,7 @@ namespace engone {
 					scale.x *= matScale.x;
 					scale.y *= matScale.y;
 					scale.z *= matScale.z;
-					shape = world->getPhysicsCommon()->createHeightFieldShape(asset->map.gridColumns,
+					shape = m_world->getPhysicsCommon()->createHeightFieldShape(asset->map.gridColumns,
 						asset->map.gridRows, asset->map.minHeight, asset->map.maxHeight,
 						asset->map.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
 						1, 1, *(rp3d::Vector3*)&scale);
@@ -136,17 +167,17 @@ namespace engone {
 					scale.x *= matScale.x;
 					scale.y *= matScale.y;
 					scale.z *= matScale.z;
-					shape = world->getPhysicsCommon()->createBoxShape(scale);
+					shape = m_world->getPhysicsCommon()->createBoxShape(scale);
 				} else if (asset->colliderType == ColliderAsset::CapsuleType) {
 					float realHeight = asset->capsule.height - asset->capsule.radius * 2;
 					realHeight *= matScale.y;
 					float radius = asset->capsule.radius;
 					radius *= (matScale.x + matScale.z) / 2;
-					shape = world->getPhysicsCommon()->createCapsuleShape(radius, realHeight);
+					shape = m_world->getPhysicsCommon()->createCapsuleShape(radius, realHeight);
 				} else if (asset->colliderType == ColliderAsset::SphereType) {
 					float radius = asset->sphere.radius;
 					radius *= (matScale.x + matScale.y + matScale.z) / 3.f;
-					shape = world->getPhysicsCommon()->createSphereShape(radius);
+					shape = m_world->getPhysicsCommon()->createSphereShape(radius);
 				}
 
 				m_rigidBody->addCollider(shape, tr);

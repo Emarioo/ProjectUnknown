@@ -3,8 +3,6 @@
 #include "Engone/Engone.h"
 #include "Objects/BasicObjects.h"
 
-//#include "ProUnk/World.h"
-
 #include "Engone/ParticleModule.h"
 
 #include "ProUnk/Combat/CombatData.h"
@@ -12,11 +10,15 @@
 #include "ProUnk/PlayerController.h"
 #include "ProUnk/Registries/InventoryRegistry.h"
 
+#include "ProUnk/UI/MasterInventoryPanel.h"
 #include "ProUnk/UI/InventoryPanel.h"
 #include "ProUnk/UI/PlayerBarPanel.h"
-#include "ProUnk/UI/MasterInventoryPanel.h"
+#include "ProUnk/UI/CraftingPanel.h"
+#include "ProUnk/UI/CheatPanel.h"
 
-#include "ProUnk/Session.h"
+#include "ProUnk/World/Session.h"
+
+#include "ProUnk/Effects/VisualEffects.h"
 
 namespace prounk {
 
@@ -54,17 +56,22 @@ namespace prounk {
 		PlayerController playerController;
 
 		PanelHandler panelHandler;
-		
-		MasterInventoryPanel* masterInventoryPanel=nullptr;
+
+		MasterInventoryPanel* masterInventoryPanel = nullptr;
+		InventoryPanel* inventoryPanel = nullptr;
+		PlayerBarPanel* playerBarPanel = nullptr;
+		CheatPanel* cheatPanel = nullptr;
+		//CraftingPanel craftingPanel=nullptr;
 
 		engone::DelayCode delayed;
 
 		//inline World* getWorld() override { return (World*)Application::getWorld(); }
 		//inline void setWorld(World* world) { Application::setWorld(world); }
 
-		Session* m_session=nullptr;
+		Session* m_session = nullptr;
 		Session* getActiveSession();
 
+		void panelInput(engone::LoopInfo& info);
 		void createPanels();
 
 		void registerItems();
@@ -74,14 +81,46 @@ namespace prounk {
 			partRequested = true; requestPos = pos;
 		}
 
+		//std::unordered_map<std::string, bool>& getStates() {
+		//	return m_stateMap;
+		//}
+		//void setState(const std::string& name, bool yes) {
+		//	m_stateMap[name] = yes;
+		//}
+		//bool getState(const std::string& name) {
+		//	return m_stateMap[name];
+		//}
+		// ESC : Open menu to save and leave Session. Mouse is made visible
+		// TAB : Open Inventory. Mouse is made visible
+		// G : Cheat Panel.
+
+		// Pressing any of these buttons should make the Mouse visible.
+
+		// Some button that allows you to move and resize panels like ALT. Should it be alt though?.
+
+		int showCursor = 0;
+		void incrCursor() { showCursor++; }
+		void decrCursor() { showCursor--; }
+
+		// Temporary
+		bool sessionMenu = false;
+		void showSessionMenu() {
+			sessionMenu = true;
+			incrCursor();
+		}
+
 		bool partRequested = false;
 		glm::vec3 requestPos;
 		
 		engone::ParticleGroup<CombatParticle>* combatParticles=nullptr;
 		engone::ParticleGroup<engone::DefaultParticle>* particleGroup;
 
+		VisualEffects visualEffects;
+
 	private:
 		bool paused = true;
+
+		//std::unordered_map<std::string, bool> m_stateMap;
 
 		engone::Window* m_window=nullptr;
 	};

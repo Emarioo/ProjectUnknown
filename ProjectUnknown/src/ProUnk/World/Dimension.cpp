@@ -1,6 +1,6 @@
-#include "ProUnk/Dimension.h"
+#include "ProUnk/World/Dimension.h"
 
-#include "ProUnk/Session.h"
+#include "ProUnk/World/Session.h"
 #include "ProUnk/GameApp.h"
 
 namespace prounk {
@@ -13,6 +13,9 @@ namespace prounk {
 	}
 	Session* Dimension::getParent() {
 		return m_parent;
+	}
+	const std::string& Dimension::getName() {
+		return name;
 	}
 	void Dimension::DummyLogic(engone::LoopInfo& info, engone::EngineObject* obj) {
 		using namespace engone;
@@ -36,9 +39,9 @@ namespace prounk {
 		//-- Move towards closest player
 		float minDist = 9999999;
 		EngineObject* plr = nullptr;
-		EngineObjectIterator* iterator = m_world->createIterator();
+		EngineObjectIterator iterator = m_world->createIterator();
 		EngineObject* obj2;
-		while (obj2 = iterator->next()) {
+		while (obj2 = iterator.next()) {
 			if (obj2->getObjectType() == OBJECT_PLAYER) {
 				if ((obj2->getFlags() & OBJECT_IS_DEAD) == 0) {
 					float leng = glm::length(obj->getPosition() - obj2->getPosition());
@@ -49,7 +52,7 @@ namespace prounk {
 				}
 			}
 		}
-		m_world->deleteIterator(iterator);
+		//m_world->deleteIterator(iterator);
 		if (plr) {
 			glm::vec3 diff = plr->getPosition() - obj->getPosition();
 			float length = glm::length(diff);
@@ -74,9 +77,11 @@ namespace prounk {
 		using namespace engone;
 
 		//-- Dummy AI (not efficient)
-		EngineObjectIterator* iterator = m_world->createIterator();
+		EngineObjectIterator iterator = m_world->createIterator();
+		
 		EngineObject* obj;
-		while (obj = iterator->next()) {
+
+		while (obj = iterator.next()) {
 			if (obj->getObjectType() != OBJECT_DUMMY)
 				continue;
 
@@ -85,8 +90,7 @@ namespace prounk {
 		
 		//-- Send position to server or client
 		if (getParent()->getServer().isRunning() || getParent()->getClient().isRunning()) {
-			iterator->restart();
-			while (obj = iterator->next()) {
+			while (obj = iterator.next()) {
 				if (obj->getFlags() & Session::OBJECT_NETMOVE) {
 					getParent()->netMoveObject(obj);
 					//netMoveObject(object->getUUID(), object->rigidBody->getTransform(),
@@ -95,8 +99,8 @@ namespace prounk {
 			}
 		}
 		// combatdata
-		iterator->restart();
-		while (obj = iterator->next()) {
+		//iterator->restart();
+		while (obj = iterator.next()) {
 			CombatData* combatData = GetCombatData(getParent(), obj);
 			if (!combatData)
 				continue;
@@ -110,7 +114,7 @@ namespace prounk {
 			//}
 		}
 
-		m_world->deleteIterator(iterator);
+		//m_world->deleteIterator(iterator);
 		//while (obj = iterator->next()) {
 		//	if (obj->getFlags() & OBJECT_HAS_COMBATDATA) {
 		//		CombatData* combatData = entityRegistry.getEntry(obj->userData).combatData;

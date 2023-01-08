@@ -6,16 +6,20 @@
 #include "Engone/LoopInfo.h"
 #include "Engone/Utilities/RandomUtility.h"
 
+#include "Engone/Utilities/Locks.h"
+
 namespace engone {
 
 	class EngineWorld;
 	class EngineObject {
 	public:
-		// generates a new UUID
-		EngineObject();
-		// uuid as 0 will generate a new UUID
-		EngineObject(UUID uuid);
-		//~EngineObject();
+		EngineObject() = default;
+		~EngineObject();
+		void cleanup();
+
+		// world is where the object belongs
+		// uuid as 0 will generate a new uuid.
+		void init(EngineWorld* world, UUID uuid = 0);
 
 		void setOnlyTrigger(bool yes);
 		bool isOnlyTrigger();
@@ -25,17 +29,17 @@ namespace engone {
 		void setModel(ModelAsset* asset);
 		ModelAsset* getModel();
 
-		Animator* getAnimator();
 		// Creates a animator and "attaches" it to the object.
 		// Do not call delete on the returned pointer as it is owned by the EngineObject.
 		Animator* createAnimator();
+		Animator* getAnimator();
 		void removeAnimator();
 
 		// Will load colliders when called and requirements are meet.
 		// If requirements aren't meet, the engine will try to load them again next frame.
 		// That makes this method somewhat asynchronous.
 		// Requirements: modelAsset is valid, rigidbody is valid, argument world isn't nullptr.
-		void loadColliders(EngineWorld* world = nullptr);
+		void loadColliders();
 
 		UUID getUUID() const;
 
@@ -55,14 +59,17 @@ namespace engone {
 
 	private:
 		int m_objectType = 0;
-		UUID m_uuid;
+		UUID m_uuid=0;
 		ModelAsset* m_modelAsset = nullptr;
 		rp3d::RigidBody* m_rigidBody = nullptr;
 		int m_objectInfo = 0;
 		Animator* m_animator = nullptr;
-
 		int m_flags = 0;
-		
+
+		EngineWorld* m_world = nullptr; // world the object belongs to
+		uint32_t m_objectIndex = -1; // indicates where world stores it
+		Mutex m_mutex;
+
 		void* m_colliderData = nullptr;
 
 		static const int PENDING_COLLIDERS = 1;

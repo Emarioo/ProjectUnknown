@@ -16,9 +16,16 @@ namespace prounk {
 		PlayerController();
 
 		// attach/set player object
+		void setPlayerObject(engone::UUID player);
 		void setPlayerObject(engone::EngineObject* player);
 		engone::EngineObject* getPlayerObject() { return m_player; }
 		engone::EngineObject* m_player=nullptr;
+		engone::UUID m_playerId=0;
+
+		engone::EngineObject* requestPlayer();
+		void releasePlayer(engone::EngineObject* plr);
+		engone::EngineObject* requestHeldObject();
+		void releaseHeldObject(engone::EngineObject* held);
 
 		void update(engone::LoopInfo& info);
 		void render(engone::LoopInfo& info);
@@ -56,6 +63,7 @@ namespace prounk {
 
 		// object held in hand
 		engone::EngineObject* heldObject = nullptr;
+		engone::UUID heldObjectId = 0;
 
 		// info exists as an argument because NetGameGround is required.
 		//void setWeapon(engone::EngineObject* weapon);
@@ -67,15 +75,8 @@ namespace prounk {
 
 		float deathTime = 0;
 		float deathShockStrength = 1.f; // how much the player "jumps" when they die.
-		void setDead(bool yes) {
-			if (yes)
-				m_player->setFlags(m_player->getFlags() | OBJECT_IS_DEAD);
-			else
-				m_player->setFlags(m_player->getFlags() & (~OBJECT_IS_DEAD));
-		}
-		bool isDead() {
-			return m_player->getFlags() & OBJECT_IS_DEAD;
-		}
+		void setDead(bool yes);
+		bool isDead();
 
 		float flySpeed = 8.f;
 		float flyFastSpeed = 90.f;
@@ -85,8 +86,6 @@ namespace prounk {
 
 		ItemType lastItemType=0;
 
-
-		
 		//engone::Camera testCam;
 
 		bool onGround = false;

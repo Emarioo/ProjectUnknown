@@ -72,10 +72,10 @@ namespace prounk {
 			session->getClient().stop();
 		}
 	}
-	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip) {
+	void SetDefaultPortIP(GameApp* app, const std::string& port, const std::string& ip,const std::string& type) {
 		auto find = app_data.find(app);
 		if (find == app_data.end()) {
-			app_data[app] = { "Client",{port},{ip},false };
+			app_data[app] = { type,{port},{ip},false };
 		} else {
 			find->second.ipBox.text = ip;
 			find->second.portBox.text = port;
@@ -111,9 +111,6 @@ namespace prounk {
 	void RenderServerClientMenu(engone::LoopInfo& info) {
 		using namespace engone;
 		GameApp* app = (GameApp*)info.window->getParent();
-
-		if (info.window->isCursorLocked()) // TODO: change this to check for pause state
-			return;
 
 		auto find = app_data.find(app);
 		if (find == app_data.end())

@@ -25,11 +25,11 @@ namespace prounk {
 		data->set(atk, 40.f);
 		data->set(knock, 5.3f);
 		availableItems.back().setComplexData(data->getDataIndex());
-
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		Renderer* renderer = info.window->getRenderer();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
 		EngineObject* object = m_app->playerController.getPlayerObject();
 		
@@ -85,9 +85,7 @@ namespace prounk {
 			if (MouseInsideSlot(pixelX, pixelY, itemSize)) {
 				hoveredItem = i;
 
-
 				if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-
 					uint32_t slot = inv->findAvailableSlot(item);
 					bool yes = item.copy(inv->getItem(slot));
 					if (yes) {
@@ -115,5 +113,7 @@ namespace prounk {
 
 		setMinHeight(itemSize);
 		setMinWidth(availableItems.size() * itemSize);
+
+		DrawToolTip(area.x + area.w, area.y, 20, 20, "Cheat panel here.\nClick to give yourself items.");
 	}
 }

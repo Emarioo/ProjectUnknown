@@ -14,9 +14,6 @@
 
 #include "ProUnk/UI/UIMenus.h"
 
-#include "ProUnk/UI/CraftingPanel.h"
-#include "ProUnk/UI/CheatPanel.h"
-
 namespace prounk {
 
 	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
@@ -206,6 +203,10 @@ namespace prounk {
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
+		showSessionMenu();
+
+		m_window->getPipeline()->addComponent(&visualEffects);
+
 		AssetStorage* assets = getStorage();
 
 		ShaderAsset* blur = assets->set("blur", ALLOC_NEW(ShaderAsset)(blurGLSL));
@@ -217,7 +218,7 @@ namespace prounk {
 		//engone->addParticleGroup(particleGroup);
 
 		m_session = ALLOC_NEW(Session)(this);
-		Dimension* firstDim = m_session->createDimension();
+		Dimension* firstDim = m_session->createDimension("0");
 
 		playerController.app = this;
 
@@ -263,6 +264,9 @@ namespace prounk {
 	
 		EngineObject* player = CreatePlayer(firstDim);
 		playerController.setPlayerObject(player);
+		player->setPosition({ 0,0,0 });
+		player->setFlags(player->getFlags() | Session::OBJECT_NETMOVE);
+		firstDim->getWorld()->releaseAccess(player);
 
 		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
 		playerInfo.inventoryId = m_session->inventoryRegistry.createInventory();
@@ -286,9 +290,6 @@ namespace prounk {
 		data.set(atkProperty, 30.f);
 		ComplexPropertyType* knockProperty = m_session->complexDataRegistry.registerProperty("knock");
 		data.set(knockProperty, 0.3f);
-
-
-		data.getMap().print();
 
 		createPanels();
 
@@ -315,16 +316,19 @@ namespace prounk {
 		//inv->addItem(Item(platformType, 1));
 		//inv->addItem(Item(swordType, 1));
 
-		player->setPosition({0,0,0});
-		player->setFlags(player->getFlags()| Session::OBJECT_NETMOVE);
-
 		EngineObject* terrain = CreateTerrain(firstDim);
 		terrain->setFlags(terrain->getFlags() | Session::OBJECT_NETMOVE);
 		//terrain->setTransform({ 0,10,0 });
-
+		firstDim->getWorld()->releaseAccess(terrain);
 		//EngineObject* dummy = CreateDummy(firstDim);
 		//dummy->setPosition({ 4,7,8 });
 		//dummy->setFlags(dummy->getFlags()|Session::OBJECT_NETMOVE);
+		//firstDim->getWorld()->releaseAccess(dummy);
+		if (info.flags & START_SERVER) {
+			SetDefaultPortIP(this, info.port, info.ip, "Server");
+		} else if (info.flags & START_CLIENT) {
+			SetDefaultPortIP(this, info.port, info.ip, "Client");
+		}
 		if (info.flags & START_SERVER) {
 			
 			terrain->setPosition({ 0,-2,0 });
@@ -334,8 +338,6 @@ namespace prounk {
 
 		} else if (info.flags & START_CLIENT) {
 			//world->getClient().start(info.ip,info.port);
-		} else {
-			SetDefaultPortIP(this, info.port, info.ip);
 		}
 
 		//rp3d::Vector3 anchor(1, 1, 1);
@@ -353,13 +355,47 @@ namespace prounk {
 	void GameApp::registerItems() {
 
 	}
-	void GameApp::createPanels() {
-		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(playerController.getPlayerObject()->getObjectInfo());
+	void GameApp::panelInput(engone::LoopInfo& info) {
+		using namespace engone;
+		if (IsKeyPressed(GLFW_KEY_TAB)) {
+			bool toggle = !inventoryPanel->getHidden();
+			inventoryPanel->setHidden(toggle);
+			cheatPanel->setHidden(toggle);
+			if (!toggle) {
+				incrCursor();
+			} else {
+				decrCursor();
+			}
+		}
+		if (IsKeyPressed(GLFW_KEY_ESCAPE)) {
+			bool toggle = !sessionMenu;
+			sessionMenu = toggle;
 
-		InventoryPanel* inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
+			if (toggle) {
+				incrCursor();
+			} else {
+				decrCursor();
+			}
+		}
+
+		if (showCursor > 0) {
+			if (engone::GetActiveWindow()->isCursorLocked()) {
+				engone::GetActiveWindow()->lockCursor(false);
+			}
+		} else {
+			if (!engone::GetActiveWindow()->isCursorLocked()) {
+				engone::GetActiveWindow()->lockCursor(true);
+			}
+		}
+	}
+	void GameApp::createPanels() {
+		using namespace engone;
+		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(playerController.m_player->getObjectInfo());
+
+		inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
 		panelHandler.addPanel(inventoryPanel);
-		inventoryPanel->setSize(100, 100);
-		inventoryPanel->setPosition(200, 200);
+		inventoryPanel->setSize(250, 230);
+		inventoryPanel->setPosition(GetWidth()-260, 10);
 		inventoryPanel->setInventory(playerInfo.inventoryId);
 
 		masterInventoryPanel = ALLOC_NEW(MasterInventoryPanel)(this);
@@ -367,20 +403,23 @@ namespace prounk {
 		panelHandler.addPanel(masterInventoryPanel);
 		// master has no position or size.
 
-		//CraftingPanel* craftingPanel = new CraftingPanel(this);
+		//craftingPanel = new CraftingPanel(this);
 		//panelHandler.addPanel(craftingPanel);
 		//craftingPanel->setSize(100, 100);
 		//craftingPanel->setPosition(300, 400);
 
-		PlayerBarPanel* playerBarPanel = ALLOC_NEW(PlayerBarPanel)(this);
+		playerBarPanel = ALLOC_NEW(PlayerBarPanel)(this);
 		panelHandler.addPanel(playerBarPanel);
-		playerBarPanel->setSize(100, 100);
-		playerBarPanel->setPosition(100, 100);
+		playerBarPanel->setSize(100, 70);
+		playerBarPanel->setPosition(130, 50);
 
-		CheatPanel* cheatPanel = ALLOC_NEW(CheatPanel)(this);
+		cheatPanel = ALLOC_NEW(CheatPanel)(this);
 		panelHandler.addPanel(cheatPanel);
-		cheatPanel->setSize(100, 100);
-		cheatPanel->setPosition(100, engone::GetHeight()-100);
+		cheatPanel->setSize(220, 100);
+		cheatPanel->setPosition(GetWidth()-230, 260);
+
+		inventoryPanel->setHidden(true);
+		cheatPanel->setHidden(true);
 	}
 	//float wantX=500;
 	//float x = 100;
@@ -392,6 +431,10 @@ namespace prounk {
 	double startTime=0;
 	void GameApp::update(engone::LoopInfo& info) {
 		using namespace engone;
+
+		visualEffects.update(info);
+
+		panelInput(info);
 		//if (startTime == 0) {
 		//	startTime = GetSystemTime();
 		//}
@@ -418,13 +461,13 @@ namespace prounk {
 		//	}
 		//}
 		//log::out << "travel: "<<travel << " stage: " << stage << " \n";
-		if (engone::IsKeybindingPressed(KeyPause)) {
-			if(engone::GetActiveWindow()->isCursorLocked()){
-				engone::GetActiveWindow()->lockCursor(false);
-			} else {
-				engone::GetActiveWindow()->lockCursor(true);
-			}
-		}
+		//if (engone::IsKeybindingPressed(KeyPause)) {
+		//	if(engone::GetActiveWindow()->isCursorLocked()){
+		//		engone::GetActiveWindow()->lockCursor(false);
+		//	} else {
+		//		engone::GetActiveWindow()->lockCursor(true);
+		//	}
+		//}
 		if (partRequested) {
 			CombatParticle* parts = combatParticles->getParticles();
 			for (int i = 0; i < combatParticles->getCount(); i++) {
@@ -456,16 +499,20 @@ namespace prounk {
 		//	velX = 0;
 		//}
 	}
+	
 	void GameApp::render(engone::LoopInfo& info) {
 		using namespace engone;
+
+		//visualEffects.render(info);
 
 		//ParticleMagicTest(info,this);
 
 		//ui::Box box = {x-25,100,50,50};
 		//ui::Draw(box);
 
-		RenderServerClientMenu(info);
-
+		if (sessionMenu) {
+			RenderServerClientMenu(info);
+		}
 		// send and receive stats.
 		//DebugInfo(info,this);
 		

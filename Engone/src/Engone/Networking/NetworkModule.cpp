@@ -311,19 +311,22 @@ namespace engone {
 			if (m_readThread) {
 				m_readThread->join();
 				using namespace std;
-				ALLOC_DELETE(thread, m_readThread);
+				if (m_readThread)
+					ALLOC_DELETE(thread, m_readThread);
 				//delete m_readThread;
 				m_readThread = nullptr;
 			}
 			if (m_writeThread) {
 				m_writeThread->join();
 				using namespace std;
+				if (m_writeThread)
 				ALLOC_DELETE(thread, m_writeThread);
 				//delete m_writeThread;
 				m_writeThread = nullptr;
 			}
 			if (m_buffer) {
-				ALLOC_DELETE(MessageBuffer, m_buffer);
+				if (m_buffer)
+					ALLOC_DELETE(MessageBuffer, m_buffer);
 				//delete m_buffer;
 				m_buffer = nullptr;
 			}
@@ -517,7 +520,8 @@ namespace engone {
 
 		m_writeMutex.lock();
 		using namespace std;
-		ALLOC_DELETE(thread, m_writeThread);
+		if(m_writeThread)
+			ALLOC_DELETE(thread, m_writeThread);
 		//delete m_writeThread;
 		m_writeThread = nullptr;
 		m_writing = true;
@@ -666,6 +670,10 @@ namespace engone {
 							hints.ai_flags = AI_PASSIVE;
 
 							int err = getaddrinfo(NULL, action.port.c_str(), &hints, &result);
+							if (err != 0) {
+								// Error getaddr
+								keepRunning = false;
+							}
 
 							SOCKET newSocket = 0;
 							if (keepRunning) {

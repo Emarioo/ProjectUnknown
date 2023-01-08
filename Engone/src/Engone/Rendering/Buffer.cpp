@@ -664,10 +664,25 @@ namespace engone {
 		unsigned int vs = compileShader(GL_VERTEX_SHADER, vertexSrc);
 		unsigned int fs = compileShader(GL_FRAGMENT_SHADER, fragmentSrc);
 
+		if (vs == 0 || fs == 0) {
+			// failed
+			if(vs)
+				glDeleteShader(vs);
+			if(fs)
+				glDeleteShader(fs);
+
+			glDeleteProgram(m_id);
+			return 0;
+		}
+
 		glAttachShader(program, vs);
 		glAttachShader(program, fs);
 		glLinkProgram(program);
 		glValidateProgram(program);
+
+		//int eh=0;
+		//glGetProgramiv(program, GL_VALIDATE_STATUS, &eh);
+		//log::out << "Error? " << eh<<"\n";
 
 		glDeleteShader(vs);
 		glDeleteShader(fs);
@@ -737,6 +752,7 @@ namespace engone {
 	}
 	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
+		// WARN IF NOT BOUND?
 		//int num = glGetError();
 		//const GLubyte* okay = glewGetErrorString(num);
 		//std::cout << okay << "\n";
@@ -754,9 +770,9 @@ namespace engone {
 	{
 		glUniform3i(getUniformLocation(name), v.x, v.y, v.z);
 	}
-	void Shader::setVec4(const std::string& name, float f0, float f1, float f2, float f3)
+	void Shader::setVec4(const std::string& name, glm::vec4 v)
 	{
-		glUniform4f(getUniformLocation(name), f0, f1, f2, f3);
+		glUniform4f(getUniformLocation(name), v.x, v.y, v.z, v.w);
 	}
 	void Shader::setInt(const std::string& name, int v)
 	{

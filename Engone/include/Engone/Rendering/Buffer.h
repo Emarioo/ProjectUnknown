@@ -2,6 +2,8 @@
 
 #include "Engone/Utilities/ImageUtility.h"
 
+#define GL_CHECK()  {int err = glGetError();if(err) {log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
+
 namespace engone {
 
 	/*
@@ -253,7 +255,7 @@ namespace engone {
 		void setIVec2(const std::string& name, glm::ivec2);
 		void setVec3(const std::string& name, glm::vec3);
 		void setIVec3(const std::string& name, glm::ivec3);
-		void setVec4(const std::string& name, float f0, float f1, float f2, float f3);
+		void setVec4(const std::string& name, glm::vec4 v);
 		void setMat4(const std::string& name, glm::mat4 v);
 
 		//static TrackerId trackerId;

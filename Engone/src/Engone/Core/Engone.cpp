@@ -56,6 +56,13 @@ namespace engone {
 		//GetTracker().printInfo();
 		//log::out.setConsoleFilter(log::out.consoleFilter() & (~log::Disable));
 
+		// Make sure the pipeline is properly updated to avoid renderer being nullptr for the first frame
+		for (Application* app : m_applications) {
+			for (Window* win : app->getAttachedWindows()) {
+				win->getPipeline()->applyChanges();
+			}
+		}
+
 		double printTime = 0;
 		double lastTime = GetSystemTime();
 		m_runtimeStats.startTime = lastTime;
@@ -209,17 +216,13 @@ namespace engone {
 						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 						// 3d stuff
-						//float ratio = GetWidth() / GetHeight();
-						//if (isfinite(ratio))
-						win->getRenderer()->setProjection();
-
 						app->render(currentLoopInfo);
 
 						render(currentLoopInfo);
 
-						// pipeline stuff
-						GetActiveRenderer()->render(currentLoopInfo);
-
+						// orthogonal was set before hand
+						win->getPipeline()->render(currentLoopInfo);
+						
 						glfwSwapInterval(0); // turning off vsync?
 						//Timer swapT("glSwapBuffers");
 						glfwSwapBuffers(win->glfw());
@@ -247,6 +250,7 @@ namespace engone {
 				
 				// other info
 				//m_runtimeStats.print(RuntimeStats::PrintSamples);
+				//log::out << "Bytes:" << alloc::allocatedBytes() << "\n";
 			}
 
 			m_runtimeStats.totalLoops++;
@@ -294,8 +298,6 @@ namespace engone {
 		//RenderEngine(0);
 		//render(0);
 
-
-
 		//glfwSwapBuffers(GetActiveWindow()->glfw());
 
 		return EventNone;
@@ -311,9 +313,7 @@ namespace engone {
 		//test::TestParticles(info);
 		EnableDepth();
 		//if (IsKeyDown(GLFW_KEY_K)) {
-		//Shader* blur = info.window->getAssets()->get<ShaderAsset>("blur");
 		ShaderAsset* blur =  info.window->getStorage()->get<ShaderAsset>("blur");
-		//Shader* blur = info.window->getAssets()->get<ShaderAsset>("blur");
 		blur = nullptr;
 		if (blur) {
 			float detail = 1 / 3.f;
@@ -330,6 +330,7 @@ namespace engone {
 		}
 		else {
 		}
+		//GL_CHECK()
 		//EnableBlend(); <- done in particle render
 		for (int i = 0; i < info.app->m_worlds.size(); i++) {
 			auto& groups = info.app->m_worlds[i]->getParticleGroups();
@@ -351,7 +352,8 @@ namespace engone {
 			blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
 			frameBuffer.bindTexture();
 			glDisable(GL_DEPTH_TEST); // these depend on what you want, don't disable if you use fragdepth
-			info.window->getRenderer()->DrawQuad(info);
+			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			renderer->drawQuad(info);
 
 			//EnableDepth();
 			frameBuffer.blitDepth(GetWidth(), GetHeight()); // not this if frag depth
@@ -430,29 +432,31 @@ namespace engone {
 		//info.window->getRenderer()->DrawString(info.window->getAssets()->get<Font>("consolas"),
 		//	std::to_string(cam->getPosition().x) + " " + std::to_string(cam->getPosition().y) + " " +
 		//	std::to_string(cam->getPosition().z), false, 50, 300, 50, -1);
-
-		// Physics debug
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		if (renderer) {
+			// Physics debug
 #ifdef ENGONE_PHYSICS
-		for (int i = 0; i < info.app->m_worlds.size(); i++) {
-			rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
-			if (!world) continue;
-			if (!world->getIsDebugRenderingEnabled()) continue;
+			for (int i = 0; i < info.app->m_worlds.size(); i++) {
+				rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+				if (!world) continue;
+				if (!world->getIsDebugRenderingEnabled()) continue;
 
-			rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
-			//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
-			for (int i = 0; i < debugRenderer.getNbLines(); i++) {
-				auto& line = debugRenderer.getLinesArray()[i];
-				info.window->getRenderer()->DrawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
+				rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
+				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
+				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
+					auto& line = debugRenderer.getLinesArray()[i];
+					renderer->drawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
+				}
+				//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
+				//shad->bind();
+				//shad->setVec3("uColor", { 0.9,0.2,0.2 });
+				for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
+					auto& tri = debugRenderer.getTrianglesArray()[i];
+					renderer->drawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
+				}
 			}
-			//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
-			//shad->bind();
-			//shad->setVec3("uColor", { 0.9,0.2,0.2 });
-			for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
-				auto& tri = debugRenderer.getTrianglesArray()[i];
-				info.window->getRenderer()->DrawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
-			}
-		}
 #endif
+		}
 		if (m_flags & EngoneEnableDebugInfo) {
 			// Toggle Basic Info
 			if (IsKeyDown(GLFW_KEY_F3) && IsKeyPressed(GLFW_KEY_B)) {
@@ -470,7 +474,12 @@ namespace engone {
 	void Engone::renderObjects(LoopInfo& info) {
 		AssetStorage* assets = info.window->getStorage();
 		//Assets* assets = info.window->getAssets();
-		Renderer* renderer = info.window->getRenderer();
+		//Renderer* renderer = info.window->getRenderer();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		if (!renderer) {
+			log::out << log::RED << "Engone::RenderObjects : renderer is null\n";
+			return;
+		}
 		Camera* camera = renderer->getCamera();
 		EnableDepth();
 
@@ -482,11 +491,10 @@ namespace engone {
 #ifdef ENGONE_PHYSICS
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
 		for (EngineWorld* world : info.app->m_worlds) {
-			world->lock();
 
-			EngineObjectIterator* iterator = world->createIterator();
+			EngineObjectIterator iterator = world->createIterator();
 			EngineObject* obj = 0;
-			while (obj = iterator->next()) {
+			while (obj = iterator.next()) {
 
 				ModelAsset* model = obj->getModel();
 				rp3d::RigidBody* body = obj->getRigidBody();
@@ -530,14 +538,14 @@ namespace engone {
 					}
 				}
 			}
-			world->unlock();
-			world->deleteIterator(iterator);
+			//world->unlock();
+			//world->deleteIterator(iterator);
 		}
 		//world->m_mutex.unlock();
 		ShaderAsset* shader = assets->get<ShaderAsset>("object");
 		if (!shader->getError()) {
 			shader->bind();
-			renderer->updateProjection(shader);
+			renderer->updatePerspective(shader);
 			shader->setVec3("uCamera", camera->getPosition());
 
 			bindLights(shader, { 0,0,0 });
@@ -553,7 +561,7 @@ namespace engone {
 				//}
 				uint32_t remaining = vector.size();
 				while (remaining > 0) {
-					uint32_t batchAmount = std::min(remaining,Renderer::INSTANCE_BATCH);
+					uint32_t batchAmount = std::min(remaining,CommonRenderer::INSTANCE_BATCH);
 					
 					renderer->instanceBuffer.setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size()-remaining));
 
@@ -567,14 +575,14 @@ namespace engone {
 		shader = assets->get<ShaderAsset>("armature");
 		if (!shader->getError()) {
 			shader->bind();
-			renderer->updateProjection(shader);
+			renderer->updatePerspective(shader);
 			shader->setVec3("uCamera", camera->getPosition());
 			for (EngineWorld* world : info.app->m_worlds) {
-				world->lock();
+				//world->lock();
 
-				EngineObjectIterator* iterator = world->createIterator();
+				EngineObjectIterator iterator = world->createIterator();
 				EngineObject* obj;
-				while (obj = iterator->next()) {
+				while (obj = iterator.next()) {
 
 					ModelAsset* model = obj->getModel();
 					rp3d::RigidBody* body = obj->getRigidBody();
@@ -591,7 +599,8 @@ namespace engone {
 					std::vector<glm::mat4> transforms;
 					transforms = model->getParentTransforms(nullptr);
 
-					if (transforms.size() != model->instances.size()) continue;
+					if (transforms.size() != model->instances.size())
+						continue;
 
 					//-- Draw instances
 					AssetInstance* armatureInstance = nullptr;
@@ -637,8 +646,8 @@ namespace engone {
 						}
 					}
 				}
-				world->unlock();
-				world->deleteIterator(iterator);
+				//world->unlock();
+				//world->deleteIterator(iterator);
 			}
 		}
 #endif

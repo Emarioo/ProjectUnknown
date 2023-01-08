@@ -50,10 +50,10 @@ namespace engone {
 			return nullptr;
 		};
 		// Return the first created windows renderer
-		inline Renderer* getRenderer() {
-			if (m_windows.size() != 0) return m_windows[0]->getRenderer();
-			return nullptr;
-		}
+		//inline Renderer* getRenderer() {
+		//	if (m_windows.size() != 0) return m_windows[0]->getRenderer();
+		//	return nullptr;
+		//}
 
 		EngineWorld* createWorld();
 		std::vector<EngineWorld*>& getWorlds();

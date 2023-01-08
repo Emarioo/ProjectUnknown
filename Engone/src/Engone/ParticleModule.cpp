@@ -78,10 +78,14 @@ namespace engone {
 			EnableDepth();
 		AssetStorage* assets = m_parent->getStorage();
 		//Assets* assets = m_parent->getAssets();
-		Renderer* renderer = m_parent->getRenderer();
-
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = m_parent->getRenderer();
+		if (!renderer) {
+			log::out << log::RED << "PlayerController::render : renderer is null\n";
+			return;
+		}
 		m_shader->bind();
-		renderer->updateProjection(m_shader);
+		renderer->updatePerspective(m_shader);
 		//m_shader->setFloat("delta", info.timeStep);
 		m_shader->setFloat("delta", info.timeStep);
 

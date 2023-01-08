@@ -195,12 +195,36 @@
     <ClInclude Include="include\Engone\Utilities\LinkedArray.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\RenderPipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\UIRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\CommonRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\FrameArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Locks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Core\ExecutionControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Core\TaskHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Engone.cpp">
+    <ClCompile Include="src\Engone\Core\Engone.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
@@ -230,13 +254,13 @@
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Window.cpp">
+    <ClCompile Include="src\Engone\Core\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Application.cpp">
+    <ClCompile Include="src\Engone\Core\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">
@@ -251,7 +275,7 @@
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\EngineObject.cpp">
+    <ClCompile Include="src\Engone\Core\EngineObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\ParticleModule.cpp">
@@ -287,7 +311,7 @@
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\EngineWorld.cpp">
+    <ClCompile Include="src\Engone\Core\EngineWorld.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Utilites\HashMap.cpp">
@@ -299,5 +323,32 @@
     <ClCompile Include="include\Engone\Utilities\Stack.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="include\Engone\Shaders\text3d.glsl">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\FrameArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Locks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Thread.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Core\ExecutionControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\Engone\Shaders\standard2D.glsl" />
   </ItemGroup>
 </Project>

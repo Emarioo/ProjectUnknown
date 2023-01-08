@@ -94,7 +94,8 @@
     <ClCompile Include="src\ProUnk\Combat\Combat.cpp" />
     <ClCompile Include="src\ProUnk\Combat\CombatData.cpp" />
     <ClCompile Include="src\ProUnk\Combat\Skills.cpp" />
-    <ClCompile Include="src\ProUnk\Dimension.cpp" />
+    <ClCompile Include="src\ProUnk\World\Dimension.cpp" />
+    <ClCompile Include="src\ProUnk\Effects\VisualEffect.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ComplexDataRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ItemTypeRegistry.cpp" />
     <ClCompile Include="src\ProUnk\Registries\InventoryRegistry.cpp" />
@@ -106,7 +107,7 @@
     <ClCompile Include="src\ProUnk\Magic.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
-    <ClCompile Include="src\ProUnk\Session.cpp" />
+    <ClCompile Include="src\ProUnk\World\Session.cpp" />
     <ClCompile Include="src\ProUnk\UI\CheatPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\CraftingPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\InventoryPanel.cpp" />
@@ -129,12 +130,13 @@
   <ItemGroup>
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
-    <ClInclude Include="include\ProUnk\Dimension.h" />
+    <ClInclude Include="include\ProUnk\World\Dimension.h" />
+    <ClInclude Include="include\ProUnk\Effects\VisualEffects.h" />
     <ClInclude Include="include\ProUnk\Registries\ComplexDataRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\MasterRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\ObjectRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\RecipeRegistry.h" />
-    <ClInclude Include="include\ProUnk\Session.h" />
+    <ClInclude Include="include\ProUnk\World\Session.h" />
     <ClInclude Include="include\ProUnk\UI\CheatPanel.h" />
     <ClInclude Include="include\ProUnk\UI\CraftingPanel.h" />
     <ClInclude Include="include\ProUnk\UI\InventoryPanel.h" />

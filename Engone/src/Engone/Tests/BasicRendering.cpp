@@ -58,8 +58,10 @@ namespace engone {
 			}
 			EnableBlend();
 			shader3->bind();
-			Renderer* renderer = info.window->getRenderer();
-			renderer->updateProjection(shader3);
+			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			//Renderer* renderer = info.window->getRenderer();
+
+			renderer->updatePerspective(shader3);
 			VAO.draw(&IBO);
 		}
 		static const char* particlesGLSL = {

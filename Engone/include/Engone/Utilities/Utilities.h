@@ -243,20 +243,4 @@ namespace engone {
 	// This only works in visual studios debugger.
 	// An alternative is SetThreadDescription but it is not available in Windows 8.1 which I am using.
 	void SetThreadName(DWORD dwThreadID, const char* threadName);
-
-	class DepthMutex {
-	public:
-		DepthMutex() = default;
-
-		void lock();
-		void unlock();
-
-	private:
-		
-		std::thread::id m_threadId;
-		int depth = 0;
-		std::mutex m_mutex;
-		std::mutex m_internalMutex;
-
-	};
 }

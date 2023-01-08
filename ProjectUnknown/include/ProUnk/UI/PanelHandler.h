@@ -53,6 +53,9 @@ namespace prounk {
 		void addConstraint(EdgeType type, float offset, float minOffset, Panel* attached);
 		void removeConstraint(EdgeType type);
 
+		void setHidden(bool yes) { m_hidden = yes; }
+		bool getHidden() { return m_hidden; }
+
 	protected:
 		// edges of the panel. right >= left and bottom>=top is guaranteed.
 		union {
@@ -81,7 +84,8 @@ namespace prounk {
 	private:
 		bool m_movable=true; // Some panels like MasterInventoryPanel cannot be moved.
 		float m_depth=0; // panels are sorted by this
-
+		bool m_hidden = false;
+		
 		PanelHandler* m_panelHandler=nullptr; // used when updating depth
 
 		Constraint m_constraints[4];

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ProUnk/Dimension.h"
+#include "ProUnk/World/Dimension.h"
 
 #include "ProUnk/Registries/InventoryRegistry.h"
 #include "ProUnk/Registries/ObjectInfoRegistry.h"
@@ -16,7 +16,6 @@ namespace prounk {
 		AnimateObject,
 		EditObject,
 		DamageObject,
-		SyncObjects,
 	};
 	const char* to_string(NetCommand value);
 	engone::Logger& operator<<(engone::Logger& log, NetCommand value);
@@ -70,12 +69,13 @@ namespace prounk {
 		void netEditCombatData(engone::UUID uuid, engone::UUID from, bool yes);
 		void netDamageObject(engone::UUID uuid, float damage);
 
-
 		virtual engone::Client& getClient() = 0;
 		virtual engone::Server& getServer() = 0;
 
 		bool networkRunning();
 		void networkSend(engone::MessageBuffer& msg);
+
+		Session* getSession();
 
 	private:
 
@@ -90,6 +90,8 @@ namespace prounk {
 		static const int OBJECT_NETMOVE = 0x00010000;
 
 		Session(GameApp* app);
+		~Session();
+		void cleanup();
 
 		//void serialize();
 		//void deserialize();
@@ -101,14 +103,19 @@ namespace prounk {
 		ObjectInfoRegistry objectInfoRegistry;
 		ModelRegistry modelRegistry;
 
-		Dimension* createDimension();
+		// name needs to be unique. nullptr is returned if not.
+		Dimension* createDimension(const std::string& name);
 		
+		Dimension* getDimension(const std::string& name);
+
 		std::vector<Dimension*>& getDimensions();
 
 		GameApp* getParent();
 
 		void update(engone::LoopInfo& info);
 
+		//engone::Mutex m_uuidMapMutex;
+		//std::unordered_map<engone::UUID, *> m_uuidMapping;
 
 		//-- Network stuff
 		engone::Client& getClient() override;

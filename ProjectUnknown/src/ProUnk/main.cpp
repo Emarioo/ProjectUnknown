@@ -15,10 +15,19 @@
 #include "Engone/Utilities/Stack.h"
 #include "Engone/Utilities/StableArray.h"
 
+#include "Engone/Utilities/FrameArray.h"
+
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
+	 
+	//printf("Size: %d %d\n", sizeof(EngineObject),sizeof(std::mutex));
 
+	//char mem[sizeof(EngineObject)];
+	//
+	//new(mem)EngineObject(nullptr);
+
+	//FrameArrayTest();
 	//HashMapTestCase();
 	//EngoneStackTest();
 	//EngoneStableArrayTest();
@@ -42,11 +51,11 @@ void runApp(int argc, char** argv) {
 
 	Engone engine;
 
-	//overrideArgs = true;
 	//ConvertArguments("--server", argc, argv);
 	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
-	//ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
 	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
+	
+	//ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.
 	for (int i = 0; i < argc; i++) {

@@ -288,17 +288,66 @@ namespace prounk {
 		//}
 
 		checkInput();
+		
+		// These colors needs changing
+		const ui::Color moveHighlight = { 1.0,1.0,0.1,1.f };
+		const ui::Color darkHighlight = { 0.6,0.6,0.04,1.f };
+		const ui::Color resizeHighlight = { 1.0,1.0,0.8,1.f };
+		
 		for (int i =0; i < m_panels.size(); i++) {
+			if (m_panels[i]->getHidden())
+				continue;
 			// first panel has lowest depth, last has highest. (if list is sorted)
 			if (m_panels[i] == m_editPanel) {
 				float border = 2;
-				ui::Box highlight = m_panels[i]->getBox();
-				highlight.rgba = { 1.0,1.0,0.1,1.f };
-				highlight.x -= border;
-				highlight.y -= border;
-				highlight.w += border*2;
-				highlight.h += border*2;
-				ui::Draw(highlight);
+				ui::Box area = m_panels[i]->getBox();
+				
+				if (m_editType == EDIT_MOVE) {
+					area.rgba = moveHighlight;
+					area.x -= border;
+					area.y -= border;
+					area.w += border * 2;
+					area.h += border * 2;
+					ui::Draw(area);
+				}else if(m_editType == EDIT_RESIZE) {
+					area.rgba = darkHighlight;
+
+					ui::Box frontx;
+					frontx.rgba = resizeHighlight;
+					frontx.w = border * 2; // *2 gives some extra width incase of gaps between boxes
+					frontx.h = area.h;
+					frontx.y = area.y;
+					if(m_editResizingX==-1)
+						frontx.x = area.x-border;
+					else 
+						frontx.x = area.x+area.w-border;
+
+					ui::Box fronty;
+					fronty.rgba = resizeHighlight;
+					fronty.w = area.w;
+					fronty.h = border * 2;
+					fronty.x = area.x;
+					if (m_editResizingY == -1)
+						fronty.y = area.y - border;
+					else
+						fronty.y = area.y + area.h - border;
+
+					if (m_editResizingX != 0 && m_editResizingY!=0) {
+						if(m_editResizingY == -1)
+							frontx.y -= border;
+						frontx.h += border;
+					}
+
+					area.x -= border;
+					area.y -= border;
+					area.w += border * 2;
+					area.h += border * 2;
+					ui::Draw(area);
+					if(m_editResizingX!=0)
+						ui::Draw(frontx);
+					if (m_editResizingY != 0)
+						ui::Draw(fronty);
+				}
 			}
 			m_panels[i]->render(info);
 		}
@@ -320,6 +369,8 @@ namespace prounk {
 			if (!m_editPanel) {
 				for (int i = m_panels.size()-1; i >= 0; i--) {
 					Panel* panel = m_panels[i];
+					if (panel->getHidden())
+						continue;
 					if (!panel->isMovable())
 						continue;
 					ui::Box area = panel->getBox();

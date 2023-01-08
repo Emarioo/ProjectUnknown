@@ -15,9 +15,10 @@ namespace prounk {
 
 		void update(engone::LoopInfo& info);
 
+		const std::string& getName();
 
 	private:
-		std::string name; // name or type of dimension
+		std::string name; // name or type of dimension, needs to be unique
 		engone::EngineWorld* m_world=nullptr;
 		Session* m_parent = nullptr;
 

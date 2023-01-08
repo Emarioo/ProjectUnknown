@@ -72,6 +72,7 @@ namespace engone {
 			outStack.m_values.used = m_values.used;
 
 			memcpy(outStack.m_values.data, m_values.data, m_values.max * sizeof(Value));
+			return true;
 		}
 
 	private:

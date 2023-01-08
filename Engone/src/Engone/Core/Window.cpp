@@ -197,7 +197,10 @@ namespace engone {
 	static float cameraSensitivity = 0.2f;
 	EventType FirstPerson(Event& e) {
 		if (e.window->m_lastMouseX != -1) {
-			Camera* camera = e.window->getRenderer()->getCamera();
+			CommonRenderer* renderer = (CommonRenderer*)e.window->getPipeline()->getComponent("common_renderer");
+			Camera* camera = nullptr;
+			if (renderer)
+				camera = renderer->getCamera();
 			if (e.window->isCursorLocked() && camera != nullptr) {
 				float rawX = -(e.mx - e.window->m_lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
 				float rawY = -(e.my - e.window->m_lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
@@ -235,7 +238,7 @@ namespace engone {
 		
 		// Minor setup stuff
 		m_parent = application;
-		m_renderer.m_parent = this;
+		//m_renderer.m_parent = this;
 
 		// Window related setup
 		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -256,7 +259,11 @@ namespace engone {
 		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
 		setActiveContext();
-		m_renderer.init();
+
+		CommonRenderer* commonRenderer = ALLOC_NEW(CommonRenderer)();
+		m_renderPipeline.addComponent(commonRenderer,true);
+		UIRenderer* uiRenderer = ALLOC_NEW(UIRenderer)();
+		m_renderPipeline.addComponent(uiRenderer,true);
 	}
 	Window::~Window() {
 		// we need to set window as active context before deleting buffers.
@@ -297,7 +304,13 @@ namespace engone {
 	}
 	void Window::setActiveContext() {
 		//if(m_renderer)
-		m_renderer.setActiveRenderer();
+		UIRenderer* uiRenderer = (UIRenderer*)getPipeline()->getComponent("ui_renderer");
+		if(uiRenderer)
+			uiRenderer->setActiveUIRenderer();
+		CommonRenderer* commonRenderer = (CommonRenderer*)getPipeline()->getComponent("common_renderer");
+		if(commonRenderer)
+			commonRenderer->setActiveRenderer();
+		m_renderPipeline.setActivePipeline();
 		// no need to do this if window already is active
 		if (activeWindow != this) {
 			glfwMakeContextCurrent(m_glfwWindow);
@@ -317,6 +330,8 @@ namespace engone {
 
 		glViewport(0, 0, wid, hei);
 
+		if (commonRenderer)
+			commonRenderer->init();
 		//m_renderer.init();
 		// 
 		//if (mainWindow == nullptr)

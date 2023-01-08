@@ -9,7 +9,8 @@ namespace prounk {
 	
 	void InventoryPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		Renderer* renderer = info.window->getRenderer();
+		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
 		EngineObject* object = m_app->playerController.getPlayerObject();
 
@@ -172,6 +173,7 @@ namespace prounk {
 			ui::Draw(keepBox);
 			ui::Draw(keepText);
 		}
+		DrawToolTip(area.x + area.w, area.y, 20, 20, "This is the inventory");
 	}
 	void InventoryPanel::setInventory(int inventoryId) {
 		m_inventoryId = inventoryId;

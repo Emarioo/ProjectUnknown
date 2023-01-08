@@ -4,6 +4,8 @@
 #include "Engone/Networking/NetworkModule.h"
 #include "Engone/ParticleModule.h"
 
+#include "Engone/Utilities/FrameArray.h"
+
 namespace engone {
 
 	class EngineWorld;
@@ -15,16 +17,29 @@ namespace engone {
 	class EngineObjectIterator {
 	public:
 		// list CANNOT be nullptr. crash is bound to happen.
-		EngineObjectIterator(EngineWorld* world) : m_world(world) {}
+		EngineObjectIterator(EngineWorld* world);
 
 		EngineObject* next();
 		void restart();
+		// Has to be called to release access to the last used object.
+		// Does not need to be called if next returned nullptr
+		void finish();
 
 	private:
-		int m_index = 0;
-		EngineWorld* m_world = 0;
+		FrameArray<EngineObject>::Iterator m_iterator;
+		EngineWorld* m_world = nullptr;
 
 		friend class EngineWorld;
+	};
+
+	class EngineAccess {
+	public:
+		EngineAccess(engone::UUID uuid);
+		~EngineAccess();
+
+	private:
+		
+		EngineObject* obj=nullptr;
 	};
 
 	class Application;
@@ -33,28 +48,38 @@ namespace engone {
 	// The game objcets may be a custom class but has to inherit EngineObject.
 	class EngineWorld {
 	public:
-		EngineWorld();
 		EngineWorld(Application* app);
 		~EngineWorld();
 		void cleanup();
 
-		//void addObject(EngineObject* object);
-
 		// Creates a new object with rigidbody and sets the rigidbody's user data to the engine object.
 		// Always use this function when making objects.
-		EngineObject* createObject(UUID);
+		// createObject is simular to requestAccess and requires you to call releaseAccess
+		EngineObject* createObject(UUID uuid=0);
+		//EngineObject* getObject(UUID uuid);
+		// Asynchronous. UUID is added to a queue which is processed in the update method. 
+		void deleteObject(UUID uuid);
 		
+
+		// Todo: Iterator does not need to be tracked by the world.
+		//		Because the objects are stored in FrameArray, insertions and deletions does not affect the position/index value.
+		//		It's just an object we should have iterated through next round just got deleted meaning it is just skipped and moved on
+		//		to the next object. This is totally fine. The game may not be deterministic with this though.
 		// Remeber to delete iterator with deleteIterator
 		// Allocation could be done with an Arena Allocator
-		EngineObjectIterator* createIterator();
-		void deleteIterator(EngineObjectIterator* iterator);
+		EngineObjectIterator createIterator();
+		//void deleteIterator(EngineObjectIterator* iterator);
 		// Should return nullptr if out of bounds
-		EngineObject* getObjectAt(int index);
-		EngineObject* getObject(UUID uuid);
-		int getObjectCount();
 
-		void deleteObject(EngineObject* object);
-		void deleteObjectAt(int index);
+		//int getObjectCount();
+
+		//-- Multithreading safety
+		// IMPORTANT: Ensure that no other lock is held when calling this function. Deadlock could occur if you don't know what you are doing.
+		// nullptr indicates a failure. uuid may not exist.
+		EngineObject* requestAccess(UUID uuid);
+		// Only call this after a successful call to requestAccess
+		void releaseAccess(UUID uuid);
+		void releaseAccess(EngineObject* obj);
 
 		void addParticleGroup(ParticleGroupT* group);
 
@@ -76,30 +101,39 @@ namespace engone {
 		void* getUserData() { return m_userData; }
 		void setUserData(void* ptr) { m_userData=ptr; }
 
-		DepthMutex m_mutex; // mutex for objects
-		void lock() {
-			m_mutex.lock();
-		}
-		void unlock() {
-			m_mutex.unlock();
-		}
-
-	protected:
+	private:
 #ifdef ENGONE_PHYSICS
 		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
 #endif
 
-		std::vector<EngineObjectIterator*> m_iterators;
+		// Todo: cache friendly mutex allocation? mutexes cannot just be moved. Once allocated and used by mutexes the allocation cannot be reallocated.
+		//		Due to how std::mutex is implemented. Should be fine on Windows. More explanations in the link.
+		//		https://stackoverflow.com/questions/7557179/move-constructor-for-stdmutex
+		
+
+		//Mutex m_iteratorsMutex;
+		//std::vector<EngineObjectIterator*> m_iterators;
 
 		// you may want to make an entity component system or something
 		std::vector<ParticleGroupT*> m_particleGroups;
-		std::vector<EngineObject*> m_objects;
+
+		Mutex m_objectsMutex;
+		FrameArray<EngineObject> m_objects = { 500 }; // number stands for how many objects in one frame
+
+		struct ObjectDetail {
+			EngineObject* object = nullptr;
+			int waitingThreads = 0;
+			bool pendingDelete = false;
+		};
+		Mutex m_objectMapMutex;
+		std::unordered_map<UUID, ObjectDetail> m_objectMap;
 
 		Application* m_app=nullptr;
 
 		void* m_userData=nullptr;
 
 		friend class Application;
+		friend class EngineObjectIterator;
 	};
 }
 

@@ -196,9 +196,10 @@ namespace engone {
 					// not fine
 					// should maybe warn here
 					//log::out << log::YELLOW << "AssetStorage::set - overwriting asset, deleting old one.\n";
-					ALLOC_DELETE(T,t); // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
-					t = asset;
-					doStuff = true;
+					//ALLOC_DELETE(T,t); // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
+					doStuff = false;
+					//doStuff = true;
+					//t = asset;
 				}
 			} else {
 				t = asset;

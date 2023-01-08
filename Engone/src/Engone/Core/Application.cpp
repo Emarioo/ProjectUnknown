@@ -49,7 +49,7 @@ namespace engone {
 			return nullptr;
 		}
 		world->m_physicsWorld = m_physicsCommon->createPhysicsWorld();
-		if (!world->m_physicsWorld) {
+		if (world->m_physicsWorld==nullptr) {
 			log::out << log::RED << "Application : Failed creating PhysicsWorld!\n";
 		}
 		world->m_app = this;

@@ -13,15 +13,6 @@ namespace prounk {
 		}
 		return false;
 	}
-	//CombatData* GetCombatData(Dimension* dim, engone::EngineObject* object) {
-	//	int type = object->getObjectType();
-	//	if (type == OBJECT_DUMMY || type == OBJECT_PLAYER) {
-	//		return &dim->getParent()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).combatData;
-	//	}else if (type == OBJECT_WEAPON) {
-	//		return &dim->getParent()->objectInfoRegistry.getWeaponInfo(object->getObjectInfo()).combatData;
-	//	}
-	//	return nullptr;
-	//}
 	CombatData* GetCombatData(Session* session, engone::EngineObject* object) {
 		//if (!object||!session)
 		//	return nullptr;
@@ -44,10 +35,7 @@ namespace prounk {
 	}
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object) {
 		using namespace engone;
-		//if (object->getRigidBody()) {
-		//	dimension->getWorld()->getPhysicsWorld()->destroyRigidBody(object->getRigidBody());
-		//}
-		dimension->getWorld()->deleteObject(object);
+		dimension->getWorld()->deleteObject(object->getUUID());
 		log::out <<log::RED<< __FILE__ << ":"<<(int)__LINE__ << " Memory leak!\n";
 		// object info is not cleared. Inventory, combat data for example.
 	}
@@ -142,7 +130,7 @@ namespace prounk {
 		
 		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
 		out->setColliderUserData((void*)COLLIDER_IS_DAMAGE);
-		out->loadColliders(dimension->getWorld());
+		out->loadColliders();
 		return out;
 	}
 	engone::EngineObject* CreateItem(Dimension* dimension, Item& item, engone::UUID uuid) {
@@ -165,7 +153,7 @@ namespace prounk {
 
 		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
 		//out->setColliderUserData((void*)COLLIDER_IS_DAMAGE);
-		out->loadColliders(dimension->getWorld());
+		out->loadColliders();
 		return out;
 	}
 }

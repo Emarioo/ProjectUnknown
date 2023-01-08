@@ -56,14 +56,20 @@
     <ClInclude Include="include\Engone\Assets\ModelAsset.h" />
     <ClInclude Include="include\Engone\Assets\ShaderAsset.h" />
     <ClInclude Include="include\Engone\Assets\TextureAsset.h" />
+    <ClInclude Include="include\Engone\Core\TaskHandler.h" />
     <ClInclude Include="include\Engone\Defs\DEFS_BASE.h" />
     <ClInclude Include="include\Engone\Error.h" />
     <ClInclude Include="include\Engone\EngineObject.h" />
+    <ClInclude Include="include\Engone\Core\ExecutionControl.h" />
     <ClInclude Include="include\Engone\Logger.h" />
     <ClInclude Include="include\Engone\ModuleDefs.h" />
     <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\Rendering\CommonRenderer.h" />
+    <ClInclude Include="include\Engone\Rendering\RenderPipeline.h" />
+    <ClInclude Include="include\Engone\Rendering\UIRenderer.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
+    <ClInclude Include="include\Engone\Utilities\FrameArray.h" />
     <ClInclude Include="include\Engone\Utilities\LinkedArray.h" />
     <ClInclude Include="include\Engone\Utilities\StableArray.h" />
     <ClInclude Include="include\Engone\Utilities\EngoneInfo.h" />
@@ -76,6 +82,7 @@
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
     <ClInclude Include="include\Engone\Utilities\Stack.h" />
+    <ClInclude Include="include\Engone\Utilities\Thread.h" />
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
     <ClInclude Include="include\Engone\Utilities\Tracker.h" />
     <ClInclude Include="include\Engone\World\EngineWorld.h" />
@@ -103,22 +110,30 @@
     <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h" />
     <ClInclude Include="include\Engone\Window.h" />
     <ClInclude Include="include\Engone\pch.h" />
+    <ClInclude Include="include\Engone\Utilities\Locks.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\Engone\Shaders\text3d.glsl" />
     <ClCompile Include="include\Engone\Utilities\StableArray.cpp" />
     <ClCompile Include="include\Engone\Utilities\Stack.cpp" />
     <ClCompile Include="src\Engone\Assets\Animator.cpp" />
     <ClCompile Include="src\Engone\Assets\AssetModule.cpp" />
     <ClCompile Include="include\Engone\LoopInfo.h" />
-    <ClCompile Include="src\Engone\EngineWorld.cpp" />
+    <ClCompile Include="src\Engone\Core\EngineWorld.cpp" />
+    <ClCompile Include="src\Engone\Core\ExecutionControl.cpp" />
+    <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp" />
+    <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp" />
+    <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp" />
+    <ClCompile Include="src\Engone\Utilites\FrameArray.cpp" />
     <ClCompile Include="src\Engone\Utilites\HashMap.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Locks.cpp" />
     <ClCompile Include="src\Engone\Utilites\LogLevels.cpp" />
     <ClCompile Include="src\Engone\Utilites\Alloc.cpp" />
-    <ClCompile Include="src\Engone\Application.cpp" />
+    <ClCompile Include="src\Engone\Core\Application.cpp" />
     <ClCompile Include="src\Engone\Assets\Asset.cpp" />
-    <ClCompile Include="src\Engone\EngineObject.cpp" />
+    <ClCompile Include="src\Engone\Core\EngineObject.cpp" />
     <ClCompile Include="src\Engone\IMPLS.cpp" />
-    <ClCompile Include="src\Engone\Engone.cpp" />
+    <ClCompile Include="src\Engone\Core\Engone.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
     <ClCompile Include="src\Engone\ParticleModule.cpp" />
     <ClCompile Include="src\Engone\Rendering\Buffer.cpp" />
@@ -129,8 +144,9 @@
     <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp" />
     <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp" />
     <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
+    <ClCompile Include="src\Engone\Utilites\Thread.cpp" />
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
-    <ClCompile Include="src\Engone\Window.cpp" />
+    <ClCompile Include="src\Engone\Core\Window.cpp" />
     <ClCompile Include="src\Engone\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -141,6 +157,9 @@
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
     <ClCompile Include="src\Engone\Utilites\Utilities.cpp" />
     <ClCompile Include="src\Engone\vendor\Libaudio.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\Engone\Shaders\standard2D.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
