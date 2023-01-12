@@ -118,6 +118,9 @@ namespace engone {
 	int EngineObject::getFlags() {
 		return m_flags;
 	}
+	EngineWorld* EngineObject::getWorld() {
+		return m_world;
+	}
 	void EngineObject::loadColliders() {
 		if (!m_world) {
 			log::out << log::RED << "EngineObject : Cannot load colliders when world is null\n";

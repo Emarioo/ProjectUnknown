@@ -63,10 +63,17 @@ namespace engone {
 		bool isStopped() const { return m_stopped; }
 
 		rp3d::PhysicsCommon* getPhysicsCommon();
-		
+
+		ExecutionControl& getControl() { return updateControl; }
+		ExecutionTimer& getExecTimer() { return executionTimer; }
+		void setMultiThreaded(bool yes) { m_isThreaded = yes; }
+		bool isMultiThreaded() { return m_isThreaded; }
+
 		static TrackerId trackerId;
 	private:
 		//EngineWorld* m_world=nullptr;
+
+		bool m_isThreaded=false;
 
 		bool m_stopped = false;
 		std::vector<Window*> m_windows;
@@ -74,6 +81,10 @@ namespace engone {
 		Engone* m_engone=nullptr;
 
 		std::vector<EngineWorld*> m_worlds;
+
+		ExecutionControl updateControl;
+		Thread updateThread;
+		ExecutionTimer executionTimer;
 
 		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
 		

@@ -57,6 +57,8 @@ namespace engone {
 		void setPosition(const glm::vec3& position);
 		const glm::vec3& getPosition();
 
+		EngineWorld* getWorld();
+
 	private:
 		int m_objectType = 0;
 		UUID m_uuid=0;

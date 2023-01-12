@@ -155,9 +155,9 @@ namespace engone {
 
 		return obj;
 	}
-	void EngineWorld::releaseAccess(EngineObject* obj) {
-		releaseAccess(obj->getUUID());
-	}
+	//void EngineWorld::releaseAccess(EngineObject* obj) {
+	//	releaseAccess(obj->getUUID());
+	//}
 	void EngineWorld::releaseAccess(UUID uuid) {
 		m_objectMapMutex.lock();
 		auto find = m_objectMap.find(uuid);
@@ -244,17 +244,9 @@ namespace engone {
 		}
 		EngineObject* obj = find->second.object;
 		find->second.pendingDelete = true;
-		if (find->second.waitingThreads != 0) {
-			m_objectMapMutex.unlock();
-			return;
-		}
-		m_objectMap.erase(uuid);
 		m_objectMapMutex.unlock();
-
-		m_objectsMutex.lock();
-		m_objects.remove(obj->m_objectIndex);
-		log::out << "Deleted Object " << uuid << "\n";
-		m_objectsMutex.unlock();
+		
+		releaseAccess(uuid);
 	}
 	void EngineWorld::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);

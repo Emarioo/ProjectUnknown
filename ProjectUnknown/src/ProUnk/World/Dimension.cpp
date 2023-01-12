@@ -92,7 +92,7 @@ namespace prounk {
 		if (getParent()->getServer().isRunning() || getParent()->getClient().isRunning()) {
 			while (obj = iterator.next()) {
 				if (obj->getFlags() & Session::OBJECT_NETMOVE) {
-					getParent()->netMoveObject(obj);
+					//getParent()->netMoveObject(obj);
 					//netMoveObject(object->getUUID(), object->rigidBody->getTransform(),
 					//	object->rigidBody->getLinearVelocity(), object->rigidBody->getAngularVelocity());
 				}

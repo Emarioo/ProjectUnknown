@@ -6,13 +6,17 @@ namespace engone {
 	public:
 		Thread() = default;
 		~Thread();
+		// The thread itself should not call this function
 		void cleanup();
 
 		void init(std::function<uint32_t(void*)> func, void* arg);
 		void join();
 
-		uint32_t getId();
+		bool isRunning();
 
+		static uint32_t GetThisThreadId();
+
+		uint32_t getId();
 
 	private:
 		HANDLE m_handle=NULL;

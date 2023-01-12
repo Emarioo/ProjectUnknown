@@ -266,7 +266,7 @@ namespace prounk {
 		playerController.setPlayerObject(player);
 		player->setPosition({ 0,0,0 });
 		player->setFlags(player->getFlags() | Session::OBJECT_NETMOVE);
-		firstDim->getWorld()->releaseAccess(player);
+		firstDim->getWorld()->releaseAccess(player->getUUID());
 
 		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
 		playerInfo.inventoryId = m_session->inventoryRegistry.createInventory();
@@ -319,7 +319,7 @@ namespace prounk {
 		EngineObject* terrain = CreateTerrain(firstDim);
 		terrain->setFlags(terrain->getFlags() | Session::OBJECT_NETMOVE);
 		//terrain->setTransform({ 0,10,0 });
-		firstDim->getWorld()->releaseAccess(terrain);
+		firstDim->getWorld()->releaseAccess(terrain->getUUID());
 		//EngineObject* dummy = CreateDummy(firstDim);
 		//dummy->setPosition({ 4,7,8 });
 		//dummy->setFlags(dummy->getFlags()|Session::OBJECT_NETMOVE);

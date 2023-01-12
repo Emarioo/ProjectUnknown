@@ -190,14 +190,14 @@ namespace engone {
 			}
 			bool getBool(uint32_t index) {
 				uint32_t i = index / 8;
-				uint32_t j = index & 8;
+				uint32_t j = index % 8;
 				char byte = memory.data[i];
 				char bit = byte&(1<<j);
 				return bit;
 			}
 			void setBool(uint32_t index, bool yes) {
 				uint32_t i = index / 8;
-				uint32_t j = index & 8;
+				uint32_t j = index % 8;
 				if (yes) {
 					memory.data[i] = memory.data[i] | (1 << j);
 				} else {

@@ -16,7 +16,22 @@ namespace engone {
 	const std::string Execution::getExecutionName() {
 		return m_executionName;
 	}
+	void ExecutionTimer::step() {
+		now = engone::GetSystemTime();
+		if (lastTime == 0)
+			delta = 1 / 60.f;
+		else
+			delta = now - lastTime;
+		lastTime = now;
 
+		accumulator += delta;
+	}
+	bool ExecutionTimer::accumulate() {
+		bool yes = (accumulator>=aimedDelta);
+		if (yes)
+			accumulator -= aimedDelta;
+		return yes;
+	}
 	ExecutionControl::~ExecutionControl() {
 		cleanup();
 	}
@@ -71,7 +86,7 @@ namespace engone {
 		m_executionIndex = 0; // should already be zero but in case it's not.
 		m_mutex.unlock();
 
-		while (true) {
+		while (true) { // loop through each execution
 			m_mutex.lock();
 			if (m_executionIndex >= m_executions.size()) {
 				m_executionIndex = 0;

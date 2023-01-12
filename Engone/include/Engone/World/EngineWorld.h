@@ -57,7 +57,8 @@ namespace engone {
 		// createObject is simular to requestAccess and requires you to call releaseAccess
 		EngineObject* createObject(UUID uuid=0);
 		//EngineObject* getObject(UUID uuid);
-		// Asynchronous. UUID is added to a queue which is processed in the update method. 
+		// Asynchronous. UUID is added to a queue which is processed in the update method.
+		// releaseAccess is also called
 		void deleteObject(UUID uuid);
 		
 
@@ -79,7 +80,7 @@ namespace engone {
 		EngineObject* requestAccess(UUID uuid);
 		// Only call this after a successful call to requestAccess
 		void releaseAccess(UUID uuid);
-		void releaseAccess(EngineObject* obj);
+		//void releaseAccess(EngineObject* obj);
 
 		void addParticleGroup(ParticleGroupT* group);
 

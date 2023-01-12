@@ -46,6 +46,9 @@ namespace engone {
 		*/
 		void start();
 
+		void manageThreading();
+		void manageNonThreading();
+
 		// the run time of stats
 		inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
 
@@ -79,6 +82,10 @@ namespace engone {
 		FrameBuffer frameBuffer;
 		VertexBuffer quadBuffer;
 		VertexArray quadArray;
+
+		// Apps use these when not multithreaded
+		ExecutionTimer mainUpdateTimer;
+		ExecutionTimer mainRenderTimer;
 
 		LoopInfo currentLoopInfo;
 

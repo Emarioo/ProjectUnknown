@@ -31,7 +31,7 @@ namespace prounk {
 	}
 	void PlayerController::releasePlayer(engone::EngineObject* plr) {
 		Dimension* dim = app->getActiveSession()->getDimension("0");
-		dim->getWorld()->releaseAccess(plr);
+		dim->getWorld()->releaseAccess(plr->getUUID());
 	}
 	engone::EngineObject* PlayerController::requestHeldObject() {
 		Dimension* dim = app->getActiveSession()->getDimension("0");
@@ -41,7 +41,7 @@ namespace prounk {
 	void PlayerController::releaseHeldObject(engone::EngineObject* held) {
 		if (!held) return;
 		Dimension* dim = app->getActiveSession()->getDimension("0");
-		dim->getWorld()->releaseAccess(held);
+		dim->getWorld()->releaseAccess(held->getUUID());
 	}
 	void PlayerController::update(engone::LoopInfo& info) {
 		//animator.update(info.timeStep);
@@ -429,6 +429,8 @@ namespace prounk {
 
 		if (!weaponCombat)
 			return;
+
+		weaponCombat->update(info);
 		//releaseHeldObject(heldObject);
 		//log::out << "frame: " <<m_player->getAnimator()->enabledAnimations[0].frame << "\n";
 
@@ -457,7 +459,7 @@ namespace prounk {
 					weaponCombat->skillType = SKILL_SLASH;
 					weaponCombat->attack();
 					m_player->getAnimator()->enable("Player", "PlayerDownSwing", { false,1,1,0 });
-					app->getActiveSession()->netAnimateObject(m_player->getUUID(), "Player", "PlayerDownSwing", false, 1, 1, 0);
+					//app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerDownSwing", false, 1, 1, 0);
 					AnimatorProperty* prop = m_player->getAnimator()->getProp("Player");
 					if (prop) {
 						weaponCombat->animationTime = prop->getRemainingSeconds();
@@ -484,7 +486,7 @@ namespace prounk {
 				weaponCombat->skillType = SKILL_SIDE_SLASH;
 				weaponCombat->attack();
 				m_player->getAnimator()->enable("Player", "PlayerSideSwing", { false,1,1,0 });
-				app->getActiveSession()->netAnimateObject(m_player->getUUID(), "Player", "PlayerSideSwing", false, 1, 1, 0);
+				//app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerSideSwing", false, 1, 1, 0);
 				AnimatorProperty* prop = m_player->getAnimator()->getProp("Player");
 				if (prop) {
 					weaponCombat->animationTime = prop->getRemainingSeconds();

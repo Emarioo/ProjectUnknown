@@ -365,21 +365,21 @@ namespace engone {
 		else
 			m_inputs.push_back({ code, down, 0, 0, 1, 1 });
 	}
-	float  Window::getRawMouseX() const {
+	float Window::getRawMouseX() const {
 		if (m_parent->isRenderingWindow()) {
 			return m_frameRawMouseX;
 		} else {
 			return m_tickRawMouseX;
 		}
 	}
-	float  Window::getRawMouseY() const {
+	float Window::getRawMouseY() const {
 		if (m_parent->isRenderingWindow()) {
 			return m_frameRawMouseY;
 		} else {
 			return m_tickRawMouseY;
 		}
 	}
-	float  Window::getScrollX() const {
+	float Window::getScrollX() const {
 		if (m_parent->isRenderingWindow()) {
 			return m_frameScrollX;
 		} else {
@@ -479,9 +479,9 @@ namespace engone {
 		}
 		return false;
 	}
-	void Window::resetEvents() {
+	void Window::resetEvents(bool resetFrameInput) {
 		if (m_parent != nullptr) {
-			if (m_parent->isRenderingWindow()) {
+			if (resetFrameInput) {
 				m_frameScrollX = 0;
 				m_frameScrollY = 0;
 				m_frameRawMouseX = 0;

@@ -3,6 +3,9 @@
 #include "Engone/RenderModule.h"
 #include "Engone/EventModule.h"
 
+#include "Engone/Core/ExecutionControl.h"
+#include "Engone/Utilities/Thread.h"
+
 namespace engone {
 
 	// note that BorderlessFullscreen is a bitmask of borderless and fullscreen
@@ -88,7 +91,7 @@ namespace engone {
 		bool isKeyReleased(int code);
 
 		void resetKey(int code);
-		void resetEvents();
+		void resetEvents(bool resetFrameInput);
 
 		void enableFirstPerson(bool yes);
 		bool isFirstPerson() const { return m_enabledFirstPerson; }
@@ -125,6 +128,9 @@ namespace engone {
 		std::vector<std::string> m_pathDrops;
 
 		bool initializedGLEW = false;
+
+		ExecutionControl renderControl;
+		Thread renderThread;
 
 		uint32_t m_charIn = 0;
 		uint32_t m_charOut = 0;

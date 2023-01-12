@@ -7,8 +7,14 @@ namespace engone {
 	}
 
 	void Thread::cleanup() {
-		if (m_handle)
+		if (m_handle) {
+			if (m_threadId == GetThisThreadId()) {
+				assert((false, "Thread : Thread cannot clean itself"));
+				return;
+			}
 			CloseHandle(m_handle);
+			m_handle=NULL;
+		}
 	}
 	void Thread::init(std::function<uint32_t(void*)> func, void* arg) {
 		if (!m_handle) {
@@ -25,13 +31,21 @@ namespace engone {
 		if (!m_handle)
 			return;
 		int yes = WaitForSingleObject(m_handle, INFINITE);
+		CloseHandle(m_handle);
+		m_handle = NULL;
 		if (!yes) {
 			int err = GetLastError();
 			log::out << "Thread : Win. Error " << err << "\n";
 		}
 	}
+	bool Thread::isRunning() {
+		return m_handle!=NULL;
+	}
 	uint32_t Thread::getId() {
 		return m_threadId;
+	}
+	uint32_t Thread::GetThisThreadId() {
+		return GetCurrentThreadId();
 	}
 
 }

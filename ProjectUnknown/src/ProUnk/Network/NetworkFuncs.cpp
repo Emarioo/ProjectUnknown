@@ -1,0 +1,440 @@
+
+#include "ProUnk/Network/NetworkFuncs.h"
+
+#include "ProUnk/World/Session.h"
+
+#include "ProUnk/GameApp.h"
+
+namespace prounk {
+	const char* to_string(NetCommand value) {
+		switch (value) {
+		case MoveObject: return "MoveObject";
+		//case AddObject: return "AddObject";
+		case DELETE_OBJECT: return "DeleteObject";
+		case AnimateObject: return "AnimateObject";
+		case EditObject: return "EditObject";
+		case DamageObject: return "DamageObject";
+		case NET_ADD_TERRAIN: return "AddTerrain";
+		case NET_ADD_ITEM: return "AddItem";
+		case NET_ADD_WEAPON: return "AddWeapon";
+		case NET_ADD_CREATURE: return "AddCreature";
+		}
+		return "Unknown";
+	}
+	engone::Logger& operator<<(engone::Logger& log, NetCommand value) {
+		return log << to_string(value);
+	}
+	Session* NetworkFuncs::getSession() {
+		return (Session*)this; // this is dangerous
+	}
+	void NetworkFuncs::netMoveObject(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "World::netMoveObject - neither server or client is running\n";
+			return;
+		}
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = MoveObject;
+		msg.push(cmd);
+		pushObject(msg,object);
+
+		rp3d::Vector3 vel = object->getRigidBody()->getLinearVelocity();
+		rp3d::Vector3 angVel = object->getRigidBody()->getAngularVelocity();
+		msg.push(&object->getRigidBody()->getTransform());
+		msg.push(&vel);
+		msg.push(&angVel);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netAddGeneral(engone::EngineObject* object) {
+		if (object->getObjectType() & OBJECT_TERRAIN) {
+			netAddTerrain(object);
+		}else if (object->getObjectType() & OBJECT_ITEM) {
+			netAddItem(object);
+		} else if (object->getObjectType() & OBJECT_WEAPON) {
+			netAddWeapon(object);
+		}else if (object->getObjectType() & OBJECT_CREATURE) {
+			netAddCreature(object);
+		}
+	}
+	void NetworkFuncs::netAddTerrain(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_ADD_TERRAIN;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(object->getModel()->getLoadName());
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netAddItem(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_ADD_ITEM;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		Session* session = getSession();
+
+		auto& info = session->objectInfoRegistry.getItemInfo(object->getObjectInfo());
+
+		ItemType type = info.item.getType();
+		ModelId id = info.item.getModelId();
+		uint32_t count = info.item.getCount();
+		//info.item.getDisplayName();
+		//info.item.getComplexData();
+		msg.push(type);
+		msg.push(id);
+		msg.push(count);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netAddWeapon(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_ADD_WEAPON;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		Session* session = getSession();
+
+		//auto& info = session->objectInfoRegistry.getWeaponInfo(object->getObjectInfo());
+		
+		msg.push(object->getModel()->getLoadName());
+
+		// skipping combat data for now
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netAddCreature(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_ADD_CREATURE;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		int objectType=object->getObjectType(); // could be OBJECT_PLAYER or OBJECT_DUMMY and not just player
+		msg.push(&objectType);
+		Session* session = getSession();
+
+		auto& info = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+		
+		msg.push(object->getModel()->getLoadName());
+
+		// skipping inventory and combat data
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void  NetworkFuncs::netDeleteObject(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = DELETE_OBJECT;
+		msg.push(cmd);
+		pushObject(msg, object);
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netAnimateObject(engone::EngineObject* object, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "World::netAnimateObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = AnimateObject;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(instance);
+		msg.push(animation);
+		msg.push(&loop);
+		msg.push(&speed);
+		msg.push(&blend);
+		msg.push(&frame);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netEditObject(engone::EngineObject* object, int type, uint64_t data) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "World::editObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = EditObject;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(&type);
+		msg.push(&data);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netEditCombatData(engone::EngineObject* object, engone::UUID player, bool yes) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "World::editCombatObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = EditObject;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		int type = 2;
+		msg.push(&type);
+
+		msg.push(&player);
+		msg.push(&yes);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netDamageObject(engone::EngineObject* object, float damage) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "Playground::moveObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = DamageObject;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(&damage);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::recAddTerrain(engone::MessageBuffer& msg, engone::UUID clientUUID) {
+		using namespace engone;
+		Session* session = getSession();
+		
+		//-- Extract data
+		UUID_DIM obj;
+		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
+		
+		std::string modelAsset;
+		msg.pull(modelAsset);
+
+		//-- don't create object if uuid exists
+		if (obj.dim)
+			return;
+
+		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+		if (object) {
+			log::out << log::RED << "NetworkFuncs : Cannot add " << obj.uuid << " because it exists\n";
+			return;
+		}
+		EngineObject* newObject = CreateTerrain(obj.dim, obj.uuid);
+		if(!newObject){
+			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
+			return;
+		}
+		if (clientUUID != 0) {
+			auto find = session->getClientData().find(clientUUID);
+			if (find == session->getClientData().end()) {
+				log::out << log::RED << "NetworkFuncs : Could not find client data for " << clientUUID << "\n";
+			} else {
+				find->second.ownedObjects.push_back(newObject);
+			}
+		}
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+	}
+	void NetworkFuncs::recAddItem(engone::MessageBuffer& msg, engone::UUID clientUUID){
+		using namespace engone;
+		Session* session = getSession();
+
+		//-- Extract data
+		UUID_DIM obj;
+		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
+
+		ItemType type;
+		ModelId model;
+		uint32_t count;
+		msg.pull(&type);
+		msg.pull(&model);
+		msg.pull(&count);
+
+		//-- don't create object if uuid exists
+		if (obj.dim)
+			return;
+
+		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+		if (object) {
+			log::out << log::RED << "NetworkFuncs::recAddItem : Cannot add " << obj.uuid << " because it exists\n";
+			return;
+		}
+		Item item = { type, count };
+		EngineObject* newObject = CreateItem(obj.dim, item, obj.uuid);
+		if (!newObject) {
+			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
+			return;
+		}
+		if (clientUUID != 0) {
+			auto find = session->getClientData().find(clientUUID);
+			if (find == session->getClientData().end()) {
+				log::out << log::RED << "NetworkFuncs : Could not find client data for " << clientUUID << "\n";
+			} else {
+				find->second.ownedObjects.push_back(newObject);
+			}
+		}
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+	}
+	void NetworkFuncs::recAddWeapon(engone::MessageBuffer& msg, engone::UUID clientUUID){
+		using namespace engone;
+		Session* session = getSession();
+
+		//-- Extract data
+		UUID_DIM obj;
+		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
+
+		std::string modelAsset;
+		msg.pull(modelAsset);
+
+		//-- don't create object if uuid exists
+		if (obj.dim)
+			return;
+
+		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+		if (object) {
+			log::out << log::RED << "NetworkFuncs::recAddWeapon : Cannot add " << obj.uuid << " because it exists\n";
+			return;
+		}
+		EngineObject* newObject = CreateTerrain(obj.dim, obj.uuid);
+		if (!newObject) {
+			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
+			return;
+		}
+		if (clientUUID != 0) {
+			auto find = session->getClientData().find(clientUUID);
+			if (find == session->getClientData().end()) {
+				log::out << log::RED << "NetworkFuncs : Could not find client data for " << clientUUID << "\n";
+			} else {
+				//if (objectType == OBJECT_PLAYER)
+				//	find->second.player = newObject;
+
+				find->second.ownedObjects.push_back(newObject);
+			}
+		}
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+	}
+	void NetworkFuncs::recAddCreature(engone::MessageBuffer& msg, engone::UUID clientUUID) {
+		using namespace engone;
+		Session* session = getSession();
+
+		//-- Extract data
+		UUID_DIM obj;
+		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
+
+		int objectType;
+		msg.pull(&objectType);
+
+		std::string modelAsset;
+		msg.pull(modelAsset);
+
+		//-- don't create object if uuid exists
+		if (obj.dim)
+			return;
+
+		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+		if (object) {
+			log::out << log::RED << "NetworkFuncs::recAddWeapon : Cannot add " << obj.uuid << " because it exists\n";
+			return;
+		}
+		EngineObject* newObject = nullptr;
+		if (objectType == OBJECT_PLAYER) {
+			newObject=CreatePlayer(obj.dim, obj.uuid);
+		} else if(objectType==OBJECT_DUMMY) {
+			newObject = CreateDummy(obj.dim, obj.uuid);
+		}
+		if (!newObject) {
+			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
+			return;
+		}
+		if (clientUUID != 0) {
+			auto find = session->getClientData().find(clientUUID);
+			if (find == session->getClientData().end()) {
+				log::out << log::RED << "NetworkFuncs : Could not find client data for " << clientUUID << "\n";
+			} else {
+				if (objectType == OBJECT_PLAYER)
+					find->second.player = newObject;
+
+				find->second.ownedObjects.push_back(newObject);
+			}
+		}
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+	}
+	bool NetworkFuncs::networkRunning() {
+		return getClient().isRunning() || getServer().isRunning();
+	}
+	void NetworkFuncs::networkSend(engone::MessageBuffer& msg) {
+		if (getServer().isRunning())
+			getServer().send(msg, 0, true);
+		if (getClient().isRunning())
+			getClient().send(msg);
+	}
+	void NetworkFuncs::pushObject(engone::MessageBuffer& msg, engone::EngineObject* obj) {
+		using namespace engone;
+		UUID uuid = obj->getUUID();
+		msg.push(uuid);
+		msg.push(((Dimension*)obj->getWorld()->getUserData())->getName());
+	}
+	void NetworkFuncs::pullObject(engone::MessageBuffer& msg, UUID_DIM& data) {
+		msg.pull(&data.uuid);
+		std::string temp;
+		msg.pull(temp);
+		data.dim = getSession()->getDimension(temp);
+	}
+}

@@ -8,6 +8,9 @@ const char* test2dGLSL = {
 };
 #include "Engone/Tests/BasicRendering.h"
 
+#include "Engone/Core/ExecutionControl.h"
+#include "Engone/Utilities/Thread.h"
+
 extern "C" {
 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
 }
@@ -50,215 +53,21 @@ namespace engone {
 	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
 
+		if (m_applications.size() == 0) // might as well quit
+			return;
+
+		while (true) {
+			//manageThreading(); not finished
+
+			manageNonThreading(); // deals with timers
+		}
+
 		// Filters don't work with multithreading
 		//log::out.setConsoleFilter(log::out.consoleFilter() | log::Disable);
 		//GetTracker().printMemory();
 		//GetTracker().printInfo();
 		//log::out.setConsoleFilter(log::out.consoleFilter() & (~log::Disable));
-
-		// Make sure the pipeline is properly updated to avoid renderer being nullptr for the first frame
-		for (Application* app : m_applications) {
-			for (Window* win : app->getAttachedWindows()) {
-				win->getPipeline()->applyChanges();
-			}
-		}
-
-		double printTime = 0;
-		double lastTime = GetSystemTime();
-		m_runtimeStats.startTime = lastTime;
-		while (true) {
-			double now = GetSystemTime();
-			double delta = now - lastTime;
-			lastTime = now;
-			
-			m_runtimeStats.applyNewLimits();
-
-			//const double fixed = 1 / 144.f;
-			//m_runtimeStats.updateTime = fixed;
-			
-			//if (m_flags & EngoneFixedLoop) {
-			//	double sleeping = m_runtimeStats.frameTime - delta;
-			//	//log::out << delta <<" "<< sleeping <<"\n";
-			//	delta = m_runtimeStats.frameTime;
-			//	if (sleeping > 0) {
-			//		m_runtimeStats.sleepTime += sleeping;
-			//		std::this_thread::sleep_for(std::chrono::microseconds((int)(sleeping * 1000000)));
-			//		lastTime = GetSystemTime(); // this doesn't time accurate.
-			//	}
-			//}
-
-			// high delta will cause a series of consecuative updates which will freeze the apps. This is unwanted.
-			// Limit delta to fix it.
-			//double limit = 8 * m_runtimeStats.updateTime;
-			//if (delta > limit) delta = limit;
-
-			m_runtimeStats.runTime += delta;
-			m_runtimeStats.update_accumulator += delta;
-			m_runtimeStats.frame_accumulator += delta;
-			printTime += delta;
-
-			m_runtimeStats.nextSample(delta);
-
-			//-- Terminate Windows and Applications (if requested)
-			for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-				Application* app = m_applications[appIndex];
-				// Close window and applications if needed.
-				for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-					Window* win = app->getWindow(winIndex);
-					// Potentially close window
-					if (!win->isOpen()) {
-						GetTracker().untrack(win);
-						ALLOC_DELETE(Window, win);
-						//delete win;
-						app->getAttachedWindows().erase(app->getAttachedWindows().begin() + winIndex);
-						--winIndex;
-						continue;
-					}
-				}
-				if (app->isStopped()) { // app needs to be stopped manually (Application::stop)
-
-					// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
-					// app should be safe to delete
-					GetTracker().untrack({ m_appIds[appIndex],m_appSizes[appIndex],app });
-					ALLOC_DELETE(Application, app);
-					//delete app;
-					//FEATURE: instead of 3 vectors, use one vector<Tracker::TrackClass>
-					m_applications.erase(m_applications.begin() + appIndex);
-					m_appSizes.erase(m_appSizes.begin() + appIndex);
-					m_appIds.erase(m_appIds.begin() + appIndex);
-					--appIndex;
-					continue;
-				}
-			}
-			// NOTE: if you close one application and lets say a player object uses a camera inside it's update function. Since the camera exists in the renderer of a window which was deleted
-			//   because one application closed, THEN the update function would crash because the camera is invalid. This doesn't happen if you use GetActiveWindow and check if it's nullptr
-			//   but if you have a specific reference to a window that was closed wierd stuff could happen. And this only happens if you have two applications running at some point.
-			//   Because if you have one then the code below will just break and the update function won't be called.
-			// 
-			// NOTE: Hello again, a clarification: Window* m_window is variable i usually create inside applications. When the window closes, this pointer points to invalid
-			//	memory. The point here is... don't forget to set m_window to nullptr in onClose.
-
-			if (m_applications.size() == 0) // might as well quit
-				break;
-			//Timer tim("update");
-			while (m_runtimeStats.update_accumulator >= m_runtimeStats.updateTime
-				//|| m_flags & EngoneFixedLoop
-				) {
-				m_runtimeStats.update_accumulator -= m_runtimeStats.updateTime;
-
-				m_runtimeStats.incrUpdates();
-				currentLoopInfo = { m_runtimeStats.updateTime*m_runtimeStats.gameSpeed };
-				//if (m_flags & EngoneFixedLoop)
-				//	info.timeStep = m_runtimeStats.frameTime;
-				//LoopInfo info = { delta, nullptr };
-				// 
-				//update(info);
-				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-					Application* app = m_applications[appIndex];
-					currentLoopInfo.app = app;
-
-					// IsKeyPressed should work on current app and the first window.
-					if (app->getWindow(0))
-						app->getWindow(0)->setActiveContext();
-
-					currentLoopInfo.window = app->getWindow(0);
-
-					app->update(currentLoopInfo);
-					//Timer tim("update");
-					update(currentLoopInfo); // should maybe be moved outside loop?
-					//tim.stop();
-					// update reset for all windows.
-					// The global variable IsKeyPressed only works for the active window
-					// which is mainWindow which is the first window attached to application.
-					// If you want isKeyPressed for a specific window you do
-					// window->isKeyPressed instead where window is you window of choice.
-					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-						app->getWindow(winIndex)->resetEvents();
-					}
-				}
-				if (m_flags & EngoneFixedLoop)
-					break;
-			}
-			//tim.stop();
-			//Timer timer("frame");
-			if (m_runtimeStats.frame_accumulator >= m_runtimeStats.frameTime || m_flags & EngoneFixedLoop) {
-				//if(true){
-				m_runtimeStats.frame_accumulator -= m_runtimeStats.frameTime;
-				m_runtimeStats.incrFrames();
-				for (uint32_t appIndex = 0; appIndex < m_applications.size(); ++appIndex) {
-					Application* app = m_applications[appIndex];
-					app->m_renderingWindows = true;
-					//if (appIndex == 1) continue;
-					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-						Window* win = app->getWindow(winIndex);
-						if (!win->isOpen()) continue;
-						double interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
-						
-						currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
-						//if (m_flags & EngoneFixedLoop) {
-						//	currentLoopInfo.timeStep = m_runtimeStats.frameTime;
-						//	currentLoopInfo.interpolation = 0;
-						//}
-						win->setActiveContext();
-
-						if (!win->getStorage()->getGraphicProcessors().empty()) {
-							win->getStorage()->getGraphicProcessors()[0]->process();
-						}
-
-						// Important setup
-						// DONE IN Window::setActiveContext
-						glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-						glDepthFunc(GL_LESS);
-						glEnable(GL_CULL_FACE);
-						glClearColor(0.15f, 0.18f, 0.18f, 1.f);
-						//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
-						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-						// 3d stuff
-						app->render(currentLoopInfo);
-
-						render(currentLoopInfo);
-
-						// orthogonal was set before hand
-						win->getPipeline()->render(currentLoopInfo);
-						
-						glfwSwapInterval(0); // turning off vsync?
-						//Timer swapT("glSwapBuffers");
-						glfwSwapBuffers(win->glfw());
-						//swapT.stop();
-						// frame reset
-						win->resetEvents();
-						char endChr;
-						while (endChr = win->pollChar()) {
-							//log::out << "endpoll " << endChr << "\n";
-						}
-					}
-					app->m_renderingWindows = false;
-				}
-			} else {
-				double sleepTime = m_runtimeStats.frameTime - m_runtimeStats.frame_accumulator;
-				m_runtimeStats.sleepTime += sleepTime;
-				std::this_thread::sleep_for(std::chrono::microseconds((int)(sleepTime * 1000000.0)));
-			}
-			//timer.stop();
-
-			if (printTime > 0.7f) {
-				printTime -= 0.7f;
-				// check if delta is accurate
-				//log::out << m_runtimeStats.runTime << " - " << (now - m_runtimeStats.startTime)<<" "<<abs(m_runtimeStats.runTime - (now - m_runtimeStats.startTime)) << "\n";
-				
-				// other info
-				//m_runtimeStats.print(RuntimeStats::PrintSamples);
-				//log::out << "Bytes:" << alloc::allocatedBytes() << "\n";
-			}
-
-			m_runtimeStats.totalLoops++;
-			//log::out << "loop " << m_runtimeStats.totalLoops << "\n";
-			//Timer poll("glPollEvents");
-			glfwPollEvents();
-			//poll.stop();
-		}
+		
 		glfwTerminate();
 
 		// doesn't have to be a memory leak, it depends on the users code.
@@ -280,7 +89,123 @@ namespace engone {
 			log::out << "No tracked memory leak\n";
 		}
 	}
+	void Engone::manageThreading() {
+		for (Application* app : m_applications) {
+			if (app->isMultiThreaded()) { // is supposed to be multithreaded
+				if (!app->updateThread.isRunning()) {
+					app->updateThread.init([&](void* arg) {
+						while (true) {
+							app->getExecTimer().step();
+							LoopInfo info;
+							info.app = app;
+							info.window = nullptr;
+							info.timeStep = app->getExecTimer().delta;
+							app->getControl().execute(info, ExecutionControl::UPDATE);
 
+							// In case execute takes 0 seconds the thread should sleep for a little bit
+							// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+							engone::Sleep(0.1);
+						}
+						return 0;
+					}, nullptr);
+				}
+				//glfwPollEvents in some thread
+
+				// same for all windows
+				//for () {
+
+				//}
+				// multithreading isn't running, do run it.
+			}
+		}
+	}
+	void Engone::manageNonThreading() {
+		//-- Timers and stuff
+		mainUpdateTimer.step(); // replace with one step for both? they can become unsynchrized otherwise
+		mainRenderTimer.step();
+
+		// keep expected FPS, UPS outside of timer and pass it in as argument?
+		
+		// function seems to to processing of all inputs and stuff
+		// mutex lock for window input stuff
+		// special thread for input or just after render thread
+		glfwPollEvents(); // window refreh callback to redraw when resizing?
+
+		//-- Update execution
+		while (mainUpdateTimer.accumulate()) {
+			for (Application* app : m_applications) {
+				if (!app->isMultiThreaded()) {
+
+					if (app->getWindow(0))
+						app->getWindow(0)->setActiveContext();
+
+					currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
+
+					app->update(currentLoopInfo);
+					update(currentLoopInfo); // should maybe be moved outside loop?
+
+					//app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
+
+					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+						app->getWindow(winIndex)->resetEvents(false);
+					}
+				}
+			}
+		}
+		//-- Render execution
+		if (mainRenderTimer.accumulate()) {
+			for (Application* app : m_applications) {
+				if (!app->isMultiThreaded()) {
+					app->m_renderingWindows = true;
+					for (Window* win : app->getAttachedWindows()) {
+						if (!win->isOpen()) continue;
+
+						double interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
+
+						currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+
+						win->setActiveContext();
+
+						if (!win->getStorage()->getGraphicProcessors().empty()) {
+							win->getStorage()->getGraphicProcessors()[0]->process();
+						}
+
+						// Important setup
+						// DONE IN Window::setActiveContext
+						glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glDepthFunc(GL_LESS);
+						glEnable(GL_CULL_FACE);
+						glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+						//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
+						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+						// 3d stuff
+						app->render(currentLoopInfo);
+
+						render(currentLoopInfo);
+
+						//app->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
+
+						// orthogonal was set before hand
+						win->getPipeline()->render(currentLoopInfo);
+
+						glfwSwapInterval(0); // turning off vsync?
+						//Timer swapT("glSwapBuffers");
+						glfwSwapBuffers(win->glfw());
+						//swapT.stop();
+						// frame reset
+						win->resetEvents(true);
+						char endChr;
+						while (endChr = win->pollChar()) {
+							//log::out << "endpoll " << endChr << "\n";
+						}
+					}
+					app->m_renderingWindows = false;
+				}
+			}
+		}
+	}
 	//FrameBuffer depthBuffer;
 	//glm::mat4 lightProjection;
 	//FrameBuffer& GetDepthBuffer() {

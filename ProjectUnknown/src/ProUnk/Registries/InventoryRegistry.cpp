@@ -6,7 +6,7 @@
 
 namespace prounk {
 	
-	Item::Item(ItemType type, int count) : m_type(type), m_count(count) {
+	Item::Item(ItemType type, uint32_t count) : m_type(type), m_count(count) {
 		auto app = (GameApp*)engone::GetActiveWindow()->getParent();
 		if (!app->getActiveSession())
 			return;

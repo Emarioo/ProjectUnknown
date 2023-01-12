@@ -24,15 +24,15 @@ namespace prounk {
 		}
 		return nullptr;
 	}
-	engone::EngineObject* CreateObject(int type, Dimension* dimension, engone::UUID uuid) {
-		using namespace engone;
-		if (type == OBJECT_DUMMY) return CreateDummy(dimension,uuid);
-		if (type == OBJECT_SWORD) return CreateSword(dimension, uuid);
-		if (type == OBJECT_TERRAIN) return CreateTerrain(dimension, uuid);
-		if (type == OBJECT_PLAYER) return CreatePlayer(dimension, uuid);
-		log::out << log::RED << "CreateObject - type '"<<type<<"' doesn't exist\n";
-		return nullptr;
-	}
+	//engone::EngineObject* CreateObject(int type, Dimension* dimension, engone::UUID uuid) {
+	//	using namespace engone;
+	//	if (type == OBJECT_DUMMY) return CreateDummy(dimension,uuid);
+	//	if (type == OBJECT_TERRAIN) return CreateTerrain(dimension, uuid);
+	//	if (type == OBJECT_PLAYER) return CreatePlayer(dimension, uuid);
+	//	if (type == OBJECT_WEAPON) return CreatePlayer(dimension, uuid);
+	//	log::out << log::RED << "CreateObject - type '"<<type<<"' doesn't exist\n";
+	//	return nullptr;
+	//}
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object) {
 		using namespace engone;
 		dimension->getWorld()->deleteObject(object->getUUID());
@@ -65,19 +65,19 @@ namespace prounk {
 		out->loadColliders();
 		return out;
 	}
-	engone::EngineObject* CreateSword(Dimension* dimension, engone::UUID uuid) {
-		using namespace engone;
-		EngineObject* out = dimension->getWorld()->createObject(uuid);
-		out->setObjectType(OBJECT_SWORD);
+	//engone::EngineObject* CreateSword(Dimension* dimension, engone::UUID uuid) {
+	//	using namespace engone;
+	//	EngineObject* out = dimension->getWorld()->createObject(uuid);
+	//	out->setObjectType(OBJECT_SWORD);
 
-		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
-		//out->setModel(assets->load<engone::ModelAsset>("Pickaxe/Pickaxe"));
+	//	engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
+	//	out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
+	//	//out->setModel(assets->load<engone::ModelAsset>("Pickaxe/Pickaxe"));
 
-		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		out->loadColliders();
-		return out;
-	}
+	//	out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+	//	out->loadColliders();
+	//	return out;
+	//}
 	engone::EngineObject* CreateTerrain(Dimension* dimension, engone::UUID uuid) {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
@@ -152,7 +152,6 @@ namespace prounk {
 		session->objectInfoRegistry.getItemInfo(id).item = item;
 
 		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		//out->setColliderUserData((void*)COLLIDER_IS_DAMAGE);
 		out->loadColliders();
 		return out;
 	}
