@@ -749,6 +749,7 @@ namespace engone {
 	void Shader::setFloat(const std::string& name, float f)
 	{
 		glUniform1f(getUniformLocation(name), f);
+		CHECK();
 	}
 	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
@@ -757,30 +758,37 @@ namespace engone {
 		//const GLubyte* okay = glewGetErrorString(num);
 		//std::cout << okay << "\n";
 		glUniform2f(getUniformLocation(name), v.x, v.y);
+		CHECK();
 	}
 	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
 	{
 		glUniform2i(getUniformLocation(name), v.x, v.y);
+		CHECK();
 	}
 	void Shader::setVec3(const std::string& name, glm::vec3 v)
 	{
 		glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
+		CHECK();
 	}
 	void Shader::setIVec3(const std::string& name, glm::ivec3 v)
 	{
 		glUniform3i(getUniformLocation(name), v.x, v.y, v.z);
+		CHECK();
 	}
 	void Shader::setVec4(const std::string& name, glm::vec4 v)
 	{
 		glUniform4f(getUniformLocation(name), v.x, v.y, v.z, v.w);
+		CHECK();
 	}
 	void Shader::setInt(const std::string& name, int v)
 	{
 		glUniform1i(getUniformLocation(name), v);
+		CHECK();
 	}
 	void Shader::setMat4(const std::string& name, glm::mat4 mat)
 	{
 		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
+		CHECK();
 	}
 	unsigned int Shader::getUniformLocation(const std::string& name)
 	{

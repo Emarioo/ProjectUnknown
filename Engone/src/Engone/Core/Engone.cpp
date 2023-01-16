@@ -53,7 +53,7 @@ namespace engone {
 	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
 
-		if (m_applications.size() == 0) // might as well quit
+		if (m_applications.size() == 0) // might as well quitw
 			return;
 
 		while (true) {
@@ -133,6 +133,7 @@ namespace engone {
 
 		//-- Update execution
 		while (mainUpdateTimer.accumulate()) {
+			//printf("update\n");
 			for (Application* app : m_applications) {
 				if (!app->isMultiThreaded()) {
 
@@ -154,6 +155,7 @@ namespace engone {
 		}
 		//-- Render execution
 		if (mainRenderTimer.accumulate()) {
+			//printf("render\n");
 			for (Application* app : m_applications) {
 				if (!app->isMultiThreaded()) {
 					app->m_renderingWindows = true;
@@ -204,6 +206,8 @@ namespace engone {
 					app->m_renderingWindows = false;
 				}
 			}
+		} else {
+			//log::out << "skip frame\n";
 		}
 	}
 	//FrameBuffer depthBuffer;

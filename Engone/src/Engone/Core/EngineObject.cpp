@@ -7,8 +7,11 @@ namespace engone {
 		cleanup();
 	}
 	void EngineObject::cleanup() {
-		if (m_rigidBody)
+		if (m_rigidBody) {
+			m_world->lockPhysics();
 			m_world->getPhysicsWorld()->destroyRigidBody(m_rigidBody);
+			m_world->unlockPhysics();
+		}
 		removeAnimator();
 	}
 	void EngineObject::init(EngineWorld* world, UUID uuid) {
@@ -27,7 +30,9 @@ namespace engone {
 			return;
 		}
 		rp3d::Transform t;
+		m_world->lockPhysics();
 		m_rigidBody = world->getPhysicsWorld()->createRigidBody(t); // PHYSICS WORLD DOES NOT HAVE MUTEX, DANGEROUS
+		m_world->unlockPhysics();
 		if (!m_rigidBody) {
 			log::out << log::RED << "EngineObject : RigidBody is null\n";
 			return;

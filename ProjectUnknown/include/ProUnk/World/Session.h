@@ -7,7 +7,7 @@
 #include "ProUnk/Registries/ComplexDataRegistry.h"
 #include "ProUnk/Registries/ModelRegistry.h"
 
-//#include "ProUnk/Network/NetworkFuncs.h"
+#include "ProUnk/Network/NetworkFuncs.h"
 
 namespace prounk {
 	
@@ -46,7 +46,7 @@ namespace prounk {
 
 	class GameApp;
 	class Session 
-		//: public NetworkFuncs 
+		: public NetworkFuncs 
 	{
 	public:
 		static const int OBJECT_NETMOVE = 0x00010000;
@@ -80,10 +80,10 @@ namespace prounk {
 		//std::unordered_map<engone::UUID, *> m_uuidMapping;
 
 		//-- Network stuff
-		//engone::Client& getClient() override;
-		//engone::Server& getServer() override;
-		engone::Client& getClient();
-		engone::Server& getServer();
+		engone::Client& getClient() override;
+		engone::Server& getServer() override;
+		//engone::Client& getClient();
+		//engone::Server& getServer();
 
 		std::unordered_map<engone::UUID, ClientData>& getClientData() { return m_clients; }
 

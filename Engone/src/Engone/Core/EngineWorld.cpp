@@ -69,7 +69,9 @@ namespace engone {
 		//m_objects.clear(); // should clear itself
 
 #ifdef ENGONE_PHYSICS
+		m_physicsMutex.lock();
 		m_app->getPhysicsCommon()->destroyPhysicsWorld(m_physicsWorld);
+		m_physicsMutex.unlock();
 #endif
 	}
 	void EngineWorld::update(LoopInfo& info) {
@@ -86,8 +88,17 @@ namespace engone {
 		}
 
 #ifdef ENGONE_PHYSICS
+		m_physicsMutex.lock();
+		FrameArray<EngineObject>::Iterator iter;
+		while (m_objects.iterate(iter)) {
+			requestAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
+		}
 		if (m_physicsWorld)
 			m_physicsWorld->update(info.timeStep);
+		while (m_objects.iterate(iter)) {
+			releaseAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
+		}
+		m_physicsMutex.unlock();
 #endif
 	}
 	//EngineObject* EngineWorld::getObject(UUID uuid) {
@@ -212,7 +223,9 @@ namespace engone {
 		RaycastInfo info;
 		info.m_objectLimit = objectLimit;
 		info.ignoreType = ignoreObjectType;
-		getPhysicsWorld()->raycast(ray, &info);
+		lockPhysics();
+		getPhysicsWorld()->raycast(ray, &info); // mutex?
+		unlockPhysics();
 		return std::move(info.m_hitObjects);
 	}
 	EngineObjectIterator EngineWorld::createIterator() {

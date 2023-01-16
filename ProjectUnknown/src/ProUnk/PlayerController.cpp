@@ -82,8 +82,6 @@ namespace prounk {
 
 		//EngineObject* heldObject = requestHeldObject();
 
-		
-
 		if (inv->getSlotSize() != 0) {
 			auto& item = inv->getItem(0);
 			//log::out << "Type: "<<item.getType() << "\n";
@@ -91,19 +89,25 @@ namespace prounk {
 				if (heldObject) {
 					if (item.getType() == 0) {
 						// remove held object
+						app->getActiveSession()->netDeleteObject(heldObject);
 						DeleteObject(dim,heldObject);
 						heldObject = nullptr;
 					} else {
 						// reuse held object
 						heldObject->setModel(dim->getParent()->modelRegistry.getModel(item.getModelId()));
 						heldObject->setOnlyTrigger(true);
+						app->getActiveSession()->netSetTrigger(heldObject, true);
 					}
 				} else {
 					if (item.getType() != 0) {
 						// create new object
-						heldObject = CreateWeapon(dim, item);
+						ModelAsset* model = dim->getParent()->modelRegistry.getModel(item.getModelId());
+						heldObject = CreateWeapon(dim, model->getLoadName());
+						heldObject->setFlags(heldObject->getFlags() | Session::OBJECT_NETMOVE);
 						heldObject->setOnlyTrigger(true);
-						//releaseHeldObject(heldObject);
+						app->getActiveSession()->netAddWeapon(heldObject);
+						app->getActiveSession()->netSetTrigger(heldObject,true);
+						releaseHeldObject(heldObject);
 					}
 					// damage in combat data is set when doing a skill
 				}
@@ -120,10 +124,16 @@ namespace prounk {
 			return;
 		}
 		if (m_player->getFlags() & OBJECT_IS_DEAD) {
-			heldObject->setOnlyTrigger(false);
+			if (heldObject->isOnlyTrigger()) {
+				heldObject->setOnlyTrigger(false);
+				app->getActiveSession()->netSetTrigger(heldObject, false);
+			}
 			return;
 		}
-		heldObject->setOnlyTrigger(true);
+		if (!heldObject->isOnlyTrigger()) {
+			heldObject->setOnlyTrigger(true);
+			app->getActiveSession()->netSetTrigger(heldObject, true);
+		}
 
 		ModelAsset* model = m_player->getModel();
 		rp3d::RigidBody* body = m_player->getRigidBody();
@@ -441,7 +451,6 @@ namespace prounk {
 				Inventory* inv = getInventory();
 				Item& firstItem = inv->getItem(0);
 
-
 				ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
 				if (complexData) { // cannot attack without data
 					ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
@@ -459,7 +468,7 @@ namespace prounk {
 					weaponCombat->skillType = SKILL_SLASH;
 					weaponCombat->attack();
 					m_player->getAnimator()->enable("Player", "PlayerDownSwing", { false,1,1,0 });
-					//app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerDownSwing", false, 1, 1, 0);
+					app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerDownSwing", false, 1, 1, 0);
 					AnimatorProperty* prop = m_player->getAnimator()->getProp("Player");
 					if (prop) {
 						weaponCombat->animationTime = prop->getRemainingSeconds();
@@ -486,7 +495,7 @@ namespace prounk {
 				weaponCombat->skillType = SKILL_SIDE_SLASH;
 				weaponCombat->attack();
 				m_player->getAnimator()->enable("Player", "PlayerSideSwing", { false,1,1,0 });
-				//app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerSideSwing", false, 1, 1, 0);
+				app->getActiveSession()->netAnimateObject(m_player, "Player", "PlayerSideSwing", false, 1, 1, 0);
 				AnimatorProperty* prop = m_player->getAnimator()->getProp("Player");
 				if (prop) {
 					weaponCombat->animationTime = prop->getRemainingSeconds();

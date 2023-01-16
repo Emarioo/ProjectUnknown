@@ -258,12 +258,13 @@ namespace engone {
 
 		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
-		setActiveContext();
-
+		
 		CommonRenderer* commonRenderer = ALLOC_NEW(CommonRenderer)();
 		m_renderPipeline.addComponent(commonRenderer,true);
 		UIRenderer* uiRenderer = ALLOC_NEW(UIRenderer)();
 		m_renderPipeline.addComponent(uiRenderer,true);
+
+		setActiveContext();
 	}
 	Window::~Window() {
 		// we need to set window as active context before deleting buffers.

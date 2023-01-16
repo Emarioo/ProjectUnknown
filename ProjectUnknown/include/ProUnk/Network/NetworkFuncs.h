@@ -7,16 +7,19 @@
 
 namespace prounk {
 	enum NetCommand : int {
-		MoveObject,
-		//AddObject,
-		DELETE_OBJECT,
-		AnimateObject,
-		EditObject,
-		DamageObject,
 		NET_ADD_TERRAIN,
 		NET_ADD_ITEM,
 		NET_ADD_WEAPON,
 		NET_ADD_CREATURE,
+		NET_MOVE,
+		NET_DELETE,
+
+		NET_ANIMATE,
+		NET_TRIGGER,
+		NET_DAMAGE,
+
+		NET_EDIT,
+		NET_EDIT_BODY,
 	};
 	const char* to_string(NetCommand value);
 	engone::Logger& operator<<(engone::Logger& log, NetCommand value);
@@ -27,8 +30,6 @@ namespace prounk {
 	public:
 		NetworkFuncs() = default;
 
-		// change to move objects, how to provide multiple objects?
-		void netMoveObject(engone::EngineObject* object);
 
 		void netAddGeneral(engone::EngineObject* object);
 		void netAddItem(engone::EngineObject* object);
@@ -36,14 +37,18 @@ namespace prounk {
 		void netAddCreature(engone::EngineObject* object);
 		void netAddTerrain(engone::EngineObject* object);
 
+		// change to move objects, how to provide multiple objects?
+		void netMoveObject(engone::EngineObject* object);
+		
 		void netDeleteObject(engone::EngineObject* object);
 
-		void netAnimateObject(engone::EngineObject* object, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame);
 		// separate edit commands into multilpe commands. not sub types of edit commands.
 		void netEditObject(engone::EngineObject* object, int type, uint64_t data);
-		void netEditCombatData(engone::EngineObject* object, engone::UUID from, bool yes);
+		//void netEditCombatData(engone::EngineObject* object, engone::UUID from, bool yes);
 
 		void netDamageObject(engone::EngineObject* object, float damage);
+		void netAnimateObject(engone::EngineObject* object, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame);
+		void netSetTrigger(engone::EngineObject* object, bool yes);
 
 		//-- Receive
 		void recAddTerrain(engone::MessageBuffer& msg, engone::UUID clientUUID);

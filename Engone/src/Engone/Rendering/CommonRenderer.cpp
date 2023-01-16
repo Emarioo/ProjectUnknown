@@ -143,11 +143,11 @@ namespace engone {
 
 		float simpleQuad[]{
 			0,1,0,1,
-			0,0,0,0,
 			1,1,1,1,
+			0,0,0,0,
 			1,0,1,0,
-			1,1,1,1,
 			0,0,0,0,
+			1,1,1,1,
 
 			//0,0,0,1,
 			//0,1,0,0,
@@ -160,6 +160,8 @@ namespace engone {
 		quadVB.setData(sizeof(simpleQuad), simpleQuad);
 		//quadIB.setData(sizeof(uint32_t)*6, simpleInd);
 		quadVA.addAttribute(4, &quadVB);
+
+		quadVA.drawTriangleArray(6);
 
 		instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 

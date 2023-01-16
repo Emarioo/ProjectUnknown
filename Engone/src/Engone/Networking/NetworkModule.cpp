@@ -739,12 +739,12 @@ namespace engone {
 												conn->m_server = this;
 												//GetTracker().track(conn);
 
+												m_connectionsMutex.lock();
 												m_connections[uuid] = conn; // needs to be before onEvent because sending messages require the connection 
+												m_connectionsMutex.unlock();
 												// to be listed in m_connections
 
-												//lock();
 												bool keep = m_onEvent(NetEvent::Connect, uuid);
-												//unlock();
 
 												if (!keep) {
 													m_connectionsMutex.lock();
@@ -760,8 +760,9 @@ namespace engone {
 
 											//ENGONE_DEBUG(log::out<<"accept call stop\n";)
 											stop();
-
+											//unlock();
 											m_onEvent(NetEvent::Stopped, 0);
+											//lock();
 											//ENGONE_DEBUG(log::out << "accept thread finished\n";)
 
 										});
@@ -993,7 +994,9 @@ namespace engone {
 											//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
 											closesocket(newSocket);
 											keepRunning = false;
+											unlock();
 											m_onEvent(NetEvent::Failed, 0);
+											lock();
 										} else {
 
 											m_connection = ALLOC_NEW(Connection)(newSocket);
@@ -1003,8 +1006,9 @@ namespace engone {
 											m_ip = std::move(action.ip);
 											m_port = std::move(action.port);
 
+											unlock();
 											bool keep = m_onEvent(NetEvent::Connect, 0);
-
+											lock();
 											if (!keep) {
 												cleanup();
 											} else {

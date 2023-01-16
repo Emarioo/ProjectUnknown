@@ -3,10 +3,11 @@
 #include "Engone/Assets/Animator.h"
 #include "Engone/Logger.h"
 
-
 namespace engone {
 
 	float AnimatorProperty::getRemainingSeconds() const {
+		if (!asset)
+			DebugBreak();
 		float out = asset->frameEnd - frame;
 		out *= speed / asset->defaultSpeed;
 		return out;

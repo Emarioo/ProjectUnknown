@@ -2,6 +2,8 @@
 
 #include "Engone/Window.h"
 
+#include "ProUnk/GameApp.h"
+
 namespace prounk {
 
 	void VisualEffects::CreateTextParticle(glm::vec3 position, float scale, const std::string& text) {
@@ -56,6 +58,7 @@ namespace prounk {
 		ShaderAsset* shader = info.window->getStorage()->get<ShaderAsset>("gui");
 		shader->bind();
 		shader->setVec2("uSize", { 1,1 });
+		shader->setInt("uColorMode", 1);
 		for (int i = 0; i < m_floatingTexts.size(); i++) {
 			FloatingText& text = m_floatingTexts[i];
 			
@@ -83,6 +86,47 @@ namespace prounk {
 				//pos.x = GetWidth() * (0.5 + pos.x / pos.z / 2) - w / 2;
 				//pos.y = GetHeight() * (0.5 - pos.y / pos.z / 2) - h / 2;
 				//ui::Draw(box);
+			}
+		}
+		GameApp* app = (GameApp*)info.app;
+		Dimension* dim = app->getActiveSession()->getDimension("0");
+		EngineWorld* world = dim->getWorld();
+
+		auto iterator = world->createIterator();
+		EngineObject* obj=nullptr;
+		int index = 1;
+		while (obj = iterator.next()) {
+			if (obj->getObjectType() == OBJECT_PLAYER) {
+				glm::vec3 pos3 = obj->getPosition() + glm::vec3(0, obj->getModel()->boundingPoint.y+obj->getModel()->boundingRadius, 0);
+				//obj->getModel()->boundingPoint
+				// use model asset to get bounds and offset text position by?
+				glm::vec4 pos = projMat * glm::vec4(pos3, 1);
+				std::string name = "Player " + std::to_string(index);
+				index++;
+				float th = 80;
+				ui::Color col = { 1 };
+				if (pos.z > 0) {
+					float h = th / pos.z;
+					float w = consolas->getWidth(name, h);
+
+					float x = GetWidth() * (0.5 + pos.x / pos.z / 2) - w / 2;
+					float y = GetHeight() * (0.5 - pos.y / pos.z / 2) - h / 2;
+					float padding = 2;
+					shader->setVec4("uColor", {0,0,0,0.5});
+					shader->setVec2("uPos", { x- padding, y- padding });
+					//shader->setVec2("uPos", { 50, 200 });
+					shader->setVec2("uSize", {w+ padding*2, h+ padding *2});
+					//shader->setVec2("uSize", {50, 50});
+					shader->setInt("uColorMode", 0);
+					renderer->drawQuad(info);
+
+					shader->setInt("uColorMode", 1);
+					shader->setVec2("uSize", {1, 1 });
+					shader->setVec2("uPos", {x, y });
+					shader->setVec4("uColor", col.toVec4());
+
+					renderer->drawString(consolas, name, h, -1);
+				}
 			}
 		}
 	}

@@ -252,16 +252,16 @@ namespace prounk {
 		//if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
 		//}
-
+		firstDim->getWorld()->lockPhysics();
 		firstDim->getWorld()->getPhysicsWorld()->setIsDebugRenderingEnabled(true);
 		rp3d::DebugRenderer& debugRenderer = firstDim->getWorld()->getPhysicsWorld()->getDebugRenderer();
 		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
-
 		firstDim->getWorld()->getPhysicsWorld()->setEventListener(this);
-	
+		firstDim->getWorld()->unlockPhysics();
+
 		EngineObject* player = CreatePlayer(firstDim);
 		playerController.setPlayerObject(player);
 		player->setPosition({ 0,0,0 });
@@ -334,10 +334,10 @@ namespace prounk {
 			terrain->setPosition({ 0,-2,0 });
 
 			player->setPosition({ 1,0,0 });
-			//world->getServer().start(info.port);
+			m_session->getServer().start(info.port);
 
 		} else if (info.flags & START_CLIENT) {
-			//world->getClient().start(info.ip,info.port);
+			m_session->getClient().start(info.ip,info.port);
 		}
 
 		//rp3d::Vector3 anchor(1, 1, 1);

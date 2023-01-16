@@ -96,6 +96,12 @@ namespace engone {
 
 		rp3d::PhysicsCommon* getPhysicsCommon();
 		rp3d::PhysicsWorld* getPhysicsWorld();
+		void lockPhysics() { 
+			m_physicsMutex.lock(); 
+		}
+		void unlockPhysics() { 
+			m_physicsMutex.unlock();
+		}
 
 		Application* getApp() { return m_app; }
 
@@ -104,6 +110,7 @@ namespace engone {
 
 	private:
 #ifdef ENGONE_PHYSICS
+		Mutex m_physicsMutex;
 		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
 #endif
 

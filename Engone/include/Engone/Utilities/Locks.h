@@ -25,8 +25,26 @@ namespace engone {
 
 		void lock();
 		void unlock();
+
+		uint32_t getOwner();
 	private:
+		uint32_t m_ownerThread = 0;
 		HANDLE m_handle = NULL;
+	};
+	class DepthMutex {
+	public:
+		DepthMutex() = default;
+		~DepthMutex();
+		void cleanup();
+
+		void lock();
+		void unlock();
+
+		uint32_t getOwner();
+	private:
+		Mutex m_mutex;
+		Mutex m_depthMutex;
+		uint32_t m_depth;
 	};
 	// multiple readers, one writer
 	// this lock is not flawless.

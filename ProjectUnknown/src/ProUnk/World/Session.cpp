@@ -38,19 +38,23 @@ namespace prounk {
 		//	eh = &m_server;
 		//printf("? %u %u\n", eh->getStats().sentMessages(), eh->getStats().receivedMessages());
 	}
-
 	Session::Session(GameApp* app) : m_parent(app) {
 		using namespace engone;
-#ifdef gone
 		auto onRecv = [this](MessageBuffer& msg, UUID clientUUID) {
 			//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
 			Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*)&m_client;
 
+			//void(NetworkFuncs:: * f[])(MessageBuffer & msg, UUID clientUUID) = {recAddCreature};
+
+			//f[(int)MoveObject](msg, clientUUID);
+			
 			NetCommand cmd;
 			msg.pull(&cmd);
-			//log::out << m_server.isRunning() << " " << cmd << "\n";
 
-			if (cmd == MoveObject) {
+			if(cmd!=NET_MOVE)
+				log::out << m_server.isRunning() << " " << cmd << "\n";
+
+			if (cmd == NET_MOVE) {
 				//-- Extract data
 				rp3d::Transform transform;
 				rp3d::Vector3 velocity;
@@ -63,6 +67,7 @@ namespace prounk {
 
 				//-- Find object with matching UUID
 				if (obj.dim) {
+					obj.dim->getWorld()->lockPhysics();
 					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
 
 					if (object) {
@@ -71,8 +76,8 @@ namespace prounk {
 						object->getRigidBody()->setAngularVelocity(angularVelocity);
 						obj.dim->getWorld()->releaseAccess(obj.uuid);
 					}
+					obj.dim->getWorld()->unlockPhysics();
 				}
-
 			} else if (cmd == NET_ADD_TERRAIN) {
 				recAddTerrain(msg, clientUUID);
 			} else if (cmd == NET_ADD_ITEM) {
@@ -81,7 +86,7 @@ namespace prounk {
 				recAddWeapon(msg, clientUUID);
 			} else if (cmd == NET_ADD_CREATURE) {
 				recAddCreature(msg, clientUUID);
-			} else if (cmd == AnimateObject) {
+			} else if (cmd == NET_ANIMATE) {
 				//-- Extract data
 				UUID_DIM obj;
 				pullObject(msg, obj);
@@ -114,54 +119,74 @@ namespace prounk {
 					}
 				}
 
-			} else if (cmd == EditObject) {
+			} else if (cmd == NET_TRIGGER) {
+				//-- Extract data
+				UUID_DIM obj;
+				pullObject(msg, obj);
+
+				//int type;
+				//msg.pull(&type);
+				bool yes;
+				msg.pull(&yes);
+
+				//-- Find object with matching UUID
+				if (obj.dim) {
+					obj.dim->getWorld()->lockPhysics();
+					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+					if (object) {
+						object->setOnlyTrigger(yes);
+						obj.dim->getWorld()->releaseAccess(obj.uuid);
+					}
+					obj.dim->getWorld()->unlockPhysics();
+				}
+			} else if (cmd == NET_EDIT) {
 				//-- Extract data
 				UUID_DIM obj;
 				pullObject(msg, obj);
 
 				int type;
 				msg.pull(&type);
+				uint64_t data;
+				msg.pull(&data);
 
 				//-- Find object with matching UUID
 				if (obj.dim) {
+					obj.dim->getWorld()->lockPhysics();
 					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
 					if (object) {
-						//m_mutex.lock();
-						if (type == 0) {
-							uint64_t data;
-							msg.pull(&data);
-							object->setOnlyTrigger(data != 0);
-						} else if (type == 1) {
-							uint64_t data;
-							msg.pull(&data);
+						if (type == NET_EDIT_BODY) {
 							object->getRigidBody()->setType((rp3d::BodyType)data);
-							//UUID uuid2 = { data1,data2 };
-							//EngineObject* obj = getObject(uuid2);
-							//if (obj) {
-							//	Player* plr = (Player*)obj;
-							//	object->rigidBody->getCollider(data0)->setUserData(&plr->combatData);
-							//} else {
-							//	object->rigidBody->getCollider(data0)->setUserData(nullptr);
-							//}
-						} else if (type == 2) {
-							UUID uuid2;
-							msg.pull(&uuid2);
-							bool yes;
-							msg.pull(&yes);
+						} 
+						//else if (type == 1) {
+						//	//uint64_t data;
+						//	//msg.pull(&data);
+						//	//UUID uuid2 = { data1,data2 };
+						//	//EngineObject* obj = getObject(uuid2);
+						//	//if (obj) {
+						//	//	Player* plr = (Player*)obj;
+						//	//	object->rigidBody->getCollider(data0)->setUserData(&plr->combatData);
+						//	//} else {
+						//	//	object->rigidBody->getCollider(data0)->setUserData(nullptr);
+						//	//}
+						//} else if (type == 2) {
+						//	UUID uuid2;
+						//	msg.pull(&uuid2);
+						//	bool yes;
+						//	msg.pull(&yes);
 
-							EngineObject* object2 = obj.dim->getWorld()->requestAccess(uuid2);
-							if (object2) {
-								log::out << log::RED << "Session::Receive - EditType:2 is broken\n";
-								//SetCombatData(object2, object, yes);
-								obj.dim->getWorld()->releaseAccess(uuid2);
-							} else
-								log::out << log::RED << "Session::Receive - " << cmd << ", type 2, object2 is nullptr\n";
-						}
+						//	EngineObject* object2 = obj.dim->getWorld()->requestAccess(uuid2);
+						//	if (object2) {
+						//		log::out << log::RED << "Session::Receive - EditType:2 is broken\n";
+						//		//SetCombatData(object2, object, yes);
+						//		obj.dim->getWorld()->releaseAccess(uuid2);
+						//	} else
+						//		log::out << log::RED << "Session::Receive - " << cmd << ", type 2, object2 is nullptr\n";
+						//}
 						obj.dim->getWorld()->releaseAccess(obj.uuid);
 					}
+					obj.dim->getWorld()->unlockPhysics();
 				}
-
-			} else if (cmd == DamageObject) {
+			} else if (cmd == NET_DAMAGE) {
 				//-- Extract data
 				UUID_DIM obj;
 				pullObject(msg, obj);
@@ -187,7 +212,7 @@ namespace prounk {
 					//	//m_mutex.unlock();
 					//}
 				}
-			} else if (cmd == DELETE_OBJECT) {
+			} else if (cmd == NET_DELETE) {
 				UUID_DIM obj;
 				pullObject(msg, obj);
 				if (obj.dim) {
@@ -226,8 +251,8 @@ namespace prounk {
 				EngineObject* obj;
 				while (obj = iter.next()) {
 					netAddGeneral(obj);
-					netEditObject(obj, 0, obj->isOnlyTrigger());
-					netEditObject(obj, 1, (uint64_t)obj->getRigidBody()->getType());
+					netSetTrigger(obj, obj->isOnlyTrigger());
+					netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
 					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
 				}
 			} else if (e == NetEvent::Disconnect) {
@@ -291,7 +316,6 @@ namespace prounk {
 				//}
 			} else if (e == NetEvent::Disconnect) {
 				// delete all objects
-				//m_mutex.lock();
 				Dimension* dim = getDimension("0");
 				EngineObjectIterator iter = dim->getWorld()->createIterator();
 				EngineObject* obj;
@@ -300,7 +324,6 @@ namespace prounk {
 						DeleteObject(dim, obj);
 					}
 				}
-				//m_mutex.unlock();
 			}
 
 			return true;
@@ -328,7 +351,6 @@ namespace prounk {
 			return true;
 		});
 		m_client.setOnReceive(onRecv);
-#endif
 	}
 	Session::~Session() {
 		cleanup();

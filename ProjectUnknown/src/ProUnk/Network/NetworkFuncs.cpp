@@ -8,16 +8,17 @@
 namespace prounk {
 	const char* to_string(NetCommand value) {
 		switch (value) {
-		case MoveObject: return "MoveObject";
-		//case AddObject: return "AddObject";
-		case DELETE_OBJECT: return "DeleteObject";
-		case AnimateObject: return "AnimateObject";
-		case EditObject: return "EditObject";
-		case DamageObject: return "DamageObject";
 		case NET_ADD_TERRAIN: return "AddTerrain";
 		case NET_ADD_ITEM: return "AddItem";
 		case NET_ADD_WEAPON: return "AddWeapon";
 		case NET_ADD_CREATURE: return "AddCreature";
+		case NET_MOVE: return "MoveObject";
+		case NET_DELETE: return "DeleteObject";
+		case NET_DAMAGE: return "DamageObject";
+		case NET_ANIMATE: return "AnimateObject";
+		case NET_TRIGGER: return "SetTrigger";
+		case NET_EDIT: return "GeneralEdit";
+		case NET_EDIT_BODY: return "EditBody";
 		}
 		return "Unknown";
 	}
@@ -36,7 +37,7 @@ namespace prounk {
 
 		//-- Prepare message
 		MessageBuffer msg;
-		NetCommand cmd = MoveObject;
+		NetCommand cmd = NET_MOVE;
 		msg.push(cmd);
 		pushObject(msg,object);
 
@@ -50,6 +51,8 @@ namespace prounk {
 		networkSend(msg);
 	}
 	void NetworkFuncs::netAddGeneral(engone::EngineObject* object) {
+		using namespace engone;
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 		if (object->getObjectType() & OBJECT_TERRAIN) {
 			netAddTerrain(object);
 		}else if (object->getObjectType() & OBJECT_ITEM) {
@@ -169,7 +172,7 @@ namespace prounk {
 		}
 		//-- Prepare message
 		MessageBuffer msg;
-		NetCommand cmd = DELETE_OBJECT;
+		NetCommand cmd = NET_DELETE;
 		msg.push(cmd);
 		pushObject(msg, object);
 		//-- Send message
@@ -183,7 +186,7 @@ namespace prounk {
 		}
 		//-- Prepare message
 		MessageBuffer msg;
-		NetCommand cmd = AnimateObject;
+		NetCommand cmd = NET_ANIMATE;
 		msg.push(cmd);
 		pushObject(msg, object);
 
@@ -205,7 +208,7 @@ namespace prounk {
 		}
 		//-- Prepare message
 		MessageBuffer msg;
-		NetCommand cmd = EditObject;
+		NetCommand cmd = NET_EDIT;
 		msg.push(cmd);
 		pushObject(msg, object);
 
@@ -215,27 +218,27 @@ namespace prounk {
 		//-- Send message
 		networkSend(msg);
 	}
-	void NetworkFuncs::netEditCombatData(engone::EngineObject* object, engone::UUID player, bool yes) {
-		using namespace engone;
-		if (!networkRunning()) {
-			//log::out << "World::editCombatObject - neither server or client is running\n";
-			return;
-		}
-		//-- Prepare message
-		MessageBuffer msg;
-		NetCommand cmd = EditObject;
-		msg.push(cmd);
-		pushObject(msg, object);
+	//void NetworkFuncs::netEditCombatData(engone::EngineObject* object, engone::UUID player, bool yes) {
+	//	using namespace engone;
+	//	if (!networkRunning()) {
+	//		//log::out << "World::editCombatObject - neither server or client is running\n";
+	//		return;
+	//	}
+	//	//-- Prepare message
+	//	MessageBuffer msg;
+	//	NetCommand cmd = EditObject;
+	//	msg.push(cmd);
+	//	pushObject(msg, object);
 
-		int type = 2;
-		msg.push(&type);
+	//	int type = 2;
+	//	msg.push(&type);
 
-		msg.push(&player);
-		msg.push(&yes);
+	//	msg.push(&player);
+	//	msg.push(&yes);
 
-		//-- Send message
-		networkSend(msg);
-	}
+	//	//-- Send message
+	//	networkSend(msg);
+	//}
 	void NetworkFuncs::netDamageObject(engone::EngineObject* object, float damage) {
 		using namespace engone;
 		if (!networkRunning()) {
@@ -244,11 +247,28 @@ namespace prounk {
 		}
 		//-- Prepare message
 		MessageBuffer msg;
-		NetCommand cmd = DamageObject;
+		NetCommand cmd = NET_DAMAGE;
 		msg.push(cmd);
 		pushObject(msg, object);
 
 		msg.push(&damage);
+
+		//-- Send message
+		networkSend(msg);
+	}
+	void NetworkFuncs::netSetTrigger(engone::EngineObject* object, bool yes) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "Playground::moveObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_TRIGGER;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(&yes);
 
 		//-- Send message
 		networkSend(msg);
@@ -265,12 +285,12 @@ namespace prounk {
 		msg.pull(modelAsset);
 
 		//-- don't create object if uuid exists
-		if (obj.dim)
+		if (!obj.dim)
 			return;
 
 		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-		obj.dim->getWorld()->releaseAccess(obj.uuid);
 		if (object) {
+			obj.dim->getWorld()->releaseAccess(obj.uuid);
 			log::out << log::RED << "NetworkFuncs : Cannot add " << obj.uuid << " because it exists\n";
 			return;
 		}
@@ -305,7 +325,7 @@ namespace prounk {
 		msg.pull(&count);
 
 		//-- don't create object if uuid exists
-		if (obj.dim)
+		if (!obj.dim)
 			return;
 
 		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
@@ -342,7 +362,7 @@ namespace prounk {
 		msg.pull(modelAsset);
 
 		//-- don't create object if uuid exists
-		if (obj.dim)
+		if (!obj.dim)
 			return;
 
 		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
@@ -351,7 +371,8 @@ namespace prounk {
 			log::out << log::RED << "NetworkFuncs::recAddWeapon : Cannot add " << obj.uuid << " because it exists\n";
 			return;
 		}
-		EngineObject* newObject = CreateTerrain(obj.dim, obj.uuid);
+
+		EngineObject* newObject = CreateWeapon(obj.dim, modelAsset,obj.uuid);
 		if (!newObject) {
 			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
 			return;
@@ -384,7 +405,7 @@ namespace prounk {
 		msg.pull(modelAsset);
 
 		//-- don't create object if uuid exists
-		if (obj.dim)
+		if (!obj.dim)
 			return;
 
 		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);

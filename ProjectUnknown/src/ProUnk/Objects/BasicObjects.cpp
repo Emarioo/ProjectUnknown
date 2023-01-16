@@ -4,7 +4,20 @@
 #include "ProUnk/GameApp.h"
 
 namespace prounk {
-
+	const char* to_string(BasicObjectType value) {
+		switch (value) {
+		case OBJECT_TERRAIN: return "OBJECT_TERRAIN";
+		case OBJECT_ITEM: return "OBJECT_ITEM";
+		case OBJECT_WEAPON: return "OBJECT_WEAPON";
+		case OBJECT_CREATURE: return "OBJECT_CREATURE";
+		case OBJECT_PLAYER: return "OBJECT_PLAYER";
+		case OBJECT_DUMMY: return "OBJECT_DUMMY";
+		}
+		return "Unknown";
+	}
+	engone::Logger& operator<<(engone::Logger& log, BasicObjectType value) {
+		return log << to_string(value);
+	}
 	bool HasCombatData(int type) {
 		int types[]{ OBJECT_DUMMY,OBJECT_PLAYER,OBJECT_WEAPON };
 		for (int i = 0; i < sizeof(types)/sizeof(int); i++) {
@@ -112,11 +125,13 @@ namespace prounk {
 		out->loadColliders();
 		return out;
 	}
-	engone::EngineObject* CreateWeapon(Dimension* dimension, Item& item, engone::UUID uuid) {
+	engone::EngineObject* CreateWeapon(Dimension* dimension, const std::string& modelName, engone::UUID uuid) {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_WEAPON);
-		out->setModel(dimension->getParent()->modelRegistry.getModel(item.getModelId()));
+		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
+		out->setModel(assets->load<engone::ModelAsset>(modelName));
+		//out->setModel(dimension->getParent()->modelRegistry.getModel(item.getModelId()));
 
 		Session* session = dimension->getParent();
 

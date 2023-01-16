@@ -25,6 +25,11 @@ namespace engone {
 		lastTime = now;
 
 		accumulator += delta;
+
+		// Prevent accumulator from building up to much. If you were to accumulate 60 seconds while in debug mode then
+		// the update function would run 60 * 60 = 3600 times.
+		if (accumulator >= 2)
+			accumulator = 2;
 	}
 	bool ExecutionTimer::accumulate() {
 		bool yes = (accumulator>=aimedDelta);

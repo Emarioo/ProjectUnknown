@@ -15,7 +15,7 @@ namespace engone {
 		FrameArray(uint32_t valuesPerFrame) : m_valuesPerFrame(valuesPerFrame) {
 			uint32_t off = valuesPerFrame & 63;
 			if(off!=0)
-				m_valuesPerFrame += 63 - off;
+				m_valuesPerFrame += 64 - off;
 		}
 		~FrameArray() {
 			cleanup();
@@ -183,7 +183,7 @@ namespace engone {
 		// 8*max / (1+8*C)
 	private:
 		struct Frame {
-			Memory<char> memory;
+			Memory<char> memory{};
 			int count = 0;
 			Value* getValue(uint32_t index, uint32_t vpf) {
 				return (Value*)(memory.data+ vpf/8+index*sizeof(Value));
@@ -206,7 +206,7 @@ namespace engone {
 			}
 		};
 
-		Memory<Frame> m_frames;
+		Memory<Frame> m_frames{};
 		int m_valueCount=0;
 		
 		uint32_t m_valuesPerFrame=0;
