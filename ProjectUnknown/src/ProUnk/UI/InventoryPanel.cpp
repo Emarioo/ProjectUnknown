@@ -12,7 +12,7 @@ namespace prounk {
 		CommonRenderer* renderer = GET_COMMON_RENDERER();
 		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
-		EngineObject* object = m_app->playerController.getPlayerObject();
+		//EngineObject* object = m_app->playerController.getPlayerObject();
 
 		Inventory* inv = session->inventoryRegistry.getInventory(m_inventoryId);
 
@@ -130,7 +130,16 @@ namespace prounk {
 						if (heldItem.getType() == 0) {
 							item.transfer(heldItem, item.getCount() / 2);
 						} else {
-							heldItem.transfer(item, ceil(heldItem.getCount() / 2.f)); // ceil here is important
+							int transferAmount = 1;
+							if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+								transferAmount = 100;
+							} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+								transferAmount = 10;
+								//heldItem.transfer(item, ceil(heldItem.getCount() / 2.f)); // ceil here is important
+							}
+							if (transferAmount > heldItem.getCount())
+								transferAmount = heldItem.getCount();
+							heldItem.transfer(item, transferAmount);
 						}
 					}
 				}

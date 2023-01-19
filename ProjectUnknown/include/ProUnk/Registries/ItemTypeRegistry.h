@@ -11,6 +11,7 @@ namespace prounk {
 		std::string name; // registered name
 		std::string displayName; // default display name for item
 		ModelId modelId; // default model
+		int maxStack=20;
 	};
 	class ItemTypeRegistry : public Registry {
 	public:
@@ -31,8 +32,8 @@ namespace prounk {
 
 	private:
 
-		ItemType getNewType() { return m_newType++; }
-		ItemType m_newType = 1;
+		//ItemType getNewType() { return m_newType++; }
+		//ItemType m_newType = 1;
 
 		std::unordered_map<std::string, int> m_nameTypes;
 

@@ -95,6 +95,7 @@
     <ClCompile Include="src\ProUnk\Combat\CombatData.cpp" />
     <ClCompile Include="src\ProUnk\Combat\Skills.cpp" />
     <ClCompile Include="src\ProUnk\Network\NetworkFuncs.cpp" />
+    <ClCompile Include="src\ProUnk\UI\SessionPanel.cpp" />
     <ClCompile Include="src\ProUnk\World\Dimension.cpp" />
     <ClCompile Include="src\ProUnk\Effects\VisualEffect.cpp" />
     <ClCompile Include="src\ProUnk\Registries\ComplexDataRegistry.cpp" />
@@ -132,11 +133,11 @@
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
     <ClInclude Include="include\ProUnk\Network\NetworkFuncs.h" />
+    <ClInclude Include="include\ProUnk\UI\SessionPanel.h" />
     <ClInclude Include="include\ProUnk\World\Dimension.h" />
     <ClInclude Include="include\ProUnk\Effects\VisualEffects.h" />
     <ClInclude Include="include\ProUnk\Registries\ComplexDataRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\MasterRegistry.h" />
-    <ClInclude Include="include\ProUnk\Registries\ObjectRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\RecipeRegistry.h" />
     <ClInclude Include="include\ProUnk\World\Session.h" />
     <ClInclude Include="include\ProUnk\UI\CheatPanel.h" />

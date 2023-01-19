@@ -13,49 +13,37 @@ namespace prounk {
 	class ComplexData {
 	public:
 		ComplexData();
-		typedef float T;
-		//template<class T>
-		bool set(int propertyDataIndex, T value) {
-			if (sizeof(T) != sizeof(uint32_t)) {
-				return false;
-			}
-			return m_map.insert(propertyDataIndex, *(engone::HashMap::Value*)&value);
-		}
-		//template<class T>
-		bool set(ComplexPropertyType* complexProperty, T value) {
-			if (sizeof(T) != sizeof(uint32_t)) {
-				return false;
-			}
-			return m_map.insert(complexProperty->dataIndex, *(engone::HashMap::Value*)&value);
-		}
-		//template<class T>
-		T get(uint32_t propertyDataIndex) {
-			engone::HashMap::Value value = m_map.get(propertyDataIndex);
-			return *(T*)&value;
-		}
-		//template<class T>
-		T get(ComplexPropertyType* complexProperty) {
-			engone::HashMap::Value value = m_map.get(complexProperty->dataIndex);
-			return *(T*)&value;
-		}
+
+		bool set(uint32_t propertyDataIndex, float value);
+		bool set(ComplexPropertyType* complexProperty, float value);
+
+		float get(uint32_t propertyDataIndex);
+		float get(ComplexPropertyType* complexProperty);
 
 		bool sameAs(ComplexData* data);
+
 		// Todo: Quick use of function?
 		//float& operator[](int propertyDataIndex);
 
-		// can fail if allocation failed
+		// Returns nullpt when allocation fails.
 		ComplexData* copy();
 
 		uint32_t getDataIndex();
 
-		engone::HashMap& getMap();
+		//engone::HashMap& getMap();
+		struct Entry {
+			uint32_t prop;
+			float value;
+		};
+		std::vector<Entry>& getList();
 
 	private:
 		uint32_t m_dataIndex=0;
 		// int is dataIndex to ComplexPropertyType
 		// uint32_t is raw data. Could be int, float or 4 chars.
-		//std::unordered_map<int, uint32_t> data32;
-		engone::HashMap m_map{}; // for uint32_t, works for floats too with some magic
+		//engone::HashMap m_map{}; // for uint32_t, works for floats too with some magic
+
+		std::vector<Entry> m_properties;
 
 		friend class ComplexDataRegistry;
 	};

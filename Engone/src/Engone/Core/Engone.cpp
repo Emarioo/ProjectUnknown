@@ -56,10 +56,29 @@ namespace engone {
 		if (m_applications.size() == 0) // might as well quitw
 			return;
 
-		while (true) {
-			//manageThreading(); not finished
+		// start threaded apps
 
-			manageNonThreading(); // deals with timers
+		// when threaded app stops, it needs to notify main thread that things should happen.
+		
+		// where are default executions added to control?
+		for (Application* app : m_applications) {
+			app->getWindow(0)->getControl().addExecution(&app->getProfiler());
+		}
+		while (true) {
+			
+			manageThreading();
+
+			manageNonThreading();
+
+			// function seems to to processing of all inputs and stuff
+			// mutex lock for window input stuff
+			// special thread for input or just after render thread
+			glfwPollEvents(); // window refreh callback to redraw when resizing?
+
+			// sleep a bit if minimal work was done
+			const float limit = mainUpdateTimer.aimedDelta / 8;
+			if(mainUpdateTimer.delta < limit)
+				engone::Sleep(limit*2);
 		}
 
 		// Filters don't work with multithreading
@@ -94,28 +113,45 @@ namespace engone {
 			if (app->isMultiThreaded()) { // is supposed to be multithreaded
 				if (!app->updateThread.isRunning()) {
 					app->updateThread.init([&](void* arg) {
-						while (true) {
+						while (app->isMultiThreaded()) {
 							app->getExecTimer().step();
 							LoopInfo info;
 							info.app = app;
-							info.window = nullptr;
-							info.timeStep = app->getExecTimer().delta;
-							app->getControl().execute(info, ExecutionControl::UPDATE);
+							info.window = app->getWindow(0);
+							info.timeStep = app->getExecTimer().aimedDelta;
 
+							while (app->getExecTimer().accumulate()) {
+								app->getControl().execute(info, ExecutionControl::UPDATE);
+							}
 							// In case execute takes 0 seconds the thread should sleep for a little bit
 							// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-							engone::Sleep(0.1);
+							engone::Sleep(1/120.f);
 						}
 						return 0;
 					}, nullptr);
 				}
-				//glfwPollEvents in some thread
 
-				// same for all windows
-				//for () {
+				for (Window* win : app->getAttachedWindows()) {
+					if (!win->renderThread.isRunning()) {
+						win->renderThread.init([&](void* arg) {
+							while (app->isMultiThreaded()) {
+								win->getExecTimer().step();
+								LoopInfo info;
+								info.app = app;
+								info.window = win;
+								info.timeStep = win->getExecTimer().aimedDelta;
 
-				//}
-				// multithreading isn't running, do run it.
+								//while (win->getExecTimer().accumulate()) {
+								win->getControl().execute(info, ExecutionControl::RENDER);
+
+								// In case execute takes 0 seconds the thread should sleep for a little bit
+								// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+								engone::Sleep(1/120.f);
+							}
+							return 0;
+						}, nullptr);
+					}
+				}
 			}
 		}
 	}
@@ -123,13 +159,6 @@ namespace engone {
 		//-- Timers and stuff
 		mainUpdateTimer.step(); // replace with one step for both? they can become unsynchrized otherwise
 		mainRenderTimer.step();
-
-		// keep expected FPS, UPS outside of timer and pass it in as argument?
-		
-		// function seems to to processing of all inputs and stuff
-		// mutex lock for window input stuff
-		// special thread for input or just after render thread
-		glfwPollEvents(); // window refreh callback to redraw when resizing?
 
 		//-- Update execution
 		while (mainUpdateTimer.accumulate()) {
@@ -140,17 +169,31 @@ namespace engone {
 					if (app->getWindow(0))
 						app->getWindow(0)->setActiveContext();
 
-					currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
+					currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
+					//currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
+					
+					for (Window* win : app->getAttachedWindows()) {
+						// should be changed, storage should use a thread pool, a set of asset tasks to do. (seperate from TaskHandler...)
+						win->getStorage()->getIOProcessors()[0]->process();
+						win->getStorage()->getDataProcessors()[0]->process();
+					}
+
 
 					app->update(currentLoopInfo);
 					update(currentLoopInfo); // should maybe be moved outside loop?
 
-					//app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
+					app->getProfiler().getSampler(app).increment();
+					app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
 
 					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
 						app->getWindow(winIndex)->resetEvents(false);
 					}
 				}
+			}
+		}
+		for (Application* app : m_applications) {
+			if (!app->isMultiThreaded()) {
+				app->getProfiler().getSampler(app).next(mainUpdateTimer.delta);
 			}
 		}
 		//-- Render execution
@@ -162,9 +205,11 @@ namespace engone {
 					for (Window* win : app->getAttachedWindows()) {
 						if (!win->isOpen()) continue;
 
-						double interpolation = m_runtimeStats.update_accumulator / m_runtimeStats.updateTime; // Note: update accumulator should be there.
+						//double interpolation = mainRenderTimer.delta / mainRenderTimer.aimedDelta; // Note: update accumulator should be there.
 
-						currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+						//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+						currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,0};
+						// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
 
 						win->setActiveContext();
 
@@ -187,7 +232,8 @@ namespace engone {
 
 						render(currentLoopInfo);
 
-						//app->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
+						app->getProfiler().getSampler(win).increment();
+						win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
 
 						// orthogonal was set before hand
 						win->getPipeline()->render(currentLoopInfo);
@@ -206,8 +252,13 @@ namespace engone {
 					app->m_renderingWindows = false;
 				}
 			}
-		} else {
-			//log::out << "skip frame\n";
+		}
+		for (Application* app : m_applications) {
+			if (!app->isMultiThreaded()) {
+				for (Window* win : app->getAttachedWindows()) {
+					app->getProfiler().getSampler(win).next(mainUpdateTimer.delta);
+				}
+			}
 		}
 	}
 	//FrameBuffer depthBuffer;
@@ -262,7 +313,7 @@ namespace engone {
 		//GL_CHECK()
 		//EnableBlend(); <- done in particle render
 		for (int i = 0; i < info.app->m_worlds.size(); i++) {
-			auto& groups = info.app->m_worlds[i]->getParticleGroups();
+			std::vector<ParticleGroupT*>& groups = info.app->m_worlds[i]->getParticleGroups();
 			for (int i = 0; i < groups.size(); i++) {
 				groups[i]->render(info);
 			}
@@ -369,7 +420,7 @@ namespace engone {
 				rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
 				if (!world) continue;
 				if (!world->getIsDebugRenderingEnabled()) continue;
-
+				info.app->m_worlds[i]->lockPhysics();
 				rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
 				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
 				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
@@ -383,20 +434,9 @@ namespace engone {
 					auto& tri = debugRenderer.getTrianglesArray()[i];
 					renderer->drawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
 				}
+				info.app->m_worlds[i]->unlockPhysics();
 			}
 #endif
-		}
-		if (m_flags & EngoneEnableDebugInfo) {
-			// Toggle Basic Info
-			if (IsKeyDown(GLFW_KEY_F3) && IsKeyPressed(GLFW_KEY_B)) {
-				if (m_flags & EngoneShowBasicDebugInfo)
-					m_flags &= ~EngoneShowBasicDebugInfo;
-				else
-					m_flags |= EngoneShowBasicDebugInfo;
-			}
-			
-			if (m_flags & EngoneShowBasicDebugInfo)
-				renderBasicDebugInfo(info);
 		}
 	}
 	bool warnNoLights = false;
@@ -430,8 +470,9 @@ namespace engone {
 
 				if (!model) continue;
 				if (!model->valid()) continue;
-
+				world->lockPhysics();
 				glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+				world->unlockPhysics();
 				//Animator* animator = &obj->animator;
 
 				// Get individual transforms
@@ -476,7 +517,7 @@ namespace engone {
 			shader->bind();
 			renderer->updatePerspective(shader);
 			shader->setVec3("uCamera", camera->getPosition());
-
+			//log::out << "WOW\n";
 			bindLights(shader, { 0,0,0 });
 			shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
 			for (auto& [asset, vector] : normalObjects) {
@@ -601,105 +642,6 @@ namespace engone {
 		//	b.clear();
 		//}
 		//normalObjects.clear();
-	}
-	void Engone::renderBasicDebugInfo(LoopInfo& info) {
-		float sw = GetWidth();
-		float sh = GetHeight();
-		
-		const int bufferSize = 50;
-		char str[bufferSize];
-
-		float rightEdge = sw - 3;
-		float upEdge = 3;
-
-		// should be changed
-		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
-
-		auto& stats = info.app->getEngine()->getStats();
-		float scroll = IsScrolledY();
-		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-			scroll *= 100;
-		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-			scroll *= 10;
-		}
-
-		const ui::Color highlighted = { 0.5f,0.8f,1.f,1.f };
-		const ui::Color normalColor = { 1.f,1.0f,1.0f,1.f };
-
-		std::string runStr = "Runtime ";
-		runStr += FormatTime(stats.getRunTime(),true,FormatTimeH|FormatTimeM|FormatTimeS|FormatTimeMS);
-		ui::TextBox runtimeBox = { runStr, 0,0,20,consolas,normalColor};
-		runtimeBox.x = rightEdge - runtimeBox.getWidth();
-		runtimeBox.y = upEdge;
-		upEdge = runtimeBox.y + runtimeBox.h;
-
-		std::string sleepStr = "Sleep time ";
-		snprintf(str, bufferSize, "(%.1f%%) ", 100*stats.getSleepTime()/stats.getRunTime());
-		sleepStr += str;
-		sleepStr += FormatTime(stats.getSleepTime(),true, FormatTimeH | FormatTimeM | FormatTimeS | FormatTimeMS);
-		ui::TextBox sleepBox = { sleepStr, 0,0,20,consolas,normalColor };
-		sleepBox.x = rightEdge - sleepBox.getWidth();
-		sleepBox.y = upEdge;
-		upEdge = sleepBox.y + sleepBox.h;
-
-		snprintf(str, bufferSize, "%.2f (%.2f) FPS", stats.getFPS(), stats.getFPSLimit());
-		ui::TextBox fpsBox = { str,0,0,20,consolas,normalColor };
-		fpsBox.x = rightEdge - fpsBox.getWidth();
-		fpsBox.y = upEdge;
-		upEdge = fpsBox.y + fpsBox.h;
-
-		snprintf(str, bufferSize, "%.2f (%.2f) UPS", stats.getUPS(), stats.getUPSLimit());
-
-		ui::TextBox upsBox = { str,0,0,20,consolas,normalColor };
-		upsBox.x = rightEdge - upsBox.getWidth();
-		upsBox.y = upEdge;
-		upEdge = upsBox.y + upsBox.h;
-
-		snprintf(str, bufferSize, "%.2f%% Game Speed", stats.getGameSpeed()*100);
-
-		ui::TextBox speedBox = { str,0,0,20,consolas,normalColor };
-		speedBox.x = rightEdge - speedBox.getWidth();
-		speedBox.y = upEdge;
-		upEdge = speedBox.y + speedBox.h;
-
-		if (ui::Hover(fpsBox)) {
-			fpsBox.rgba = highlighted;
-			if (scroll != 0) {
-				stats.setFPSLimit(stats.getFPSLimit() + scroll);
-			}
-		}
-		if (ui::Hover(upsBox)) {
-			upsBox.rgba = highlighted;
-			if (scroll != 0) {
-				stats.setUPSLimit(stats.getUPSLimit() + scroll);
-			}
-		}
-		if (ui::Hover(speedBox)) {
-			speedBox.rgba = highlighted;
-			if (scroll != 0) {
-				stats.setGameSpeed(stats.getGameSpeed() + scroll/100);
-			}
-		}
-
-		const ui::Color areaColor = { 0,0.3 };
-		float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth(), sleepBox.getWidth(),speedBox.getWidth()};
-		float areaW = 0;
-		for (int i = 0; i < sizeof(stoof) / sizeof(float); i++) {
-			if (stoof[i] > areaW) {
-				areaW = stoof[i];
-			}
-		}
-		float areaH = upsBox.y + upsBox.h;
-		ui::Box area = { 0,0,areaW+6,areaH+6,areaColor };
-		area.x = sw - area.w;
-		area.y = 0;
-
-		ui::Draw(area);
-		ui::Draw(runtimeBox);
-		ui::Draw(sleepBox);
-		ui::Draw(fpsBox);
-		ui::Draw(upsBox);
-		ui::Draw(speedBox);
 	}
 	void Engone::addLight(Light* l) {
 		m_lights.push_back(l);

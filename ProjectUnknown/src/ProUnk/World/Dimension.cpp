@@ -52,7 +52,6 @@ namespace prounk {
 				}
 			}
 		}
-		//m_world->deleteIterator(iterator);
 		if (plr) {
 			glm::vec3 diff = plr->getPosition() - obj->getPosition();
 			float length = glm::length(diff);
@@ -65,12 +64,16 @@ namespace prounk {
 			glm::vec3 wantedVelocity = speed * dir;
 			//glm::vec3 wantedVelocity = speed * dir / (float)info.timeStep;
 
+			obj->getWorld()->lockPhysics();
 			glm::vec3 currentVelocity = ToGlmVec3(obj->getRigidBody()->getLinearVelocity());
+			obj->getWorld()->unlockPhysics();
 			glm::vec3 force = 0.047f*(wantedVelocity - 0.7f * currentVelocity) / (float)info.timeStep;
 			//glm::vec3 force = 0.01f*(wantedVelocity - 0.4f*currentVelocity) / info.timeStep;
 			//glm::vec3 force = dir * 1.f;
 			//log::out << "vel " << glm::length(currentVelocity) << "\n";
+			obj->getWorld()->lockPhysics();
 			obj->getRigidBody()->applyWorldForceAtCenterOfMass(ToRp3dVec3(force));
+			obj->getWorld()->unlockPhysics();
 		}
 	}
 	void Dimension::update(engone::LoopInfo& info) {

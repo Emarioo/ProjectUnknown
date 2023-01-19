@@ -5,43 +5,49 @@
 #include "ProUnk/Combat/CombatData.h"
 #include "ProUnk/Registries/InventoryRegistry.h"
 
+#include "Engone/Utilities/FrameArray.h"
+
 namespace prounk {
 
 	struct ObjectCreatureInfo {
-		//CombatData* combatData=nullptr;
+		std::string displayName;
 		CombatData combatData;
-		int inventoryId=0;
+		uint32 inventoryDataIndex = 0;
 	};
 	struct ObjectItemInfo {
 		Item item;
 	};
 	struct ObjectWeaponInfo {
-		//CombatData* combatData = nullptr;
 		CombatData combatData;
 	};
-
+	
 	// This class has a lot of repetition in it.
 	// Can it be improved? macros perhaps?
 	class ObjectInfoRegistry : public Registry {
 	public:
-		ObjectInfoRegistry() : Registry("object_info_registry","object_info_registry.dat") {}
+		ObjectInfoRegistry() : Registry("object_info_registry") {}
 
 		void serialize();
 		void deserialize();
 
-		ObjectItemInfo& getItemInfo(int id);
-		int registerItemInfo();
+		ObjectItemInfo& getItemInfo(uint32 dataIndex);
+		uint32 registerItemInfo();
+		void unregisterItemInfo(uint32 dataIndex);
 		
-		ObjectCreatureInfo& getCreatureInfo(int id);
-		int registerCreatureInfo();
+		ObjectWeaponInfo& getWeaponInfo(uint32 dataIndex);
+		uint32 registerWeaponInfo();
+		void unregisterWeaponInfo(uint32 dataIndex);
+
+		ObjectCreatureInfo& getCreatureInfo(uint32 dataIndex);
+		uint32 registerCreatureInfo(const std::string& name);
+		void unregisterCreatureInfo(uint32 dataIndex);
 		
-		ObjectWeaponInfo& getWeaponInfo(int id);
-		int registerWeaponInfo();
 
 	private:
-		// this will be serialized
-		std::vector<ObjectCreatureInfo> m_creatureInfos;
-		std::vector<ObjectItemInfo> m_itemInfos;
-		std::vector<ObjectWeaponInfo> m_weaponInfos;
+		// Each allocated frame has 128 infos
+		engone::FrameArray<ObjectCreatureInfo> m_creatureInfos{128};
+		engone::FrameArray<ObjectItemInfo> m_itemInfos{128};
+		engone::FrameArray<ObjectWeaponInfo> m_weaponInfos{128};
+		
 	};
 }

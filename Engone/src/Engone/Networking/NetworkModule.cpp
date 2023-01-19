@@ -222,6 +222,22 @@ namespace engone {
 			m_readHead = 0;
 		}
 	}
+	MessageBuffer* MessageBuffer::copy() {
+		MessageBuffer* newMsg = ALLOC_NEW(MessageBuffer)(0);
+		if (!newMsg) return nullptr;
+		
+		if (m_data) {
+			bool yes = newMsg->resize(size());
+			if (!yes) {
+				ALLOC_DELETE(MessageBuffer, newMsg);
+				return nullptr;
+			}
+			if (m_data) {
+				std::memcpy(newMsg->m_data, m_data, size() + sizeof(uint32_t));
+			}
+		}
+		return newMsg;
+	}
 	/*
 		CONNECTION
 	*/

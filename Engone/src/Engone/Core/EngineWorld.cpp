@@ -88,17 +88,17 @@ namespace engone {
 		}
 
 #ifdef ENGONE_PHYSICS
+		//FrameArray<EngineObject>::Iterator iter;
+		//while (m_objects.iterate(iter)) {
+		//	requestAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
+		//}
 		m_physicsMutex.lock();
-		FrameArray<EngineObject>::Iterator iter;
-		while (m_objects.iterate(iter)) {
-			requestAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
-		}
 		if (m_physicsWorld)
 			m_physicsWorld->update(info.timeStep);
-		while (m_objects.iterate(iter)) {
-			releaseAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
-		}
 		m_physicsMutex.unlock();
+		//while (m_objects.iterate(iter)) {
+		//	releaseAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
+		//}
 #endif
 	}
 	//EngineObject* EngineWorld::getObject(UUID uuid) {
@@ -125,15 +125,17 @@ namespace engone {
 		obj->m_objectIndex = index;
 		uuid = obj->getUUID();
 
-		log::out << "Created Object " << uuid<<"\n";
+		//log::out << "Created Object " << uuid<<"\n";
 		// No thread has access to object yet because they need to use the get method but can only do that with the objectsMutex which is locked.
 
-		obj->m_mutex.lock(); // Will never wait
+		//obj->m_mutex.lock(); // Will never wait, locking below with requestAccess for consistency
 		m_objectsMutex.unlock();
 
 		m_objectMapMutex.lock();
 		m_objectMap[uuid].object=obj;
 		m_objectMapMutex.unlock();
+
+		obj = requestAccess(uuid);
 
 		return obj;
 	}
@@ -144,56 +146,78 @@ namespace engone {
 			m_objectMapMutex.unlock();
 			return nullptr;
 		}
-		if (find->second.pendingDelete) {
-			m_objectMapMutex.unlock();
-			return nullptr;
-		}
-
-		EngineObject* obj = find->second.object; // object will never be nullptr
-		find->second.waitingThreads++;
-
-		m_objectMapMutex.unlock();
-
-		obj->m_mutex.lock();
-
-		m_objectMapMutex.lock();
-		// find may become invalid due to changes to the objectMap
-		auto find2 = m_objectMap.find(uuid);
-		if (find2 != m_objectMap.end()) {
-			find2->second.waitingThreads--;
-		}
+		EngineObject* obj = find->second.object;
 		m_objectMapMutex.unlock();
 
 		return obj;
+		
+		//// deprecated code below, might be reused.
+		//m_objectMapMutex.lock();
+		//auto find = m_objectMap.find(uuid);
+		//if (find == m_objectMap.end()) {
+		//	m_objectMapMutex.unlock();
+		//	return nullptr;
+		//}
+		//if (find->second.pendingDelete) {
+		//	m_objectMapMutex.unlock();
+		//	return nullptr;
+		//}
+
+		//EngineObject* obj = find->second.object; // object will never be nullptr
+		//find->second.waitingThreads++;
+
+		//if (find->second.object->m_mutex.getOwner() != Thread::GetThisThreadId()) {
+		//	m_objectMapMutex.unlock();
+		//	obj->m_mutex.lock();
+		//	m_objectMapMutex.lock();
+		//}
+
+		//// find may become invalid due to changes to the objectMap
+		//auto find2 = m_objectMap.find(uuid);
+		//if (find2 != m_objectMap.end()) {
+		//	find2->second.waitingThreads--;
+		//	find2->second.lockingDepth++;
+		//}
+		//m_objectMapMutex.unlock();
+
+		//return obj;
 	}
 	//void EngineWorld::releaseAccess(EngineObject* obj) {
 	//	releaseAccess(obj->getUUID());
 	//}
 	void EngineWorld::releaseAccess(UUID uuid) {
-		m_objectMapMutex.lock();
-		auto find = m_objectMap.find(uuid);
-		bool valid = find != m_objectMap.end();
-		
-		if (find == m_objectMap.end()) {
-			m_objectMapMutex.unlock();
-			return;
-		}
-		EngineObject* obj = find->second.object;
-		
-		obj->m_mutex.unlock();
-		
-		// delete object
-		if (!find->second.pendingDelete || find->second.waitingThreads != 0) {
-			m_objectMapMutex.unlock();
-			return;
-		}
-		m_objectMap.erase(uuid);
-		m_objectMapMutex.unlock();
+		// do nothing for now
 
-		m_objectsMutex.lock();
-		m_objects.remove(obj->m_objectIndex);
-		log::out << "Deleted Object " << uuid << "\n";
-		m_objectsMutex.unlock();
+		//// deprecated, might reuse
+		//m_objectMapMutex.lock();
+		//auto find = m_objectMap.find(uuid);
+		//bool valid = find != m_objectMap.end();
+		//
+		//if (find == m_objectMap.end()) {
+		//	m_objectMapMutex.unlock();
+		//	return;
+		//}
+		//EngineObject* obj = find->second.object;
+		//
+		//find->second.lockingDepth--;
+		//if (find->second.lockingDepth != 0) {
+		//	m_objectMapMutex.unlock();
+		//	return;
+		//}
+		//obj->m_mutex.unlock();
+		//
+		//// delete object
+		//if (!find->second.pendingDelete || find->second.waitingThreads != 0) {
+		//	m_objectMapMutex.unlock();
+		//	return;
+		//}
+		//m_objectMap.erase(uuid);
+		//m_objectMapMutex.unlock();
+
+		//m_objectsMutex.lock();
+		//m_objects.remove(obj->m_objectIndex);
+		//log::out << "Deleted Object " << uuid << "\n";
+		//m_objectsMutex.unlock();
 	}
 	class RaycastInfo : public rp3d::RaycastCallback {
 	public:
@@ -249,6 +273,7 @@ namespace engone {
 	//	m_iteratorsMutex.unlock();
 	//}
 	void EngineWorld::deleteObject(UUID uuid) {
+		// delete object
 		m_objectMapMutex.lock();
 		auto find = m_objectMap.find(uuid);
 		if (find == m_objectMap.end()) {
@@ -256,10 +281,26 @@ namespace engone {
 			return;
 		}
 		EngineObject* obj = find->second.object;
-		find->second.pendingDelete = true;
+		m_objectMap.erase(uuid);
 		m_objectMapMutex.unlock();
-		
-		releaseAccess(uuid);
+
+		m_objectsMutex.lock();
+		m_objects.remove(obj->m_objectIndex);
+		//log::out << "Deleted Object " << uuid << "\n";
+		m_objectsMutex.unlock();
+
+		//// deprecated
+		//m_objectMapMutex.lock();
+		//auto find = m_objectMap.find(uuid);
+		//if (find == m_objectMap.end()) {
+		//	m_objectMapMutex.unlock();
+		//	return;
+		//}
+		//EngineObject* obj = find->second.object;
+		//find->second.pendingDelete = true;
+		//m_objectMapMutex.unlock();
+		//
+		//releaseAccess(uuid);
 	}
 	void EngineWorld::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);
@@ -271,4 +312,6 @@ namespace engone {
 	rp3d::PhysicsWorld* EngineWorld::getPhysicsWorld() {
 		return m_physicsWorld;
 	}
+	void EngineWorld::lockCommon() { m_app->lockCommon(); }
+	void EngineWorld::unlockCommon() { m_app->unlockCommon(); }
 }

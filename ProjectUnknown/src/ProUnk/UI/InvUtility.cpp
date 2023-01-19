@@ -187,18 +187,18 @@ namespace prounk {
 		std::vector<ui::TextBox> propTexts;
 		float propHeight = 0;
 		
-		auto complexData = session->complexDataRegistry.getData(item.getComplexData());
+		auto complexData = item.getComplexData();
+		//auto complexData = session->complexDataRegistry.getData(item.getComplexData());
 		if (complexData) {
-			auto& map = complexData->getMap();
-			HashMap::IterationInfo info;
-			while (map.iterate(info)) {
-				
-				ComplexPropertyType* prop = session->complexDataRegistry.getProperty(info.key);
+			auto& list = complexData->getList();
+			for (int i = 0; i < list.size();i++) {
+				uint32_t key = list[i].prop;
+				float value = list[i].value;
+				ComplexPropertyType* prop = session->complexDataRegistry.getProperty(key);
 				if (!prop) {
-					log::out << log::RED << "DrawItemTooltip : "<<info.key<<" is not a valid index for property";
+					log::out << log::RED << "DrawItemTooltip : " << key << " is not a valid index for property";
 					continue;
 				}
-				float value = *(float*)&info.value;
 				// assume float
 				snprintf(str, sizeof(str), "%s : %.2f", prop->name.c_str(), value);
 
@@ -206,6 +206,23 @@ namespace prounk {
 				propTexts.push_back(propText);
 				propHeight += propText.h;
 			}
+			//auto& map = complexData->getMap();
+			//HashMap::IterationInfo info;
+			//while (map.iterate(info)) {
+			//	
+			//	ComplexPropertyType* prop = session->complexDataRegistry.getProperty(info.key);
+			//	if (!prop) {
+			//		log::out << log::RED << "DrawItemTooltip : "<<info.key<<" is not a valid index for property";
+			//		continue;
+			//	}
+			//	float value = *(float*)&info.value;
+			//	// assume float
+			//	snprintf(str, sizeof(str), "%s : %.2f", prop->name.c_str(), value);
+
+			//	ui::TextBox propText = { str,0,0,20,consolas,propColor };
+			//	propTexts.push_back(propText);
+			//	propHeight += propText.h;
+			//}
 		}
 
 		snprintf(str, sizeof(str), "%s", typeInfo->name.c_str());

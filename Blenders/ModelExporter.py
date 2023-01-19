@@ -437,10 +437,10 @@ def WriteAnimation(log, file, object, action):
             else:
                 con=con+curve.array_index
             
-            if con%3==1 and not curve.array_index==3: # y to z
-                con+=1
-            elif con%3==2:# z to y
-                con-=1
+            #if con%3==1 and not curve.array_index==3: # y to z
+            #    con+=1
+            #elif con%3==2:# z to y
+            #    con-=1
             
             curves[con]=1
             
@@ -479,10 +479,10 @@ def WriteAnimation(log, file, object, action):
                 else:
                     con=con+curve.array_index
                 
-                if con%3==1 and not curve.array_index==3: # y to z
-                    con+=1
-                elif con%3==2:# z to y
-                    con-=1
+                #if con%3==1 and not curve.array_index==3: # y to z
+                #    con+=1
+                #elif con%3==2:# z to y
+                #    con-=1
                 
                 if not con==i:
                     continue
@@ -504,10 +504,10 @@ def WriteAnimation(log, file, object, action):
                     file.writeUChar(pol)
                     file.writeUShort(int(key.co[0]))
                     
-                    if con%3==2: # -y to z
-                        file.writeFloat(-key.co[1])
-                    else:
-                        file.writeFloat(key.co[1])
+                    #if con%3==2: # -y to z
+                    #    file.writeFloat(-key.co[1])
+                    #else:
+                    file.writeFloat(key.co[1])
     
     log.print('INFO',action.name)
 

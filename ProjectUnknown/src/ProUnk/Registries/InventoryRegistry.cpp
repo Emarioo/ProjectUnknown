@@ -6,7 +6,7 @@
 
 namespace prounk {
 	
-	Item::Item(ItemType type, uint32_t count) : m_type(type), m_count(count) {
+	Item::Item(ItemType type, int count) : m_type(type), m_count(count) {
 		auto app = (GameApp*)engone::GetActiveWindow()->getParent();
 		if (!app->getActiveSession())
 			return;
@@ -38,17 +38,20 @@ namespace prounk {
 	const std::string& Item::getDisplayName() { return m_displayName; }
 	void Item::setDisplayName(const std::string& name) { m_displayName = name; }
 
-	uint32_t Item::getCount() { return m_count; }
-	void Item::setCount(uint32_t count) { m_count = count; }
+	int Item::getCount() { return m_count; }
+	void Item::setCount(int count) { m_count = count; }
 
 	ModelId Item::getModelId() { return m_modelId; }
 	void Item::setModelId(ModelId modelId) { m_modelId = modelId; }
 
-	void Item::setComplexData(int dataIndex) { m_complexDataIndex = dataIndex; }
-	int Item::getComplexData() { return m_complexDataIndex; }
+	//void Item::setComplexData(int dataIndex) { m_complexDataIndex = dataIndex; }
+	//int Item::getComplexData() { return m_complexDataIndex; }
+	ComplexData* Item::getComplexData() {
+		return &m_complexData;
+	}
 	
-	bool Item::copy(Item& outItem, uint32_t count) {
-		if (count == 0 || getType() == 0)
+	bool Item::copy(Item& outItem, int count) {
+		if (getType() == 0)
 			return false; // cannot copy nothing
 
 		if(outItem.getType() != 0) {
@@ -64,19 +67,21 @@ namespace prounk {
 		}
 		// outItem is nothing, a copy of the item is required
 
-		if (getComplexData()) {
-			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			auto data = session->complexDataRegistry.getData(getComplexData());
-			ComplexData* newData = data->copy();
+		// deprecated code, we always have complex data. not using registry at the moment
+		//if (getComplexData()) {
+		//	Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		//	auto data = session->complexDataRegistry.getData(getComplexData());
+		//	ComplexData* newData = data->copy();
 
-			if (!newData)
-				return false; // copy failed.
+		//	if (!newData)
+		//		return false; // copy failed.
 
-			outItem.m_complexDataIndex = newData->getDataIndex();
-		}
+		//	outItem.m_complexDataIndex = newData->getDataIndex();
+		//}
 		outItem.m_type = m_type;
 		outItem.m_displayName = m_displayName;
 		outItem.m_modelId = m_modelId;
+		outItem.m_complexData = m_complexData;
 
 		if (count == -1) {
 			outItem.m_count = getCount();
@@ -94,55 +99,79 @@ namespace prounk {
 		// maybe check max count in a stack too?
 		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
 
-		if (getComplexData() == 0 && item.getComplexData() != 0 ||
-			getComplexData() != 0 && item.getComplexData() == 0) // if one item has complex data and the other hasn't
+		if ((!getComplexData() && item.getComplexData()) ||
+			(getComplexData() && !item.getComplexData())) // if one item has complex data and the other hasn't
 			return false;
-		if (getComplexData() != 0 && item.getComplexData() != 0) { // check if the items have the same complex data
-			ComplexData* d0 = session->complexDataRegistry.getData(getComplexData());
-			ComplexData* d1 = session->complexDataRegistry.getData(item.getComplexData());
 
-			if (!d0->sameAs(d1))
-				return false;
+		//if (getComplexData() == 0 && item.getComplexData() != 0 ||
+		//	getComplexData() != 0 && item.getComplexData() == 0) // if one item has complex data and the other hasn't
+		//	return false;
+		if (getComplexData() && item.getComplexData()) { // check if the items have the same complex data
+			//ComplexData* d0 = session->complexDataRegistry.getData(getComplexData());
+			//ComplexData* d1 = session->complexDataRegistry.getData(item.getComplexData());
+
+			ComplexData* d0 = getComplexData();
+			ComplexData* d1 = item.getComplexData();
+			return d0->sameAs(d1);
 		}
 		return true;
 	}
-	bool Item::transfer(Item& target, uint32_t count) {
+	bool Item::transfer(Item& target, int count) {
+		using namespace engone;
+		if (count == -1)
+			count = getCount();
+
 		if (getType() == 0||count==0)
 			return false; // cannot transfer nothing
-		if (count != -1 && getCount() < count)
+		if (getCount() < count)
 			return false; // cannot transfer more than available
 
+		// Check max stack size and available space
+		auto type = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession()->itemTypeRegistry.getType(getType());
+		int transferAmount = count;
 		if (target.getType() == 0) {
-			if (count == -1||getCount()==count) {
+			if (count > type->maxStack)
+				transferAmount = type->maxStack;
+		} else {
+			if (count > type->maxStack-target.getCount())
+				transferAmount = type->maxStack - target.getCount();
+		}
+		if (transferAmount <= 0)
+			return false;
+
+		// Do transfer
+		if (target.getType() == 0) {
+			if (getCount() == transferAmount) {
 				// full transfer
 				target = *this;
 				*this = {};
 				return true;
 			}
 			// split
-			copy(target, count);
-			setCount(m_count - count);
+			copy(target, transferAmount);
+			setCount(getCount() - transferAmount);
 			return true;
 		}
 
 		if (!sameAs(target))
 			return false; // cannot transfer when items are different
 
-		if (count == -1||getCount()==count) {
+		if (getCount() == transferAmount) {
 			// full transfer
-			target.setCount(target.getCount() + getCount());
+			target.setCount(target.getCount() + transferAmount);
 
+			// deprecated since complex data exists inside the item for now.
 			// Could be potential leakage of ComplexData but this should fix it
-			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			session->complexDataRegistry.unregisterData(getComplexData());
+			//Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+			//session->complexDataRegistry.unregisterData(getComplexData());
 
 			*this = {};
 			return true;
 		}
 
 		// split
-		target.setCount(target.getCount()+count);
-		setCount(getCount() - count);
+		target.setCount(target.getCount() + transferAmount);
+		setCount(getCount() - transferAmount);
 		return true;
 	}
 	bool Item::swap(Item& target) {
@@ -180,35 +209,66 @@ namespace prounk {
 	int Inventory::getSlotSize() {
 		return m_slots.size();
 	}
-	bool Inventory::transferItem(Item& item) {
+	int Inventory::transferItem(Item& item) {
 		if (item.getType() == 0)
 			return false;
-		// find empty slot
-		int index = -1;
+		
+		int transferAmount =0;
+
+		// find same item types and fill them
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& item2 = m_slots[i];
+			Item& target = m_slots[i];
 
-			if (item2.getType() == 0) {
-				index = i;
-				break;
+			if (target.getType() == 0) {
+				continue;
 			}
 
-			bool yes = item.sameAs(item2);
-			if (yes) {
-				index = i;
-				break;
+			bool yes = item.sameAs(target);
+			if (!yes) continue;
+
+			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+			auto type = session->itemTypeRegistry.getType(target.getType());
+			
+			int emptySpace = (int)type->maxStack - (int)target.getCount();
+			if (emptySpace <= 0) {
+				continue;
+			}
+
+			if (item.getCount() > emptySpace) {
+				target.setCount(target.getCount() + emptySpace);
+				transferAmount += emptySpace;
+				item.setCount(item.getCount() - emptySpace);
+			} else {
+				target.setCount(target.getCount() + item.getCount());
+				transferAmount += item.getCount();
+				item.setCount(0);
+				return transferAmount;
 			}
 		}
-		if (index == -1)
-			return false;
 
-		if (m_slots[index].getType() == 0) {
-			m_slots[index] = item;
-		} else {
-			m_slots[index].setCount(m_slots[index].getCount() + item.getCount());
-			// name, modelId can stay for now
+		// find empty slots and fill them
+		for (int i = 0; i < m_slots.size(); i++) {
+			Item& target = m_slots[i];
+
+			if (target.getType() == 0) {
+				item.copy(target,0); // could do target = item if just one stack of items are transferred successfully.
+
+				Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+				auto type = session->itemTypeRegistry.getType(item.getType());
+				if (item.getCount() > type->maxStack) {
+					target.setCount(type->maxStack);
+					transferAmount += type->maxStack;
+					item.setCount(item.getCount() - type->maxStack);
+				} else {
+					target.setCount(target.getCount() + item.getCount());
+					transferAmount += item.getCount();
+					item.setCount(0);
+					return transferAmount;
+				}
+			}
 		}
-		return true;
+
+		return transferAmount;
 	}
 	uint32_t Inventory::findAvailableSlot(Item& item) {
 		if (item.getType() == 0)
@@ -216,17 +276,24 @@ namespace prounk {
 
 		uint32_t emptySlot = -1;
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& item2 = m_slots[i];
+			Item& target = m_slots[i];
 
-			if (item2.getType() == 0&&emptySlot==-1) {
+			if (target.getType() == 0&&emptySlot==-1) {
 				emptySlot = i;
 				continue;
 			}
 
-			bool yes = item.sameAs(item2);
-			if (yes) {
-				return i;
-			}
+			bool yes = item.sameAs(target);
+			if (!yes)
+				continue;
+	
+			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+			auto type = session->itemTypeRegistry.getType(target.getType());
+
+			if (target.getCount() >= type->maxStack)
+				continue;
+
+			return i;
 		}
 		return emptySlot;
 	}
@@ -240,65 +307,65 @@ namespace prounk {
 		}
 		return -1;
 	}
-	//bool Inventory::takeItem(int slotIndex, Item& outItem) {
-	//	if (m_slots[slotIndex].getType() == 0)
-	//		return false;
-	//	
-	//	outItem = m_slots[slotIndex];
-	//	m_slots[slotIndex] = Item();
-	//	return true;
-	//}
-	Inventory* InventoryRegistry::getInventory(int id) {
-		if (id == 0) return nullptr;
-		return m_inventories[id-1]; // id-1 because 0 is seen as null while 1 is seen as the first element
+	uint32 InventoryRegistry::createInventory() {
+		return m_inventories.add({}) + 1;
 	}
-	int InventoryRegistry::createInventory() {
-		m_inventories.push_back(ALLOC_NEW(Inventory)());
-		return m_inventories.size();
+	Inventory* InventoryRegistry::getInventory(uint32 dataIndex) {
+		if (dataIndex == 0) return nullptr;
+		return m_inventories.get(dataIndex - 1);
+	}
+	void InventoryRegistry::destroyInventory(uint32 dataIndex) {
+		// Todo: Unregister ComplexData of all the items?
+		m_inventories.remove(dataIndex - 1);
 	}
 	void InventoryRegistry::serialize() {
 		using namespace engone;
-		FileWriter file("inventoryRegistry.dat");
-		if (!file)
-			return;
-		int totalItems = 0;
 
-		int count = m_inventories.size();
-		file.writeOne(count);
-		for (Inventory* inv : m_inventories) {
-			int itemCount = inv->getSlotSize();
-			file.writeOne(itemCount);
-			for (int i = 0; i < itemCount;i++) {
-				Item& item = inv->getItem(i);
-				file.writeOne(item.m_count);
-				totalItems++;
-			}
-		}
+		log::out << log::RED << "InventoryRegistry : serialize not implemented\n";
 
-		log::out << "InventoryRegistry serialized " << count << " inventories (total of "<<totalItems<<" items)\n";
+		//FileWriter file("inventoryRegistry.dat");
+		//if (!file)
+		//	return;
+		//int totalItems = 0;
+
+		//int count = m_inventories.size();
+		//file.writeOne(count);
+		//for (Inventory* inv : m_inventories) {
+		//	int itemCount = inv->getSlotSize();
+		//	file.writeOne(itemCount);
+		//	for (int i = 0; i < itemCount;i++) {
+		//		Item& item = inv->getItem(i);
+		//		file.writeOne(item.m_count);
+		//		totalItems++;
+		//	}
+		//}
+
+		//log::out << "InventoryRegistry serialized " << count << " inventories (total of "<<totalItems<<" items)\n";
 	}
 	void InventoryRegistry::deserialize() {
 		using namespace engone;
-		FileReader file("inventoryRegistry.dat");
-		if (!file)
-			return;
-		int totalItems = 0;
+		log::out << log::RED << "InventoryRegistry : deserialize not implemented\n";
 
-		int count;
-		file.readOne(count);
-		m_inventories.resize(count);
-		for (int i = 0; i < count; i++) {
-			Inventory* inv = m_inventories[i] = ALLOC_NEW(Inventory)();
-			int itemCount;
-			file.readOne(itemCount);
-			inv->getList().resize(itemCount);
-			for (int i = 0; i < itemCount; i++) {
-				Item& item = inv->getItem(i);
-				file.readOne(item.m_count);
-				totalItems++;
-			}
-		}
-		log::out << "InventoryRegistry loaded " << count << " inventories (total of " << totalItems << " items)\n";
+		//FileReader file("inventoryRegistry.dat");
+		//if (!file)
+		//	return;
+		//int totalItems = 0;
+
+		//int count;
+		//file.readOne(count);
+		//m_inventories.resize(count);
+		//for (int i = 0; i < count; i++) {
+		//	Inventory* inv = m_inventories[i] = ALLOC_NEW(Inventory)();
+		//	int itemCount;
+		//	file.readOne(itemCount);
+		//	inv->getList().resize(itemCount);
+		//	for (int i = 0; i < itemCount; i++) {
+		//		Item& item = inv->getItem(i);
+		//		file.readOne(item.m_count);
+		//		totalItems++;
+		//	}
+		//}
+		//log::out << "InventoryRegistry loaded " << count << " inventories (total of " << totalItems << " items)\n";
 
 	}
 }

@@ -65,10 +65,13 @@
     <ClInclude Include="include\Engone\ModuleDefs.h" />
     <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\Profiling\Profiler.h" />
+    <ClInclude Include="include\Engone\Profiling\ScopeTimer.h" />
     <ClInclude Include="include\Engone\Rendering\CommonRenderer.h" />
     <ClInclude Include="include\Engone\Rendering\RenderPipeline.h" />
     <ClInclude Include="include\Engone\Rendering\UIRenderer.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
+    <ClInclude Include="include\Engone\Utilities\Array.h" />
     <ClInclude Include="include\Engone\Utilities\FrameArray.h" />
     <ClInclude Include="include\Engone\Utilities\LinkedArray.h" />
     <ClInclude Include="include\Engone\Utilities\StableArray.h" />
@@ -89,7 +92,6 @@
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
     <ClInclude Include="include\Engone\vendor\Libaudio.h" />
-    <ClInclude Include="include\Engone\EngoneFlag.h" />
     <ClInclude Include="include\Engone\Networking\Client.h" />
     <ClInclude Include="include\Engone\Networking\MessageBuffer.h" />
     <ClInclude Include="include\Engone\Networking\NetEvent.h" />
@@ -111,6 +113,7 @@
     <ClInclude Include="include\Engone\Window.h" />
     <ClInclude Include="include\Engone\pch.h" />
     <ClInclude Include="include\Engone\Utilities\Locks.h" />
+    <ClInclude Include="include\Engone\Utilities\Typedefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\Engone\Shaders\text3d.glsl" />
@@ -121,6 +124,7 @@
     <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\Core\EngineWorld.cpp" />
     <ClCompile Include="src\Engone\Core\ExecutionControl.cpp" />
+    <ClCompile Include="src\Engone\Profiling\Profiler.cpp" />
     <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp" />
     <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp" />

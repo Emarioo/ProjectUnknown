@@ -1,34 +1,52 @@
 #include "ProUnk/Registries/ObjectInfoRegistry.h"
 
+#include "ProUnk/GameApp.h"
+
 namespace prounk {
 
 	void ObjectInfoRegistry::serialize() {
 		using namespace engone;
-		log::out << log::RED<<"ObjectInfoRegistry - serialization not implemented\n";
+		log::out << log::RED<<"ObjectInfoRegistry - Serialization is not implemented\n";
 	}
 	void ObjectInfoRegistry::deserialize() {
 		using namespace engone;
-		log::out << log::RED << "ObjectInfoRegistry - serialization not implemented\n";
+		log::out << log::RED << "ObjectInfoRegistry - Deserialization is not implemented\n";
 	}
-	ObjectItemInfo& ObjectInfoRegistry::getItemInfo(int id) {
-		return m_itemInfos[id - 1];
+
+	uint32 ObjectInfoRegistry::registerItemInfo() {
+		return m_itemInfos.add({})+1;
 	}
-	int ObjectInfoRegistry::registerItemInfo() {
-		m_itemInfos.push_back({});
-		return m_itemInfos.size();
+	ObjectItemInfo& ObjectInfoRegistry::getItemInfo(uint32 dataIndex) {
+		return *m_itemInfos.get(dataIndex-1);
 	}
-	ObjectCreatureInfo& ObjectInfoRegistry::getCreatureInfo(int id) {
-		return m_creatureInfos[id - 1];
+	void ObjectInfoRegistry::unregisterItemInfo(uint32 dataIndex) {
+		// Todo: If ComplexData is handled with registries then it needs to be unregistered here.
+		//		ComplexData is a member of Item so it is fine right now (2023-0-19).
+		m_itemInfos.remove(dataIndex - 1);
 	}
-	int ObjectInfoRegistry::registerCreatureInfo() {
-		m_creatureInfos.push_back({});
-		return m_creatureInfos.size();
+
+	uint32 ObjectInfoRegistry::registerWeaponInfo() {
+		return m_weaponInfos.add({}) + 1;
 	}
-	ObjectWeaponInfo& ObjectInfoRegistry::getWeaponInfo(int id) {
-		return m_weaponInfos[id - 1];
+	ObjectWeaponInfo& ObjectInfoRegistry::getWeaponInfo(uint32 dataIndex) {
+		return *m_weaponInfos.get(dataIndex - 1);
 	}
-	int ObjectInfoRegistry::registerWeaponInfo() {
-		m_weaponInfos.push_back({});
-		return m_weaponInfos.size();
+	void ObjectInfoRegistry::unregisterWeaponInfo(uint32 dataIndex) {
+		m_weaponInfos.remove(dataIndex-1);
+	}
+
+	uint32 ObjectInfoRegistry::registerCreatureInfo(const std::string& name) {
+		return m_creatureInfos.add({name}) + 1;
+	}
+	ObjectCreatureInfo& ObjectInfoRegistry::getCreatureInfo(uint32 dataIndex) {
+		return *m_creatureInfos.get(dataIndex - 1);
+	}
+	void ObjectInfoRegistry::unregisterCreatureInfo(uint32 dataIndex) {
+		Session* session = ((GameApp*)engone::GetActiveWindow())->getActiveSession();
+		auto oinfo = m_creatureInfos.get(dataIndex);
+		if (oinfo->inventoryDataIndex)
+			session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
+
+		m_creatureInfos.remove(dataIndex-1);
 	}
 }

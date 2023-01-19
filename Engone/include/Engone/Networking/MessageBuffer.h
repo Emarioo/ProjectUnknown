@@ -71,7 +71,7 @@ namespace engone {
 		void pull(T* out, uint32_t count = 1) {
 			if (sizeof(T) * count > size() - m_readHead) {
 				// fishy
-				std::cout << "MessageBuffer::pull - Corrupted, did you pull string? (you are supposed to use a different function if so)\n";
+				log::out << log::YELLOW << "MessageBuffer::pull - Corrupted, did you pull string? (you are supposed to use a different function if so)\n";
 				return;
 			}
 			std::memcpy(out, m_data + sizeof(uint32_t)+ m_readHead, sizeof(T) * count);
@@ -82,6 +82,10 @@ namespace engone {
 		void moveReadHead(uint32_t byteIndex) {
 			m_readHead = byteIndex;
 		}
+
+		// free the pointer like normal
+		// returns nullptr if allocation failed.
+		MessageBuffer* copy();
 
 		void flush();
 

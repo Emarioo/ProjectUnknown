@@ -8,17 +8,18 @@
 namespace prounk {
 	const char* to_string(NetCommand value) {
 		switch (value) {
-		case NET_ADD_TERRAIN: return "AddTerrain";
-		case NET_ADD_ITEM: return "AddItem";
-		case NET_ADD_WEAPON: return "AddWeapon";
-		case NET_ADD_CREATURE: return "AddCreature";
-		case NET_MOVE: return "MoveObject";
-		case NET_DELETE: return "DeleteObject";
-		case NET_DAMAGE: return "DamageObject";
-		case NET_ANIMATE: return "AnimateObject";
-		case NET_TRIGGER: return "SetTrigger";
-		case NET_EDIT: return "GeneralEdit";
-		case NET_EDIT_BODY: return "EditBody";
+		case NET_ADD_TERRAIN: return "NET_ADD_TERRAIN";
+		case NET_ADD_ITEM: return "NET_ADD_ITEM";
+		case NET_ADD_WEAPON: return "NET_ADD_WEAPON";
+		case NET_ADD_CREATURE: return "NET_ADD_CREATURE";
+		case NET_MOVE: return "NET_MOVE";
+		case NET_DELETE: return "NET_DELETE";
+		case NET_DAMAGE: return "NET_DAMAGE";
+		case NET_SET_HEALTH: return "NET_SET_HEALTH";
+		case NET_ANIMATE: return "NET_ANIMATE";
+		case NET_TRIGGER: return "NET_TRIGGER";
+		case NET_EDIT: return "NET_EDIT";
+		case NET_EDIT_BODY: return "NET_EDIT_BODY";
 		}
 		return "Unknown";
 	}
@@ -52,7 +53,7 @@ namespace prounk {
 	}
 	void NetworkFuncs::netAddGeneral(engone::EngineObject* object) {
 		using namespace engone;
-		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 		if (object->getObjectType() & OBJECT_TERRAIN) {
 			netAddTerrain(object);
 		}else if (object->getObjectType() & OBJECT_ITEM) {
@@ -70,6 +71,8 @@ namespace prounk {
 			return;
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -90,6 +93,8 @@ namespace prounk {
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+
 		//-- Prepare message
 		MessageBuffer msg;
 		NetCommand cmd = NET_ADD_ITEM;
@@ -101,13 +106,23 @@ namespace prounk {
 		auto& info = session->objectInfoRegistry.getItemInfo(object->getObjectInfo());
 
 		ItemType type = info.item.getType();
-		ModelId id = info.item.getModelId();
-		uint32_t count = info.item.getCount();
+		//ModelId id = info.item.getModelId();
+		int count = info.item.getCount();
 		//info.item.getDisplayName();
 		//info.item.getComplexData();
 		msg.push(type);
-		msg.push(id);
 		msg.push(count);
+
+		auto& list = info.item.getComplexData()->getList();
+		int propCount = list.size();
+		
+		msg.push(&propCount);
+		msg.push(list.data(), propCount);
+		
+		//for (int i = 0; i < propCount;i++) {
+		//	msg.push(&list[i].prop);
+		//	msg.push(&list[i].value);
+		//}
 
 		//-- Send message
 		networkSend(msg);
@@ -119,6 +134,8 @@ namespace prounk {
 			return;
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -144,6 +161,8 @@ namespace prounk {
 			return;
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
+
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -256,6 +275,23 @@ namespace prounk {
 		//-- Send message
 		networkSend(msg);
 	}
+	void NetworkFuncs::netSetHealth(engone::EngineObject* object, float health) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << "Playground::moveObject - neither server or client is running\n";
+			return;
+		}
+		//-- Prepare message
+		MessageBuffer msg;
+		NetCommand cmd = NET_SET_HEALTH;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+		msg.push(&health);
+
+		//-- Send message
+		networkSend(msg);
+	}
 	void NetworkFuncs::netSetTrigger(engone::EngineObject* object, bool yes) {
 		using namespace engone;
 		if (!networkRunning()) {
@@ -273,7 +309,7 @@ namespace prounk {
 		//-- Send message
 		networkSend(msg);
 	}
-	void NetworkFuncs::recAddTerrain(engone::MessageBuffer& msg, engone::UUID clientUUID) {
+	void NetworkFuncs::recAddTerrain(engone::MessageBuffer* msg, engone::UUID clientUUID) {
 		using namespace engone;
 		Session* session = getSession();
 		
@@ -282,7 +318,7 @@ namespace prounk {
 		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
 		
 		std::string modelAsset;
-		msg.pull(modelAsset);
+		msg->pull(modelAsset);
 
 		//-- don't create object if uuid exists
 		if (!obj.dim)
@@ -309,7 +345,7 @@ namespace prounk {
 		}
 		obj.dim->getWorld()->releaseAccess(obj.uuid);
 	}
-	void NetworkFuncs::recAddItem(engone::MessageBuffer& msg, engone::UUID clientUUID){
+	void NetworkFuncs::recAddItem(engone::MessageBuffer* msg, engone::UUID clientUUID){
 		using namespace engone;
 		Session* session = getSession();
 
@@ -318,11 +354,15 @@ namespace prounk {
 		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
 
 		ItemType type;
-		ModelId model;
-		uint32_t count;
-		msg.pull(&type);
-		msg.pull(&model);
-		msg.pull(&count);
+		int count;
+		msg->pull(&type);
+		msg->pull(&count);
+
+		int propCount;
+		msg->pull(&propCount);
+		ComplexData temp;
+		temp.getList().resize(propCount);
+		msg->pull(temp.getList().data(), propCount);
 
 		//-- don't create object if uuid exists
 		if (!obj.dim)
@@ -335,6 +375,8 @@ namespace prounk {
 			return;
 		}
 		Item item = { type, count };
+		item.getComplexData()->getList() = std::move(temp.getList()); // move the complex data
+
 		EngineObject* newObject = CreateItem(obj.dim, item, obj.uuid);
 		if (!newObject) {
 			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
@@ -350,7 +392,7 @@ namespace prounk {
 		}
 		obj.dim->getWorld()->releaseAccess(obj.uuid);
 	}
-	void NetworkFuncs::recAddWeapon(engone::MessageBuffer& msg, engone::UUID clientUUID){
+	void NetworkFuncs::recAddWeapon(engone::MessageBuffer* msg, engone::UUID clientUUID){
 		using namespace engone;
 		Session* session = getSession();
 
@@ -359,7 +401,7 @@ namespace prounk {
 		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
 
 		std::string modelAsset;
-		msg.pull(modelAsset);
+		msg->pull(modelAsset);
 
 		//-- don't create object if uuid exists
 		if (!obj.dim)
@@ -390,7 +432,7 @@ namespace prounk {
 		}
 		obj.dim->getWorld()->releaseAccess(obj.uuid);
 	}
-	void NetworkFuncs::recAddCreature(engone::MessageBuffer& msg, engone::UUID clientUUID) {
+	void NetworkFuncs::recAddCreature(engone::MessageBuffer* msg, engone::UUID clientUUID) {
 		using namespace engone;
 		Session* session = getSession();
 
@@ -399,10 +441,10 @@ namespace prounk {
 		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
 
 		int objectType;
-		msg.pull(&objectType);
+		msg->pull(&objectType);
 
 		std::string modelAsset;
-		msg.pull(modelAsset);
+		msg->pull(modelAsset);
 
 		//-- don't create object if uuid exists
 		if (!obj.dim)
@@ -438,7 +480,7 @@ namespace prounk {
 		obj.dim->getWorld()->releaseAccess(obj.uuid);
 	}
 	bool NetworkFuncs::networkRunning() {
-		return getClient().isRunning() || getServer().isRunning();
+		return (getClient().isRunning() || getServer().isRunning()) && getSession()->areMessagesEnabled();
 	}
 	void NetworkFuncs::networkSend(engone::MessageBuffer& msg) {
 		if (getServer().isRunning())
@@ -452,10 +494,10 @@ namespace prounk {
 		msg.push(uuid);
 		msg.push(((Dimension*)obj->getWorld()->getUserData())->getName());
 	}
-	void NetworkFuncs::pullObject(engone::MessageBuffer& msg, UUID_DIM& data) {
-		msg.pull(&data.uuid);
+	void NetworkFuncs::pullObject(engone::MessageBuffer* msg, UUID_DIM& data) {
+		msg->pull(&data.uuid);
 		std::string temp;
-		msg.pull(temp);
+		msg->pull(temp);
 		data.dim = getSession()->getDimension(temp);
 	}
 }

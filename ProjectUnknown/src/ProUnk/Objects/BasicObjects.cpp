@@ -48,21 +48,49 @@ namespace prounk {
 	//}
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object) {
 		using namespace engone;
+		
+		if (object->getObjectInfo() != 0) {
+			auto& reg = dimension->getParent()->objectInfoRegistry;
+			if (object->getObjectType() == OBJECT_ITEM) {
+				reg.unregisterItemInfo(object->getObjectInfo());
+				// Todo: Unregister complex data?
+				//		At the time of writing ComplexDataRegistry isn't used. Instead ComplexData is a member inside Item.
+			} else if (object->getObjectType() == OBJECT_WEAPON) {
+				reg.unregisterWeaponInfo(object->getObjectInfo());
+			} else if (object->getObjectType() == OBJECT_CREATURE) {
+				reg.unregisterCreatureInfo(object->getObjectInfo());
+			} else {
+				goto J123; // object types here will not have it's info reset
+			}
+			object->setObjectInfo(0); // reset info of the unregistered infos
+		J123: { }
+		}
+		log::out << "Delete " << (BasicObjectType)object->getObjectType() << " " << object->getUUID() << "\n";
 		dimension->getWorld()->deleteObject(object->getUUID());
-		log::out <<log::RED<< __FILE__ << ":"<<(int)__LINE__ << " Memory leak!\n";
-		// object info is not cleared. Inventory, combat data for example.
+		//log::out <<log::RED<< __FILE__ << ":"<<(int)__LINE__ << " Memory leak!\n";
+
+		// ObjectInfo could have allocations or registry entries that need to be dealt with.
+		// Not doing so will result in memory leaks. It should be fine now (2023-01-19) but if new info types are added
+		// then function needs updating.
 	}
+#define LOG_CREATE_OBJ() log::out << "Create " << (BasicObjectType)out->getObjectType() << " " << out->getUUID()<<"\n";
+
 	engone::EngineObject* CreateDummy(Dimension* dimension, engone::UUID uuid) {
 		using namespace engone;
+
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_DUMMY);
+		if (uuid == 0)
+			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
+
+		LOG_CREATE_OBJ()
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>("Dummy/Dummy"));
 
 		out->createAnimator();
 			
-		int id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo();
+		int id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo("Dummy");
 		out->setObjectInfo(id);
 
 		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id).combatData;
@@ -95,6 +123,10 @@ namespace prounk {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_TERRAIN);
+		if (uuid == 0)
+			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
+
+		LOG_CREATE_OBJ()
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>("Platform/Platform"));
@@ -107,13 +139,17 @@ namespace prounk {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_PLAYER);
+		if (uuid == 0)
+			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
+
+		LOG_CREATE_OBJ()
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>("Player/Player"));
 		
 		out->createAnimator();
 
-		int id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo();
+		uint32 id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo("Player");
 		out->setObjectInfo(id);
 		
 		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id).combatData;
@@ -129,6 +165,11 @@ namespace prounk {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_WEAPON);
+		if (uuid == 0)
+			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
+
+		LOG_CREATE_OBJ()
+
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>(modelName));
 		//out->setModel(dimension->getParent()->modelRegistry.getModel(item.getModelId()));
@@ -153,6 +194,10 @@ namespace prounk {
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_ITEM);
 
+		LOG_CREATE_OBJ()
+
+		if (uuid == 0)
+			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
 		//engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		//out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
 

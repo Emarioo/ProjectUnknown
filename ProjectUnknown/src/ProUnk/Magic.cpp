@@ -13,7 +13,9 @@ namespace prounk {
 		Shader* shad = app->particleGroup->getShader();
 		shad->bind();
 		
-		EngineObject* player = app->playerController.getPlayerObject();
+		EngineObject* player = app->playerController.requestPlayer();
+		//EngineObject* player = app->playerController.getPlayerObject();
+
 
 		FocalPoint focalPoint0(ForceTypeAttractive, player->getPosition(),ToGlmVec3(player->getRigidBody()->getLinearVelocity()), 5, 0, 999);
 		focalPoint0.bind(shad,0);
@@ -38,6 +40,7 @@ namespace prounk {
 			focalE.bind(shad, 0);
 			focalE.bind(shad, 1);
 		}
+		app->playerController.releasePlayer(player);
 		//FocalPoint focalPoint3(ForceTypeFriction, app->player->getPosition(),0.7f,0.f,999.f);
 
 		//FocalPlane focalPlane1(ForceTypeAttractive, app->player->getPosition(), {1,1,0},1, 0, 999);

@@ -55,11 +55,14 @@ namespace prounk {
 
 		void update(engone::LoopInfo& info) {
 			using namespace engone;
-			//log::out << "animtime " << animationTime << "\n";
-			animationTime -= info.timeStep;
-			if (animationTime < 0) {
-				animationTime = 0;
-				attacking = false;
+			if (attacking) {
+				animationTime -= info.timeStep;
+				//log::out << "Animtime: " << animationTime << "\n";
+				if (animationTime < 0) {
+					animationTime = 0;
+					attacking = false;
+					//log::out << "Stopped attacking\n";
+				}
 			}
 
 			//hitCooldown -= info.timeStep;

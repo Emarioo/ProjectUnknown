@@ -42,9 +42,9 @@ namespace engone {
 
 		uint32_t getOwner();
 	private:
-		Mutex m_mutex;
-		Mutex m_depthMutex;
-		uint32_t m_depth;
+		uint32_t m_ownerThread = 0;
+		uint32_t m_depth=0;
+		HANDLE m_handle = NULL;
 	};
 	// multiple readers, one writer
 	// this lock is not flawless.

@@ -530,7 +530,7 @@ namespace engone {
 			if (guiShader != nullptr)
 				guiShader->setInt("uColorMode", 1);
 			//guiShader->setInt("uTextures", 0);
-			font->texture.bind();
+			font->texture.bind(0);
 		}
 
 

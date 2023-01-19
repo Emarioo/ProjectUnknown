@@ -12,8 +12,8 @@ namespace engone {
 
 		// constructor does nothing except remember the variable
 		// valuesPerFrame is forced to be divisible by 64. (data alignment * bits as bools)
-		FrameArray(uint32_t valuesPerFrame) : m_valuesPerFrame(valuesPerFrame) {
-			uint32_t off = valuesPerFrame & 63;
+		FrameArray(uint32 valuesPerFrame) : m_valuesPerFrame(valuesPerFrame) {
+			uint32 off = valuesPerFrame & 63;
 			if(off!=0)
 				m_valuesPerFrame += 64 - off;
 		}
@@ -39,7 +39,7 @@ namespace engone {
 		}
 		
 		// Returns -1 if something failed
-		uint32_t add(Value value) {
+		uint32 add(Value value) {
 			if (m_valuesPerFrame == 0) return -1;
 
 			// Find available frame
@@ -92,9 +92,9 @@ namespace engone {
 			return valueIndex;
 		}
 		
-		Value* get(uint32_t index) {
-			uint32_t frameIndex = index / m_valuesPerFrame;
-			uint32_t valueIndex = index % m_valuesPerFrame;
+		Value* get(uint32 index) {
+			uint32 frameIndex = index / m_valuesPerFrame;
+			uint32 valueIndex = index % m_valuesPerFrame;
 
 			if (frameIndex >= m_frames.max)
 				return nullptr;
@@ -111,9 +111,9 @@ namespace engone {
 			Value* ptr = frame.getValue(valueIndex, m_valuesPerFrame);
 			return ptr;
 		}
-		void remove(uint32_t index) {
-			uint32_t frameIndex = index / m_valuesPerFrame;
-			uint32_t valueIndex = index % m_valuesPerFrame;
+		void remove(uint32 index) {
+			uint32 frameIndex = index / m_valuesPerFrame;
+			uint32 valueIndex = index % m_valuesPerFrame;
 
 			if (frameIndex >= m_frames.max)
 				return;
@@ -137,7 +137,7 @@ namespace engone {
 			//}
 		}
 		// in bytes
-		uint32_t getMemoryUsage() {
+		uint32 getMemoryUsage() {
 			uint32_t bytes = m_frames.max*sizeof(Frame);
 			for (int i = 0; i < m_frames.max; i++) {
 				bytes += m_frames.data[i].memory.max;
@@ -145,22 +145,22 @@ namespace engone {
 			return bytes;
 		}
 		// YOU CANNOT USE THIS VALUE TO ITERATE THROUGH THE ELEMENTS!
-		uint32_t getCount() {
+		uint32 getCount() {
 			return m_valueCount;
 		}
 		struct Iterator {
-			uint32_t position=0;
+			uint32 position=0;
 			Value* ptr=nullptr;
 		};
 		// Returns false if nothing more to iterate. Values in iterator are reset
 		bool iterate(Iterator& iterator) {
 			while (true) {
-				uint32_t frameIndex = iterator.position / m_valuesPerFrame;
+				uint32 frameIndex = iterator.position / m_valuesPerFrame;
 				if (frameIndex >= m_frames.max)
 					break;
 				Frame& frame = m_frames.data[frameIndex];
 
-				uint32_t valueIndex = iterator.position % m_valuesPerFrame;
+				uint32 valueIndex = iterator.position % m_valuesPerFrame;
 				if (valueIndex >= frame.memory.max)
 					break;
 				
@@ -185,19 +185,19 @@ namespace engone {
 		struct Frame {
 			Memory<char> memory{};
 			int count = 0;
-			Value* getValue(uint32_t index, uint32_t vpf) {
+			Value* getValue(uint32 index, uint32 vpf) {
 				return (Value*)(memory.data+ vpf/8+index*sizeof(Value));
 			}
-			bool getBool(uint32_t index) {
-				uint32_t i = index / 8;
-				uint32_t j = index % 8;
+			bool getBool(uint32 index) {
+				uint32 i = index / 8;
+				uint32 j = index % 8;
 				char byte = memory.data[i];
 				char bit = byte&(1<<j);
 				return bit;
 			}
-			void setBool(uint32_t index, bool yes) {
-				uint32_t i = index / 8;
-				uint32_t j = index % 8;
+			void setBool(uint32 index, bool yes) {
+				uint32 i = index / 8;
+				uint32 j = index % 8;
 				if (yes) {
 					memory.data[i] = memory.data[i] | (1 << j);
 				} else {
@@ -209,7 +209,7 @@ namespace engone {
 		Memory<Frame> m_frames{};
 		int m_valueCount=0;
 		
-		uint32_t m_valuesPerFrame=0;
+		uint32 m_valuesPerFrame=0;
 	
 	};
 

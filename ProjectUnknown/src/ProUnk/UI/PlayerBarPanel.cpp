@@ -13,18 +13,23 @@ namespace prounk {
 		PlayerController* playerController = &m_app->playerController;
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
-		CombatData* combatData = GetCombatData(playerController->app->getActiveSession(), playerController->getPlayerObject());
+		EngineObject* plr = playerController->requestPlayer();
+		CombatData* combatData = GetCombatData(playerController->app->getActiveSession(), plr);
 		
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();
 		float atk = 0;
 		// Todo: displaying atk of weapon here is temporary and should be removed.
 		//		It is useful for debugging so display it in some debug menu.
-		EngineObject* weapon = playerController->heldObject;
+		EngineObject* weapon = playerController->requestHeldObject();
+		
 		if (weapon) {
 			CombatData* weaponData = GetCombatData(playerController->app->getActiveSession(), weapon);
 			atk = weaponData->singleDamage;
 		}
+
+		playerController->releasePlayer(plr);
+		playerController->releaseHeldObject(weapon);
 
 		//-- panel background
 		ui::Box area = getBox();

@@ -106,6 +106,13 @@ namespace engone {
 		// true if window is open, or should be open
 		bool isOpen();
 
+		ExecutionControl& getControl();
+		ExecutionTimer& getExecTimer();
+
+		void setFPS(double fps);
+		double getFPS();
+		double getRealFPS();
+
 		static TrackerId trackerId;
 	private:
 		Window(Application* application, WindowDetail detail);
@@ -129,6 +136,7 @@ namespace engone {
 
 		bool initializedGLEW = false;
 
+		ExecutionTimer executionTimer;
 		ExecutionControl renderControl;
 		Thread renderThread;
 

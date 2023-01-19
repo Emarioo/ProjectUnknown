@@ -11,7 +11,7 @@ namespace prounk {
 			log::out << log::RED << "ItemTypeRegistry file '" << file.getPath() << "' cannot be serialized\n";
 			return;
 		}
-		file.writeOne(m_newType);
+		//file.writeOne(m_newType);
 		int count = m_itemTypes.size();
 		file.writeOne(count);
 		for (ItemTypeInfo& entry : m_itemTypes) {
@@ -28,7 +28,7 @@ namespace prounk {
 			log::out << log::RED << "ItemTypeRegistry file '" << file.getPath() << "' cannot be deserialized\n";
 			return;
 		}
-		file.readOne(m_newType);
+		//file.readOne(m_newType);
 		int count;
 		file.readOne(count);
 		m_itemTypes.resize(count);
@@ -63,7 +63,7 @@ namespace prounk {
 
 	}
 	// takes registered name and turns it into display name
-	std::string GenerateDisplayName(const std::string& name) {
+	static std::string GenerateDisplayName(const std::string& name) {
 		std::string out;
 		out.reserve(name.length());
 		bool capital = true;
@@ -87,15 +87,15 @@ namespace prounk {
 	ItemType ItemTypeRegistry::registerType(const std::string& name, ModelId modelId, const std::string& displayName) {
 		using namespace engone;
 		if (name.empty()) {
-			log::out << log::RED << "ItemTypeRegistry - Cannot register '"<<name<<"' (empty string)\n";
+			log::out << log::RED << "ItemTypeRegistry: Cannot register '"<<name<<"' (empty string)\n";
 			return 0;
 		}
 		if (!IsNameValid(name.c_str())) {
-			log::out << log::RED << "ItemTypeRegistry - Cannot register '" << name << "' (only 'a' to 'z' and '_' are allowed)\n";
+			log::out << log::RED << "ItemTypeRegistry: Cannot register '" << name << "' (only 'a' to 'z' and '_' are allowed)\n";
 			return 0;
 		}
 		if (!modelId) {
-			log::out << log::RED <<"ItemTypeRegistry - Cannot register '" << name << "' with 0 as modelId\n";
+			log::out << log::RED <<"ItemTypeRegistry: Cannot register '" << name << "' with 0 as modelId\n";
 			return 0;
 		}
 		int itemType = 0;
@@ -110,7 +110,7 @@ namespace prounk {
 
 		if (itemType == 0) {
 			// not found, register new
-			itemType = getNewType();
+			itemType = m_itemTypes.size()+1;
 
 			m_itemTypes.push_back({});
 			m_itemTypes.back().itemType = itemType;
@@ -120,15 +120,14 @@ namespace prounk {
 			
 			m_nameTypes[name] = itemType;
 
-			log::out << "Registered NEW ItemType '" << name << "' as " << itemType << "\n";
+			log::out << log::LIME<<"ItemTypeRegistry: Registered '" << name << "' as " << itemType << "\n";
 
 		} else {
 			// found, the info is already there.
 			// you may want to load more info into ItemTypeInfo.
-			log::out << log::RED << "ItemType '" << name << "' already registered\n";
+			log::out << log::RED << "ItemTypeRegistry: '" << name << "' is already registered\n";
 			m_nameTypes[name] = itemType;
 		}
 		return itemType;
 	}
-
 }

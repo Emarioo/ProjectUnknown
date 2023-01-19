@@ -17,6 +17,7 @@ namespace prounk {
 		NET_ANIMATE,
 		NET_TRIGGER,
 		NET_DAMAGE,
+		NET_SET_HEALTH,
 
 		NET_EDIT,
 		NET_EDIT_BODY,
@@ -47,14 +48,15 @@ namespace prounk {
 		//void netEditCombatData(engone::EngineObject* object, engone::UUID from, bool yes);
 
 		void netDamageObject(engone::EngineObject* object, float damage);
+		void netSetHealth(engone::EngineObject* object, float health);
 		void netAnimateObject(engone::EngineObject* object, const std::string& instance, const std::string& animation, bool loop, float speed, float blend, float frame);
 		void netSetTrigger(engone::EngineObject* object, bool yes);
 
 		//-- Receive
-		void recAddTerrain(engone::MessageBuffer& msg, engone::UUID clientUUID);
-		void recAddItem(engone::MessageBuffer& msg, engone::UUID clientUUID);
-		void recAddWeapon(engone::MessageBuffer& msg, engone::UUID clientUUID);
-		void recAddCreature(engone::MessageBuffer& msg, engone::UUID clientUUID);
+		void recAddTerrain(engone::MessageBuffer* msg, engone::UUID clientUUID);
+		void recAddItem(engone::MessageBuffer* msg, engone::UUID clientUUID);
+		void recAddWeapon(engone::MessageBuffer* msg, engone::UUID clientUUID);
+		void recAddCreature(engone::MessageBuffer* msg, engone::UUID clientUUID);
 
 		virtual engone::Client& getClient() = 0;
 		virtual engone::Server& getServer() = 0;
@@ -68,7 +70,7 @@ namespace prounk {
 			engone::UUID uuid=0;
 			Dimension* dim=nullptr;
 		};
-		void pullObject(engone::MessageBuffer& msg, UUID_DIM& data);
+		void pullObject(engone::MessageBuffer* msg, UUID_DIM& data);
 
 		Session* getSession();
 

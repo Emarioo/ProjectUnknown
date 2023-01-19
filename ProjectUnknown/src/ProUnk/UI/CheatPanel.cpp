@@ -9,29 +9,31 @@ namespace prounk {
 		Session* sess = app->getActiveSession();
 		const ItemTypeInfo* info = sess->itemTypeRegistry.getType("sword");
 		availableItems.push_back(Item(info->itemType,1));
-		ComplexData* data = sess->complexDataRegistry.registerData();
+		
+		ComplexData* data = availableItems.back().getComplexData();
+		//ComplexData* data = sess->complexDataRegistry.registerData();
+
 		ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
 		ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
 		data->set(atk,30.f);
 		data->set(knock,0.3f);
-		availableItems.back().setComplexData(data->getDataIndex());
+		//availableItems.back().setComplexData(data->getDataIndex());
 		
 		//const ItemTypeInfo* info = sess->itemTypeRegistry.getType("sword");
 		availableItems.push_back(Item(info->itemType, 1));
-		//ComplexData* 
-			data = sess->complexDataRegistry.registerData();
-		//ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
-		//ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
+		data = availableItems.back().getComplexData();
+		//data = sess->complexDataRegistry.registerData();
 		data->set(atk, 40.f);
 		data->set(knock, 5.3f);
-		availableItems.back().setComplexData(data->getDataIndex());
+		//availableItems.back().setComplexData(data->getDataIndex());
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
 		CommonRenderer* renderer = GET_COMMON_RENDERER();
 		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
-		EngineObject* object = m_app->playerController.getPlayerObject();
+
+		//EngineObject* object = m_app->playerController.getPlayerObject();
 		
 		Inventory* inv = m_app->playerController.getInventory();
 

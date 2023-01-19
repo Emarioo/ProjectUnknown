@@ -12,12 +12,12 @@ namespace engone {
 		cleanup();
 	}
 	void Semaphore::cleanup() {
-		if(m_handle!=NULL)
+		if (m_handle != NULL)
 			CloseHandle(m_handle);
 	}
 	void Semaphore::wait() {
 		if (m_handle == NULL) {
-			m_handle = CreateSemaphore(NULL, 0, 10, NULL);
+			m_handle = CreateSemaphore(NULL, m_initial, m_max, NULL);
 			if (m_handle == NULL) {
 				int err = GetLastError();
 				log::out << log::RED << "Semaphore : Win Error " << err << "\n";
@@ -31,7 +31,6 @@ namespace engone {
 				log::out << log::RED << "Semaphore : Win Error " << err << "\n";
 			}
 		}
-		// GetLastError?
 	}
 	void Semaphore::signal(int count) {
 		if (m_handle != NULL) {
@@ -42,7 +41,6 @@ namespace engone {
 				return;
 			}
 		}
-		// GetLastError?
 	}
 	Mutex::~Mutex() {
 		cleanup();
@@ -61,7 +59,7 @@ namespace engone {
 	}
 	void Mutex::lock() {
 		if (m_handle == NULL) {
-			m_handle = CreateMutex(NULL,false,NULL);
+			m_handle = CreateMutex(NULL, false, NULL);
 			if (m_handle == NULL) {
 				int err = GetLastError();
 				log::out << log::RED << "Mutex : Win Error " << err << "\n";
@@ -99,38 +97,51 @@ namespace engone {
 		cleanup();
 	}
 	void DepthMutex::cleanup() {
-		
+
 	}
 	void DepthMutex::lock() {
-		uint32_t thisThread = Thread::GetThisThreadId();
-		m_depthMutex.lock();
-		if (thisThread != m_mutex.getOwner()) {
-			m_depthMutex.unlock();
-			m_mutex.lock();
-			m_depthMutex.lock();
-			m_depth++;
-			m_depthMutex.unlock();
+		if (m_handle == NULL) {
+			m_handle = CreateMutex(NULL, false, NULL);
+			if (m_handle == NULL) {
+				int err = GetLastError();
+				log::out << log::RED << "DepthMutex : Win Error " << err << "\n";
+				return;
+			}
+		}
+		if (m_handle == NULL) return;
+
+		DWORD res = WaitForSingleObject(m_handle, INFINITE);
+		uint32_t newId = Thread::GetThisThreadId();
+
+		m_ownerThread = newId;
+		if (res == WAIT_FAILED) {
+			int err = GetLastError();
+			log::out << log::RED << "DepthMutex : Win Error " << err << "\n";
 		} else {
-			m_depth++;
-			m_depthMutex.unlock();
+			m_depth++; // should not be done if m_mutex failed
+
+			if (m_depth > 4)
+				log::out << log::YELLOW<< "DepthMutex : Depth is at " << m_depth << ". Is it a bug?\n";
 		}
 	}
 	void DepthMutex::unlock() {
-		uint32_t thisThread = Thread::GetThisThreadId();
-		m_depthMutex.lock();
-		if (thisThread == m_mutex.getOwner()) {
-			m_depth--;
-			if (m_depth == 0)
-				m_mutex.unlock();
-		} else {
-			log::out << log::RED << "DepthMutex : Thread " << thisThread << " tried to unlock mutex owned by thread " << m_mutex.getOwner() << "\n";
+		if (m_handle == NULL) return;
+
+		m_depth--;
+		if (m_depth != 0) return;
+
+		m_ownerThread = 0;
+		bool yes = ReleaseMutex(m_handle);
+		if (!yes) {
+			int err = GetLastError();
+			log::out << log::RED << "DepthMutex : Win Error " << err << "\n";
+			return;
 		}
-		m_depthMutex.unlock();
 	}
 	uint32_t DepthMutex::getOwner() {
-		return m_mutex.getOwner();
+		return m_ownerThread;
 	}
-	ReadWriteLock::ReadWriteLock() : m_semaphore(1,1) {
+	ReadWriteLock::ReadWriteLock() : m_semaphore(1, 1) {
 
 	}
 	ReadWriteLock::~ReadWriteLock() {

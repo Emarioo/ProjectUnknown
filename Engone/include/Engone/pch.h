@@ -1,5 +1,8 @@
 #pragma once
 
+// Try to remove some of these libraries
+// thread, mutex, chrono, filesystem
+// I should use Windows API to implement my own versions. This can be done whenever, no hurry.
 #include <iostream>
 #include <functional>
 #include <fstream>
@@ -25,9 +28,12 @@
 #include <Engone/vendor/glm/gtc/type_ptr.hpp>
 #include <Engone/vendor/glm/gtc/matrix_transform.hpp>
 
+#include "Engone/Utilities/Typedefs.h"
+
 // causes issues with std::numeric_limit::max in reactphysics
 #define NOMINMAX
-// don't include winsock
+
+// don't include winsock ?
 
 // windows xp
 //#define _WIN32_WINNT 0x0501

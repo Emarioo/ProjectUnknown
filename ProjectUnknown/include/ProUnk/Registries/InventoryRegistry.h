@@ -3,14 +3,17 @@
 #include "ProUnk/Registries/MasterRegistry.h"
 #include "ProUnk/Registries/ModelRegistry.h"
 #include "ProUnk/Registries/ItemTypeRegistry.h"
+#include "ProUnk/Registries/ComplexDataRegistry.h"
 
 #include "Engone/Assets/ModelAsset.h"
+
+#include "Engone/Utilities/FrameArray.h"
 
 namespace prounk {
 	class Item {
 	public:
 		Item() = default;
-		Item(ItemType type, uint32_t count);
+		Item(ItemType type, int count);
 		//Item(ItemType type, int count, const std::string& name, ModelId modelId) : m_count(count), m_name(name), m_modelId(modelId) {}
 
 		ItemType getType();
@@ -19,14 +22,20 @@ namespace prounk {
 		const std::string& getDisplayName();
 		void setDisplayName(const std::string& name);
 
-		uint32_t getCount();
-		void setCount(uint32_t count);
+		int getCount();
+		// can override max stack size
+		void setCount(int count);
 
 		ModelId getModelId();
 		void setModelId(ModelId modelId);
 
-		void setComplexData(int dataIndex);
-		int getComplexData();
+		// deprecated?
+		//void setComplexData(int dataIndex);
+		//int getComplexData();
+
+		// Do not change the return value of this function when using registries.
+		// easily getting the ptr to complex data is useful.
+		ComplexData* getComplexData();
 
 		bool sameAs(Item& item);
 
@@ -36,24 +45,27 @@ namespace prounk {
 		// Otherwise count of outItem is count argument
 		// function fails if this item and outItem are different or duplication of the item failed.
 		// outItem is never overwritten and function is safe.
-		bool copy(Item& outItem, uint32_t count=-1);
+		bool copy(Item& outItem, int count=-1);
 
-		// returns false if function fails. (this item and target item may be different types)
-		// nothing is changed if function failed.
-		// this item is moved to target if possible.
-		// count desscribes how much to move. -1 moves everything.
-		bool transfer(Item& target, uint32_t count=-1);
+		// Returns false if it failed. Nothing is changed if function fails.
+		// This item is moved to target if possible.
+		// Count desscribes how much to move. -1 moves whole stack.
+		// Stack size can limit how many items that are moved.
+		bool transfer(Item& target, int count=-1);
 
 		bool swap(Item& target);
 
 	private:
 		ItemType m_type = 0;
-		uint32_t m_count = 0;
+		// not using uint32_t to avoid bugs when doing - < > operations. You may forget to cast uint32_t to int
+		int m_count = 0;
 		//std::string m_name;
 		std::string m_displayName;
 		ModelId m_modelId = 0;
 
-		int m_complexDataIndex=0;
+		ComplexData m_complexData; // <- temporary? use registry instead?
+
+		//int m_complexDataIndex=0;
 
 		friend class InventoryRegistry;
 	};
@@ -70,21 +82,19 @@ namespace prounk {
 
 		// give item to inventory
 		// item is put in inventory if function returns true
-		bool transferItem(Item& item);
+		// returns the amount of moved items. Zero if it failed or no items to move.
+		int transferItem(Item& item);
 
 		// Returns -1 if it failed
-		// Fail happens if slot wasn't found-
+		// Fail happens if slot wasn't found.
+		// prioritizes slots of the same type that aren't full. Empty slots are chosen otherwise.
 		// Function acts as findEmptySlot if item's type is 0.
+		// slots with maximum stack size are skipped.
+		// rename function to findNonFullSlot?
 		uint32_t findAvailableSlot(Item& item);
 		// Returns -1 if it failed
 		// Fail happens if slot wasn't found
 		uint32_t findEmptySlot();
-
-		// take item from inventory
-		// if true is returned, result is stored in outItem
-		// Initial data in outItem is overwritten without any considerations.
-		//bool takeItem(int slotIndex, Item& outItem);
-		// USE 'getItem(slotIndex).transfer(outItem)' instead
 
 		std::vector<Item>& getList();
 		// Will fail if items are lost during resize.
@@ -112,11 +122,12 @@ namespace prounk {
 		void deserialize() override;
 
 		// no bounds check
-		Inventory* getInventory(int id);
-		int createInventory();
+		uint32 createInventory();
+		Inventory* getInventory(uint32 dataIndex);
+		void destroyInventory(uint32 dataIndex);
 
 	private:
 
-		std::vector<Inventory*> m_inventories;
+		engone::FrameArray<Inventory> m_inventories{64};
 	};
 }

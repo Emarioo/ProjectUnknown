@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Engone/RenderModule.h"
-#include "Engone/EngoneFlag.h"
 #include "Engone/Application.h"
 #include "Engone/Window.h"
 
@@ -98,6 +97,7 @@ namespace engone {
 		void render(LoopInfo& info);
 		void renderObjects(LoopInfo& info);
 
-		void renderBasicDebugInfo(LoopInfo& info);
+		friend class Application;
+		friend class Window;
 	};
 }

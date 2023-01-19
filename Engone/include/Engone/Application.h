@@ -6,6 +6,8 @@
 #include "Engone/Utilities/RuntimeStats.h"
 #include "Engone/World/EngineWorld.h"
 
+#include "Engone/Profiling/Profiler.h"
+
 namespace engone {
 
 	// required in application
@@ -62,16 +64,29 @@ namespace engone {
 
 		bool isStopped() const { return m_stopped; }
 
+		Profiler& getProfiler() { return m_profiler; }
+
 		rp3d::PhysicsCommon* getPhysicsCommon();
+		void lockCommon() { m_commonMutex.lock(); }
+		void unlockCommon() { m_commonMutex.unlock(); }
 
 		ExecutionControl& getControl() { return updateControl; }
 		ExecutionTimer& getExecTimer() { return executionTimer; }
 		void setMultiThreaded(bool yes) { m_isThreaded = yes; }
 		bool isMultiThreaded() { return m_isThreaded; }
 
+		void setUPS(double ups);
+		double getUPS();
+		double getRealUPS();
+		
+		void setFPS(double fps, uint32 windowIndex=0);
+		double getFPS(uint32 windowIndex=0);
+		double getRealFPS(uint32 windowIndex=0);
+
+		double getRuntime();
+
 		static TrackerId trackerId;
 	private:
-		//EngineWorld* m_world=nullptr;
 
 		bool m_isThreaded=false;
 
@@ -86,6 +101,9 @@ namespace engone {
 		Thread updateThread;
 		ExecutionTimer executionTimer;
 
+		Profiler m_profiler;
+
+		DepthMutex m_commonMutex;
 		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
 		
 		friend class Engone;

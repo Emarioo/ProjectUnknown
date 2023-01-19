@@ -32,16 +32,6 @@ namespace engone {
 		friend class EngineWorld;
 	};
 
-	class EngineAccess {
-	public:
-		EngineAccess(engone::UUID uuid);
-		~EngineAccess();
-
-	private:
-		
-		EngineObject* obj=nullptr;
-	};
-
 	class Application;
 	// Template for game ground.
 	// you need to make a class which derives from this and add a list which stores game objects.
@@ -96,12 +86,10 @@ namespace engone {
 
 		rp3d::PhysicsCommon* getPhysicsCommon();
 		rp3d::PhysicsWorld* getPhysicsWorld();
-		void lockPhysics() { 
-			m_physicsMutex.lock(); 
-		}
-		void unlockPhysics() { 
-			m_physicsMutex.unlock();
-		}
+		void lockPhysics() { m_physicsMutex.lock();	}
+		void unlockPhysics() { 	m_physicsMutex.unlock(); }
+		void lockCommon();
+		void unlockCommon();
 
 		Application* getApp() { return m_app; }
 
@@ -110,7 +98,8 @@ namespace engone {
 
 	private:
 #ifdef ENGONE_PHYSICS
-		Mutex m_physicsMutex;
+		DepthMutex m_physicsMutex;
+		//Mutex m_physicsMutex;
 		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
 #endif
 
@@ -132,6 +121,7 @@ namespace engone {
 			EngineObject* object = nullptr;
 			int waitingThreads = 0;
 			bool pendingDelete = false;
+			int lockingDepth=0;
 		};
 		Mutex m_objectMapMutex;
 		std::unordered_map<UUID, ObjectDetail> m_objectMap;

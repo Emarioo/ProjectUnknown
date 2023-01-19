@@ -15,6 +15,7 @@
 #include "ProUnk/UI/PlayerBarPanel.h"
 #include "ProUnk/UI/CraftingPanel.h"
 #include "ProUnk/UI/CheatPanel.h"
+#include "ProUnk/UI/SessionPanel.h"
 
 #include "ProUnk/World/Session.h"
 
@@ -51,7 +52,7 @@ namespace prounk {
 
 		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
 		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
-		void dealCombat(engone::EngineObject* atkObj, engone::EngineObject* collider);
+		void dealCombat(engone::EngineObject* atkObj, engone::EngineObject* collider, glm::vec3 contactPoint);
 
 		PlayerController playerController;
 
@@ -61,6 +62,7 @@ namespace prounk {
 		InventoryPanel* inventoryPanel = nullptr;
 		PlayerBarPanel* playerBarPanel = nullptr;
 		CheatPanel* cheatPanel = nullptr;
+		SessionPanel* sessionPanel = nullptr;
 		//CraftingPanel craftingPanel=nullptr;
 
 		engone::DelayCode delayed;
@@ -102,12 +104,14 @@ namespace prounk {
 		void incrCursor() { showCursor++; }
 		void decrCursor() { showCursor--; }
 
+		bool debugInfoToggle = false;
+
 		// Temporary
-		bool sessionMenu = false;
-		void showSessionMenu() {
-			sessionMenu = true;
-			incrCursor();
-		}
+		//bool sessionMenu = false;
+		//void showSessionMenu() {
+		//	sessionMenu = true;
+		//	incrCursor();
+		//}
 
 		bool partRequested = false;
 		glm::vec3 requestPos;

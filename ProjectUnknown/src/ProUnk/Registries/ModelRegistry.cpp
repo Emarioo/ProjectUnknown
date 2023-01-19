@@ -34,17 +34,17 @@ namespace prounk {
 			m_entries.back().name = model->getLoadName();
 			m_entries.back().model = model;
 
-			log::out << "Registered NEW model '" << model->getLoadName() << "' as " << id << "\n";
+			log::out << log::LIME << "ModelRegistry: Registered '" << model->getLoadName() << "' as " << id << "\n";
 			
 		}
 		else {
 			// found
 			Entry& entry = m_entries[id-1];
 			if (entry.model) {
-				log::out <<log::RED<< "Model '" << model->getLoadName() << "' already registered\n";
+				log::out <<log::RED<< "ModelRegistry: '" << model->getLoadName() << "' is already registered\n";
 			} else {
-				entry.model = model;
-				log::out << "Registered model '" << model->getLoadName() << "' as " << id << "\n";
+				entry.model = model; // the dataIndex existed before but it didn't have the model
+				log::out << log::LIME << "ModelRegistry: (soft) Registered '" << model->getLoadName() << "' as " << id << "\n";
 			}
 		}
 		return id;

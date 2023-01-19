@@ -40,291 +40,31 @@ namespace prounk {
 	}
 	Session::Session(GameApp* app) : m_parent(app) {
 		using namespace engone;
-		auto onRecv = [this](MessageBuffer& msg, UUID clientUUID) {
-			//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
-			Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*)&m_client;
+		auto onRecv = [this](MessageBuffer& msg, UUID uuid) {
 
-			//void(NetworkFuncs:: * f[])(MessageBuffer & msg, UUID clientUUID) = {recAddCreature};
+			MessageBuffer* copy = msg.copy();
 
-			//f[(int)MoveObject](msg, clientUUID);
-			
-			NetCommand cmd;
-			msg.pull(&cmd);
+			m_messageQueueMutex.lock();
+			m_messageQueue.push_back({copy,uuid });
+			m_messageQueueMutex.unlock();
 
-			if(cmd!=NET_MOVE)
-				log::out << m_server.isRunning() << " " << cmd << "\n";
-
-			if (cmd == NET_MOVE) {
-				//-- Extract data
-				rp3d::Transform transform;
-				rp3d::Vector3 velocity;
-				rp3d::Vector3 angularVelocity;
-				UUID_DIM obj;
-				pullObject(msg, obj);
-				msg.pull(&transform);
-				msg.pull(&velocity);
-				msg.pull(&angularVelocity);
-
-				//-- Find object with matching UUID
-				if (obj.dim) {
-					obj.dim->getWorld()->lockPhysics();
-					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-
-					if (object) {
-						object->getRigidBody()->setTransform(transform);
-						object->getRigidBody()->setLinearVelocity(velocity);
-						object->getRigidBody()->setAngularVelocity(angularVelocity);
-						obj.dim->getWorld()->releaseAccess(obj.uuid);
-					}
-					obj.dim->getWorld()->unlockPhysics();
-				}
-			} else if (cmd == NET_ADD_TERRAIN) {
-				recAddTerrain(msg, clientUUID);
-			} else if (cmd == NET_ADD_ITEM) {
-				recAddItem(msg, clientUUID);
-			} else if (cmd == NET_ADD_WEAPON) {
-				recAddWeapon(msg, clientUUID);
-			} else if (cmd == NET_ADD_CREATURE) {
-				recAddCreature(msg, clientUUID);
-			} else if (cmd == NET_ANIMATE) {
-				//-- Extract data
-				UUID_DIM obj;
-				pullObject(msg, obj);
-
-				std::string instance;
-				std::string animation;
-				bool loop;
-				float speed;
-				float blend;
-				float frame;
-				msg.pull(instance);
-				msg.pull(animation);
-				msg.pull(&loop);
-				msg.pull(&speed);
-				msg.pull(&blend);
-				msg.pull(&frame);
-
-				//-- Find object with matching UUID
-				if (obj.dim) {
-					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-						//dim->getWorld()->getObject(uuid);
-
-					if (object) {
-						if (object->getAnimator()) {
-							//m_mutex.lock();
-							object->getAnimator()->enable(instance, animation, { loop,speed,blend,frame });
-							//m_mutex.unlock();
-						}
-						obj.dim->getWorld()->releaseAccess(obj.uuid);
-					}
-				}
-
-			} else if (cmd == NET_TRIGGER) {
-				//-- Extract data
-				UUID_DIM obj;
-				pullObject(msg, obj);
-
-				//int type;
-				//msg.pull(&type);
-				bool yes;
-				msg.pull(&yes);
-
-				//-- Find object with matching UUID
-				if (obj.dim) {
-					obj.dim->getWorld()->lockPhysics();
-					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-					if (object) {
-						object->setOnlyTrigger(yes);
-						obj.dim->getWorld()->releaseAccess(obj.uuid);
-					}
-					obj.dim->getWorld()->unlockPhysics();
-				}
-			} else if (cmd == NET_EDIT) {
-				//-- Extract data
-				UUID_DIM obj;
-				pullObject(msg, obj);
-
-				int type;
-				msg.pull(&type);
-				uint64_t data;
-				msg.pull(&data);
-
-				//-- Find object with matching UUID
-				if (obj.dim) {
-					obj.dim->getWorld()->lockPhysics();
-					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-					if (object) {
-						if (type == NET_EDIT_BODY) {
-							object->getRigidBody()->setType((rp3d::BodyType)data);
-						} 
-						//else if (type == 1) {
-						//	//uint64_t data;
-						//	//msg.pull(&data);
-						//	//UUID uuid2 = { data1,data2 };
-						//	//EngineObject* obj = getObject(uuid2);
-						//	//if (obj) {
-						//	//	Player* plr = (Player*)obj;
-						//	//	object->rigidBody->getCollider(data0)->setUserData(&plr->combatData);
-						//	//} else {
-						//	//	object->rigidBody->getCollider(data0)->setUserData(nullptr);
-						//	//}
-						//} else if (type == 2) {
-						//	UUID uuid2;
-						//	msg.pull(&uuid2);
-						//	bool yes;
-						//	msg.pull(&yes);
-
-						//	EngineObject* object2 = obj.dim->getWorld()->requestAccess(uuid2);
-						//	if (object2) {
-						//		log::out << log::RED << "Session::Receive - EditType:2 is broken\n";
-						//		//SetCombatData(object2, object, yes);
-						//		obj.dim->getWorld()->releaseAccess(uuid2);
-						//	} else
-						//		log::out << log::RED << "Session::Receive - " << cmd << ", type 2, object2 is nullptr\n";
-						//}
-						obj.dim->getWorld()->releaseAccess(obj.uuid);
-					}
-					obj.dim->getWorld()->unlockPhysics();
-				}
-			} else if (cmd == NET_DAMAGE) {
-				//-- Extract data
-				UUID_DIM obj;
-				pullObject(msg, obj);
-
-				float damage;
-				msg.pull(&damage);
-
-				//-- Find object with matching UUID
-				if (obj.dim) {
-					//EngineObject* object = dim->getWorld()->requestAccess(uuid);
-					//EngineObject* object = dim->getWorld()->getObject(uuid);
-
-					log::out << "Session::Receive : DamageObject is broken\n";
-					//if (object) {
-					//	//m_mutex.lock();
-					//	CombatData* combatData = entityRegistry.getEntry(object->userData).combatData;
-					//	combatData->health -= damage;
-					//	if (combatData->health < 0) combatData->health = 0;
-
-					//	// temporary. a more sophisticated particle request system will be made
-					//	this->getApp()->doParticles(object->getPosition());
-
-					//	//m_mutex.unlock();
-					//}
-				}
-			} else if (cmd == NET_DELETE) {
-				UUID_DIM obj;
-				pullObject(msg, obj);
-				if (obj.dim) {
-					EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-					// this is highly unoptimized
-
-					if (object) {
-						DeleteObject(obj.dim, object);
-					} else {
-						log::out << "Session::Receive - Invalid object to delete\n";
-					}
-					//for (int j = 0; j < m_objects.size(); j++) {
-					//	if (uuid == m_objects[j]->getUUID()) { // NOTE: compare UUID instead of pointers?
-					//		index = j;
-					//	}
-					//}
-					//if (index != -1) {
-					//	DeleteObject(this, m_objects[index]);
-					//	m_objects.erase(m_objects.begin() + index);
-					//} else {
-					//	log::out << log::RED << "World::Event - Object " << uuid << " is already deleted\n";
-					//}
-					//m_mutex.unlock();
-				}
-			}
-			return true; // wont work on server
+			return true;
 		};
 		m_server.setOnEvent([this](NetEvent e, UUID uuid) {
-			log::out << "ProUnk::Server::onEvent - " << e << "\n";
+			log::out << "Server : onEvent - " << e << "\n";
 
-			if (e == NetEvent::Connect) {
-				m_clients[uuid] = {};
-				prounk::GameApp* app = m_parent;
-				Dimension* dim = getDimension("0");
-				EngineObjectIterator iter = dim->getWorld()->createIterator();
-				EngineObject* obj;
-				while (obj = iter.next()) {
-					netAddGeneral(obj);
-					netSetTrigger(obj, obj->isOnlyTrigger());
-					netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
-					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
-				}
-			} else if (e == NetEvent::Disconnect) {
-				auto find = m_clients.find(uuid);
-				if (find == m_clients.end()) {
-					// this would be a bug
-					log::out << log::RED << "World::Event - Cannot find client data for " << uuid << "\n";
-				} else {
-					//m_mutex.lock();
-					Dimension* dim = getDimension("0");
-					for (int i = 0; i < find->second.ownedObjects.size(); i++) {
-						EngineObject* obj = find->second.ownedObjects[i];
-						// this is highly unoptimized
-
-						EngineObjectIterator iter = dim->getWorld()->createIterator();
-						EngineObject* obj2;
-						bool found = false;
-						while (obj2 = iter.next()) {
-							if (obj == obj2) { // NOTE: compare UUID instead of pointers?
-								found = true;
-								break;
-							}
-						}
-						//dim->getWorld()->deleteIterator(iter);
-						if (found) {
-							netDeleteObject(obj);
-							DeleteObject(dim, find->second.ownedObjects[i]);
-						} else {
-							log::out << log::RED << "Session::Event - Object is not owned?\n";
-
-						}
-					}
-					//m_mutex.unlock();
-					m_clients.erase(find);
-				}
-			}
+			m_messageQueueMutex.lock();
+			m_messageQueue.push_back({ true, e,uuid });
+			m_messageQueueMutex.unlock();
+			
 			return true;
 		});
 		m_client.setOnEvent([this](NetEvent e, UUID uuid) {
-			log::out << "ProUnk::Client::onEvent - " << e << "\n";
+			log::out << "Client : onEvent - " << e << "\n";
 
-			if (e == NetEvent::Connect) {
-				prounk::GameApp* app = (prounk::GameApp*)m_parent;
-
-				Dimension* dim = getDimension("0");
-				EngineObjectIterator iter = dim->getWorld()->createIterator();
-				EngineObject* obj;
-				while (obj = iter.next()) {
-					if (obj->getFlags() & OBJECT_NETMOVE)
-						netAddGeneral(obj);
-					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
-				}
-				//for (int i = 0; i < m_objects.size(); i++) {
-				//	EngineObject* obj = m_objects[i];
-				//	if (obj->flags & OBJECT_NETMOVE)
-				//		netAddObject(obj->getUUID(), obj);
-					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
-				//}
-				//if (app->player) {
-				//	netAddObject(app->player->getUUID(), 0, app->player->modelAsset->getLoadName());
-				//}
-			} else if (e == NetEvent::Disconnect) {
-				// delete all objects
-				Dimension* dim = getDimension("0");
-				EngineObjectIterator iter = dim->getWorld()->createIterator();
-				EngineObject* obj;
-				while (obj = iter.next()) {
-					if ((obj->getFlags() & OBJECT_NETMOVE) == 0) {
-						DeleteObject(dim, obj);
-					}
-				}
-			}
+			m_messageQueueMutex.lock();
+			m_messageQueue.push_back({ false, e, uuid });
+			m_messageQueueMutex.unlock();
 
 			return true;
 		});
@@ -339,7 +79,7 @@ namespace prounk {
 			auto find = m_clients.find(uuid);
 			if (find != m_clients.end()) {
 
-				onRecv(msg, uuid);
+				onRecv(msg, uuid); // return value is ignored, should it be?
 				if (m_clients.size() > 1) {
 					MessageBuffer sendMsg = msg; // copy
 					m_server.send(sendMsg, uuid, true); // relay received message to other clients
@@ -387,11 +127,361 @@ namespace prounk {
 	void Session::update(engone::LoopInfo& info) {
 		using namespace engone;
 
+		processMessages();
+		
 		for (int i = 0; i < m_dimensions.size(); i++) {
 			m_dimensions[i]->update(info);
 		}
 
 		m_networkStats.updateSample(info.timeStep,this);
+		
+	}
+	void Session::processEvent(bool isServer, engone::NetEvent e, engone::UUID uuid) {
+		using namespace engone;
+		if (isServer) {
+			if (e == NetEvent::Connect) {
+				enableMessages();
+				m_clients[uuid] = {};
+				prounk::GameApp* app = m_parent;
+				Dimension* dim = getDimension("0");
+				EngineObjectIterator iter = dim->getWorld()->createIterator();
+				EngineObject* obj;
+				while (obj = iter.next()) {
+					netAddGeneral(obj);
+					netSetTrigger(obj, obj->isOnlyTrigger());
+					netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
+					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
+				}
+			} else if (e == NetEvent::Disconnect) {
+				auto find = m_clients.find(uuid);
+				if (find == m_clients.end()) {
+					// this would be a bug
+					log::out << log::RED << "Session::Event - Cannot find client data for " << uuid << "\n";
+				} else {
+					Dimension* dim = getDimension("0");
+					for (int i = 0; i < find->second.ownedObjects.size(); i++) {
+						EngineObject* obj = find->second.ownedObjects[i];
+						// this is highly unoptimized
+
+						EngineObjectIterator iter = dim->getWorld()->createIterator();
+						EngineObject* obj2;
+						bool found = false;
+						while (obj2 = iter.next()) {
+							if (obj == obj2) { // NOTE: compare UUID instead of pointers?
+								found = true;
+								break;
+							}
+						}
+						//dim->getWorld()->deleteIterator(iter);
+						if (found) {
+							netDeleteObject(obj);
+							DeleteObject(dim, obj);
+						} else {
+							log::out << log::RED << "Session::Event - Object is not owned?\n";
+
+						}
+					}
+					m_clients.erase(find);
+				}
+			} else if (e == NetEvent::Stopped) {
+				disableMessages();
+			}
+		} else {
+			if (e == NetEvent::Connect) {
+				prounk::GameApp* app = (prounk::GameApp*)m_parent;
+
+				enableMessages();
+				Dimension* dim = getDimension("0");
+				EngineObjectIterator iter = dim->getWorld()->createIterator();
+				EngineObject* obj;
+				while (obj = iter.next()) {
+					if (obj->getFlags() & OBJECT_NETMOVE) {
+						netAddGeneral(obj);
+						netSetTrigger(obj, obj->isOnlyTrigger());
+						netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
+					}
+					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
+				}
+				//for (int i = 0; i < m_objects.size(); i++) {
+				//	EngineObject* obj = m_objects[i];
+				//	if (obj->flags & OBJECT_NETMOVE)
+				//		netAddObject(obj->getUUID(), obj);
+					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
+				//}
+				//if (app->player) {
+				//	netAddObject(app->player->getUUID(), 0, app->player->modelAsset->getLoadName());
+				//}
+			} else if (e == NetEvent::Disconnect) {
+				// delete all objects
+				Dimension* dim = getDimension("0");
+				EngineObjectIterator iter = dim->getWorld()->createIterator();
+				EngineObject* obj;
+				while (obj = iter.next()) {
+					if ((obj->getFlags() & OBJECT_NETMOVE) == 0) {
+						DeleteObject(dim, obj);
+					}
+				}
+				disableMessages();
+			}
+		}
+	}
+	void Session::processMessage(engone::MessageBuffer* msg, engone::UUID clientUUID) {
+		using namespace engone;
+		
+		// Split this function into sub functions
+		
+		//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
+		Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*)&m_client;
+
+		//void(NetworkFuncs:: * f[])(MessageBuffer & msg, UUID clientUUID) = {recAddCreature};
+
+		//f[(int)MoveObject](msg, clientUUID);
+
+		NetCommand cmd;
+		msg->pull(&cmd);
+
+		if (cmd != NET_MOVE) {
+			if (sender->isServer()) {
+				//log::out <<"Server(" << clientUUID.data[0] << "): " << cmd << "\n";
+				log::out <<log::GRAY<<"Server: " << cmd << "\n";
+			} else {
+				log::out << log::GRAY <<"Client: " << cmd << "\n";
+			}
+		}
+
+		if (cmd == NET_MOVE) {
+			//-- Extract data
+			rp3d::Transform transform;
+			rp3d::Vector3 velocity;
+			rp3d::Vector3 angularVelocity;
+			UUID_DIM obj;
+			pullObject(msg, obj);
+			msg->pull(&transform);
+			msg->pull(&velocity);
+			msg->pull(&angularVelocity);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				obj.dim->getWorld()->lockPhysics();
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+
+				//log::out << (BasicObjectType)object->getObjectType() << "" << velocity << " " << angularVelocity << "\n";
+
+				if (object) {
+					object->getRigidBody()->setTransform(transform);
+					object->getRigidBody()->setLinearVelocity(velocity);
+					object->getRigidBody()->setAngularVelocity(angularVelocity);
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+				obj.dim->getWorld()->unlockPhysics();
+			}
+		} else if (cmd == NET_ADD_TERRAIN) {
+			recAddTerrain(msg, clientUUID);
+		} else if (cmd == NET_ADD_ITEM) {
+			recAddItem(msg, clientUUID);
+		} else if (cmd == NET_ADD_WEAPON) {
+			recAddWeapon(msg, clientUUID);
+		} else if (cmd == NET_ADD_CREATURE) {
+			recAddCreature(msg, clientUUID);
+		} else if (cmd == NET_ANIMATE) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			std::string instance;
+			std::string animation;
+			bool loop;
+			float speed;
+			float blend;
+			float frame;
+			msg->pull(instance);
+			msg->pull(animation);
+			msg->pull(&loop);
+			msg->pull(&speed);
+			msg->pull(&blend);
+			msg->pull(&frame);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+				//dim->getWorld()->getObject(uuid);
+
+				if (object) {
+					if (object->getAnimator()) {
+						//m_mutex.lock();
+						object->getAnimator()->enable(instance, animation, { loop,speed,blend,frame });
+						//m_mutex.unlock();
+					}
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+			}
+
+		} else if (cmd == NET_TRIGGER) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			//int type;
+			//msg.pull(&type);
+			bool yes;
+			msg->pull(&yes);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				obj.dim->getWorld()->lockPhysics();
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+				if (object) {
+					object->setOnlyTrigger(yes);
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+				obj.dim->getWorld()->unlockPhysics();
+			}
+		} else if (cmd == NET_EDIT) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			int type;
+			msg->pull(&type);
+			uint64_t data;
+			msg->pull(&data);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+				if (object) {
+					if (type == NET_EDIT_BODY) {
+						obj.dim->getWorld()->lockPhysics();
+						object->getRigidBody()->setType((rp3d::BodyType)data);
+						obj.dim->getWorld()->unlockPhysics();
+					}
+					//else if (type == 1) {
+					//	//uint64_t data;
+					//	//msg.pull(&data);
+					//	//UUID uuid2 = { data1,data2 };
+					//	//EngineObject* obj = getObject(uuid2);
+					//	//if (obj) {
+					//	//	Player* plr = (Player*)obj;
+					//	//	object->rigidBody->getCollider(data0)->setUserData(&plr->combatData);
+					//	//} else {
+					//	//	object->rigidBody->getCollider(data0)->setUserData(nullptr);
+					//	//}
+					//} else if (type == 2) {
+					//	UUID uuid2;
+					//	msg.pull(&uuid2);
+					//	bool yes;
+					//	msg.pull(&yes);
+
+					//	EngineObject* object2 = obj.dim->getWorld()->requestAccess(uuid2);
+					//	if (object2) {
+					//		log::out << log::RED << "Session::Receive - EditType:2 is broken\n";
+					//		//SetCombatData(object2, object, yes);
+					//		obj.dim->getWorld()->releaseAccess(uuid2);
+					//	} else
+					//		log::out << log::RED << "Session::Receive - " << cmd << ", type 2, object2 is nullptr\n";
+					//}
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+			}
+		} else if (cmd == NET_DAMAGE) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			float damage;
+			msg->pull(&damage);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+				
+				//log::out << "Session::Receive : DamageObject is broken\n";
+				if (object) {
+
+					auto& oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+					oinfo.combatData.health -= damage;
+					if (oinfo.combatData.health < 0)
+						oinfo.combatData.health = 0;
+
+					// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
+					
+					// Todo: Change this to contact point instead of object.pos. Contact point should be added in NET_DAMAGE.
+					getParent()->visualEffects.addDamageParticle(object->getPosition());
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+			}
+		} else if (cmd == NET_SET_HEALTH) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			float health;
+			msg->pull(&health);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+
+				//log::out << "Session::Receive : DamageObject is broken\n";
+				if (object) {
+
+					auto& oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+					oinfo.combatData.health = health;
+					//if (oinfo.combatData.health < 0)
+						//oinfo.combatData.health = 0;
+
+					// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
+
+					// Todo: Change this to contact point instead of object.pos. Contact point should be added in NET_DAMAGE.
+					//getParent()->visualEffects.addDamageParticle(object->getPosition());
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+			}
+		} else if (cmd == NET_DELETE) {
+			UUID_DIM obj;
+			pullObject(msg, obj);
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+				// this is highly unoptimized
+
+				if (object) {
+					DeleteObject(obj.dim, object);
+				} else {
+					log::out << "Session::Receive - Invalid object to delete\n";
+				}
+				//for (int j = 0; j < m_objects.size(); j++) {
+				//	if (uuid == m_objects[j]->getUUID()) { // NOTE: compare UUID instead of pointers?
+				//		index = j;
+				//	}
+				//}
+				//if (index != -1) {
+				//	DeleteObject(this, m_objects[index]);
+				//	m_objects.erase(m_objects.begin() + index);
+				//} else {
+				//	log::out << log::RED << "World::Event - Object " << uuid << " is already deleted\n";
+				//}
+				//m_mutex.unlock();
+			}
+		}
+	}
+	void Session::processMessages() {
+		using namespace engone;
+		m_messageQueueMutex.lock();
+		std::vector<NetMessage> queue = std::move(m_messageQueue);
+		m_messageQueueMutex.unlock();
+
+		for (int i = 0; i < queue.size(); i++) {
+			NetMessage& msg = queue[i];
+
+			if (msg.isEvent)
+				processEvent(msg.isServer, msg.netEvent, msg.uuid);
+			else {
+				processMessage(msg.msg, msg.uuid);
+				ALLOC_DELETE(MessageBuffer, msg.msg);
+			}
+		}
+		
+		// queue is cleared
 	}
 	engone::Client& Session::getClient() {
 		return m_client;
@@ -419,5 +509,14 @@ namespace prounk {
 			return m_client.getStats().receivedBytes();
 		}
 		return 0;
+	}
+	void Session::enableMessages() {
+		m_areMessagesEnabled = true;
+	}
+	void Session::disableMessages() {
+		m_areMessagesEnabled = false;
+	}
+	bool Session::areMessagesEnabled() {
+		return m_areMessagesEnabled;
 	}
 }

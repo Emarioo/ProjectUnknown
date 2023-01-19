@@ -387,12 +387,37 @@ namespace engone {
 			return m_tickScrollX;
 		}
 	}
-	float  Window::getScrollY() const {
+	float Window::getScrollY() const {
 		if (m_parent->isRenderingWindow()) {
 			return m_frameScrollY;
 		} else {
 			return m_tickScrollY;
 		}
+	}
+	ExecutionControl& Window::getControl() {
+		return renderControl;
+	}
+	ExecutionTimer& Window::getExecTimer() {
+		return executionTimer;
+	}
+	void Window::setFPS(double fps) {
+		if (getParent()->isMultiThreaded()) {
+			executionTimer.aimedDelta = 1. / fps;
+		} else
+			getParent()->getEngine()->mainRenderTimer.aimedDelta = 1. / fps;
+	}
+	double Window::getFPS() {
+		if (getParent()->isMultiThreaded())
+			return 1./executionTimer.aimedDelta;
+
+		return 1. / getParent()->getEngine()->mainRenderTimer.aimedDelta;
+	}
+	double Window::getRealFPS() {
+		return getParent()->getProfiler().getSampler(this).getAverage();
+		//if (getParent()->isMultiThreaded())
+		//	return 1. / executionTimer.delta;
+
+		//return 1. / getParent()->getEngine()->mainUpdateTimer.delta;
 	}
 	void Window::attachListener(Listener* listener) {
 		// Prevent duplicates

@@ -216,6 +216,7 @@ namespace engone {
 		}
 		buffer->bind();
 		bind();
+		CHECK();
 		uint32_t offset = 0;
 		uint32_t section = 0;
 		while (section < MAX_BUFFERS) {

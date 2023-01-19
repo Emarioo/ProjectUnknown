@@ -17,9 +17,9 @@ namespace prounk {
 
 		// attach/set player object
 		void setPlayerObject(engone::UUID player);
-		void setPlayerObject(engone::EngineObject* player);
-		engone::EngineObject* getPlayerObject() { return m_player; }
-		engone::EngineObject* m_player=nullptr;
+		//void setPlayerObject(engone::EngineObject* player);
+		//engone::EngineObject* getPlayerObject() { return m_player; }
+		//engone::EngineObject* m_player=nullptr;
 		engone::UUID m_playerId=0;
 
 		engone::EngineObject* requestPlayer();
@@ -50,7 +50,7 @@ namespace prounk {
 		bool pickupItem(engone::EngineObject* object);
 
 		// drops the item in the first slot
-		void dropItem(int slotIndex);
+		void dropItem(int slotIndex, int count);
 
 		void dropAllItems();
 		bool keepInventory=false;
@@ -62,7 +62,7 @@ namespace prounk {
 		glm::vec3 camOffset = {0,2.4f,0}; // offset from player position
 
 		// object held in hand
-		engone::EngineObject* heldObject = nullptr;
+		//engone::EngineObject* heldObject = nullptr;
 		engone::UUID heldObjectId = 0;
 
 		// info exists as an argument because NetGameGround is required.
@@ -75,6 +75,7 @@ namespace prounk {
 
 		float deathTime = 0;
 		float deathShockStrength = 1.f; // how much the player "jumps" when they die.
+		float deathItemShockStrength = 1.f; // how much items fly on death.
 		void setDead(bool yes);
 		bool isDead();
 

@@ -76,16 +76,40 @@ namespace prounk {
 
 		void update(engone::LoopInfo& info);
 
+
 		//engone::Mutex m_uuidMapMutex;
 		//std::unordered_map<engone::UUID, *> m_uuidMapping;
 
 		//-- Network stuff
 		engone::Client& getClient() override;
 		engone::Server& getServer() override;
-		//engone::Client& getClient();
-		//engone::Server& getServer();
+		
+		void processMessage(engone::MessageBuffer* msg, engone::UUID uuid);
+		void processEvent(bool isServer, engone::NetEvent e, engone::UUID uuid);
+		void processMessages(); // does events as well
+		struct NetMessage {
+			NetMessage(bool isServer, engone::NetEvent type, engone::UUID& uuid) : isEvent(true), isServer(isServer), netEvent(type), uuid(uuid) {}
+			NetMessage(engone::MessageBuffer* msg, engone::UUID& uuid) : isEvent(false), msg(msg), uuid(uuid) {}
+			bool isEvent = false;
+			union {
+				struct {
+					bool isServer;
+					engone::NetEvent netEvent;
+				};
+				engone::MessageBuffer* msg = nullptr;
+			};
+			engone::UUID uuid = 0;
+		};
+		std::vector<NetMessage> m_messageQueue;
+		engone::Mutex m_messageQueueMutex;
+
 
 		std::unordered_map<engone::UUID, ClientData>& getClientData() { return m_clients; }
+
+		// Todo: Seperate enable send messages and receive messages.
+		void enableMessages();
+		void disableMessages();
+		bool areMessagesEnabled();
 
 		uint32_t getTotalBytesSent();
 		uint32_t getTotalBytesReceived();
@@ -104,6 +128,8 @@ namespace prounk {
 		engone::Server m_server;
 	
 		NetworkStats m_networkStats;
+
+		bool m_areMessagesEnabled = false;
 
 		GameApp* m_parent;
 	};

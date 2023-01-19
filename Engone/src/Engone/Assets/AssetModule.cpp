@@ -52,7 +52,7 @@ namespace engone {
 		m_ioProcMutex.lock();
 		if (m_running) {
 			m_ioProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadIO));
-			m_ioProcessors.back()->start();
+			//m_ioProcessors.back()->start();
 		}
 		m_ioProcMutex.unlock();
 	}
@@ -60,7 +60,7 @@ namespace engone {
 		m_dataProcMutex.lock();
 		if (m_running) {
 			m_dataProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadData));
-			m_dataProcessors.back()->start();
+			//m_dataProcessors.back()->start();
 		}
 		m_dataProcMutex.unlock();
 	}
@@ -71,7 +71,7 @@ namespace engone {
 				log::out << log::RED << "AssetStorage::addGraphicProcessor - OpenGL GraphicProcessors does not have their own thread. More processors would not improve anything.\n";
 			} else {
 				m_graphicProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadGraphic));
-				m_graphicProcessors.back()->start();
+				//m_graphicProcessors.back()->start(); // <- don't want to start it. It should run in OpenGL context thread
 			}
 		}
 		m_graphicProcMutex.unlock();
@@ -107,8 +107,9 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadIO) {
 			m_ioProcMutex.lock();
 			if (m_ioProcessors.size() == 0) {
-				m_ioProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadIO));
-				m_ioProcessors.back()->start();
+				m_ioProcMutex.unlock();
+				addIOProcessor();
+				m_ioProcMutex.lock();
 			}
 			int index = m_ioNext;
 			m_ioNext = (m_ioNext + 1) % m_ioProcessors.size();
@@ -120,8 +121,9 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadData) {
 			m_dataProcMutex.lock();
 			if (m_dataProcessors.size() == 0) {
-				m_dataProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadData));
-				m_dataProcessors.back()->start();
+				m_dataProcMutex.unlock();
+				addDataProcessor();
+				m_dataProcMutex.lock();
 			}
 			int index = m_dataNext;
 			m_dataNext = (m_dataNext + 1) % m_dataProcessors.size();
@@ -133,8 +135,9 @@ namespace engone {
 		if (task.asset->m_flags & Asset::LoadGraphic) {
 			m_graphicProcMutex.lock();
 			if (m_graphicProcessors.size() == 0) {
-				m_graphicProcessors.push_back(ALLOC_NEW(AssetProcessor)(this, Asset::LoadGraphic));
-				//m_graphicProcessors.back()->start(); // <- don't want to start it. It should run in OpenGL context thread
+				m_graphicProcMutex.unlock();
+				addGraphicProcessor();
+				m_graphicProcMutex.lock();
 			}
 			int index = m_graphicNext;
 			m_graphicNext = (m_graphicNext + 1) % m_graphicProcessors.size();

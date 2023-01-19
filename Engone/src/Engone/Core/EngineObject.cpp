@@ -7,6 +7,9 @@ namespace engone {
 		cleanup();
 	}
 	void EngineObject::cleanup() {
+		if (m_objectInfo != 0) {
+			log::out << log::RED << "EngineObject::cleanup - Object Info is "<<m_objectInfo<<", did you forget to free memory?\n";
+		}
 		if (m_rigidBody) {
 			m_world->lockPhysics();
 			m_world->getPhysicsWorld()->destroyRigidBody(m_rigidBody);
@@ -48,11 +51,13 @@ namespace engone {
 			
 		if (yes) m_flags |= ONLY_TRIGGER;
 		else m_flags &= ~ONLY_TRIGGER;
-			
+		
+		getWorld()->lockPhysics();
 		for (int i = 0; i < m_rigidBody->getNbColliders(); i++) {
 			auto col = m_rigidBody->getCollider(i);
 			col->setIsTrigger(yes);
 		}
+		getWorld()->unlockPhysics();
 	}
 	bool EngineObject::isOnlyTrigger() {
 		return m_flags & ONLY_TRIGGER;
@@ -164,36 +169,44 @@ namespace engone {
 					scale.x *= matScale.x;
 					scale.y *= matScale.y;
 					scale.z *= matScale.z;
+					m_world->lockCommon();
 					shape = m_world->getPhysicsCommon()->createHeightFieldShape(asset->map.gridColumns,
 						asset->map.gridRows, asset->map.minHeight, asset->map.maxHeight,
 						asset->map.heights.data(), rp3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
 						1, 1, *(rp3d::Vector3*)&scale);
-
+					m_world->unlockCommon();
 				} else if (asset->colliderType == ColliderAsset::CubeType) {
 					glm::mat4 loc = transforms[i] * inst.localMat;
 					rp3d::Vector3 scale = *(rp3d::Vector3*)&asset->cube.size;
 					scale.x *= matScale.x;
 					scale.y *= matScale.y;
 					scale.z *= matScale.z;
+					m_world->lockCommon();
 					shape = m_world->getPhysicsCommon()->createBoxShape(scale);
+					m_world->unlockCommon();
 				} else if (asset->colliderType == ColliderAsset::CapsuleType) {
 					float realHeight = asset->capsule.height - asset->capsule.radius * 2;
 					realHeight *= matScale.y;
 					float radius = asset->capsule.radius;
 					radius *= (matScale.x + matScale.z) / 2;
+					m_world->lockCommon();
 					shape = m_world->getPhysicsCommon()->createCapsuleShape(radius, realHeight);
+					m_world->unlockCommon();
 				} else if (asset->colliderType == ColliderAsset::SphereType) {
 					float radius = asset->sphere.radius;
 					radius *= (matScale.x + matScale.y + matScale.z) / 3.f;
+					m_world->lockCommon();
 					shape = m_world->getPhysicsCommon()->createSphereShape(radius);
+					m_world->unlockCommon();
 				}
-
+				m_world->lockPhysics();
 				m_rigidBody->addCollider(shape, tr);
 				auto col = m_rigidBody->getCollider(m_rigidBody->getNbColliders() - 1);
 				col->getMaterial().setFrictionCoefficient(0.5f);
 				col->getMaterial().setBounciness(0.0f);
 				col->setUserData(m_colliderData);
 				col->setIsTrigger(m_flags & ONLY_TRIGGER);
+				m_world->unlockPhysics();
 			}
 		}
 		m_flags &= ~PENDING_COLLIDERS;
@@ -201,8 +214,10 @@ namespace engone {
 			// updating center of mass would cause wierd stuff
 			log::out << "EngineObject : Loaded no colliders\n";
 		} else {
+			m_world->lockPhysics();
 			m_rigidBody->updateLocalCenterOfMassFromColliders();
 			m_rigidBody->updateLocalInertiaTensorFromColliders();
+			m_world->unlockPhysics();
 		}
 	}
 	UUID EngineObject::getUUID() const {
@@ -211,19 +226,26 @@ namespace engone {
 	void EngineObject::setColliderUserData(void* data) {
 		m_colliderData = data; 
 		if ((m_flags & PENDING_COLLIDERS) == 0) { // colliders have been loaded so just set user data here
+			m_world->lockPhysics();
 			int cols = m_rigidBody->getNbColliders();
 			for (int i = 0; i < cols; i++) {
 				m_rigidBody->getCollider(i)->setUserData(m_colliderData);
 			}
+			m_world->unlockPhysics();
 		} 
 	}
 	const glm::vec3& EngineObject::getPosition() {
-		return *(const glm::vec3*)&m_rigidBody->getTransform().getPosition();
+		m_world->lockPhysics();
+		const glm::vec3& we = *(const glm::vec3*)&m_rigidBody->getTransform().getPosition();
+		m_world->unlockPhysics();
+		return we;
 	}
 	void EngineObject::setPosition(const glm::vec3& position) {
+		m_world->lockPhysics();
 		rp3d::Transform temp = m_rigidBody->getTransform();
 		temp.setPosition(*(const rp3d::Vector3*)&position);
 		m_rigidBody->setTransform(temp);
+		m_world->unlockPhysics();
 	}
 //#ifdef ENGONE_PHYSICS
 //	void EngineObject::setModel(ModelAsset* asset) {
