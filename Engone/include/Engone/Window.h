@@ -96,6 +96,7 @@ namespace engone {
 		void enableFirstPerson(bool yes);
 		bool isFirstPerson() const { return m_enabledFirstPerson; }
 
+		// Manually calls the CloseCallback function
 		void close();
 		// If true, the cursor will be made visible.
 		void setCursorVisible(bool visible);

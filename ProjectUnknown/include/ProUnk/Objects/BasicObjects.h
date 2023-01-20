@@ -23,8 +23,9 @@ namespace prounk {
 	//-- Some useful functions
 	
 	bool HasCombatData(int type);
-	//CombatData* GetCombatData(Dimension* dim, engone::EngineObject* object);
-	CombatData* GetCombatData(Session* session, engone::EngineObject* object);
+	bool IsDead(engone::EngineObject* object);
+	CombatData* GetCombatData(engone::EngineObject* object);
+	Inventory* GetInventory(engone::EngineObject* object);
 
 	//-- Creation functions
 
@@ -35,7 +36,7 @@ namespace prounk {
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object);
 
 	//engone::EngineObject* CreateSword(Dimension* dimension, engone::UUID uuid = 0);
-	engone::EngineObject* CreateTerrain(Dimension* dimension, engone::UUID uuid = 0);
+	engone::EngineObject* CreateTerrain(Dimension* dimension, const std::string& modelName, engone::UUID uuid = 0);
 	// Creates a weapon which the player or an enemy can hold.
 	engone::EngineObject* CreateWeapon(Dimension* dimension, const std::string& modelName, engone::UUID uuid = 0);
 

@@ -15,7 +15,7 @@ namespace launcher {
 	class LauncherApp : public engone::Application {
 	public:
 		LauncherApp(engone::Engone* engone,const std::string& settings="settings.dat");
-		~LauncherApp() { }
+		~LauncherApp() override;
 
 		void update(engone::LoopInfo& info) override;
 		void render(engone::LoopInfo& info) override;

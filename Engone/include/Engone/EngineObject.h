@@ -21,11 +21,6 @@ namespace engone {
 		// uuid as 0 will generate a new uuid.
 		void init(EngineWorld* world, UUID uuid = 0);
 
-		void setOnlyTrigger(bool yes);
-		bool isOnlyTrigger();
-
-		rp3d::RigidBody* getRigidBody();
-		
 		void setModel(ModelAsset* asset);
 		ModelAsset* getModel();
 
@@ -35,11 +30,20 @@ namespace engone {
 		Animator* getAnimator();
 		void removeAnimator();
 
+#ifdef ENGONE_PHYSICS
+		void setOnlyTrigger(bool yes);
+		bool isOnlyTrigger();
 		// Will load colliders when called and requirements are meet.
 		// If requirements aren't meet, the engine will try to load them again next frame.
 		// That makes this method somewhat asynchronous.
 		// Requirements: modelAsset is valid, rigidbody is valid, argument world isn't nullptr.
 		void loadColliders();
+		rp3d::RigidBody* getRigidBody();
+		void setColliderUserData(void* userData);
+		// rigidBody->setTransform...
+		void setPosition(const glm::vec3& position);
+		const glm::vec3& getPosition();
+#endif
 
 		UUID getUUID() const;
 
@@ -51,19 +55,15 @@ namespace engone {
 		void setFlags(int flags);
 		int getFlags();
 
-		void setColliderUserData(void* userData);
-
-		// rigidBody->setTransform...
-		void setPosition(const glm::vec3& position);
-		const glm::vec3& getPosition();
-
 		EngineWorld* getWorld();
 
 	private:
 		int m_objectType = 0;
 		UUID m_uuid=0;
 		ModelAsset* m_modelAsset = nullptr;
+#ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* m_rigidBody = nullptr;
+#endif
 		int m_objectInfo = 0;
 		Animator* m_animator = nullptr;
 		int m_flags = 0;

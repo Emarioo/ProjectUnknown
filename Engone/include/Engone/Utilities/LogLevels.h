@@ -1,10 +1,10 @@
 #pragma once
 
 namespace engone {
-	void SetLogLevel(uint32_t type, uint32_t level);
-	uint32_t GetLogLevel(uint32_t type);
+	void SetLogLevel(uint32 type, uint32 level);
+	uint32 GetLogLevel(uint32 type);
 	// uses &
-	bool HasLogLevel(uint32_t type, uint32_t level);
+	bool HasLogLevel(uint32 type, uint32 level);
 	// uses ==
-	bool IsLogLevel(uint32_t type, uint32_t level);
+	bool IsLogLevel(uint32 type, uint32 level);
 }

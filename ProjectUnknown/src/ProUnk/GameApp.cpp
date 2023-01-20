@@ -61,8 +61,8 @@ namespace prounk {
 		// Todo: will crash if no dimension. not good but i want to get this stuff done
 		//Dimension* dim = m_session->getDimensions()[0];
 
-		CombatData* atkData = GetCombatData(m_session, atkObj);
-		CombatData* defData = GetCombatData(m_session, defObj);
+		CombatData* atkData = GetCombatData(atkObj);
+		CombatData* defData = GetCombatData(defObj);
 
 		if (!atkData || !defData) {
 			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
@@ -221,8 +221,6 @@ namespace prounk {
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
-		//showSessionMenu();
-
 		m_window->getPipeline()->addComponent(&visualEffects);
 
 		AssetStorage* assets = getStorage();
@@ -301,18 +299,22 @@ namespace prounk {
 		ModelId swordModelId = m_session->modelRegistry.registerModel(swordModel);
 
 		ItemType swordType = m_session->itemTypeRegistry.registerType("sword", swordModelId);
-		Item swordItem(swordType, 1);
+		//Item swordItem(swordType, 1);
 
 		//*m_session->complexDataRegistry.registerData();
-		ComplexData* swordData = swordItem.getComplexData();
+		//ComplexData* swordData = swordItem.getComplexData();
 		ComplexPropertyType* atkProperty = m_session->complexDataRegistry.registerProperty("atk");
-		swordData->set(atkProperty, 30.f);
+		//swordData->set(atkProperty, 30.f);
 		ComplexPropertyType* knockProperty = m_session->complexDataRegistry.registerProperty("knock");
-		swordData->set(knockProperty, 0.3f);
+		//swordData->set(knockProperty, 0.3f);
 
 		createPanels();
 
-		inv->transferItem(swordItem);
+		// Temporary? one function to do this?
+		sessionPanel->setHidden(false);
+		incrCursor();
+
+		//inv->transferItem(swordItem);
 		//EngineObject* sword = CreateItem(firstDim,swordItem);
 		//sword->setFlags(sword->getFlags() | Session::OBJECT_NETMOVE);
 		//sword->setPosition({ 2, 0, 0 });
@@ -332,44 +334,39 @@ namespace prounk {
 		//inv->addItem(Item(playerType, 1));
 		//inv->addItem(Item(platformType, 1));
 		//inv->addItem(Item(swordType, 1));
-
-		EngineObject* terrain = CreateTerrain(firstDim);
-		terrain->setModel(assets->load<ModelAsset>("ProtoArena/ProtoArena"));
-		//terrain->setTransform({ 0,10,0 });
-		firstDim->getWorld()->releaseAccess(terrain->getUUID());
 		
-		//EngineObject* dummy = CreateDummy(firstDim);
-		//dummy->setPosition({ 4,7,8 });
-		//dummy->setFlags(dummy->getFlags()|Session::OBJECT_NETMOVE);
-		//firstDim->getWorld()->releaseAccess(dummy->getUUID());
+		EngineObject* dummy = CreateDummy(firstDim);
+		dummy->setPosition({ 4,7,8 });
+		firstDim->getWorld()->releaseAccess(dummy->getUUID());
+
 		if (info.flags & START_SERVER) {
-			
 			sessionPanel->setDefaultPortIP(info.port, info.ip, "Server");
 		} else if (info.flags & START_CLIENT) {
 			sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
 		}
+
+		if (info.flags != START_CLIENT) {
+			EngineObject* terrain = CreateTerrain(firstDim, "ProtoArena/ProtoArena");
+			firstDim->getWorld()->releaseAccess(terrain->getUUID());
+		}
+
 		if (info.flags & START_SERVER) {
-			
-			terrain->setPosition({ 0,-2,0 });
-
-			player->setPosition({ 1,0,0 });
 			m_session->getServer().start(info.port);
-
 		} else if (info.flags & START_CLIENT) {
 			m_session->getClient().start(info.ip,info.port);
 		}
-
-		//rp3d::Vector3 anchor(1, 1, 1);
-		//rp3d::FixedJointInfo fixedInfo(player->rigidBody,sword->rigidBody,anchor);
-		//rp3d::Joint* joint = engone->m_pWorld->createJoint(fixedInfo);
-
-		//m_window->getRenderer()->getCamera()->setPosition(1,1,2);
-		//m_window->getRenderer()->getCamera()->setRotation(0,-0.5f,0);
 
 		DirLight* dir = ALLOC_NEW(DirLight)({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
 
 		delayed.start(1);
+	}
+	GameApp::~GameApp() {
+		cleanup();
+	}
+	void GameApp::cleanup() {
+		using namespace engone;
+		log::out << log::RED << "GameApp : CLEANUP NOT IMPLEMENTED\n";
 	}
 	void GameApp::registerItems() {
 
@@ -464,6 +461,7 @@ namespace prounk {
 		visualEffects.update(info);
 
 		panelInput(info);
+
 		//if (startTime == 0) {
 		//	startTime = GetSystemTime();
 		//}

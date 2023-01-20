@@ -28,7 +28,7 @@ namespace launcher {
 		std::string somePort = m_settings.get("port");
 
 		//-- Setup updater
-		gameFilesRefresher.check(GAME_FILES_PATH,[this](const std::string& path){
+		gameFilesRefresher.check(GAME_FILES_PATH,[this](const std::string& path, uint32 changeType){
 			// should also check for file deletion
 
 			FileReader file(path,false);
@@ -47,7 +47,7 @@ namespace launcher {
 								gameFileEntries[split[0]] = info;
 								std::string source = info.source;
 
-								info.refresher->check(info.source, [this, source](const std::string& sourcePath) {
+								info.refresher->check(info.source, [this, source](const std::string& sourcePath, uint32 type) {
 									EntryInfo& info = gameFileEntries[source];
 
 									// send files
@@ -73,7 +73,7 @@ namespace launcher {
 			}
 		},0);
 		// just call it
-		gameFilesRefresher.getCallback()(GAME_FILES_PATH);
+		gameFilesRefresher.getCallback()(GAME_FILES_PATH,0);
 
 		if (!someIp.empty()) {
 			addressText.text = someIp;
@@ -98,7 +98,7 @@ namespace launcher {
 			//log::out << "1 buf size " << buf.size() << "\n";
 			LauncherNetType type;
 			buf.pull(&type);
-			ENGONE_DEBUG(log::out << "Server recv " << type << "\n", LAUNCHER_LEVEL, 1);
+			//ENGONE_DEBUG(log::out << "Server recv " << type << "\n", LAUNCHER_LEVEL, 1);
 			if (type == LauncherClientFiles) {
 				//log::out << "recieved\n";
 				std::vector<FileInfo> sentFiles;
@@ -239,7 +239,7 @@ namespace launcher {
 		m_client.setOnReceive([this](MessageBuffer buf, UUID) {
 			LauncherNetType type;
 			buf.pull(&type);
-			ENGONE_DEBUG(log::out<<"Client recv "<<type <<"\n",LAUNCHER_LEVEL,1);
+			//ENGONE_DEBUG(log::out<<"Client recv "<<type <<"\n",LAUNCHER_LEVEL,1);
 			if (type == LauncherServerSendFile) {
 				UUID fileUuid;
 				buf.pull(&fileUuid);
@@ -327,9 +327,8 @@ namespace launcher {
 			}
 			return true;
 		});
-
 		// This makes the top area of the window draggable
-		m_window->attachListener(EventClick | EventMove, [this](Event& e) {
+		m_window->attachListener(new Listener(EventClick | EventMove, [this](Event& e) {
 			if (e.eventType == EventClick) {
 				if (e.button == GLFW_MOUSE_BUTTON_1) {
 					if (e.action == 1) {
@@ -350,9 +349,19 @@ namespace launcher {
 				}
 			}
 			return EventNone;
-		});
+		}));
 		// ISSUE: without this, the app doesn't act how i want. it says connecting... when it's not even trying to.
 		doAction(true);
+	}
+	LauncherApp::~LauncherApp() {
+		using namespace engone;
+		for (auto [key, entry] : gameFileEntries) {
+			if(entry.refresher)
+				ALLOC_DELETE(FileMonitor, entry.refresher);
+		}
+		for (auto [key, download] : fileDownloads) {
+			ALLOC_DELETE(FileWriter, download);
+		}
 	}
 	void LauncherApp::sendFile(FileSend& f, engone::UUID clientUUID, bool exclude) {
 		using namespace engone;

@@ -78,19 +78,19 @@ namespace engone {
 
 		void update(LoopInfo& info);
 
+#ifdef ENGONE_PHYSICS
 		// does a raycast and returns an array with hit objects.
 		// object limit determines how many objects.
 		// ignoreObjectType will skip objects of that type. -1 can be seen as skipping no objects
 		// Altough if an object has that has type then it will be skipped.
 		std::vector<EngineObject*> raycast(rp3d::Ray ray, int objectLimit = 1, int ignoreObjectType=-1);
-
 		rp3d::PhysicsCommon* getPhysicsCommon();
 		rp3d::PhysicsWorld* getPhysicsWorld();
 		void lockPhysics() { m_physicsMutex.lock();	}
 		void unlockPhysics() { 	m_physicsMutex.unlock(); }
 		void lockCommon();
 		void unlockCommon();
-
+#endif
 		Application* getApp() { return m_app; }
 
 		void* getUserData() { return m_userData; }

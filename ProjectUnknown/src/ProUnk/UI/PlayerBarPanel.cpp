@@ -14,7 +14,7 @@ namespace prounk {
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
 		EngineObject* plr = playerController->requestPlayer();
-		CombatData* combatData = GetCombatData(playerController->app->getActiveSession(), plr);
+		CombatData* combatData = GetCombatData(plr);
 		
 		float& health = combatData->health;
 		float maxHealth = combatData->getMaxHealth();
@@ -24,7 +24,7 @@ namespace prounk {
 		EngineObject* weapon = playerController->requestHeldObject();
 		
 		if (weapon) {
-			CombatData* weaponData = GetCombatData(playerController->app->getActiveSession(), weapon);
+			CombatData* weaponData = GetCombatData(weapon);
 			atk = weaponData->singleDamage;
 		}
 

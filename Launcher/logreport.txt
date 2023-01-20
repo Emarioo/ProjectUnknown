@@ -1,0 +1,16 @@
+[03:12:15] FileMonitor : Checking gameFiles.dat
+[03:12:15] FileMonitor : Checking ..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe
+[03:12:15] FileMonitor : Checking ..\ProjectUnknown\assets
+[03:12:15] FileMonitor : Checking gameFiles.dat
+[03:12:15] FileMonitor : Checking ..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe
+[03:12:15] FileMonitor : Checking ..\ProjectUnknown\assets
+[03:12:25] Serv Stopped
+[03:12:25] Queues: 24 / 20 Track/Untracks: 22 / 20  AddMem/SubMem: 10 / 2
+[03:12:25] Memory leak? 3340 expected 0
+[03:12:25] Memory summary:
+ Tracker Total: 5260
+ Alloc: 54408
+ Floating: 0
+ TrackNode:     1920, 0, 1920
+ ItemVector:    460,  0, 460
+ Window:        2880, 2, 0

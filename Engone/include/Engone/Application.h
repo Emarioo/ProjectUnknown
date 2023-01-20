@@ -3,10 +3,10 @@
 #include "Engone/Window.h"
 #include "Engone/AssetModule.h"
 #include "Engone/LoopInfo.h"
-#include "Engone/Utilities/RuntimeStats.h"
 #include "Engone/World/EngineWorld.h"
 
 #include "Engone/Profiling/Profiler.h"
+#include "Engone/Utilities/Locks.h"
 
 namespace engone {
 
@@ -17,7 +17,7 @@ namespace engone {
 	class Application {
 	public:
 		Application(Engone* engone) : m_engone(engone) {}
-		~Application() {
+		virtual ~Application() {
 			cleanup();
 		}
 		// frees allocated memory that the application is responsible for.
@@ -66,9 +66,11 @@ namespace engone {
 
 		Profiler& getProfiler() { return m_profiler; }
 
+#ifdef ENGONE_PHYSICS
 		rp3d::PhysicsCommon* getPhysicsCommon();
 		void lockCommon() { m_commonMutex.lock(); }
 		void unlockCommon() { m_commonMutex.unlock(); }
+#endif
 
 		ExecutionControl& getControl() { return updateControl; }
 		ExecutionTimer& getExecTimer() { return executionTimer; }
@@ -97,15 +99,16 @@ namespace engone {
 
 		std::vector<EngineWorld*> m_worlds;
 
-		ExecutionControl updateControl;
-		Thread updateThread;
-		ExecutionTimer executionTimer;
+		ExecutionControl updateControl{};
+		Thread updateThread{};
+		ExecutionTimer executionTimer{};
 
-		Profiler m_profiler;
+		Profiler m_profiler{};
 
+#ifdef ENGONE_PHYSICS
 		DepthMutex m_commonMutex;
 		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
-		
+#endif
 		friend class Engone;
 		friend class Window;
 

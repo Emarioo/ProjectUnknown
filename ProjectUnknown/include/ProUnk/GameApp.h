@@ -43,8 +43,8 @@ namespace prounk {
 		static const int START_CLIENT = 2;
 
 		GameApp(engone::Engone* engone, GameAppInfo info);
-		~GameApp() { cleanup(); }
-		void cleanup() {}
+		~GameApp() override;
+		void cleanup();
 
 		void update(engone::LoopInfo& info) override;
 		void render(engone::LoopInfo& info) override;
@@ -105,13 +105,6 @@ namespace prounk {
 		void decrCursor() { showCursor--; }
 
 		bool debugInfoToggle = false;
-
-		// Temporary
-		//bool sessionMenu = false;
-		//void showSessionMenu() {
-		//	sessionMenu = true;
-		//	incrCursor();
-		//}
 
 		bool partRequested = false;
 		glm::vec3 requestPos;

@@ -59,11 +59,9 @@ void runApp(int argc, char** argv) {
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.
 	for (int i = 0; i < argc; i++) {
-		//printf("arg %d %s\n",i,argv[i]);
 		if (strcmp(argv[i], "--console") == 0 || strcmp(argv[i], "-c") == 0) {
 			CreateConsole();
 		}
-		//printf("HELLO %s==%s = %d\n",argv[i],"--server", strcmp(argv[i], "--server") == 0);
 		if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-s") == 0) {
 			GameAppInfo info = { GameApp::START_SERVER, "1000" };
 			
@@ -90,9 +88,6 @@ void runApp(int argc, char** argv) {
 		engine.addApplication(app);
 	}
 
-	engine.getStats().setFPSLimit(60);
-	engine.getStats().setUPSLimit(60);
-	engine.setFlags(EngoneEnableDebugInfo);
 	engine.start();
 	//FreeArguments(argc, argv);
 

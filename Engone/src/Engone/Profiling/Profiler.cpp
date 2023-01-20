@@ -63,6 +63,11 @@ namespace engone {
 		return average;
 	}
 	Profiler::Sampler& Profiler::getSampler(void* key) {
+		//auto find = m_samples.find(key);
+		//if (find == m_samples.end()) {
+		//	m_samples.insert(std::pair<void* const,Sampler>(key, {}));
+		//	return m_samples[key];
+		//}
 		return m_samples[key];
 	}
 	//void Profiler::show() {
@@ -103,7 +108,6 @@ namespace engone {
 		// should be changed
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
-		auto& stats = info.app->getEngine()->getStats();
 		float scroll = IsScrolledY();
 		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
 			scroll *= 100;

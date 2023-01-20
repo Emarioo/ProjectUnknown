@@ -50,25 +50,25 @@ namespace prounk {
 		Movement(info);
 		WeaponUpdate(info);
 	}
-	void PlayerController::setDead(bool yes) {
-		engone::EngineObject* plr = requestPlayer();
-		if (plr) {
-			if (yes)
-				plr->setFlags(plr->getFlags() | OBJECT_IS_DEAD);
-			else
-				plr->setFlags(plr->getFlags() & (~OBJECT_IS_DEAD));
-			releasePlayer(plr);
-		}
-	}
-	bool PlayerController::isDead() {
-		engone::EngineObject* plr = requestPlayer();
-		bool yes = false;
-		if (plr) {
-			yes = plr->getFlags() & OBJECT_IS_DEAD;
-			releasePlayer(plr);
-		}
-		return yes;
-	}
+	//void PlayerController::setDead(bool yes) {
+	//	engone::EngineObject* plr = requestPlayer();
+	//	if (plr) {
+	//		if (yes)
+	//			plr->setFlags(plr->getFlags() | OBJECT_IS_DEAD);
+	//		else
+	//			plr->setFlags(plr->getFlags() & (~OBJECT_IS_DEAD));
+	//		releasePlayer(plr);
+	//	}
+	//}
+	//bool PlayerController::isDead() {
+	//	engone::EngineObject* plr = requestPlayer();
+	//	bool yes = false;
+	//	if (plr) {
+	//		yes = plr->getFlags() & OBJECT_IS_DEAD;
+	//		releasePlayer(plr);
+	//	}
+	//	return yes;
+	//}
 	void PlayerController::WeaponUpdate(engone::LoopInfo& info) {
 		using namespace engone;
 		
@@ -125,7 +125,7 @@ namespace prounk {
 			return;
 		}
 
-		if (plr->getFlags() & OBJECT_IS_DEAD) {
+		if (IsDead(plr)) {
 			if (heldObject->isOnlyTrigger()) {
 				heldObject->setOnlyTrigger(false);
 				app->getActiveSession()->netSetTrigger(heldObject, false);
@@ -277,6 +277,8 @@ namespace prounk {
 		if (!transferred)
 			return false;
 
+		log::out << "pickup "<<object->getUUID() << "\n";
+
 		// delete item object if succefully added to inventory
 		app->getActiveSession()->netDeleteObject(object);
 		DeleteObject(dim, object); // careful with memory leaks. functions is not complete
@@ -384,7 +386,7 @@ namespace prounk {
 		CombatData* weaponCombat = nullptr;
 		auto heldObject = requestHeldObject();
 		if (heldObject)
-			weaponCombat = GetCombatData(app->getActiveSession(), heldObject);
+			weaponCombat = GetCombatData(heldObject);
 
 		if (!weaponCombat) {
 			releasePlayer(plr);
@@ -491,11 +493,10 @@ namespace prounk {
 
 		EngineObject* plr = requestPlayer();
 
-		CombatData* playerCombat = GetCombatData(app->getActiveSession(), plr);
+		CombatData* playerCombat = GetCombatData(plr);
 		if (IsKeyPressed(GLFW_KEY_R)) {
-			if (isDead()) {
+			if (IsDead(plr)) {
 				deathTime = 0;
-				setDead(false);
 				plr->getWorld()->lockPhysics();
 				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0});
 				//auto tr = rigidBody->getTransform(); // only reset orientation
@@ -527,11 +528,11 @@ namespace prounk {
 		if (!hoveredItem.empty()) {
 			ui::TextBox textBox = { hoveredItem, 0, 0, 30, consolas, {0,1.f,1.f,1.f}};
 			textBox.x = GetWidth() / 2 - textBox.getWidth()/2;
-			textBox.y = GetHeight() / 2 - textBox.getHeight()/2;
+			textBox.y = GetHeight() / 2 - textBox.getHeight()/2-50;
 			ui::Draw(textBox);
 		}
 		EngineObject* plr = requestPlayer();
-		if (plr->getRigidBody() && !isDead()) {
+		if (plr->getRigidBody() && !IsDead(plr)) {
 			glm::vec3 pos = plr->getPosition();
 			CommonRenderer* renderer = GET_COMMON_RENDERER();
 			if (!renderer) {
@@ -588,8 +589,9 @@ namespace prounk {
 		if (IsKeybindingDown(KeyRight)) {
 			flatInput.x += 1;
 		}
-
-		if (!isDead()&&engone::GetActiveWindow()->isCursorLocked()) {
+		EngineObject* plr = requestPlayer();
+		if (!plr) return;
+		if (!IsDead(plr)&&engone::GetActiveWindow()->isCursorLocked()) {
 			float zoomAcc = 0.1 + 5 * abs(zoomSpeed);
 			if (zoomSpeed > 0) {
 				zoomSpeed -= zoomAcc * info.timeStep;
@@ -616,42 +618,18 @@ namespace prounk {
 			}
 		}
 
-		//Dimension* dim = app->getActiveSession()->getDimensions()[0];
-		EngineObject* plr = requestPlayer();
-		if (!plr) return;
-
 		// death logic
-		CombatData* combatData = GetCombatData(app->getActiveSession(), plr);
-		deathTime -= info.timeStep;
-		//printf("%f\n", deathTime);
-		if (deathTime < 0) {
-			deathTime = 0;
-			if (isDead()) {
-				setDead(false);
-				plr->getWorld()->lockPhysics();
-				auto tr = plr->getRigidBody()->getForce();
-				auto br = plr->getRigidBody()->getTorque();
-				plr->getRigidBody()->setLinearVelocity({ 0,0,0 });
-				plr->getRigidBody()->setAngularVelocity({ 0,0,0 });
-				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
-				plr->getRigidBody()->setTransform({}); // reset position
-				plr->getWorld()->unlockPhysics();
-				combatData->health = combatData->getMaxHealth();
-				app->getActiveSession()->netSetHealth(plr, combatData->health);
-			}
-		}
-		if (!isDead() && combatData->health == 0) {
+		CombatData* combatData = GetCombatData(plr);
+		if (combatData->health == 0 && deathTime == 0) {
+			//log::out << "Kill player\n";
 			// kill player
 			deathTime = 5; // respawn time
 
-			setDead(true);
-			zoom = 4;
-
 			setFlight(false);
-			
+
 			plr->getWorld()->lockPhysics();
 			// make player jump
-			plr->getRigidBody()->setAngularLockAxisFactor({1,1,1});
+			plr->getRigidBody()->setAngularLockAxisFactor({ 1,1,1 });
 
 			rp3d::Vector3 randomTorque = { (float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
 			randomTorque *= deathShockStrength * 0.1f; // don't want to spin so much
@@ -664,18 +642,56 @@ namespace prounk {
 			plr->getRigidBody()->applyWorldForceAtCenterOfMass(randomForce);
 			plr->getWorld()->unlockPhysics();
 
-			if(!keepInventory)
+			if (!keepInventory)
 				dropAllItems();
 		}
 
-		//log::out << "speed: " << zoomSpeed << " "<<zoom<<"\n";
+		deathTime -= info.timeStep;
+		if (deathTime < 0) {
+			deathTime = 0;
+			if (IsDead(plr)) {
+				//log::out << "Respawn player\n";
+				plr->getWorld()->lockPhysics();
+				auto tr = plr->getRigidBody()->getForce();
+				auto br = plr->getRigidBody()->getTorque();
+				plr->getRigidBody()->setLinearVelocity({ 0,0,0 });
+				plr->getRigidBody()->setAngularVelocity({ 0,0,0 });
+				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
+				plr->getRigidBody()->setTransform({}); // reset position
+				plr->getWorld()->unlockPhysics();
+				combatData->health = combatData->getMaxHealth();
+				app->getActiveSession()->netSetHealth(plr, combatData->health);
+			}
+		}
+		// Death camera
+		if (combatData->health == 0) {
+			glm::vec3 pos = plr->getPosition();
+			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			if (!renderer) {
+				log::out << log::RED << "PlayerController::render : renderer is null\n";
+			} else {
+				Camera* cam = renderer->getCamera();
+				//glm::mat4 camMat = glm::translate(pos + camOffset);
+				//glm::vec3 camPos = cam->popos + camOffset - cam->getLookVector() * zoom;
+				//if (zoom != 0) {
+				//	camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) 
+				//		* glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) 
+				//		* glm::translate(glm::vec3(0, 0, zoom));
+				//}
+				//cam->setPosition(camMat[3]);
+				//cam->setPosition(camPos);
+				//glm::vec3 diff = pos - camPos;
+				
+				//cam->setRotation();
+			}
+		}
 
 		glm::vec3 flatMove{};
 		if (glm::length(flatInput) != 0) {
 			flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
 		}
 		glm::vec3 moveDir = flatMove;
-		if (!isDead()) {
+		if (!IsDead(plr)) {
 			if (flight) {
 				if (IsKeybindingDown(KeyJump)) {
 					moveDir.y += speed;
@@ -692,7 +708,7 @@ namespace prounk {
 				}
 			}
 		}
-		if (plr->getRigidBody() && !isDead()) {
+		if (plr->getRigidBody() && !IsDead(plr)) {
 			plr->getWorld()->lockPhysics();
 			rp3d::Vector3 rot = ToEuler(plr->getRigidBody()->getTransform().getOrientation());
 			float realY = rot.y;

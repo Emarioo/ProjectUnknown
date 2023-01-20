@@ -201,42 +201,43 @@ namespace engone {
 	class FileMonitor {
 	public:
 		//-- flags
-		static const int WATCH_SUBTREE = 1;
-		static const int DEFAULT_FLAGS = 0;
-
-		static const int FILE_REMOVED = 1;
-		static const int FILE_MODIFIED = 2; // includes added file
+		enum Flags : uint32 {
+			WATCH_SUBTREE = 1,
+		};
+		enum ChangeType : uint32 {
+			FILE_REMOVED = 1,
+			FILE_MODIFIED = 2, // includes added file
+		};
 
 		FileMonitor() = default;
-		~FileMonitor() { cleanup(); }
+		~FileMonitor();
 		void cleanup();
 
 		// path can be file or directory
 		// calling this again will restart the tracking with new arguments.
 		// the argument in the callback is a relative path from root to the file that was changed.
-		void check(const std::string& root, std::function<void(const std::string&,int)> callback, int flags = DEFAULT_FLAGS);
+		void check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
 
 		inline const std::string& getRoot() { return m_root; }
 
-		inline std::function<void(const std::string&,int)>& getCallback() { return m_callback; }
+		inline std::function<void(const std::string&, uint32)>& getCallback() { return m_callback; }
 
 	private:
 		bool m_running = false;
-		std::function<void(const std::string&,int)> m_callback;
+		std::function<void(const std::string&, uint32)> m_callback;
 		std::string m_root; // path passed to check function
 		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
-		int m_flags = 0;
+		uint32 m_flags = 0;
 
 		HANDLE m_changeHandle=NULL;
 		std::mutex m_mutex;
 		std::thread m_thread;
 		//HANDLE m_threadHandle = NULL; // used to cancel ReadDirectoryChangesW
-		
 	
 		HANDLE m_dirHandle = NULL;
 		void* m_buffer=nullptr;
-		uint32_t m_bufferSize=0;
-		static const uint32_t INITIAL_SIZE = 5 * (sizeof(FILE_NOTIFY_INFORMATION) + 500);
+		uint32 m_bufferSize=0;
+		static const uint32 INITIAL_SIZE = 5 * (sizeof(FILE_NOTIFY_INFORMATION) + 500);
 	};
 	
 	// You set a threads name with it. Use -1 as threadId if you want to set the name for the current thread.

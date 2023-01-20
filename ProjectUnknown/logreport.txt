@@ -1,18 +1,18 @@
-[04:29:12] Created Object 1ebbf346-ba7e-0bb4
-[04:29:12] Registered NEW model 'SwordBase/SwordBase' as 1
-[04:29:12] Registered NEW ItemType 'sword' as 1
-[04:29:12] Registered property type 'atk' as 1
-[04:29:12] Registered property type 'knock' as 2
-[04:29:12] Created Object b8126613-77ac-d889
-[04:29:12] Created Object 91195c9b-b803-a763
-[04:29:16] Deleted Object 1ebbf346-ba7e-0bb4
-[04:29:16] Deleted Object b8126613-77ac-d889
-[04:29:16] Deleted Object 91195c9b-b803-a763
-[04:29:16] Queues: 25 / 25 Track/Untracks: 25 / 25  AddMem/SubMem: 13 / 2
-[04:29:16] Memory leak? 654 expected 0
-[04:29:16] Memory summary:
- Tracker Total: 3854
- Alloc: 311414
+[00:43:18] Create OBJECT_PLAYER d714c890-2285-43c4
+[00:43:18] ModelRegistry: Registered 'SwordBase/SwordBase' as 1
+[00:43:18] ItemTypeRegistry: Registered 'sword' as 1
+[00:43:18] ComplexDataRegistry: Registered 'atk' as 1
+[00:43:18] ComplexDataRegistry: Registered 'knock' as 2
+[00:43:18] Create OBJECT_TERRAIN e2b9d75c-f286-5012
+[00:43:18] Create OBJECT_WEAPON 43edb2af-60a5-7e93
+[00:43:22] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:43:22] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:43:22] Queues: 40 / 38 Track/Untracks: 39 / 38  AddMem/SubMem: 15 / 3
+[00:43:22] Memory leak? 2526 expected 0
+[00:43:22] Memory summary:
+ Tracker Total: 6046
+ Alloc: 340038
  Floating: 0
- TrackNode:      3200, 0, 3200
- ItemVector:     654,  0, 654
+ TrackNode:      3520, 0, 3520
+ ItemVector:     1086, 0, 1086
+ Window:         1440, 1, 0

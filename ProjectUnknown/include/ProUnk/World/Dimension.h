@@ -18,6 +18,7 @@ namespace prounk {
 		const std::string& getName();
 
 	private:
+		static constexpr float KILL_BELOW_Y = -100;
 		std::string name; // name or type of dimension, needs to be unique
 		engone::EngineWorld* m_world=nullptr;
 		Session* m_parent = nullptr;

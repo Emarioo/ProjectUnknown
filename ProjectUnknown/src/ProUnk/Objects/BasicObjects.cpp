@@ -19,22 +19,41 @@ namespace prounk {
 		return log << to_string(value);
 	}
 	bool HasCombatData(int type) {
-		int types[]{ OBJECT_DUMMY,OBJECT_PLAYER,OBJECT_WEAPON };
+		int types[]{ OBJECT_CREATURE,OBJECT_WEAPON };
 		for (int i = 0; i < sizeof(types)/sizeof(int); i++) {
-			if (type == types[i])
+			if (type & types[i])
 				return true;
 		}
 		return false;
 	}
-	CombatData* GetCombatData(Session* session, engone::EngineObject* object) {
-		//if (!object||!session)
-		//	return nullptr;
+	bool IsDead(engone::EngineObject* object) {
+		if (!object) return false;
 		int type = object->getObjectType();
-		if (type == OBJECT_DUMMY || type == OBJECT_PLAYER) {
+		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
+		if (type & OBJECT_CREATURE) {
+			CombatData& combatData = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).combatData;
+			return combatData.health == 0;
+		}
+		return false;
+	}
+	CombatData* GetCombatData(engone::EngineObject* object) {
+		if (!object) return nullptr;
+		int type = object->getObjectType();
+		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
+		if (type & OBJECT_CREATURE) {
 			return &session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).combatData;
-		} else if (type == OBJECT_WEAPON) {
+		} else if (type & OBJECT_WEAPON) {
 			return &session->objectInfoRegistry.getWeaponInfo(object->getObjectInfo()).combatData;
 		}
+		return nullptr;
+	}
+	Inventory* GetInventory(engone::EngineObject* object) {
+		if (!object) return nullptr;
+		int type = object->getObjectType();
+		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
+		if (type & OBJECT_CREATURE) {
+			return session->inventoryRegistry.getInventory(session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).inventoryDataIndex);
+		} 
 		return nullptr;
 	}
 	//engone::EngineObject* CreateObject(int type, Dimension* dimension, engone::UUID uuid) {
@@ -67,12 +86,14 @@ namespace prounk {
 		}
 		log::out << "Delete " << (BasicObjectType)object->getObjectType() << " " << object->getUUID() << "\n";
 		dimension->getWorld()->deleteObject(object->getUUID());
+
 		//log::out <<log::RED<< __FILE__ << ":"<<(int)__LINE__ << " Memory leak!\n";
 
 		// ObjectInfo could have allocations or registry entries that need to be dealt with.
 		// Not doing so will result in memory leaks. It should be fine now (2023-01-19) but if new info types are added
 		// then function needs updating.
 	}
+//#define LOG_CREATE_OBJ()
 #define LOG_CREATE_OBJ() log::out << "Create " << (BasicObjectType)out->getObjectType() << " " << out->getUUID()<<"\n";
 
 	engone::EngineObject* CreateDummy(Dimension* dimension, engone::UUID uuid) {
@@ -101,25 +122,12 @@ namespace prounk {
 
 		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
 		out->getRigidBody()->enableGravity(false);
-		//out->setOnlyTrigger(true);
+		
 		out->setColliderUserData((void*)(COLLIDER_IS_HEALTH|COLLIDER_IS_DAMAGE));
 		out->loadColliders();
 		return out;
 	}
-	//engone::EngineObject* CreateSword(Dimension* dimension, engone::UUID uuid) {
-	//	using namespace engone;
-	//	EngineObject* out = dimension->getWorld()->createObject(uuid);
-	//	out->setObjectType(OBJECT_SWORD);
-
-	//	engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-	//	out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
-	//	//out->setModel(assets->load<engone::ModelAsset>("Pickaxe/Pickaxe"));
-
-	//	out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-	//	out->loadColliders();
-	//	return out;
-	//}
-	engone::EngineObject* CreateTerrain(Dimension* dimension, engone::UUID uuid) {
+	engone::EngineObject* CreateTerrain(Dimension* dimension, const std::string& modelName, engone::UUID uuid) {
 		using namespace engone;
 		EngineObject* out = dimension->getWorld()->createObject(uuid);
 		out->setObjectType(OBJECT_TERRAIN);
@@ -129,7 +137,7 @@ namespace prounk {
 		LOG_CREATE_OBJ()
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
-		out->setModel(assets->load<engone::ModelAsset>("Platform/Platform"));
+		out->setModel(assets->load<engone::ModelAsset>(modelName));
 
 		out->getRigidBody()->setType(rp3d::BodyType::STATIC);
 		out->loadColliders();

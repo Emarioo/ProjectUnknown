@@ -273,6 +273,8 @@ namespace engone {
 		if (activeWindow == this) {
 			activeWindow = nullptr;
 		}
+		// destroy execution context
+		
 		// deleting context will delete buffers to. If you are sharing any unexepected things might happen
 		glfwDestroyWindow(m_glfwWindow);
 
@@ -639,7 +641,8 @@ namespace engone {
 		m_windowMode = winMode;
 	}
 	void Window::close() {
-		if (isOpen()) {
+		// handle invalid glfwWindow?
+		if (!glfwWindowShouldClose(m_glfwWindow)) {
 			glfwSetWindowShouldClose(m_glfwWindow, true);
 			CloseCallback(m_glfwWindow);
 		}

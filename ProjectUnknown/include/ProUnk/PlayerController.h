@@ -76,8 +76,8 @@ namespace prounk {
 		float deathTime = 0;
 		float deathShockStrength = 1.f; // how much the player "jumps" when they die.
 		float deathItemShockStrength = 1.f; // how much items fly on death.
-		void setDead(bool yes);
-		bool isDead();
+		//void setDead(bool yes);
+		//bool isDead();
 
 		float flySpeed = 8.f;
 		float flyFastSpeed = 90.f;

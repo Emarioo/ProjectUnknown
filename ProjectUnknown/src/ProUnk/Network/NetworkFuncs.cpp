@@ -330,7 +330,7 @@ namespace prounk {
 			log::out << log::RED << "NetworkFuncs : Cannot add " << obj.uuid << " because it exists\n";
 			return;
 		}
-		EngineObject* newObject = CreateTerrain(obj.dim, obj.uuid);
+		EngineObject* newObject = CreateTerrain(obj.dim, modelAsset, obj.uuid);
 		if(!newObject){
 			log::out << log::RED << "NetworkFuncs : Failed creating " << obj.uuid << "\n";
 			return;

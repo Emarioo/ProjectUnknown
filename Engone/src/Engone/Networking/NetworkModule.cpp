@@ -142,7 +142,7 @@ namespace engone {
 				m_dataSize = size + sizeof(uint32_t);
 				return true;
 			} else {
-				log::out << log::RED << "MessageBuffer::resize - malloc or realloc failed\n";
+				log::out << log::RED << "MessageBuffer::resize : malloc or realloc failed\n";
 				return false;
 			}
 		}
@@ -193,7 +193,7 @@ namespace engone {
 		pull(bytes);
 		if (*bytes > size() - m_readHead) {
 			// fishy
-			log::out << log::RED << "MessageBuffer::pullBuffer - bytes of pulled buffer exceeds message!\n";
+			log::out << log::RED << "MessageBuffer::pullBuffer : bytes of pulled buffer exceeds message!\n";
 			return nullptr;
 		}
 		char* out = m_data + sizeof(uint32_t) + m_readHead;
@@ -208,7 +208,7 @@ namespace engone {
 			uint32_t length = strnlen_s(str, maxlen) + 1;
 			if (length > siz - m_readHead) {
 				// fishy
-				log::out << log::RED << "MessageBuffer::pull - length of string exceeds message!\n";
+				log::out << log::RED << "MessageBuffer::pull : length of string exceeds message!\n";
 				return;
 			}
 			out.append(str);
@@ -264,7 +264,7 @@ namespace engone {
 				int error = send(m_socket, msg->m_data, length, 0);
 				if (error == SOCKET_ERROR || error != length) {
 					int err = WSAGetLastError();
-					log::out << log::RED << "Connection::sendMsg - send error "<< err<<"\n";
+					log::out << log::RED << "Connection::sendMsg : send error "<< err<<"\n";
 				} else {
 					if (m_server) {
 						m_server->m_mutex.lock();
@@ -359,7 +359,7 @@ namespace engone {
 	void Connection::readThread() {
 		if (m_socket == INVALID_SOCKET) return;
 		if (m_readThread) {
-			log::out <<log::RED<< "Connection::readThread - cannot be called twice.\n";
+			log::out <<log::RED<< "Connection::readThread : cannot be called twice.\n";
 			// you will most likely get stuck here if you call readThread twice.
 			// 
 			//m_readThread->join();
@@ -376,7 +376,7 @@ namespace engone {
 		}
 		if (!m_buffer->m_data) {
 			// no buffer for some reason
-			log::out << log::RED << "Connection::readThread - Buffer failed!\n";
+			log::out << log::RED << "Connection::readThread : Buffer failed!\n";
 			m_readMutex.unlock();
 			return;
 		}
@@ -464,20 +464,20 @@ namespace engone {
 					} else {
 						if (m_buffer->m_dataSize - sizeof(uint32_t) < limit) {
 							if (!m_buffer->resize(limit)) {
-								log::out << log::RED << "Connection::readThread - Failed resizing buffer for flushing! THIS IS REALLY BAD!";
+								log::out << log::RED << "Connection::readThread : Failed resizing buffer for flushing! THIS IS REALLY BAD!";
 							}
 						}
 						// FEATURE: warning when message buffer is resized to something big, suggest streaming data in that case? same with 
 						// FEATURE: data streaming? with files? uuid for every message, then part 1,2,3... for the split up parts of the whole data?
 						// increase read limit or implement data streaming.
-						log::out << log::RED << "Connection::readHead - Read limit " << limit << " reached! skipping " << size << " bytes. "<<(m_server?"Server\n":"Client\n");
+						log::out << log::RED << "Connection::readHead : Read limit " << limit << " reached! skipping " << size << " bytes. "<<(m_server?"Server\n":"Client\n");
 						// Could you shorten this message?
 						flushingLeft = size;
 						readNext = Flush;
 					}
 				} else if (readNext == Body) {
 					if (expectingSize != readBytes) {
-						log::out << log::YELLOW << "Connection::readThread - readBytes did not match header's size "<<readBytes<<" != "<<expectingSize << "\n";
+						log::out << log::YELLOW << "Connection::readThread : readBytes did not match header's size "<<readBytes<<" != "<<expectingSize << "\n";
 					}
 					IF_LEVEL(NETWORK_LEVEL_SPAM)
 						log::out << m_uuid << " recieved " << readBytes << "\n";
@@ -518,7 +518,7 @@ namespace engone {
 					else
 						readNext = Flush;
 				} else {
-					log::out << log::RED << "Connection::readThread - some error\n";
+					log::out << log::RED << "Connection::readThread : some error\n";
 				}
 			}
 			//m_readMutex.unlock();
@@ -559,7 +559,7 @@ namespace engone {
 				m_writeMutex.unlock();
 				int error = send(m_socket, msg->m_data, length, 0);
 				if (error == SOCKET_ERROR||error!=length) {
-					log::out << log::RED << "Connection::writeThread - send error\n";
+					log::out << log::RED << "Connection::writeThread : send error\n";
 					shouldUnlock = false;
 					//int err = WSAGetLastError();
 					//if (!forcedShutdown(err)) {
@@ -617,7 +617,7 @@ namespace engone {
 	Server::~Server() {
 		cleanup();
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Server::~Server - finished\n";
+			log::out << "Server : Destructor finished\n";
 	}
 	bool Server::start(const std::string& port) {
 		m_port = port;
@@ -651,16 +651,20 @@ namespace engone {
 				engone::SetThreadName(-1, "Server worker");
 
 				IF_LEVEL(NETWORK_LEVEL_INFO)
-					log::out << "Server::work - worker thread started\n";
-				m_workMutex.lock();
-				while (!m_workQueue.empty()) {
+					log::out << "Server : Worker thread started\n";
+				while (true) {
+					m_workMutex.lock();
+					if (m_workQueue.empty()) {
+						m_workMutex.unlock();
+						break;
+					}
 					Action action = m_workQueue.front();
 					m_workQueue.erase(m_workQueue.begin());
 					m_workMutex.unlock();
 
 					if (action.type == Action::START) {
 						if (!m_onEvent ||!m_onReceive) {
-							log::out << log::RED << "Server::start - missing lambdas\n";
+							log::out << log::RED << "Server : missing lambdas\n";
 							
 						} else {
 							InitNetworking();
@@ -795,19 +799,19 @@ namespace engone {
 					} else if (action.type == Action::DISCONNECT) {
 						m_connectionsMutex.lock();
 						auto find = m_connections.find(action.uuid);
-						//delete find->second;
-						ALLOC_DELETE(Connection, find->second);
-						m_connections.erase(find);
+						if (find != m_connections.end()) {
+							ALLOC_DELETE(Connection, find->second);
+							m_connections.erase(find);
+						}
 						m_connectionsMutex.unlock();
 					}
-
-					m_workMutex.lock();
 				}
+				m_workMutex.lock();
 				m_working = false;
 				m_workMutex.unlock();
 
 				IF_LEVEL(NETWORK_LEVEL_INFO)
-					log::out << "Server::work - worker thread started\n";
+					log::out << "Server : Worker thread finished\n";
 			});
 		}
 		m_workMutex.unlock();
@@ -815,7 +819,7 @@ namespace engone {
 	void Server::cleanup() {
 		//if (!keepRunning) return; // already cleaned or being cleaned up. workthread will no join if work cleansup.
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Server::cleanup - started\n";
+			log::out << "Server : cleanup started\n";
 
 		keepRunning = false;
 		if ((SOCKET)m_socket != INVALID_SOCKET) {
@@ -834,7 +838,7 @@ namespace engone {
 			//delete conn;
 			ALLOC_DELETE(Connection, conn);
 		}
-		//m_connections.clear(); // <- not necessary because deleting connection will queue disconnect work for worker thread.
+		m_connections.clear();
 		m_connectionsMutex.unlock();
 
 		m_port.clear();
@@ -845,7 +849,7 @@ namespace engone {
 		if (m_workerThread.joinable() && std::this_thread::get_id() != m_workerThread.get_id())
 			m_workerThread.join();
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Server::cleanup - finished\n";
+			log::out << "Server : cleanup finished\n";
 	}
 	void Server::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;
@@ -855,7 +859,7 @@ namespace engone {
 			return;
 		}
 		if (size > (int)getTransferLimit()) {
-			log::out << log::RED << "Server::send - Message to big ("<<size<<" > "<<getTransferLimit() << ")\n";
+			log::out << log::RED << "Server::send : Message to big ("<<size<<" > "<<getTransferLimit() << ")\n";
 			return;
 		}
 		lock();
@@ -914,7 +918,7 @@ namespace engone {
 	Client::~Client() {
 		cleanup();
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Client::~Client - finished\n";
+			log::out << "Client : Destructor finished\n";
 	}
 	bool Client::start(const std::string& ip, const std::string& port) {
 		m_workMutex.lock();
@@ -955,7 +959,7 @@ namespace engone {
 			m_workerThread = std::thread([this]() {
 				engone::SetThreadName(-1, "Client worker");
 				IF_LEVEL(NETWORK_LEVEL_INFO)
-					log::out << "Client::work - worker thread started\n";
+					log::out << "Client : Started worker thread\n";
 				m_workMutex.lock();
 				while (!m_workQueue.empty()) {
 					Action action = m_workQueue.front();
@@ -967,7 +971,7 @@ namespace engone {
 						//	return false;
 						//}
 						if (!m_onEvent || !m_onReceive) {
-							log::out << "Client::start - missing lambdas\n";
+							log::out << "Client : Missing lambdas\n";
 						} else {
 							InitNetworking();
 
@@ -1006,7 +1010,7 @@ namespace engone {
 										if (error == SOCKET_ERROR) {
 											int code = WSAGetLastError();
 											// Error with client connect
-											log::out << "Client::work - err code: " << code << "\n";
+											log::out << "Client : Worker : err code: " << code << "\n";
 											//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
 											closesocket(newSocket);
 											keepRunning = false;
@@ -1048,7 +1052,7 @@ namespace engone {
 				m_working = false;
 				m_workMutex.unlock();
 				IF_LEVEL(NETWORK_LEVEL_INFO)
-					log::out << "Client::work - worker thread finished\n";
+					log::out << "Client : Finished worker thread\n";
 			});
 		}
 		m_workMutex.unlock();
@@ -1056,7 +1060,7 @@ namespace engone {
 	void Client::cleanup() {
 		//if (!keepRunning) return; // already cleaned or being cleaned. ALTOUGH if worker cleanups then the work thread itself will not be cleaned.
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Client::cleanup - started\n";
+			log::out << "Client : cleanup start\n";
 
 		// here you should disallow start work to happen.
 		// you don't want the client to start back up if is being destroyed.
@@ -1081,7 +1085,7 @@ namespace engone {
 			m_workerThread.join();
 		}
 		IF_LEVEL(NETWORK_LEVEL_INFO)
-			log::out << "Client::cleanup - finished\n";
+			log::out << "Client : cleanup finished\n";
 	}
 	void Client::send(MessageBuffer& msg, UUID uuid, bool ignore, bool synchronous) {
 		if (!keepRunning) return;

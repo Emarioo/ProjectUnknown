@@ -1,3 +1,20 @@
-[22:11:21] Server Stopped
-[22:11:21] Queues: 22 / 22 Track/Untracks: 22 / 22  AddMem/SubMem: 11 / 0
-[22:11:21] No tracked memory leak
+[02:01:42] Create OBJECT_PLAYER cbd0f6d0-c40a-ea13
+[02:01:42] ModelRegistry: Registered 'SwordBase/SwordBase' as 1
+[02:01:42] ItemTypeRegistry: Registered 'sword' as 1
+[02:01:42] ComplexDataRegistry: Registered 'atk' as 1
+[02:01:42] ComplexDataRegistry: Registered 'knock' as 2
+[02:01:42] Create OBJECT_TERRAIN 6b1fe236-4947-5052
+[02:01:42] Create OBJECT_WEAPON 431950ae-8d9e-870e
+[02:01:55] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[02:01:55] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[02:01:55] Queues: 40 / 38 Track/Untracks: 39 / 38  AddMem/SubMem: 15 / 3
+[02:01:55] Client::work - err code: 10038
+[02:01:55] Memory leak? 2526 expected 0
+[02:01:55] Memory summary:
+ Tracker Total: 6046
+ Alloc: 340038
+ Floating: 0
+Client : onEvent - Failed
+ TrackNode:      3520, 0, 3520
+ Window:         1440, 1, 0
+ ItemVector:     1086, 0, 1086

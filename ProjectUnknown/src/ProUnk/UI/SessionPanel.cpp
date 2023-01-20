@@ -163,7 +163,7 @@ namespace prounk {
 		}
 		offsetY += textHeight; // textHeight to leave some room for start/stop textBox
 
-		float stoof[] = { connType.getWidth() , portText.getWidth()+m_portBox.getWidth(), portText.getWidth() + m_portBox.getWidth(), connectBox.getWidth()};
+		float stoof[] = { connType.getWidth() , portText.getWidth()+m_portBox.getWidth(), ipText.getWidth() + m_ipBox.getWidth(), connectBox.getWidth()};
 		//float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth(), sleepBox.getWidth(),speedBox.getWidth() };
 		float areaW = 0;
 		for (int i = 0; i < sizeof(stoof) / sizeof(float); i++) {
@@ -173,5 +173,7 @@ namespace prounk {
 		}
 		setMinHeight(offsetY-area.y+border);
 		setMinWidth(areaW+2*border); // Todo: hardcoded not great
+
+		DrawToolTip(area.x + area.w, area.y, 20, 20, "Session panel: Server/Client stuff\nClick Client/Server to switch\nFill in port and ip\nPress Start/Connect");
 	}
 }

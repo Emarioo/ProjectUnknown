@@ -40,18 +40,8 @@ namespace prounk {
 	}
 	Session::Session(GameApp* app) : m_parent(app) {
 		using namespace engone;
-		auto onRecv = [this](MessageBuffer& msg, UUID uuid) {
-
-			MessageBuffer* copy = msg.copy();
-
-			m_messageQueueMutex.lock();
-			m_messageQueue.push_back({copy,uuid });
-			m_messageQueueMutex.unlock();
-
-			return true;
-		};
 		m_server.setOnEvent([this](NetEvent e, UUID uuid) {
-			log::out << "Server : onEvent - " << e << "\n";
+			log::out << "Server : " << e << "\n";
 
 			m_messageQueueMutex.lock();
 			m_messageQueue.push_back({ true, e,uuid });
@@ -60,7 +50,7 @@ namespace prounk {
 			return true;
 		});
 		m_client.setOnEvent([this](NetEvent e, UUID uuid) {
-			log::out << "Client : onEvent - " << e << "\n";
+			log::out << "Client : " << e << "\n";
 
 			m_messageQueueMutex.lock();
 			m_messageQueue.push_back({ false, e, uuid });
@@ -68,7 +58,7 @@ namespace prounk {
 
 			return true;
 		});
-		m_server.setOnReceive([this, onRecv](MessageBuffer& msg, UUID uuid) {
+		m_server.setOnReceive([this](MessageBuffer& msg, UUID uuid) {
 			//log::out << "Relay ";
 
 			 //detect command.
@@ -79,7 +69,12 @@ namespace prounk {
 			auto find = m_clients.find(uuid);
 			if (find != m_clients.end()) {
 
-				onRecv(msg, uuid); // return value is ignored, should it be?
+				MessageBuffer* copy = msg.copy();
+
+				m_messageQueueMutex.lock();
+				m_messageQueue.push_back({ copy,uuid });
+				m_messageQueueMutex.unlock();
+
 				if (m_clients.size() > 1) {
 					MessageBuffer sendMsg = msg; // copy
 					m_server.send(sendMsg, uuid, true); // relay received message to other clients
@@ -90,7 +85,16 @@ namespace prounk {
 			}
 			return true;
 		});
-		m_client.setOnReceive(onRecv);
+		m_client.setOnReceive([this](MessageBuffer& msg, UUID uuid) {
+
+			MessageBuffer* copy = msg.copy();
+
+			m_messageQueueMutex.lock();
+			m_messageQueue.push_back({ copy,uuid });
+			m_messageQueueMutex.unlock();
+
+			return true;
+		});
 	}
 	Session::~Session() {
 		cleanup();
@@ -240,7 +244,7 @@ namespace prounk {
 		NetCommand cmd;
 		msg->pull(&cmd);
 
-		if (cmd != NET_MOVE) {
+		if (cmd != NET_MOVE&&cmd!=NET_DAMAGE) {
 			if (sender->isServer()) {
 				//log::out <<"Server(" << clientUUID.data[0] << "): " << cmd << "\n";
 				log::out <<log::GRAY<<"Server: " << cmd << "\n";

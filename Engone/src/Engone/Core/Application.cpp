@@ -21,14 +21,18 @@ namespace engone {
 			//delete m_worlds[i];
 		}
 		m_worlds.clear();
+#ifdef ENGONE_PHYSICS
 		using namespace rp3d;
 		if (m_physicsCommon)
 			ALLOC_DELETE(PhysicsCommon, m_physicsCommon);
 		m_physicsCommon = nullptr;
+#endif
 	}
+#ifdef ENGONE_PHYSICS
 	rp3d::PhysicsCommon* Application::getPhysicsCommon() {
 		return m_physicsCommon;
 	}
+#endif
 	Window* Application::createWindow(WindowDetail detail) {
 		Window* win = ALLOC_NEW(Window)(this, detail);
 		GetTracker().track(win);
@@ -41,6 +45,7 @@ namespace engone {
 		// It most certainly my fault in some way. Not doing stuff properly?
 
 		// create physics common if not created
+#ifdef ENGONE_PHYSICS
 		if (!m_physicsCommon) {
 			//m_physicsCommon = ALLOC_NEW(rp3d::PhysicsCommon)();
 			m_physicsCommon = new rp3d::PhysicsCommon();// doesn't seem to like ALLOC_NEW? probably some other issue though 
@@ -49,12 +54,14 @@ namespace engone {
 				log::out << log::RED << "Application : Failed allocating PhysicsCommon!\n";
 			}
 		}
+#endif
 		//EngineWorld* world = ALLOC_NEW(EngineWorld)(this);
 		EngineWorld* world = ALLOC_NEW(EngineWorld)(this);
 		if (!world) {
 			log::out << log::RED << "Application : Failed allocating EngineWorld!\n";
 			return nullptr;
 		}
+#ifdef ENGONE_PHYSICS
 		lockCommon();
 		world->m_physicsWorld = m_physicsCommon->createPhysicsWorld();
 		unlockCommon();
@@ -62,6 +69,7 @@ namespace engone {
 		if (world->m_physicsWorld==nullptr) {
 			log::out << log::RED << "Application : Failed creating PhysicsWorld!\n";
 		}
+#endif
 		world->m_app = this;
 		m_worlds.push_back(world);
 		return world;

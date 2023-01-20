@@ -80,9 +80,11 @@ namespace engone {
 		EngineObjectIterator iterator(this);
 		EngineObject* obj=nullptr;
 		while (obj=iterator.next()) {
+#ifdef ENGONE_PHYSICS
 			if (obj->m_flags & EngineObject::PENDING_COLLIDERS) {
 				obj->loadColliders();
 			}
+#endif
 			if (obj->getAnimator())
 				obj->getAnimator()->update(info.timeStep);
 		}
@@ -219,6 +221,7 @@ namespace engone {
 		//log::out << "Deleted Object " << uuid << "\n";
 		//m_objectsMutex.unlock();
 	}
+#ifdef ENGONE_PHYSICS
 	class RaycastInfo : public rp3d::RaycastCallback {
 	public:
 		RaycastInfo() = default;
@@ -252,6 +255,7 @@ namespace engone {
 		unlockPhysics();
 		return std::move(info.m_hitObjects);
 	}
+#endif
 	EngineObjectIterator EngineWorld::createIterator() {
 		return { this };
 		//EngineObjectIterator* iterator = ALLOC_NEW(EngineObjectIterator)(this);
@@ -305,6 +309,7 @@ namespace engone {
 	void EngineWorld::addParticleGroup(ParticleGroupT* group) {
 		m_particleGroups.push_back(group);
 	}
+#ifdef ENGONE_PHYSICS
 	rp3d::PhysicsCommon* EngineWorld::getPhysicsCommon() {
 		if (!m_app) return nullptr;
 		return m_app->getPhysicsCommon();
@@ -314,4 +319,5 @@ namespace engone {
 	}
 	void EngineWorld::lockCommon() { m_app->lockCommon(); }
 	void EngineWorld::unlockCommon() { m_app->unlockCommon(); }
+#endif
 }

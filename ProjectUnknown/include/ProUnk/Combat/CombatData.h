@@ -37,6 +37,10 @@ namespace prounk {
 		float singleDamage=0;
 		float knockStrength = 0.1f;
 
+		engone::UUID target = 0;
+		float lastHealth = 0;
+		float lastDamagedSeconds = 0;
+
 		// attack types
 		//	continous damage )damage/second)
 		//	single damage

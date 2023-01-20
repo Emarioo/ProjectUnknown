@@ -53,8 +53,10 @@ namespace engone {
 	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
 
-		if (m_applications.size() == 0) // might as well quitw
+		if (m_applications.size() == 0) {
+			log::out << log::YELLOW<<"Engone::start : Returning because of zero apps\n";
 			return;
+		}
 
 		// start threaded apps
 
@@ -69,6 +71,9 @@ namespace engone {
 			manageThreading();
 
 			manageNonThreading();
+
+			if (m_applications.size() == 0)
+				break;
 
 			// function seems to to processing of all inputs and stuff
 			// mutex lock for window input stuff
@@ -174,10 +179,11 @@ namespace engone {
 					
 					for (Window* win : app->getAttachedWindows()) {
 						// should be changed, storage should use a thread pool, a set of asset tasks to do. (seperate from TaskHandler...)
-						win->getStorage()->getIOProcessors()[0]->process();
-						win->getStorage()->getDataProcessors()[0]->process();
+						if(!win->getStorage()->getIOProcessors().empty())
+							win->getStorage()->getIOProcessors()[0]->process();
+						if(!win->getStorage()->getDataProcessors().empty())
+							win->getStorage()->getDataProcessors()[0]->process();
 					}
-
 
 					app->update(currentLoopInfo);
 					update(currentLoopInfo); // should maybe be moved outside loop?
@@ -258,6 +264,33 @@ namespace engone {
 				for (Window* win : app->getAttachedWindows()) {
 					app->getProfiler().getSampler(win).next(mainUpdateTimer.delta);
 				}
+			}
+		}
+
+		//-- delete applications
+		for (int i = 0; i < m_applications.size(); i++) {
+			Application* app = m_applications[i];
+			for (int j = 0; j < app->getAttachedWindows().size(); j++) {
+				Window* win = app->getAttachedWindows()[j];
+				if (win->isOpen()) continue;
+				
+				GetTracker().track(win);
+				ALLOC_DELETE(Window,win);
+				app->getAttachedWindows().erase(app->getAttachedWindows().begin() + j);
+				j--;
+			}
+			// app->stop() has to be called for app to be destroyed.
+			// A common approach is to call stop in the app's overrided onClose function
+			if (app->isStopped()) {
+				// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
+				// app should be safe to delete
+				GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
+				ALLOC_DELETE(Application, app);
+
+				m_applications.erase(m_applications.begin() + i);
+				m_appSizes.erase(m_appSizes.begin() + i);
+				m_appIds.erase(m_appIds.begin() + i);
+				i--;
 			}
 		}
 	}
