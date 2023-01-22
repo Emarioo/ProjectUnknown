@@ -55,25 +55,31 @@ void runApp(int argc, char** argv) {
 	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 	
-	ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
+	//ConvertArguments("--server --client 127.0.0.1", argc, argv);
 
 	//-- Special options when starting the game. Like allocating a console if in Release mode.
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--console") == 0 || strcmp(argv[i], "-c") == 0) {
+		if (strcmp(argv[i], "--console") == 0) {
 			CreateConsole();
 		}
-		if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-s") == 0) {
-			GameAppInfo info = { GameApp::START_SERVER, "1000" };
+		if (strcmp(argv[i], "--server") == 0) {
+			GameAppInfo info = { GameApp::START_SERVER, Session::DEFAULT_PORT }; // don't use 1000 as port
 			
 			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 			engine.addApplication(app);
 		}
-		if (strcmp(argv[i], "--client") == 0 || strcmp(argv[i], "-cl") == 0) {
-			if (argc - i > 2) {
+		if (strcmp(argv[i], "--client") == 0) {
+			if (i+1<argc) {
 				i++;
 				std::string ip = argv[i];
-				i++;
-				std::string port = argv[i];
+				std::string port = Session::DEFAULT_PORT;
+				if (i + 1 < argc) { // port is optional
+					if (argv[i+1][0] != '-') {
+						i++;
+						port = argv[i];
+					}
+				}
+
 				GameAppInfo info = { GameApp::START_CLIENT, port, ip };
 				GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 				engine.addApplication(app);
@@ -83,7 +89,7 @@ void runApp(int argc, char** argv) {
 		}
 	}
 	if (engine.getApplications().size() == 0) {
-		GameAppInfo info = { 0, "1000", "127.0.0.1"};
+		GameAppInfo info = { 0, Session::DEFAULT_PORT, "127.0.0.1"};
 		GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 		engine.addApplication(app);
 	}

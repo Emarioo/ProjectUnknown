@@ -7,7 +7,7 @@ namespace engone {
 
 	float AnimatorProperty::getRemainingSeconds() const {
 		if (!asset)
-			DebugBreak();
+			return 0;
 		float out = asset->frameEnd - frame;
 		out *= speed / asset->defaultSpeed;
 		return out;

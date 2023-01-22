@@ -449,25 +449,39 @@ namespace engone {
 		if (renderer) {
 			// Physics debug
 #ifdef ENGONE_PHYSICS
-			for (int i = 0; i < info.app->m_worlds.size(); i++) {
-				rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
-				if (!world) continue;
-				if (!world->getIsDebugRenderingEnabled()) continue;
-				info.app->m_worlds[i]->lockPhysics();
-				rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
-				//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
-				for (int i = 0; i < debugRenderer.getNbLines(); i++) {
-					auto& line = debugRenderer.getLinesArray()[i];
-					renderer->drawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
+			if (getFlags() & EngoneShowHitboxes) {
+				for (int i = 0; i < info.app->m_worlds.size(); i++) {
+					rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+					if (!world) continue;
+					info.app->m_worlds[i]->lockPhysics();
+					world->setIsDebugRenderingEnabled(true);
+
+					rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
+					debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+					//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+					//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+					//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+					//log::out << debugRenderer.getNbLines() << " " << debugRenderer.getNbTriangles() << "\n";
+					for (int i = 0; i < debugRenderer.getNbLines(); i++) {
+						auto& line = debugRenderer.getLinesArray()[i];
+						renderer->drawLine(*(glm::vec3*)&line.point1, *(glm::vec3*)&line.point2);
+					}
+					//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
+					//shad->bind();
+					//shad->setVec3("uColor", { 0.9,0.2,0.2 });
+					for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
+						auto& tri = debugRenderer.getTrianglesArray()[i];
+						renderer->drawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
+					}
+					info.app->m_worlds[i]->unlockPhysics();
 				}
-				//Shader* shad = info.window->getAssets()->get<Shader>("lines3d");
-				//shad->bind();
-				//shad->setVec3("uColor", { 0.9,0.2,0.2 });
-				for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
-					auto& tri = debugRenderer.getTrianglesArray()[i];
-					renderer->drawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
+			} else {
+				for (int i = 0; i < info.app->m_worlds.size(); i++) {
+					info.app->m_worlds[i]->lockPhysics();
+					rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+					world->setIsDebugRenderingEnabled(true);
+					info.app->m_worlds[i]->unlockPhysics();
 				}
-				info.app->m_worlds[i]->unlockPhysics();
 			}
 #endif
 		}

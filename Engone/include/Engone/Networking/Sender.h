@@ -46,6 +46,8 @@ namespace engone {
 
 		inline bool isServer() const { return m_isServer; }
 
+		bool hasCallbacks() { return m_onEvent && m_onReceive; }
+
 		const std::string& getIP() const { return m_ip; }
 		const std::string& getPort() const { return m_port; }
 

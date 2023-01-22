@@ -7,7 +7,7 @@
 #include "ProUnk/Registries/ComplexDataRegistry.h"
 #include "ProUnk/Registries/ModelRegistry.h"
 
-#include "ProUnk/Network/NetworkFuncs.h"
+#include "ProUnk/Network/NetProtocols.h"
 
 namespace prounk {
 	
@@ -46,10 +46,12 @@ namespace prounk {
 
 	class GameApp;
 	class Session 
-		: public NetworkFuncs 
+		: public NetProtocols 
 	{
 	public:
 		static const int OBJECT_NETMOVE = 0x00010000;
+
+		static const char* DEFAULT_PORT;
 
 		Session(GameApp* app);
 		~Session();

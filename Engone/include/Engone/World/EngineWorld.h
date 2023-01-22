@@ -62,7 +62,7 @@ namespace engone {
 		//void deleteIterator(EngineObjectIterator* iterator);
 		// Should return nullptr if out of bounds
 
-		//int getObjectCount();
+		int getObjectCount();
 
 		//-- Multithreading safety
 		// IMPORTANT: Ensure that no other lock is held when calling this function. Deadlock could occur if you don't know what you are doing.
@@ -115,7 +115,9 @@ namespace engone {
 		std::vector<ParticleGroupT*> m_particleGroups;
 
 		Mutex m_objectsMutex;
-		FrameArray<EngineObject> m_objects = { 500 }; // number stands for how many objects in one frame
+		FrameArray<EngineObject> m_objects = { 128 }; // number stands for how many objects in one frame
+		
+		//std::vector<EngineObject*> m_objects;
 
 		struct ObjectDetail {
 			EngineObject* object = nullptr;

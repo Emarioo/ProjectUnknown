@@ -78,6 +78,8 @@ namespace engone {
 		return m_worlds;
 	}
 	void Application::setUPS(double ups) {
+		if (ups < 1)
+			ups = 1;
 		if (isMultiThreaded())
 			executionTimer.aimedDelta = 1. / ups;
 		else

@@ -63,7 +63,7 @@ namespace prounk {
 
 		CombatData* atkData = GetCombatData(atkObj);
 		CombatData* defData = GetCombatData(defObj);
-
+		
 		if (!atkData || !defData) {
 			log::out << log::RED << "GameApp::dealCombat - atkData or defData is nullptr\n";
 			return;
@@ -73,6 +73,13 @@ namespace prounk {
 
 		if (atkObj->getObjectType() == OBJECT_DUMMY && defObj->getObjectType() == OBJECT_DUMMY)
 			return;
+
+		if (!(atkObj->getFlags() & Session::OBJECT_NETMOVE)) // ensure collision is done once, one of the clients or server not all of them.
+			return;
+		// can't attack themself
+		if (atkData->owner == defObj) {
+			return;
+		}
 
 		// skip if object has been hit earlier in the attack
 		bool hit = false;
@@ -92,12 +99,12 @@ namespace prounk {
 			atk = atkData->singleDamage;
 		}
 		
+		if (defData->health == 0)
+			return;
+
 		defData->health -= atk;
 		if (defData->health < 0)
 			defData->health = 0;
-
-		getActiveSession()->netDamageObject(defObj, atk);
-
 		// send updated health.
 		// what if someone else also updates health? then do addition or subtraction on health.
 		// how about hit cooldown? can other players deal damage two you at the same time?
@@ -131,29 +138,38 @@ namespace prounk {
 		//	parts[i].lifeTime = 1 + GetRandom() * 3.f;
 		//}
 
+		char buffer[15];
+		snprintf(buffer, sizeof(buffer), "%.1f", atk);
+		//glm::vec4 numColor = { GetRandom(),GetRandom(),GetRandom(),1 };
+		glm::vec4 numColor = {1, 0.1, 0.05, 1};
+		visualEffects.addDamageNumber(buffer, contactPoint, numColor);
+
 		// NOTE: if the attack anim. is restarted when the attack collider still is in the defense collider the cooldown would still be active
 		//	Meaning no damage.
 
+		glm::vec3 knockDirection{0,0,0};
+		
 		float timeStep = getEngine()->getLoopInfo().timeStep;
 		float knockStrength = atkData->knockStrength;
 		glm::vec3 diff = (defData->owner->getPosition() - atkData->owner->getPosition());
 		float leng = glm::length(diff);
 		if (leng != 0) {
 			glm::vec3 dir = diff / leng;
-			rp3d::Vector3 velocity = ToRp3dVec3(knockStrength * dir / timeStep);
-			velocity += atkData->owner->getRigidBody()->getLinearVelocity() - defData->owner->getRigidBody()->getLinearVelocity();
+			glm::vec3 velocity = knockStrength * dir / timeStep;
+			velocity += atkData->owner->getLinearVelocity() - defData->owner->getLinearVelocity();
 
 			//rp3d::Vector3 rot = ToEuler(atkData->owner->rigidBody->getTransform().getOrientation());
 			//rp3d::Vector3 force = { glm::sin(rot.y),0,glm::cos(rot.y) };
 			//log::out << force << "\n";
 			//rp3d::Vector3 force = def.body->getTransform().getPosition() - atk.body->getTransform().getPosition();
 			//force.y = 1;
-			rp3d::Vector3 force = velocity / timeStep;
+			knockDirection = velocity / timeStep;
 			//log::out << "Apply force " << force << "\n";
 			//for now, defense can be assumed to be a rigidbody
-
-			defObj->getRigidBody()->applyWorldForceAtCenterOfMass(force);
+			defObj->applyForce(knockDirection);
 		}
+
+		getActiveSession()->netDamageObject(defObj, atk, knockDirection);
 	}
 	void GameApp::onContact(const rp3d::CollisionCallback::CallbackData& callbackData) {
 		using namespace engone;
@@ -165,7 +181,7 @@ namespace prounk {
 
 			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
 			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
-
+			//continue;
 			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
 
 			if (!obj1 || !obj2) continue;
@@ -174,9 +190,16 @@ namespace prounk {
 			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
 				int count = pair.getNbContactPoints();
-				auto cp = pair.getContactPoint(0);
-				rp3d::Vector3 cp2 = pair.getCollider1()->getLocalToWorldTransform()*cp.getLocalPointOnCollider1();
-				glm::vec3 contactPoint = ToGlmVec3(cp2);
+
+				glm::vec3 contactPoint;
+				if (count != 0) {
+					auto cp = pair.getContactPoint(0);
+					rp3d::Vector3 vec = pair.getCollider1()->getLocalToWorldTransform() * cp.getLocalPointOnCollider1();
+					contactPoint = ToGlmVec3(vec);
+				} else {
+					rp3d::Vector3 mid = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
+					contactPoint = ToGlmVec3(mid);
+				}
 
 				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
 					dealCombat(obj1, obj2, contactPoint);
@@ -191,10 +214,10 @@ namespace prounk {
 		for (int pairI = 0; pairI < callbackData.getNbOverlappingPairs(); pairI++) {
 			auto pair = callbackData.getOverlappingPair(pairI);
 			//pair.getEventType()
-
+			//continue;
 			//auto pair = pair.getEventType();
 			//rp3d::OverlapCallback::OverlapPair::EventType::
-
+			
 			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
 			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
 
@@ -203,7 +226,9 @@ namespace prounk {
 			if (!obj1 || !obj2) continue;
 			
 			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
-				rp3d::Vector3 cp2 = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
+				rp3d::Vector3 cp2 = (pair.getCollider1()->getLocalToWorldTransform().getPosition() + pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2;
+				//rp3d::Vector3 cp2 = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
+				//rp3d::Vector3 cp2 = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
 				glm::vec3 contactPoint = ToGlmVec3(cp2);
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
 				if(((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
@@ -268,10 +293,12 @@ namespace prounk {
 		//if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
 			CreateDefualtKeybindings();
 		//}
+
+		// This should be moved into engone
 		firstDim->getWorld()->lockPhysics();
-		firstDim->getWorld()->getPhysicsWorld()->setIsDebugRenderingEnabled(true);
-		rp3d::DebugRenderer& debugRenderer = firstDim->getWorld()->getPhysicsWorld()->getDebugRenderer();
-		debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+		//firstDim->getWorld()->getPhysicsWorld()->setIsDebugRenderingEnabled(true);
+		//rp3d::DebugRenderer& debugRenderer = firstDim->getWorld()->getPhysicsWorld()->getDebugRenderer();
+		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
 		//debugRenderer.setIsDebugItemDisplayed(rp3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
@@ -292,53 +319,17 @@ namespace prounk {
 
 		registerItems();
 
-		//ModelAsset* playerAsset = player->getModel();
-		//ModelId playerModelId = m_session->modelRegistry.registerModel(playerAsset);
-
-		ModelAsset* swordModel = assets->load<engone::ModelAsset>("SwordBase/SwordBase");
-		ModelId swordModelId = m_session->modelRegistry.registerModel(swordModel);
-
-		ItemType swordType = m_session->itemTypeRegistry.registerType("sword", swordModelId);
-		//Item swordItem(swordType, 1);
-
-		//*m_session->complexDataRegistry.registerData();
-		//ComplexData* swordData = swordItem.getComplexData();
-		ComplexPropertyType* atkProperty = m_session->complexDataRegistry.registerProperty("atk");
-		//swordData->set(atkProperty, 30.f);
-		ComplexPropertyType* knockProperty = m_session->complexDataRegistry.registerProperty("knock");
-		//swordData->set(knockProperty, 0.3f);
-
 		createPanels();
 
 		// Temporary? one function to do this?
 		sessionPanel->setHidden(false);
 		incrCursor();
-
-		//inv->transferItem(swordItem);
-		//EngineObject* sword = CreateItem(firstDim,swordItem);
-		//sword->setFlags(sword->getFlags() | Session::OBJECT_NETMOVE);
-		//sword->setPosition({ 2, 0, 0 });
-
-		//sword->rigidBody->enableGravity(false);
-
-		//ModelAsset* platformModel = assets->load<engone::ModelAsset>("Platform/Platform");
-		//ModelAsset* daggerModel = assets->load<engone::ModelAsset>("Dagger/Dagger");
-
-		//ModelId platId = m_session->modelRegistry.registerModel(platformModel);
-		//ModelId dagId = m_session->modelRegistry.registerModel(daggerModel);
-
-		//ItemType playerType = m_session->itemTypeRegistry.registerType("Player", playerModelId);
-		//ItemType platformType = m_session->itemTypeRegistry.registerType("Platform", platId);
-		//ItemType swordType = m_session->itemTypeRegistry.registerType("Sword", swordModelId);
-
-		//inv->addItem(Item(playerType, 1));
-		//inv->addItem(Item(platformType, 1));
-		//inv->addItem(Item(swordType, 1));
 		
 		EngineObject* dummy = CreateDummy(firstDim);
 		dummy->setPosition({ 4,7,8 });
 		firstDim->getWorld()->releaseAccess(dummy->getUUID());
-
+		
+		//-- Setup network stuff
 		if (info.flags & START_SERVER) {
 			sessionPanel->setDefaultPortIP(info.port, info.ip, "Server");
 		} else if (info.flags & START_CLIENT) {
@@ -356,6 +347,7 @@ namespace prounk {
 			m_session->getClient().start(info.ip,info.port);
 		}
 
+		//-- Other
 		DirLight* dir = ALLOC_NEW(DirLight)({ -0.2,-1,-0.2 });
 		engone->addLight(dir);
 
@@ -369,7 +361,25 @@ namespace prounk {
 		log::out << log::RED << "GameApp : CLEANUP NOT IMPLEMENTED\n";
 	}
 	void GameApp::registerItems() {
+		ComplexPropertyType* atkProperty = m_session->complexDataRegistry.registerProperty("atk");
+		ComplexPropertyType* knockProperty = m_session->complexDataRegistry.registerProperty("knock");
+		
+		ModelId swordModel = m_session->modelRegistry.registerModel("Sword/Sword");
+		ModelId daggerModel = m_session->modelRegistry.registerModel("Dagger/Dagger");
+		ModelId spearModel = m_session->modelRegistry.registerModel("Spear/Spear");
+		ModelId goldModel = m_session->modelRegistry.registerModel("GoldIngot/GoldIngot");
 
+		ItemType sword = m_session->itemTypeRegistry.registerType("sword", swordModel);
+		ItemType dagger = m_session->itemTypeRegistry.registerType("dagger", daggerModel);
+		ItemType spear = m_session->itemTypeRegistry.registerType("spear", spearModel);
+		
+		ItemType gold_ingot = m_session->itemTypeRegistry.registerType("gold_ingot", goldModel);
+
+		auto plr = playerController.requestPlayer();
+		Item godSword = { sword,1 };
+		godSword.getComplexData()->set(atkProperty, 999);
+		GetInventory(plr)->transferItem(godSword);
+		playerController.releasePlayer(plr);
 	}
 	void GameApp::panelInput(engone::LoopInfo& info) {
 		using namespace engone;
@@ -402,6 +412,10 @@ namespace prounk {
 			if (!engone::GetActiveWindow()->isCursorLocked()) {
 				engone::GetActiveWindow()->lockCursor(true);
 			}
+		}
+
+		if (IsKeyPressed(GLFW_KEY_O)) {
+			info.app->getEngine()->setFlags(info.app->getEngine()->getFlags()^Engone::EngoneShowHitboxes);
 		}
 	}
 	void GameApp::createPanels() {

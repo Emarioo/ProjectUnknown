@@ -21,15 +21,15 @@ namespace prounk {
 		float atk = 0;
 		// Todo: displaying atk of weapon here is temporary and should be removed.
 		//		It is useful for debugging so display it in some debug menu.
-		EngineObject* weapon = playerController->requestHeldObject();
-		
-		if (weapon) {
-			CombatData* weaponData = GetCombatData(weapon);
-			atk = weaponData->singleDamage;
-		}
+		//EngineObject* weapon = playerController->requestHeldObject();
+		//
+		//if (weapon) {
+		//	CombatData* weaponData = GetCombatData(weapon);
+		//	atk = weaponData->singleDamage;
+		//}
 
-		playerController->releasePlayer(plr);
-		playerController->releaseHeldObject(weapon);
+		//playerController->releasePlayer(plr);
+		//playerController->releaseHeldObject(weapon);
 
 		//-- panel background
 		ui::Box area = getBox();

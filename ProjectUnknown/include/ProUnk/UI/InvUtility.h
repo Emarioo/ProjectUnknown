@@ -12,5 +12,5 @@ namespace prounk {
 	// x,y and size is for the ? button.
 	// textHeight is for the description
 	void DrawToolTip(float x, float y, float size, float textHeight,const std::string& description);
-	void DrawItemToolTip(float x, float y, Item& item);
+	void DrawItemToolTip(float x, float y, float size, Item& item);
 }

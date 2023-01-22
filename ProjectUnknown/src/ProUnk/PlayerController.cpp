@@ -50,25 +50,6 @@ namespace prounk {
 		Movement(info);
 		WeaponUpdate(info);
 	}
-	//void PlayerController::setDead(bool yes) {
-	//	engone::EngineObject* plr = requestPlayer();
-	//	if (plr) {
-	//		if (yes)
-	//			plr->setFlags(plr->getFlags() | OBJECT_IS_DEAD);
-	//		else
-	//			plr->setFlags(plr->getFlags() & (~OBJECT_IS_DEAD));
-	//		releasePlayer(plr);
-	//	}
-	//}
-	//bool PlayerController::isDead() {
-	//	engone::EngineObject* plr = requestPlayer();
-	//	bool yes = false;
-	//	if (plr) {
-	//		yes = plr->getFlags() & OBJECT_IS_DEAD;
-	//		releasePlayer(plr);
-	//	}
-	//	return yes;
-	//}
 	void PlayerController::WeaponUpdate(engone::LoopInfo& info) {
 		using namespace engone;
 		
@@ -78,37 +59,37 @@ namespace prounk {
 		// first slot in inventory is the held weapon.
 		Inventory* inv = getInventory();
 
-		Dimension* dim = app->getActiveSession()->getDimensions()[0];
-
 		EngineObject* heldObject = requestHeldObject();
 
 		if (inv->getSlotSize() != 0) {
 			auto& item = inv->getItem(0);
-			//log::out << "Type: "<<item.getType() << "\n";
 			if (lastItemType != item.getType()) {
 				if (heldObject) {
 					if (item.getType() == 0) {
 						// remove held object
 						app->getActiveSession()->netDeleteObject(heldObject);
-						DeleteObject(dim,heldObject);
+						DeleteObject((Dimension*)heldObject->getWorld()->getUserData(), heldObject);
 						heldObjectId = 0;
 						heldObject = nullptr;
 					} else {
 						// reuse held object
-						heldObject->setModel(dim->getParent()->modelRegistry.getModel(item.getModelId()));
+						ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+						heldObject->setModel(model);
 						heldObject->setOnlyTrigger(true);
-						app->getActiveSession()->netSetTrigger(heldObject, true);
+						app->getActiveSession()->netEditTrigger(heldObject, true);
+						app->getActiveSession()->netEditModel(heldObject, model->getLoadName());
 					}
 				} else {
 					if (item.getType() != 0) {
 						// create new object
-						ModelAsset* model = dim->getParent()->modelRegistry.getModel(item.getModelId());
-						heldObject = CreateWeapon(dim, model->getLoadName());
+						ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+						heldObject = CreateWeapon((Dimension*)plr->getWorld()->getUserData(), model->getLoadName());
 						heldObjectId = heldObject->getUUID();
 						heldObject->setOnlyTrigger(true);
+						GetCombatData(heldObject)->owner = plr;
 						
 						app->getActiveSession()->netAddGeneral(heldObject);
-						app->getActiveSession()->netSetTrigger(heldObject,true);
+						app->getActiveSession()->netEditTrigger(heldObject,true);
 					}
 					// damage in combat data is set when doing a skill
 				}
@@ -128,7 +109,7 @@ namespace prounk {
 		if (IsDead(plr)) {
 			if (heldObject->isOnlyTrigger()) {
 				heldObject->setOnlyTrigger(false);
-				app->getActiveSession()->netSetTrigger(heldObject, false);
+				app->getActiveSession()->netEditTrigger(heldObject, false);
 			}
 			releasePlayer(plr);
 			releaseHeldObject(heldObject);
@@ -136,7 +117,7 @@ namespace prounk {
 		}
 		if (!heldObject->isOnlyTrigger()) {
 			heldObject->setOnlyTrigger(true);
-			//app->getActiveSession()->netSetTrigger(heldObject, true);
+			app->getActiveSession()->netEditTrigger(heldObject, true);
 		}
 
 		ModelAsset* model = plr->getModel();
@@ -174,20 +155,18 @@ namespace prounk {
 			swordTrans = ToTransform(modelMatrix * gripMat);
 		}
 
-		dim->getWorld()->lockPhysics();
+		heldObject->getWorld()->lockPhysics();
 		heldObject->getRigidBody()->setTransform(swordTrans);
 
 		heldObject->getRigidBody()->setAngularVelocity(body->getAngularVelocity());
 		heldObject->getRigidBody()->setLinearVelocity(body->getLinearVelocity());
 		heldObject->getRigidBody()->resetForce();
 		heldObject->getRigidBody()->resetTorque();
-		dim->getWorld()->unlockPhysics();
+		heldObject->getWorld()->unlockPhysics();
 
 		// cleanup
 		releasePlayer(plr);
 		releaseHeldObject(heldObject);
-
-		//heldWeapon->rigidBody->enableGravity(rigidBody->isGravityEnabled());
 		//weaponState.sample(heldWeapon);
 	}
 	void PlayerController::setFlight(bool yes) {
@@ -277,7 +256,7 @@ namespace prounk {
 		if (!transferred)
 			return false;
 
-		log::out << "pickup "<<object->getUUID() << "\n";
+		//log::out << "pickup "<<object->getUUID() << "\n";
 
 		// delete item object if succefully added to inventory
 		app->getActiveSession()->netDeleteObject(object);
@@ -387,22 +366,23 @@ namespace prounk {
 		auto heldObject = requestHeldObject();
 		if (heldObject)
 			weaponCombat = GetCombatData(heldObject);
-
 		if (!weaponCombat) {
 			releasePlayer(plr);
 			releaseHeldObject(plr);
 			return;
 		}
-
 		//releaseHeldObject(heldObject);
 		//log::out << "frame: " <<m_player->getAnimator()->enabledAnimations[0].frame << "\n";
-
 		if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
 			if (!weaponCombat->attacking) {
 				// Set damage of weapon
 				weaponCombat->damageType = CombatData::SINGLE_DAMAGE;
 				Inventory* inv = getInventory();
 				Item& firstItem = inv->getItem(0);
+				
+				auto spear = app->getActiveSession()->itemTypeRegistry.getType("spear");
+				auto sword = app->getActiveSession()->itemTypeRegistry.getType("sword");
+				auto dagger = app->getActiveSession()->itemTypeRegistry.getType("dagger");
 
 				ComplexData* complexData = firstItem.getComplexData();
 				//ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
@@ -412,17 +392,18 @@ namespace prounk {
 					weaponCombat->singleDamage = complexData->get(atkProperty);
 					weaponCombat->knockStrength = complexData->get(knockProperty);
 
-					char buffer[15];
-					snprintf(buffer,sizeof(buffer), "%.1f", weaponCombat->singleDamage);
-					// other things
-					glm::vec4 color = { GetRandom(),GetRandom(),GetRandom(),1 };
-					//glm::vec4 color = {1, 0.1, 0.05, 1};
-					app->visualEffects.addDamageNumber(buffer,heldObject->getPosition(), color);
-					
-					weaponCombat->skillType = SKILL_SLASH;
+					weaponCombat->skillType = SKILL_SLASH; // irrelevant
 					weaponCombat->attack();
-					plr->getAnimator()->enable("Player", "PlayerDownSwing", { false,1,1,0 });
-					app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerDownSwing", false, 1, 1, 0);
+					if (firstItem.getType()==sword->itemType) {
+						plr->getAnimator()->enable("Player", "PlayerSwordSlash", { false,1,1,0 });
+						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSwordSlash", false, 1, 1, 0);
+					}else if (firstItem.getType() == dagger->itemType) {
+						plr->getAnimator()->enable("Player", "PlayerDaggerThrust", { false,1,1,0 });
+						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerDaggerThrust", false, 1, 1, 0);
+					} else if (firstItem.getType() == spear->itemType) {
+						plr->getAnimator()->enable("Player", "PlayerSpearThrust", { false,1,1,0 });
+						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSpearThrust", false, 1, 1, 0);
+					}
 					AnimatorProperty* prop = plr->getAnimator()->getProp("Player");
 					if (prop) {
 						weaponCombat->animationTime = prop->getRemainingSeconds();
@@ -432,37 +413,37 @@ namespace prounk {
 				}
 			}
 		}
-		if (IsKeyDown(GLFW_KEY_F)) {
-			if (!weaponCombat->attacking) {
-				// Set damage of weapon
-				weaponCombat->damageType = CombatData::SINGLE_DAMAGE;
-				Inventory* inv = getInventory();
-				Item& firstItem = inv->getItem(0);
+		//if (IsKeyDown(GLFW_KEY_F)) {
+		//	if (!weaponCombat->attacking) {
+		//		// Set damage of weapon
+		//		weaponCombat->damageType = CombatData::SINGLE_DAMAGE;
+		//		Inventory* inv = getInventory();
+		//		Item& firstItem = inv->getItem(0);
 
-				ComplexData* complexData = firstItem.getComplexData();
-				//ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
-				if (complexData) {
-					ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
-					ComplexPropertyType* knockProperty = app->getActiveSession()->complexDataRegistry.getProperty("knock");
-					weaponCombat->singleDamage = complexData->get(atkProperty);
-					weaponCombat->knockStrength = complexData->get(knockProperty); // side knock?
+		//		ComplexData* complexData = firstItem.getComplexData();
+		//		//ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
+		//		if (complexData) {
+		//			ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
+		//			ComplexPropertyType* knockProperty = app->getActiveSession()->complexDataRegistry.getProperty("knock");
+		//			weaponCombat->singleDamage = complexData->get(atkProperty);
+		//			weaponCombat->knockStrength = complexData->get(knockProperty); // side knock?
 
-					weaponCombat->singleDamage *= 1.1f; // amplify damage a little with this skill
+		//			weaponCombat->singleDamage *= 1.1f; // amplify damage a little with this skill
 
-					// other stuff
-					weaponCombat->skillType = SKILL_SIDE_SLASH;
-					weaponCombat->attack();
-					plr->getAnimator()->enable("Player", "PlayerSideSwing", { false,1,1,0 });
-					app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSideSwing", false, 1, 1, 0);
-					AnimatorProperty* prop = plr->getAnimator()->getProp("Player");
-					if (prop) {
-						weaponCombat->animationTime = prop->getRemainingSeconds();
-					}
-				} else {
-					log::out << "PlayerController::performSkills : Weapon is missing complex data\n";
-				}
-			}
-		}
+		//			// other stuff
+		//			weaponCombat->skillType = SKILL_SIDE_SLASH;
+		//			weaponCombat->attack();
+		//			plr->getAnimator()->enable("Player", "PlayerSideSwing", { false,1,1,0 });
+		//			app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSideSwing", false, 1, 1, 0);
+		//			AnimatorProperty* prop = plr->getAnimator()->getProp("Player");
+		//			if (prop) {
+		//				weaponCombat->animationTime = prop->getRemainingSeconds();
+		//			}
+		//		} else {
+		//			log::out << "PlayerController::performSkills : Weapon is missing complex data\n";
+		//		}
+		//	}
+		//}
 		releasePlayer(plr);
 		releaseHeldObject(plr);
 	}
@@ -506,16 +487,16 @@ namespace prounk {
 				plr->getWorld()->unlockPhysics();
 
 				playerCombat->health = playerCombat->getMaxHealth();
-				app->getActiveSession()->netSetHealth(plr, playerCombat->health);
+				app->getActiveSession()->netEditHealth(plr, playerCombat->health);
 			}
 		}
 		if (IsKeyPressed(GLFW_KEY_K)) {
 			playerCombat->health = 0; // kill player
-			app->getActiveSession()->netSetHealth(plr, playerCombat->health);
+			app->getActiveSession()->netEditHealth(plr, playerCombat->health);
 		}
 		if (IsKeyPressed(GLFW_KEY_L)) {
 			playerCombat->health = playerCombat->getMaxHealth();
-			app->getActiveSession()->netSetHealth(plr, playerCombat->health);
+			app->getActiveSession()->netEditHealth(plr, playerCombat->health);
 		}
 		performSkills(info);
 		releasePlayer(plr);
@@ -660,7 +641,7 @@ namespace prounk {
 				plr->getRigidBody()->setTransform({}); // reset position
 				plr->getWorld()->unlockPhysics();
 				combatData->health = combatData->getMaxHealth();
-				app->getActiveSession()->netSetHealth(plr, combatData->health);
+				app->getActiveSession()->netEditHealth(plr, combatData->health);
 			}
 		}
 		// Death camera
@@ -671,18 +652,20 @@ namespace prounk {
 				log::out << log::RED << "PlayerController::render : renderer is null\n";
 			} else {
 				Camera* cam = renderer->getCamera();
-				//glm::mat4 camMat = glm::translate(pos + camOffset);
-				//glm::vec3 camPos = cam->popos + camOffset - cam->getLookVector() * zoom;
-				//if (zoom != 0) {
-				//	camMat *= glm::rotate(cam->getRotation().y, glm::vec3(0, 1, 0)) 
-				//		* glm::rotate(cam->getRotation().x, glm::vec3(1, 0, 0)) 
-				//		* glm::translate(glm::vec3(0, 0, zoom));
-				//}
-				//cam->setPosition(camMat[3]);
-				//cam->setPosition(camPos);
-				//glm::vec3 diff = pos - camPos;
-				
-				//cam->setRotation();
+
+				glm::vec3 diff = cam->getPosition() - pos;
+				float length = glm::length(diff);
+				glm::vec3 dir = diff/length;
+				glm::vec3 rot{};
+				rot.y = std::atan2(dir.x, dir.z);
+				rot.x = std::asin(-dir.y);
+				cam->setRotation(rot);
+				// Could add some slight rotation to the camera. There is a chance the camera would go through
+				// walls though.
+				float maxLength = 10;
+				if (length > maxLength) {
+					cam->setPosition(dir* maxLength +pos);
+				}
 			}
 		}
 
@@ -715,8 +698,16 @@ namespace prounk {
 			float wantY = realY;
 
 			if (IsKeybindingDown(KeyMoveCamera) || zoom == 0) {
-				wantY = camera->getRotation().y - glm::pi<float>();
-			} else if (glm::length(flatMove) != 0) {
+				targetRotation = camera->getRotation().y - glm::pi<float>();
+				followTargetRotation = true;
+			}
+			const float targetMargin = 0.01;
+			if (fabs(AngleDifference(realY, targetRotation)) < 0.01)
+				followTargetRotation = false;
+
+			if (followTargetRotation) {
+				wantY = targetRotation;
+			}else if (glm::length(flatMove) != 0) {
 				wantY = std::atan2(flatMove.x, flatMove.z);
 			}
 

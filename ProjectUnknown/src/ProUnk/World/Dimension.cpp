@@ -25,9 +25,11 @@ namespace prounk {
 			log::out << log::RED << "Dimension : Dummy has null combat data!";
 			return;
 		}
-
+		//log::out << "Pos " << obj->getPosition() << "\n";
 		//-- Is Dummy dead?
 		if (combatData->health == 0) {
+
+			DropInventory(obj); // does this happen for dummy on client and server because that may lead to double items.
 			// maybe respawn dummy?
 			DeleteObject(this, obj);
 			return;
@@ -175,6 +177,51 @@ namespace prounk {
 			}
 		}
 	}
+	void Dimension::SpawnLogic(engone::LoopInfo& info) {
+		using namespace engone;
+		if (spawnLocations.size() == 0) {
+			spawnLocations.push_back({20,0,0});
+			spawnLocations.push_back({ -20,0,0 });
+			spawnLocations.push_back({ 0,0,20 });
+			spawnLocations.push_back({ 0,0,-20 });
+		}
+
+		float runtime = info.app->getRuntime();
+
+		spawnTime -= info.timeStep;
+
+		if (spawnTime <= 0) {
+			spawnTime += spawnDelay;
+			spawnDelay = 6*spawnCount;
+			//spawnDelay *= 0.95;
+			//if (spawnDelay < 1)
+			//	spawnDelay = 1;
+
+			int allocBytes = spawnLocations.size() * sizeof(int);
+			int* locationCount = (int*)alloc::malloc(allocBytes);
+			ZeroMemory(locationCount,allocBytes);
+
+			int spawn = spawnCount;
+
+			if (getWorld()->getObjectCount() > 50)
+				spawn = 0;
+
+			for (int i = 0; i < spawn;i++) {
+				int index = GetRandom()*spawnLocations.size();
+				locationCount[index]++;
+			}
+			for (int i = 0; i < spawnLocations.size();i++) {
+				for (int j = 0; j < locationCount[i];j++) {
+					engone::EngineObject* obj = CreateDummy(this);
+					obj->setPosition(spawnLocations[i]+glm::vec3(0,5,0)*(float)j);
+					getParent()->netAddGeneral(obj);
+				}
+			}
+			alloc::free(locationCount,allocBytes);
+
+			spawnCount += 1;
+		}
+	}
 	engone::Mutex m_mutex;
 	static bool dummyEnabled=false;
 	void Dimension::update(engone::LoopInfo& info) {
@@ -191,6 +238,8 @@ namespace prounk {
 			m_mutex.unlock();
 		}
 
+		SpawnLogic(info);
+
 		while (obj = iterator.next()) {
 			if (obj->getPosition().y < KILL_BELOW_Y) {
 				if (obj->getObjectType() == OBJECT_PLAYER) {
@@ -198,7 +247,7 @@ namespace prounk {
 						Session* session = getParent();
 						auto& oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
 						oinfo.combatData.health = 0;
-						session->netSetHealth(obj, 0);
+						session->netEditHealth(obj, 0);
 
 						//Session* session = getParent();
 						//auto combatData = GetCombatData(session, obj);

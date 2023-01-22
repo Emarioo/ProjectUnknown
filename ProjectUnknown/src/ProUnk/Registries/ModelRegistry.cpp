@@ -2,12 +2,19 @@
 
 #include "Engone/Utilities/FileUtility.h"
 
+#include "Engone/Window.h"
+
 namespace prounk {
 
 	engone::ModelAsset* ModelRegistry::getModel(ModelId id) {
 		if (id < 1 || id > m_entries.size())
 			return nullptr;
 		return m_entries[id-1].model;
+	}
+	ModelId ModelRegistry::registerModel(const std::string& modelName) {
+		using namespace engone;
+		ModelAsset* model = engone::GetActiveWindow()->getStorage()->load<ModelAsset>(modelName);
+		return registerModel(model);
 	}
 	ModelId ModelRegistry::registerModel(engone::ModelAsset* model) {
 		using namespace engone;

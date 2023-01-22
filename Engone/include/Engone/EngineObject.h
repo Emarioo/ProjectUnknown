@@ -42,7 +42,11 @@ namespace engone {
 		void setColliderUserData(void* userData);
 		// rigidBody->setTransform...
 		void setPosition(const glm::vec3& position);
-		const glm::vec3& getPosition();
+		glm::vec3 getPosition();
+		const glm::vec3& getLinearVelocity();
+		const glm::vec3& getAngularVelocity();
+		// applyWorldForceAtCenterOfMass
+		void applyForce(const glm::vec3& force);
 #endif
 
 		UUID getUUID() const;

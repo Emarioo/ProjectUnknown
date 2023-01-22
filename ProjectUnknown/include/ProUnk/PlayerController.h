@@ -87,6 +87,9 @@ namespace prounk {
 
 		ItemType lastItemType=0;
 
+		bool followTargetRotation=false;
+		float targetRotation=0;
+
 		//engone::Camera testCam;
 
 		bool onGround = false;

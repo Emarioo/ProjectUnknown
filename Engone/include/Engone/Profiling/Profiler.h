@@ -20,7 +20,7 @@ namespace engone {
 			double getAverage();
 
 		private:
-			static const uint32 MAX_SAMPLES = 60;
+			static const uint32 MAX_SAMPLES = 20;
 			uint32 totalSamples = 0;
 			uint32 sampleIndex = 0;
 			uint32 countSamples[MAX_SAMPLES];

@@ -23,6 +23,7 @@ namespace prounk {
 	//-- Some useful functions
 	
 	bool HasCombatData(int type);
+	void DropInventory(engone::EngineObject* object, float shock=1);
 	bool IsDead(engone::EngineObject* object);
 	CombatData* GetCombatData(engone::EngineObject* object);
 	Inventory* GetInventory(engone::EngineObject* object);

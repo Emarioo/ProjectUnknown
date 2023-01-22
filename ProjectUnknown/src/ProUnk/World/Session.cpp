@@ -3,6 +3,8 @@
 #include "ProUnk/GameApp.h"
 
 namespace prounk {
+	const char* Session::DEFAULT_PORT = "3567";
+
 	float NetworkStats::getBytesSentPerSecond() {
 		return sentPerSecond;
 	}
@@ -62,7 +64,7 @@ namespace prounk {
 			//log::out << "Relay ";
 
 			 //detect command.
-			//NetCommand cmd;
+			//NetMessageType cmd;
 			//msg.pull(&cmd);
 
 			// check if you have permission.
@@ -152,8 +154,8 @@ namespace prounk {
 				EngineObject* obj;
 				while (obj = iter.next()) {
 					netAddGeneral(obj);
-					netSetTrigger(obj, obj->isOnlyTrigger());
-					netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
+					netEditTrigger(obj, obj->isOnlyTrigger());
+					netEditBody(obj, (uint64_t)obj->getRigidBody()->getType());
 					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
 				}
 			} else if (e == NetEvent::Disconnect) {
@@ -201,8 +203,8 @@ namespace prounk {
 				while (obj = iter.next()) {
 					if (obj->getFlags() & OBJECT_NETMOVE) {
 						netAddGeneral(obj);
-						netSetTrigger(obj, obj->isOnlyTrigger());
-						netEditObject(obj, NET_EDIT_BODY, (uint64_t)obj->getRigidBody()->getType());
+						netEditTrigger(obj, obj->isOnlyTrigger());
+						netEditBody(obj, (uint64_t)obj->getRigidBody()->getType());
 					}
 					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
 				}
@@ -237,11 +239,11 @@ namespace prounk {
 		//log::out << "Receive: Size:" <<msg.size()<<" UUID: "<<uuid<<"\n";
 		Sender* sender = m_server.isRunning() ? (Sender*)&m_server : (Sender*)&m_client;
 
-		//void(NetworkFuncs:: * f[])(MessageBuffer & msg, UUID clientUUID) = {recAddCreature};
+		//void(NetProtocols:: * f[])(MessageBuffer & msg, UUID clientUUID) = {recAddCreature};
 
 		//f[(int)MoveObject](msg, clientUUID);
 
-		NetCommand cmd;
+		NetMessageType cmd;
 		msg->pull(&cmd);
 
 		if (cmd != NET_MOVE&&cmd!=NET_DAMAGE) {
@@ -320,7 +322,7 @@ namespace prounk {
 				}
 			}
 
-		} else if (cmd == NET_TRIGGER) {
+		} else if (cmd == NET_EDIT_TRIGGER) {
 			//-- Extract data
 			UUID_DIM obj;
 			pullObject(msg, obj);
@@ -340,81 +342,27 @@ namespace prounk {
 				}
 				obj.dim->getWorld()->unlockPhysics();
 			}
-		} else if (cmd == NET_EDIT) {
+		} else if (cmd == NET_EDIT_BODY) {
 			//-- Extract data
 			UUID_DIM obj;
 			pullObject(msg, obj);
 
-			int type;
+			uint64_t type;
 			msg->pull(&type);
-			uint64_t data;
-			msg->pull(&data);
 
 			//-- Find object with matching UUID
 			if (obj.dim) {
 				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
 				if (object) {
-					if (type == NET_EDIT_BODY) {
-						obj.dim->getWorld()->lockPhysics();
-						object->getRigidBody()->setType((rp3d::BodyType)data);
-						obj.dim->getWorld()->unlockPhysics();
-					}
-					//else if (type == 1) {
-					//	//uint64_t data;
-					//	//msg.pull(&data);
-					//	//UUID uuid2 = { data1,data2 };
-					//	//EngineObject* obj = getObject(uuid2);
-					//	//if (obj) {
-					//	//	Player* plr = (Player*)obj;
-					//	//	object->rigidBody->getCollider(data0)->setUserData(&plr->combatData);
-					//	//} else {
-					//	//	object->rigidBody->getCollider(data0)->setUserData(nullptr);
-					//	//}
-					//} else if (type == 2) {
-					//	UUID uuid2;
-					//	msg.pull(&uuid2);
-					//	bool yes;
-					//	msg.pull(&yes);
-
-					//	EngineObject* object2 = obj.dim->getWorld()->requestAccess(uuid2);
-					//	if (object2) {
-					//		log::out << log::RED << "Session::Receive - EditType:2 is broken\n";
-					//		//SetCombatData(object2, object, yes);
-					//		obj.dim->getWorld()->releaseAccess(uuid2);
-					//	} else
-					//		log::out << log::RED << "Session::Receive - " << cmd << ", type 2, object2 is nullptr\n";
-					//}
+					obj.dim->getWorld()->lockPhysics();
+					object->getRigidBody()->setType((rp3d::BodyType)type);
+					obj.dim->getWorld()->unlockPhysics();
 					obj.dim->getWorld()->releaseAccess(obj.uuid);
 				}
 			}
 		} else if (cmd == NET_DAMAGE) {
-			//-- Extract data
-			UUID_DIM obj;
-			pullObject(msg, obj);
-
-			float damage;
-			msg->pull(&damage);
-
-			//-- Find object with matching UUID
-			if (obj.dim) {
-				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
-				
-				//log::out << "Session::Receive : DamageObject is broken\n";
-				if (object) {
-
-					auto& oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
-					oinfo.combatData.health -= damage;
-					if (oinfo.combatData.health < 0)
-						oinfo.combatData.health = 0;
-
-					// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
-					
-					// Todo: Change this to contact point instead of object.pos. Contact point should be added in NET_DAMAGE.
-					getParent()->visualEffects.addDamageParticle(object->getPosition());
-					obj.dim->getWorld()->releaseAccess(obj.uuid);
-				}
-			}
-		} else if (cmd == NET_SET_HEALTH) {
+			recDamageObject(msg, clientUUID);
+		} else if (cmd == NET_EDIT_HEALTH) {
 			//-- Extract data
 			UUID_DIM obj;
 			pullObject(msg, obj);
@@ -426,18 +374,35 @@ namespace prounk {
 			if (obj.dim) {
 				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
 
-				//log::out << "Session::Receive : DamageObject is broken\n";
 				if (object) {
 
 					auto& oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
 					oinfo.combatData.health = health;
-					//if (oinfo.combatData.health < 0)
-						//oinfo.combatData.health = 0;
+					if (oinfo.combatData.health < 0)
+						oinfo.combatData.health = 0;
 
 					// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
 
 					// Todo: Change this to contact point instead of object.pos. Contact point should be added in NET_DAMAGE.
 					//getParent()->visualEffects.addDamageParticle(object->getPosition());
+					obj.dim->getWorld()->releaseAccess(obj.uuid);
+				}
+			}
+		} else if (cmd == NET_EDIT_MODEL) {
+			//-- Extract data
+			UUID_DIM obj;
+			pullObject(msg, obj);
+
+			std::string modelName;
+			msg->pull(modelName);
+
+			//-- Find object with matching UUID
+			if (obj.dim) {
+				EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+
+				if (object) {
+					engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
+					object->setModel(assets->load<engone::ModelAsset>(modelName));
 					obj.dim->getWorld()->releaseAccess(obj.uuid);
 				}
 			}

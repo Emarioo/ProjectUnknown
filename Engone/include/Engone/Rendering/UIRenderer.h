@@ -44,6 +44,17 @@ namespace engone {
 
 			Color(glm::vec4 vec) { *this = *(ui::Color*)&vec; }
 
+			static int FromChar(char c) {
+				if ('0' <= c && c <= '9') return c-'0';
+				return 10+c - 'A';
+			}
+			Color(const char* hex, float alpha=1) {
+				r = (16*FromChar(hex[0]) + FromChar(hex[1]))/255.f;
+				g = (16*FromChar(hex[2]) + FromChar(hex[3]))/255.f;
+				b = (16*FromChar(hex[4]) + FromChar(hex[5]))/255.f;
+				a = alpha;
+			}
+
 			glm::vec4 toVec4() {
 				return *(glm::vec4*)this;
 			}

@@ -20,7 +20,7 @@ namespace prounk {
 		// dealDamage could then get the owner which is the player can do something with the player's rotation
 		engone::EngineObject* owner = nullptr;
 		float animationTime = 0; // endFrame-currentFrame in seconds
-		
+
 		bool attacking = false; // should be true when dealing damage
 
 		std::vector<engone::UUID> hitObjects; // cleared at beginning of attack

@@ -23,6 +23,13 @@ namespace prounk {
 		engone::EngineWorld* m_world=nullptr;
 		Session* m_parent = nullptr;
 
+		// temporary
+		std::vector<glm::vec3> spawnLocations;
+		int spawnCount=1;
+		float spawnTime=0;
+		float spawnDelay=1;
+
+		void SpawnLogic(engone::LoopInfo& info);
 		void DummyLogic(engone::LoopInfo& info, engone::EngineObject* obj);
 
 		friend class Session;

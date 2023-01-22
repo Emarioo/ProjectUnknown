@@ -26,6 +26,53 @@ namespace prounk {
 		}
 		return false;
 	}
+	void DropInventory(engone::EngineObject* object, float shock) {
+		using namespace engone;
+		if (!object) return;
+		Inventory* inv = GetInventory(object);
+		if (!inv) return;
+
+		//auto& dims = app->getActiveSession()->getDimensions();
+		//if (dims.size() == 0) {
+		//	releasePlayer(plr);
+		//	return;
+		//}
+
+		// Drops the held object at a specific position
+		Dimension* dim = ((Dimension*)object->getWorld()->getUserData()); // Todo: the dimension should be the one the player is in.
+		//auto heldObject = requestHeldObject();
+		if (inv->getSlotSize() == 0) {
+			log::out << "DropInventory("<<(BasicObjectType)object->getObjectType()<<") : No items to drop\n";
+		}
+		for (int i = 0; i < inv->getSlotSize(); i++) {
+			Item& item = inv->getItem(i);
+
+			if (item.getType() == 0)
+				continue;
+
+			auto itemObject = CreateItem(dim, item);
+			item = Item(); // clear slot
+
+			// use a random position for items not equipped.
+			glm::vec3 offset = { GetRandom() - .5f, 1 + GetRandom() - .5f,GetRandom() - .5f };
+			offset *= .5;
+			itemObject->setPosition(object->getPosition() + offset);
+
+			dim->getWorld()->lockPhysics();
+			rp3d::Vector3 force = { (float)GetRandom() - .5f, (float)GetRandom(),(float)GetRandom() - .5f };
+			force *= 200.f * shock;
+			itemObject->getRigidBody()->applyWorldForceAtCenterOfMass(force);
+
+			rp3d::Vector3 torque = { (float)GetRandom() - .5f, (float)GetRandom() - .5f,(float)GetRandom() - .5f };
+			torque *= 600.f * shock;
+			itemObject->getRigidBody()->applyWorldForceAtCenterOfMass(torque);
+			dim->getWorld()->unlockPhysics();
+
+			dim->getParent()->netAddGeneral(itemObject);
+
+			dim->getWorld()->releaseAccess(itemObject->getUUID());
+		}
+	}
 	bool IsDead(engone::EngineObject* object) {
 		if (!object) return false;
 		int type = object->getObjectType();
@@ -56,27 +103,18 @@ namespace prounk {
 		} 
 		return nullptr;
 	}
-	//engone::EngineObject* CreateObject(int type, Dimension* dimension, engone::UUID uuid) {
-	//	using namespace engone;
-	//	if (type == OBJECT_DUMMY) return CreateDummy(dimension,uuid);
-	//	if (type == OBJECT_TERRAIN) return CreateTerrain(dimension, uuid);
-	//	if (type == OBJECT_PLAYER) return CreatePlayer(dimension, uuid);
-	//	if (type == OBJECT_WEAPON) return CreatePlayer(dimension, uuid);
-	//	log::out << log::RED << "CreateObject - type '"<<type<<"' doesn't exist\n";
-	//	return nullptr;
-	//}
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object) {
 		using namespace engone;
 		
 		if (object->getObjectInfo() != 0) {
 			auto& reg = dimension->getParent()->objectInfoRegistry;
-			if (object->getObjectType() == OBJECT_ITEM) {
+			if (object->getObjectType() & OBJECT_ITEM) {
 				reg.unregisterItemInfo(object->getObjectInfo());
 				// Todo: Unregister complex data?
 				//		At the time of writing ComplexDataRegistry isn't used. Instead ComplexData is a member inside Item.
-			} else if (object->getObjectType() == OBJECT_WEAPON) {
+			} else if (object->getObjectType() & OBJECT_WEAPON) {
 				reg.unregisterWeaponInfo(object->getObjectInfo());
-			} else if (object->getObjectType() == OBJECT_CREATURE) {
+			} else if (object->getObjectType() & OBJECT_CREATURE) {
 				reg.unregisterCreatureInfo(object->getObjectInfo());
 			} else {
 				goto J123; // object types here will not have it's info reset
@@ -111,14 +149,36 @@ namespace prounk {
 
 		out->createAnimator();
 			
-		int id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo("Dummy");
-		out->setObjectInfo(id);
+		Session* session = dimension->getParent();
 
-		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id).combatData;
+		uint32 dataIndex = session->objectInfoRegistry.registerCreatureInfo("Dummy");
+		out->setObjectInfo(dataIndex);
+
+		auto& oinfo = session->objectInfoRegistry.getCreatureInfo(dataIndex);
+		CombatData& combatData = oinfo.combatData;
 		combatData.owner = out;
 		combatData.damageType = CombatData::CONTINOUS_DAMAGE;
 		combatData.damagePerSecond = 20;
 		combatData.knockStrength = 0.1f;
+
+		int goldCount = 1+GetRandom()*3;
+		if (GetRandom() > 0.95) // Rare chance for extra much gold
+			goldCount += 5;
+		
+		if (goldCount > 0) {
+			oinfo.inventoryDataIndex = session->inventoryRegistry.createInventory();
+			Inventory* inv = session->inventoryRegistry.getInventory(oinfo.inventoryDataIndex);
+
+			auto* goldType = session->itemTypeRegistry.getType("gold_ingot");
+			if (goldType) {
+				inv->resizeSlots(goldCount);
+				for (int i = 0; i < goldCount; i++) {
+					inv->getItem(i) = Item(goldType->itemType, 1);
+				}
+			} else {
+				log::out << "CreateDummy : gold_ingot is not registered\n";
+			}
+		}
 
 		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
 		out->getRigidBody()->enableGravity(false);

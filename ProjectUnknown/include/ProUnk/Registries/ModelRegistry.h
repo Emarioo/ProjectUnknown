@@ -18,6 +18,7 @@ namespace prounk {
 		// id should not be out of bounds (crash otherwise)
 		engone::ModelAsset* getModel(ModelId id);
 
+		ModelId registerModel(const std::string& modelName);
 		// don't register models until deserialization is done
 		ModelId registerModel(engone::ModelAsset* model);
 

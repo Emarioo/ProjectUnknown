@@ -7,25 +7,28 @@
 namespace prounk {
 	CheatPanel::CheatPanel(GameApp* app) : m_app(app) {
 		Session* sess = app->getActiveSession();
-		const ItemTypeInfo* info = sess->itemTypeRegistry.getType("sword");
-		availableItems.push_back(Item(info->itemType,1));
-		
-		ComplexData* data = availableItems.back().getComplexData();
-		//ComplexData* data = sess->complexDataRegistry.registerData();
+		const ItemTypeInfo* sword = sess->itemTypeRegistry.getType("sword");
+		const ItemTypeInfo* dagger = sess->itemTypeRegistry.getType("dagger");
+		const ItemTypeInfo* spear = sess->itemTypeRegistry.getType("spear");
 
 		ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
 		ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
+
+		availableItems.push_back(Item(sword, 1));
+		ComplexData* data = availableItems.back().getComplexData();
 		data->set(atk,30.f);
-		data->set(knock,0.3f);
-		//availableItems.back().setComplexData(data->getDataIndex());
-		
-		//const ItemTypeInfo* info = sess->itemTypeRegistry.getType("sword");
-		availableItems.push_back(Item(info->itemType, 1));
+		data->set(knock,0.f);
+
+		availableItems.push_back(Item(dagger, 1));
 		data = availableItems.back().getComplexData();
-		//data = sess->complexDataRegistry.registerData();
-		data->set(atk, 40.f);
-		data->set(knock, 5.3f);
-		//availableItems.back().setComplexData(data->getDataIndex());
+		data->set(atk, 10);
+		//data->set(atk, 999.f);
+		data->set(knock, 0.f);
+
+		availableItems.push_back(Item(spear, 1));
+		data = availableItems.back().getComplexData();
+		data->set(atk, 50.f);
+		data->set(knock, 0.f);
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
@@ -89,10 +92,12 @@ namespace prounk {
 
 				if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 					uint32_t slot = inv->findAvailableSlot(item);
-					bool yes = item.copy(inv->getItem(slot));
-					if (yes) {
-						itemSlot = i;
-						animTime = maxAnimTime;
+					if (slot != -1) {
+						bool yes = item.copy(inv->getItem(slot));
+						if (yes) {
+							itemSlot = i;
+							animTime = maxAnimTime;
+						}
 					}
 				}
 			}
@@ -110,7 +115,7 @@ namespace prounk {
 			} else {
 				item.setCount(1);
 			}
-			DrawItemToolTip(pixelX + itemSize, pixelY, item);
+			DrawItemToolTip(pixelX, pixelY, itemSize, item);
 		}
 
 		setMinHeight(itemSize);

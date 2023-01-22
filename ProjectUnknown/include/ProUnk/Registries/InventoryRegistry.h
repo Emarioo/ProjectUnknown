@@ -14,6 +14,7 @@ namespace prounk {
 	public:
 		Item() = default;
 		Item(ItemType type, int count);
+		Item(const ItemTypeInfo* type, int count);
 		//Item(ItemType type, int count, const std::string& name, ModelId modelId) : m_count(count), m_name(name), m_modelId(modelId) {}
 
 		ItemType getType();

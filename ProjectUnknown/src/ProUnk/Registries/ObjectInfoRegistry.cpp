@@ -42,8 +42,8 @@ namespace prounk {
 		return *m_creatureInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterCreatureInfo(uint32 dataIndex) {
-		Session* session = ((GameApp*)engone::GetActiveWindow())->getActiveSession();
-		auto oinfo = m_creatureInfos.get(dataIndex);
+		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		auto oinfo = m_creatureInfos.get(dataIndex-1);
 		if (oinfo->inventoryDataIndex)
 			session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
 

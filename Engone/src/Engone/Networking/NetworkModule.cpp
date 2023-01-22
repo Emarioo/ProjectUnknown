@@ -620,6 +620,10 @@ namespace engone {
 			log::out << "Server : Destructor finished\n";
 	}
 	bool Server::start(const std::string& port) {
+		if (!hasCallbacks()) {
+			log::out << log::RED << "Server::start : has no callbacks\n";
+			return false;
+		}
 		m_port = port;
 
 		m_workMutex.lock();
@@ -664,7 +668,7 @@ namespace engone {
 
 					if (action.type == Action::START) {
 						if (!m_onEvent ||!m_onReceive) {
-							log::out << log::RED << "Server : missing lambdas\n";
+							log::out << log::RED << "Server : missing callbacks\n";
 							
 						} else {
 							InitNetworking();
@@ -997,51 +1001,47 @@ namespace engone {
 									freeaddrinfo(result);
 									keepRunning = false;
 								} else {
-									//m_port = port;
-									//m_ip = ip;
-									// creating worker thread here isn't ideal
-									//m_workerThread = std::thread([this, newSocket, result]() {
-									//	engone::SetThreadName(-1, "Client worker");
-										//ENGONE_DEBUG(log::out << "client work thread start\n";)
-										int error = connect(newSocket, result->ai_addr, (int)result->ai_addrlen);
-										freeaddrinfo(result);
+									m_connection = ALLOC_NEW(Connection)(newSocket);
+									m_connection->m_uuid = 0;
+									m_connection->m_client = this;
+									unlock();
+									int error = connect(newSocket, result->ai_addr, (int)result->ai_addrlen);
+									lock();
+									freeaddrinfo(result);
 
-										//lock();
-										if (error == SOCKET_ERROR) {
-											int code = WSAGetLastError();
-											// Error with client connect
-											log::out << "Client : Worker : err code: " << code << "\n";
+									if (error == SOCKET_ERROR) {
+										int code = WSAGetLastError();
+										// Error with client connect
+										if (code == WSAETIMEDOUT) {
+											log::out << "Client::Worker : Connection timed out (errcode: " << code << ")\n";
+										}else
+										log::out << "Client : Worker : err code: " << code << "\n";
 											//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
-											closesocket(newSocket);
-											keepRunning = false;
-											unlock();
-											m_onEvent(NetEvent::Failed, 0);
-											lock();
-										} else {
-
-											m_connection = ALLOC_NEW(Connection)(newSocket);
-											m_connection->m_uuid = 0; // ISSUE: this was 9999 before i switched to UUID maybe bad?
-											m_connection->m_client = this;
-
-											m_ip = std::move(action.ip);
-											m_port = std::move(action.port);
-
-											unlock();
-											bool keep = m_onEvent(NetEvent::Connect, 0);
-											lock();
-											if (!keep) {
-												cleanup();
-											} else {
-												m_connection->readThread();
-											}
+										if (m_connection) {
+											ALLOC_DELETE(Connection, m_connection);
+											m_connection = nullptr;
 										}
-										//unlock();
-										//ENGONE_DEBUG(log::out << "client work thread stop\n";)
-									//});
+										keepRunning = false;
+										unlock();
+										m_onEvent(NetEvent::Failed, 0);
+										lock();
+									} else {
+
+										m_ip = std::move(action.ip);
+										m_port = std::move(action.port);
+
+										unlock();
+										bool keep = m_onEvent(NetEvent::Connect, 0);
+										lock();
+										if (!keep) {
+											cleanup();
+										} else {
+											m_connection->readThread();
+										}
+									}
 								}
 							}
 							unlock();
-							//return keepRunning;
 						}
 					} else if (action.type == Action::STOP) {
 						cleanup();

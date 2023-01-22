@@ -94,7 +94,7 @@
     <ClCompile Include="src\ProUnk\Combat\Combat.cpp" />
     <ClCompile Include="src\ProUnk\Combat\CombatData.cpp" />
     <ClCompile Include="src\ProUnk\Combat\Skills.cpp" />
-    <ClCompile Include="src\ProUnk\Network\NetworkFuncs.cpp" />
+    <ClCompile Include="src\ProUnk\Network\NetProtocols.cpp" />
     <ClCompile Include="src\ProUnk\UI\SessionPanel.cpp" />
     <ClCompile Include="src\ProUnk\World\Dimension.cpp" />
     <ClCompile Include="src\ProUnk\Effects\VisualEffect.cpp" />
@@ -132,7 +132,7 @@
   <ItemGroup>
     <ClInclude Include="include\ProUnk\Combat\Skills.h" />
     <ClInclude Include="include\ProUnk\Combat\Tags.h" />
-    <ClInclude Include="include\ProUnk\Network\NetworkFuncs.h" />
+    <ClInclude Include="include\ProUnk\Network\NetProtocols.h" />
     <ClInclude Include="include\ProUnk\UI\SessionPanel.h" />
     <ClInclude Include="include\ProUnk\World\Dimension.h" />
     <ClInclude Include="include\ProUnk\Effects\VisualEffects.h" />

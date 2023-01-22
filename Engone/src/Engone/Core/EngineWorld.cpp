@@ -11,8 +11,24 @@ namespace engone {
 
 		m_world->m_objectsMutex.lock();
 		bool running = m_world->m_objects.iterate(m_iterator);
+		
+		//bool running=true;
+		//while (running) {
+		//	if (m_iterator.position >= m_world->m_objects.size()) {
+		//		running = false;
+		//		break;
+		//	}
+		//	m_iterator.ptr = m_world->m_objects[m_iterator.position];
+		//	m_iterator.position++;
+		//	if (!m_iterator.ptr) {
+		//		continue;
+		//	}
+		//	break;
+		//}
 
 		if (!running) {
+			m_iterator.ptr = nullptr;
+			m_iterator.position = 0;
 			m_world->m_objectsMutex.unlock();
 			return nullptr;
 		}
@@ -123,6 +139,11 @@ namespace engone {
 		m_objectsMutex.lock();
 		uint32_t index = m_objects.add({});
 		EngineObject* obj = m_objects.get(index);
+
+		//uint32_t index = m_objects.size();
+		//EngineObject* obj = new EngineObject();
+		//m_objects.push_back(obj);
+
 		obj->init(this, uuid);
 		obj->m_objectIndex = index;
 		uuid = obj->getUUID();
@@ -187,6 +208,9 @@ namespace engone {
 	//void EngineWorld::releaseAccess(EngineObject* obj) {
 	//	releaseAccess(obj->getUUID());
 	//}
+	int EngineWorld::getObjectCount() {
+		return m_objects.getCount();
+	}
 	void EngineWorld::releaseAccess(UUID uuid) {
 		// do nothing for now
 
@@ -289,7 +313,12 @@ namespace engone {
 		m_objectMapMutex.unlock();
 
 		m_objectsMutex.lock();
+
 		m_objects.remove(obj->m_objectIndex);
+
+		//int index = obj->m_objectIndex;
+		//delete m_objects[index];
+		//m_objects[index] = nullptr;
 		//log::out << "Deleted Object " << uuid << "\n";
 		m_objectsMutex.unlock();
 

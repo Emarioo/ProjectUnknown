@@ -14,7 +14,9 @@ namespace engone {
 		if (m_rigidBody) {
 			m_world->lockPhysics();
 			m_world->getPhysicsWorld()->destroyRigidBody(m_rigidBody);
+			log::out << "destroy rigidbody " << (void*)m_rigidBody << "\n";
 			m_world->unlockPhysics();
+			m_rigidBody = nullptr;
 		}
 #endif
 		removeAnimator();
@@ -37,6 +39,7 @@ namespace engone {
 		rp3d::Transform t;
 		m_world->lockPhysics();
 		m_rigidBody = world->getPhysicsWorld()->createRigidBody(t); // PHYSICS WORLD DOES NOT HAVE MUTEX, DANGEROUS
+		log::out << "create rigidbody " << (void*)m_rigidBody << "\n";
 		m_world->unlockPhysics();
 		if (!m_rigidBody) {
 			log::out << log::RED << "EngineObject : RigidBody is null\n";
@@ -57,6 +60,7 @@ namespace engone {
 		else m_flags &= ~ONLY_TRIGGER;
 		
 		getWorld()->lockPhysics();
+		//log::out << "yeah " << getObjectType() << " " <<m_rigidBody->getEntity().getIndex()<< " "<<m_rigidBody->getNbColliders() << "\n";
 		for (int i = 0; i < m_rigidBody->getNbColliders(); i++) {
 			auto col = m_rigidBody->getCollider(i);
 			col->setIsTrigger(yes);
@@ -236,17 +240,38 @@ namespace engone {
 			m_world->unlockPhysics();
 		} 
 	}
-	const glm::vec3& EngineObject::getPosition() {
+	glm::vec3 EngineObject::getPosition() {
 		m_world->lockPhysics();
-		const glm::vec3& we = *(const glm::vec3*)&m_rigidBody->getTransform().getPosition();
+		//glm::vec3 temp;
+		rp3d::Vector3 temp = m_rigidBody->getTransform().getPosition();
+		//*(rp3d::Vector3*)&temp = m_rigidBody->getTransform().getPosition();
 		m_world->unlockPhysics();
-		return we;
+		return *(glm::vec3*)&temp;
 	}
 	void EngineObject::setPosition(const glm::vec3& position) {
 		m_world->lockPhysics();
 		rp3d::Transform temp = m_rigidBody->getTransform();
 		temp.setPosition(*(const rp3d::Vector3*)&position);
 		m_rigidBody->setTransform(temp);
+		m_world->unlockPhysics();
+	}
+	const glm::vec3& EngineObject::getLinearVelocity() {
+		m_world->lockPhysics();
+		glm::vec3 temp;
+		*(rp3d::Vector3*)&temp = m_rigidBody->getLinearVelocity();
+		m_world->unlockPhysics();
+		return temp;
+	}
+	const glm::vec3& EngineObject::getAngularVelocity() {
+		m_world->lockPhysics();
+		glm::vec3 temp;
+		*(rp3d::Vector3*)&temp = m_rigidBody->getAngularVelocity();
+		m_world->unlockPhysics();
+		return temp;
+	}
+	void  EngineObject::applyForce(const glm::vec3& force) {
+		m_world->lockPhysics();
+		m_rigidBody->applyWorldForceAtCenterOfMass(*(const rp3d::Vector3*)&force);
 		m_world->unlockPhysics();
 	}
 #endif

@@ -1101,7 +1101,7 @@ namespace engone {
 
 		if ((flags&LoadIO) && !m_error && !m_path.empty()) {
 			map.heights.clear();
-			map.heights.shrink_to_fit();
+			//map.heights.shrink_to_fit();
 			FileReader file(m_path);
 			try {
 				file.read(&colliderType);

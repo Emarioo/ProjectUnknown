@@ -19,6 +19,10 @@ namespace prounk {
 		m_displayName = info->displayName;
 		m_modelId = info->modelId;
 	}
+	Item::Item(const ItemTypeInfo* type, int count) : m_type(type->itemType), m_count(count) {
+		m_displayName = type->displayName;
+		m_modelId = type->modelId;
+	}
 	ItemType Item::getType() { return m_type; }
 	void Item::setType(ItemType type) { 
 		m_type = type;

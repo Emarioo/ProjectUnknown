@@ -1,0 +1,465 @@
+# Start frame
+0
+# End frame
+12
+# FPS
+25
+# Object count
+6
+# Animnation data
+# Object
+3
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.25039857625961304
+# Frame
+2
+7
+0.5007972121238708
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.15853413939476013
+# Frame
+2
+7
+0.31706830859184265
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+-0.10294553637504578
+# Frame
+2
+7
+-0.20589110255241394
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+0.8893194794654846
+# Frame
+2
+7
+0.778639018535614
+# Frame
+2
+12
+1.0
+# Object
+5
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+-0.26377835869789124
+# Frame
+2
+7
+-0.5275567770004272
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.005158838350325823
+# Frame
+2
+7
+0.01031767763197422
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0034654075279831886
+# Frame
+2
+7
+0.0069308155216276646
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+0.9247143864631653
+# Frame
+2
+7
+0.8494288325309753
+# Frame
+2
+12
+1.0
+# Object
+4
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+-0.200532466173172
+# Frame
+2
+7
+-0.4010649621486664
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.03321199491620064
+# Frame
+2
+7
+0.06642399728298187
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.052288204431533813
+# Frame
+2
+7
+0.10457641631364822
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+0.9538167119026184
+# Frame
+2
+7
+0.9076334834098816
+# Frame
+2
+12
+1.0
+# Object
+0
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.009478959254920483
+# Frame
+2
+7
+0.018957920372486115
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0
+# Frame
+2
+7
+-3.820547614304679e-15
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0
+# Frame
+2
+7
+4.519919993839494e-09
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+0.9999101758003235
+# Frame
+2
+7
+0.9998202919960022
+# Frame
+2
+12
+1.0
+# Object
+1
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.018703052774071693
+# Frame
+2
+7
+0.037406109273433685
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.15932534635066986
+# Frame
+2
+7
+0.3186507225036621
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+-0.01443810760974884
+# Frame
+2
+7
+-0.02887621521949768
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+0.9733467698097229
+# Frame
+2
+7
+0.9466935992240906
+# Frame
+2
+12
+1.0
+# Object
+2
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0
+# Frame
+2
+7
+0.0
+# Frame
+2
+12
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0
+# Frame
+2
+7
+0.0
+# Frame
+2
+12
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+5
+0.0
+# Frame
+2
+7
+0.0
+# Frame
+2
+12
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+5
+1.0
+# Frame
+2
+7
+1.0
+# Frame
+2
+12
+1.0

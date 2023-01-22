@@ -135,7 +135,7 @@ namespace engone {
 		//sleepBox.y = upEdge;
 		//upEdge = sleepBox.y + sleepBox.h;
 
-		snprintf(str, bufferSize, "%.2f (%.2f) FPS", info.window->getRealFPS(), info.window->getFPS());
+		snprintf(str, bufferSize, "%.2f (%.2fms, %.2f) FPS", info.window->getRealFPS(), 1000./info.window->getRealFPS(),info.window->getFPS());
 		ui::TextBox fpsBox = { str,0,0,20,consolas,normalColor };
 		fpsBox.x = rightEdge - fpsBox.getWidth();
 		fpsBox.y = upEdge;
@@ -147,7 +147,7 @@ namespace engone {
 			}
 		}
 
-		snprintf(str, bufferSize, "%.2f (%.2f) UPS", info.app->getRealUPS(), info.app->getUPS());
+		snprintf(str, bufferSize, "%.2f (%.2fms, %.2f) UPS", info.app->getRealUPS(), 1000./info.app->getRealUPS(), info.app->getUPS());
 		ui::TextBox upsBox = { str,0,0,20,consolas,normalColor };
 		upsBox.x = rightEdge - upsBox.getWidth();
 		upsBox.y = upEdge;

@@ -1,20 +1,46 @@
-[02:01:42] Create OBJECT_PLAYER cbd0f6d0-c40a-ea13
-[02:01:42] ModelRegistry: Registered 'SwordBase/SwordBase' as 1
-[02:01:42] ItemTypeRegistry: Registered 'sword' as 1
-[02:01:42] ComplexDataRegistry: Registered 'atk' as 1
-[02:01:42] ComplexDataRegistry: Registered 'knock' as 2
-[02:01:42] Create OBJECT_TERRAIN 6b1fe236-4947-5052
-[02:01:42] Create OBJECT_WEAPON 431950ae-8d9e-870e
-[02:01:55] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[02:01:55] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[02:01:55] Queues: 40 / 38 Track/Untracks: 39 / 38  AddMem/SubMem: 15 / 3
-[02:01:55] Client::work - err code: 10038
-[02:01:55] Memory leak? 2526 expected 0
-[02:01:55] Memory summary:
+[00:40:01] create rigidbody 000002FBC4F9A0EB
+[00:40:01] Create OBJECT_PLAYER 2c478eb3-25ad-cce9
+[00:40:01] ComplexDataRegistry: Registered 'atk' as 1
+[00:40:01] ComplexDataRegistry: Registered 'knock' as 2
+[00:40:01] ModelRegistry: Registered 'Sword/Sword' as 1
+[00:40:01] ModelRegistry: Registered 'Dagger/Dagger' as 2
+[00:40:01] ModelRegistry: Registered 'Spear/Spear' as 3
+[00:40:01] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
+[00:40:01] ItemTypeRegistry: Registered 'sword' as 1
+[00:40:01] ItemTypeRegistry: Registered 'dagger' as 2
+[00:40:01] ItemTypeRegistry: Registered 'spear' as 3
+[00:40:01] ItemTypeRegistry: Registered 'gold_ingot' as 4
+[00:40:01] create rigidbody 000002FBC4F9A103
+[00:40:01] Create OBJECT_DUMMY ffecceb0-4218-8bbe
+[00:40:01] create rigidbody 000002FBC4F9A11B
+[00:40:01] Create OBJECT_WEAPON 759ce920-c64e-36fb
+[00:40:01] create rigidbody 000002FBC4F9A133
+[00:40:01] Create OBJECT_DUMMY 2cb73051-5d05-0060
+[00:40:02] create rigidbody 000002FBC4F9A14B
+[00:40:02] Create OBJECT_DUMMY c7b23dcd-65d6-d8e7
+[00:40:02] create rigidbody 000002FBC4F9A163
+[00:40:02] Create OBJECT_DUMMY fcdee0e0-8de1-6b5e
+[00:40:03] Client : Worker : err code: 10061
+[00:40:03] Client : Failed
+[00:40:05] GameApp : CLEANUP NOT IMPLEMENTED
+[00:40:05] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A0EB
+[00:40:05] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A103
+[00:40:05] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A11B
+[00:40:05] EngineObject::cleanup - Object Info is 3, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A133
+[00:40:05] EngineObject::cleanup - Object Info is 4, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A14B
+[00:40:05] EngineObject::cleanup - Object Info is 5, did you forget to free memory?
+[00:40:05] destroy rigidbody 000002FBC4F9A163
+[00:40:05] Queues: 42 / 40 Track/Untracks: 41 / 40  AddMem/SubMem: 15 / 3
+[00:40:05] Memory leak? 2526 expected 0
+[00:40:05] Memory summary:
  Tracker Total: 6046
- Alloc: 340038
+ Alloc: 345894
  Floating: 0
-Client : onEvent - Failed
  TrackNode:      3520, 0, 3520
  Window:         1440, 1, 0
  ItemVector:     1086, 0, 1086

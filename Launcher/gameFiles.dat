@@ -1,4 +1,4 @@
 ..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe=ProjectUnknown.exe
 ..\ProjectUnknown\assets=assets
-arguments=--client 192.168.0.5 1001
-autostart=ProjectUnknown.exe
+args=--client 192.168.0.5
+exe=ProjectUnknown.exe

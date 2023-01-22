@@ -153,7 +153,7 @@ namespace prounk {
 			ui::Draw(descText);
 		}
 	}
-	void DrawItemToolTip(float x, float y, Item& item) {
+	void DrawItemToolTip(float x, float y, float itemSize, Item& item) {
 		using namespace engone;
 
 		if (item.getType() == 0)
@@ -247,20 +247,55 @@ namespace prounk {
 		}
 		area.w += 6;
 
-		float edge=y+padding;
+		float spaceRight = win->getWidth() - (x + itemSize);
+		float spaceLeft = x;
+		float spaceDown = win->getHeight() - (y + itemSize);
+		float spaceUp = y;
 
-		standardInfo.x = x + area.w/2-standardInfo.getWidth()/2;
+		//-- Description positioning
+		if (spaceRight >= area.w) {
+			// Right side of little box
+			area.x = x + itemSize;
+			if (win->getHeight() < y+area.h) {
+				area.y = win->getHeight() - area.h;
+			} else {
+				area.y = y;
+			}
+		} else if (spaceUp >= area.h) {
+			// Above little box
+			area.x = win->getWidth() - area.w;
+			area.y = y - area.h;
+		} else if (spaceDown >= area.h) {
+			// Below little box
+			area.x = win->getWidth() - area.w;
+			area.y = y + itemSize;
+		} else if (spaceLeft >= area.w) {
+			// Left side of little box
+			area.x = x - area.w;
+			area.y = y;
+		} else {
+			// Wherever
+			area.x = x + itemSize / 2 - area.w / 2;
+			area.y = y + itemSize / 2 - area.h / 2;
+		}
+
+		//descText.x = descBox.x;
+		//descText.y = descBox.y;
+
+		float edge=area.y+padding;
+
+		standardInfo.x = area.x + area.w/2-standardInfo.getWidth()/2;
 		standardInfo.y = edge;
 		
 		edge += standardInfo.h;
 
 		for (ui::TextBox& textBox : propTexts) {
-			textBox.x = x + area.w / 2 - textBox.getWidth() / 2;
+			textBox.x = area.x + area.w / 2 - textBox.getWidth() / 2;
 			textBox.y = edge;
 			edge += textBox.h;
 		}
 		
-		hiddenInfo.x = x + area.w/2-hiddenInfo.getWidth()/2;
+		hiddenInfo.x = area.x + area.w/2-hiddenInfo.getWidth()/2;
 		hiddenInfo.y = edge;
 		edge += hiddenInfo.h;
 		

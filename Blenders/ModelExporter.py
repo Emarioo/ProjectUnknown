@@ -1098,6 +1098,11 @@ class Instance:
         self.asset=asset
         self.object=object
 
+def ConvertAxis(obj):      
+    obj.matrix_world = axisConvert @ obj.matrix_world
+    obj.data.transform(axisConvert)
+    obj.matrix_world = obj.matrix_world @ axisIConvert
+            
 def ExportAssets(log,assetPath):
     if not bpy.context.mode=='OBJECT':
         log.print('ERROR',"Must be in object mode!")
@@ -1233,11 +1238,7 @@ def ExportAssets(log,assetPath):
             bpy.context.scene.collection.objects.link(objectCopy)
             objectCopy.select_set(True)
             bpy.context.view_layer.objects.active=objectCopy
-            
-            objectCopy.matrix_world = axisConvert @ objectCopy.matrix_world
-            objectCopy.data.transform(axisConvert)
-            objectCopy.matrix_world = objectCopy.matrix_world @ axisIConvert
-            
+           
             bpy.context.view_layer.update()
             
             asset.name=asset.object.data.name
@@ -1256,6 +1257,8 @@ def ExportAssets(log,assetPath):
                         else:
                             isBoned=True
                     
+                    ConvertAxis(objectCopy) # convert after modifers are applied
+                    
                     file = FileWriter(modelPath+asset.name+".mesh")
                     if not file.error:
                         WriteMesh(log,file,objectCopy,isBoned,asset.name)
@@ -1267,6 +1270,8 @@ def ExportAssets(log,assetPath):
                         for mod in object.modifiers:
                             bpy.ops.object.modifier_apply(modifier=mod.name)
                         
+                        ConvertAxis(objectCopy) # convert after modifers are applied
+                    
                         # collider name needs to be overwritten
                         asset.name=colliderType+asset.object.data.name[1:]
                         
@@ -1277,6 +1282,8 @@ def ExportAssets(log,assetPath):
                 elif asset.type=="ARMATURE":
                     for mod in object.modifiers:
                         bpy.ops.object.modifier_apply(modifier=mod.name)
+                    
+                    ConvertAxis(objectCopy) # convert after modifers are applied
                     
                     file = FileWriter(modelPath+asset.name+".armature")
                     if not file.error:

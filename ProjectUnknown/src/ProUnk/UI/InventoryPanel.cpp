@@ -160,7 +160,7 @@ namespace prounk {
 				
 				Item& item = inv->getItem(hoveredSlot);
 				//log::out << item.getType()<<"\n";
-				DrawItemToolTip(pixelX + slotSize, pixelY, item);
+				DrawItemToolTip(pixelX, pixelY, slotSize, item);
 			}
 
 			const char* keepStr = "KeepInv (active)";

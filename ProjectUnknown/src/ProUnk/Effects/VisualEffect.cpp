@@ -229,12 +229,13 @@ namespace prounk {
 		m_damageParticles.push_back({});
 		auto& t = m_damageParticles.back();
 		t.lifetime = 0.5 + GetRandom() * 1;
-		t.size = 55 + 43*GetRandom();
+		//t.size = 55 + 43*GetRandom();
+		t.size = 90;
 		t.position = position;
 		//+glm::vec3((GetRandom() - 0.5) * 0.25, (GetRandom() - 0.5) * 0.25, (GetRandom() - 0.5) * 0.25);
 		//t.velocity = { (GetRandom() - 0.5),(GetRandom()-0.5),(GetRandom() - 0.5) };
-		t.velocity = { sinf(s_time),(GetRandom()-0.5)*0.1,cosf(s_time)};
+		//t.velocity = { sinf(s_time),(GetRandom()-0.5)*0.1,cosf(s_time)};
 		//t.velocity = { sinf(s_time),sinf(s_time)+cosf(s_time),cosf(s_time)};
-		t.velocity *= 1;
+		//t.velocity *= 1;
 	}
 }

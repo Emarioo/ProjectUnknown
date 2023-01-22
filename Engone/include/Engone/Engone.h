@@ -20,16 +20,18 @@
 #include "Engone/ParticleModule.h"
 
 namespace engone {
-	enum EngoneFlag : uint32_t {
-		EngoneNone = 0,
-		EngoneEnableDebugInfo = 2, // not used
-		EngoneShowBasicDebugInfo = 4, // not used
-	};
-	typedef uint32_t EngoneFlags;
 	class Engone {
 	public:
 		Engone();
 		~Engone();
+
+		enum EngoneFlag : uint32_t {
+			EngoneNone = 0,
+			EngoneShowHitboxes=1,
+			EngoneEnableDebugInfo = 2, // not used
+			EngoneShowBasicDebugInfo = 4, // not used
+		};
+		typedef uint32_t EngoneFlags;
 
 		// Will create an application in the engine.
 		// The created app will be tracked which means it requires TrackerId. I would recommend looking at an Application example.

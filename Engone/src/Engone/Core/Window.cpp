@@ -403,6 +403,8 @@ namespace engone {
 		return executionTimer;
 	}
 	void Window::setFPS(double fps) {
+		if (fps < 1)
+			fps = 1;
 		if (getParent()->isMultiThreaded()) {
 			executionTimer.aimedDelta = 1. / fps;
 		} else
