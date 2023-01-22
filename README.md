@@ -1,12 +1,9 @@
 # ProjectUnknown
-A game with C++, OpenGl, ReactPhysics3D and OpenAL
-Some other stuff as well.
+A game made with C++, OpenGl, ReactPhysics3D and OpenAL. (OpenAL may be replaced)
 
-First of all, this project should be split up into two. Engone and ProjectUnknown.
-The engone will be a public git repo. while the game won't.
+This project will be split into two repositories.
+Engone and ProjectUnknown. ProjectUnknown is the code name for the game and will be private
+once it has more content. Engone will be public.
 
-How to setup (old)
-1. Download project and put into a main solution folder file. (ProjectUnknown/...)
-2. Install OpenAL. Can be found at openal.org. The install file is called oalinst.exe.
-3. Open project in visual studio and try to run it.
-4. The project uses a precompiled header called gonpch.h
+How to setup
+NOT COMMING SOON
