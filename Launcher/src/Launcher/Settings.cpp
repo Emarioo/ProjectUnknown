@@ -10,9 +10,8 @@ namespace launcher {
 				path.data()[i] = PATH_DELIM;
 		}
 	}
-	std::string Settings::PORT = "5492";
 	bool Settings::load(const std::string& path) {
-		m_path = path;
+		setPath(path);
 		return load();
 	}
 	bool Settings::load() {
@@ -30,9 +29,6 @@ namespace launcher {
 			} catch (Error err) {
 				log::out << "Setting::load - " << err << "\n";
 				return false;
-			}
-			if (m_map.find("port") == m_map.end()) {
-				m_map["port"] = Settings::PORT;
 			}
 			return true;
 		}
@@ -63,9 +59,12 @@ namespace launcher {
 		if (key.length() != 0)
 			m_map.erase(key);
 	}
+	void Settings::setPath(const std::string& path) {
+		m_path = path;
+	}
 	void GameCache::load() {
 		m_files.clear();
-		engone::FileReader file(GAME_CACHE_PATH);
+		engone::FileReader file(m_path);
 		if (file) {
 			try {
 				uint32_t fileCount;
@@ -83,7 +82,7 @@ namespace launcher {
 		}
 	}
 	void GameCache::save() {
-		engone::FileWriter file(GAME_CACHE_PATH);
+		engone::FileWriter file(m_path);
 		if (file) {
 			try {
 				uint32_t fileCount = m_files.size();
@@ -108,33 +107,7 @@ namespace launcher {
 		}
 		m_files.push_back(file);
 	}
-	std::vector<Entry> LoadGameFiles() {
-		std::vector<Entry> files;
-		engone::FileReader file(GAME_FILES_PATH);
-		if (file) {
-			try {
-				std::vector<std::string> lines = file.readLines();
-				for (std::string& line : lines) {
-					std::vector<std::string> split = engone::SplitString(line, "=");
-					Entry f;
-					if (split.size() != 2) {
-						engone::log::out << engone::log::RED<< "LoadGameFiles - line must have 1 of '=' : "<<line<<"\n";
-						continue;
-					}else{
-						f.originPath = split[0];
-						FormatPath(f.originPath);
-						//if (split.size() == 1&&f.originPath.find_last_of(".exe")!=-1) {
-						//	f.path = f.originPath.substr(f.originPath.find_last_of('\\') + 1);
-						//}
-						f.path = split[1];
-						FormatPath(f.path);
-					}
-					files.push_back(f);
-				}
-			} catch (engone::Error err) {
-				engone::log::out << engone::log::RED<<"LoadGameFiles - err? " << err << "\n";
-			}
-		}
-		return files;
+	void GameCache::setPath(const std::string& path) {
+		m_path = path;
 	}
 }

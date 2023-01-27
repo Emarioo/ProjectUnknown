@@ -107,6 +107,7 @@ namespace prounk {
 		using namespace engone;
 		
 		if (object->getObjectInfo() != 0) {
+			log::out << "del " << (BasicObjectType)object->getObjectType() << " " << object->getObjectInfo() << "\n";
 			auto& reg = dimension->getParent()->objectInfoRegistry;
 			if (object->getObjectType() & OBJECT_ITEM) {
 				reg.unregisterItemInfo(object->getObjectInfo());
@@ -122,7 +123,7 @@ namespace prounk {
 			object->setObjectInfo(0); // reset info of the unregistered infos
 		J123: { }
 		}
-		log::out << "Delete " << (BasicObjectType)object->getObjectType() << " " << object->getUUID() << "\n";
+		//log::out << "Delete " << (BasicObjectType)object->getObjectType() << " " << object->getUUID() << "\n";
 		dimension->getWorld()->deleteObject(object->getUUID());
 
 		//log::out <<log::RED<< __FILE__ << ":"<<(int)__LINE__ << " Memory leak!\n";
@@ -131,8 +132,8 @@ namespace prounk {
 		// Not doing so will result in memory leaks. It should be fine now (2023-01-19) but if new info types are added
 		// then function needs updating.
 	}
-//#define LOG_CREATE_OBJ()
-#define LOG_CREATE_OBJ() log::out << "Create " << (BasicObjectType)out->getObjectType() << " " << out->getUUID()<<"\n";
+#define LOG_CREATE_OBJ()
+//#define LOG_CREATE_OBJ() log::out << "Create " << (BasicObjectType)out->getObjectType() << " " << out->getUUID()<<"\n";
 
 	engone::EngineObject* CreateDummy(Dimension* dimension, engone::UUID uuid) {
 		using namespace engone;
@@ -143,6 +144,10 @@ namespace prounk {
 			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
 
 		LOG_CREATE_OBJ()
+
+		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+		out->getRigidBody()->enableGravity(false);
+		out->setColliderUserData((void*)(COLLIDER_IS_HEALTH|COLLIDER_IS_DAMAGE));
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>("Dummy/Dummy"));
@@ -180,11 +185,6 @@ namespace prounk {
 			}
 		}
 
-		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		out->getRigidBody()->enableGravity(false);
-		
-		out->setColliderUserData((void*)(COLLIDER_IS_HEALTH|COLLIDER_IS_DAMAGE));
-		out->loadColliders();
 		return out;
 	}
 	engone::EngineObject* CreateTerrain(Dimension* dimension, const std::string& modelName, engone::UUID uuid) {
@@ -196,11 +196,11 @@ namespace prounk {
 
 		LOG_CREATE_OBJ()
 
+		out->getRigidBody()->setType(rp3d::BodyType::STATIC);
+
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>(modelName));
 
-		out->getRigidBody()->setType(rp3d::BodyType::STATIC);
-		out->loadColliders();
 		return out;
 	}
 	engone::EngineObject* CreatePlayer(Dimension* dimension, engone::UUID uuid) {
@@ -211,6 +211,10 @@ namespace prounk {
 			out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
 
 		LOG_CREATE_OBJ()
+
+		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+		out->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
+		out->setColliderUserData((void*)COLLIDER_IS_HEALTH);
 
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>("Player/Player"));
@@ -223,10 +227,6 @@ namespace prounk {
 		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id).combatData;
 		combatData.owner = out;
 
-		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		out->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
-		out->setColliderUserData((void*)COLLIDER_IS_HEALTH);
-		out->loadColliders();
 		return out;
 	}
 	engone::EngineObject* CreateWeapon(Dimension* dimension, const std::string& modelName, engone::UUID uuid) {
@@ -238,9 +238,13 @@ namespace prounk {
 
 		LOG_CREATE_OBJ()
 
+		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+		out->setColliderUserData((void*)COLLIDER_IS_DAMAGE);
+
 		engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		out->setModel(assets->load<engone::ModelAsset>(modelName));
 		//out->setModel(dimension->getParent()->modelRegistry.getModel(item.getModelId()));
+		//out->setOnlyTrigger(true);
 
 		Session* session = dimension->getParent();
 
@@ -250,11 +254,6 @@ namespace prounk {
 		CombatData& combatData = session->objectInfoRegistry.getWeaponInfo(id).combatData;
 		combatData.owner = out;
 
-		// damage of combatData is customized by the coder
-		
-		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		out->setColliderUserData((void*)COLLIDER_IS_DAMAGE);
-		out->loadColliders();
 		return out;
 	}
 	engone::EngineObject* CreateItem(Dimension* dimension, Item& item, engone::UUID uuid) {
@@ -269,6 +268,8 @@ namespace prounk {
 		//engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
 		//out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
 
+		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
+
 		ModelAsset* model = dimension->getParent()->modelRegistry.getModel(item.getModelId());
 		out->setModel(model);
 
@@ -279,8 +280,6 @@ namespace prounk {
 
 		session->objectInfoRegistry.getItemInfo(id).item = item;
 
-		out->getRigidBody()->setType(rp3d::BodyType::DYNAMIC);
-		out->loadColliders();
 		return out;
 	}
 }

@@ -15,28 +15,38 @@ namespace launcher {
 		StreamEnd = 2,
 	};
 	typedef uint8_t StreamStates;
-	LauncherApp::LauncherApp(engone::Engone* engone, const std::string& settings) : Application(engone) {
+	LauncherApp::LauncherApp(engone::Engone* engone, LauncherAppInfo& info) : Application(engone) {
 		using namespace engone;
 		m_window = createWindow({ WindowMode::ModeBorderless,600,150 });
 		m_window->setTitle("Launcher");
 
 		consolas = getStorage()->set<FontAsset>("consolas", ALLOC_NEW(FontAsset)(IDB_PNG1, "4\n35"));
+		
+		m_cache.setPath(info.cachePath);
+		m_settings.setPath(info.settingsPath);
 
-		bool yes = m_settings.load(settings);
+		bool yes = m_settings.load();
 
 		address = m_settings.get("address");
-		std::string state = m_settings.get("state");
-		if (state == "client")
-			launcherState = LauncherClientMenu;
-		if (state == "server")
-			launcherState = LauncherServerMenu;
-			//launcherState = LauncherDownloading;
+
+		if (info.state == LauncherClientMenu) {
+			launcherState = info.state;
+		} else if(info.state == LauncherServerMenu) {
+			launcherState = info.state;
+		} else {
+			std::string state = m_settings.get("state");
+			if (state == "client")
+				launcherState = LauncherClientMenu;
+			if (state == "server")
+				launcherState = LauncherServerMenu;
+		}
 
 		setupGamefiles();
 
 		m_cache.load();
 
 		m_server.setOnEvent([this](NetEvent e, UUID uuid) {
+			m_server.getStats().reset();
 			if (NetEvent::Connect == e) {
 				//launcherMessage = "Connect "+std::to_string(uuid);
 			} else if (NetEvent::Stopped == e) {
@@ -324,6 +334,7 @@ namespace launcher {
 		downloadMutex.lock();
 		recentDownloads.clear();
 		downloadMutex.unlock();
+		downloadTime = 0;
 
 		std::vector<FileInfo>& files = m_cache.getFiles();
 
@@ -778,7 +789,7 @@ namespace launcher {
 	void LauncherApp::connect() {
 		using namespace engone;
 		std::string ip;
-		std::string port = Settings::PORT;
+		std::string port = DEFAULT_PORT;
 
 		//-- Convert address
 		std::vector<std::string> split = engone::SplitString(address, ":");
@@ -986,6 +997,8 @@ namespace launcher {
 		addressBack.x = addressText.x- border;
 		addressBack.y = addressText.y- border;
 		addressBack.w = addressText.getWidth()+ border*2;
+		if (addressBack.w < 200)
+			addressBack.w = 200;
 		addressBack.h = addressText.h+ border*2;
 
 		bool editBefore = editingAddress;
@@ -1018,11 +1031,16 @@ namespace launcher {
 		int index = addressText.text.find_last_of(':');
 		if (addressText.editing) {
 			if (index == -1)
-				suggestText.text = ":" + Settings::PORT;
+				suggestText.text = ":" + std::string(DEFAULT_PORT);
 			else if (index == addressText.text.length() - 1)
-				suggestText.text = Settings::PORT;
+				suggestText.text = DEFAULT_PORT;
 			addressBack.w += suggestText.getWidth()+ border * 2;
 		}
+		ui::TextBox addressDesc = { "Address", 0,0,connectHeight, consolas,normalTextColor };
+		addressDesc.x = 10;
+		addressDesc.y = addressBack.y - addressDesc.h - border;
+
+		ui::Draw(addressDesc);
 		if (m_client.isRunning()) {
 			ui::Draw(connectText);
 		}
@@ -1046,7 +1064,8 @@ namespace launcher {
 		// Download text
 		ui::TextBox download = { "Downloading",0,0,downloadHeight,consolas,titleColor };
 		float timeDiff = 0.5;
-		int dots = (int)(loadingTime / timeDiff) % 6;
+		downloadTime += info.timeStep;
+		int dots = (int)(downloadTime / timeDiff) % 6;
 		if (dots > 3)
 			dots = 6 - dots;
 		for (int i = 0; i < dots; i++) {
@@ -1131,6 +1150,8 @@ namespace launcher {
 		addressBack.x = addressText.x - border;
 		addressBack.y = addressText.y - border;
 		addressBack.w = addressText.getWidth() + border * 2;
+		if (addressBack.w < 200)
+			addressBack.w = 200;
 		addressBack.h = addressText.h + border * 2;
 
 		bool editBefore = editingAddress;
@@ -1163,11 +1184,16 @@ namespace launcher {
 		int index = addressText.text.find_last_of(':');
 		if (addressText.editing) {
 			if (index == -1)
-				suggestText.text = ":" + Settings::PORT;
+				suggestText.text = ":" + std::string(DEFAULT_PORT);
 			else if (index == addressText.text.length() - 1)
-				suggestText.text = Settings::PORT;
+				suggestText.text = DEFAULT_PORT;
 			addressBack.w += suggestText.getWidth() + border * 2;
 		}
+		ui::TextBox addressDesc = { "Address", 0,0,connectHeight, consolas,normalTextColor };
+		addressDesc.x = 10;
+		addressDesc.y = addressBack.y - addressDesc.h - border;
+
+		ui::Draw(addressDesc);
 		if (m_server.isRunning()) {
 			ui::Draw(connectText);
 		}
@@ -1177,6 +1203,9 @@ namespace launcher {
 			suggestText.x = addressText.x + consolas->getWidth(addressText.text, addressText.h);
 			ui::Draw(suggestText);
 		}
+
+		if (!m_server.isRunning())
+			return;
 
 		ui::TextBox serverTitle = { "Connections:" + std::to_string(m_server.getConnectionCount()),0,0,addressHeight,consolas,normalTextColor };
 		serverTitle.x = sw - serverTitle.getWidth() - border;
@@ -1210,7 +1239,7 @@ namespace launcher {
 		int recvBytes = m_server.getStats().receivedBytes();
 		displaySB = 0;
 		if (recvBytes < 1024) {
-			displaySB = sentBytes;
+			displaySB = recvBytes;
 			snprintf(buffer, sizeof(buffer), "Recv. %.2f B", displaySB);
 		} else if (recvBytes < 1024 * 1024) {
 			displaySB = recvBytes / 1024.f;

@@ -14,7 +14,7 @@ namespace engone {
 		if (m_rigidBody) {
 			m_world->lockPhysics();
 			m_world->getPhysicsWorld()->destroyRigidBody(m_rigidBody);
-			log::out << "destroy rigidbody " << (void*)m_rigidBody << "\n";
+			//log::out << "destroy rigidbody " << (void*)m_rigidBody << "\n";
 			m_world->unlockPhysics();
 			m_rigidBody = nullptr;
 		}
@@ -39,7 +39,7 @@ namespace engone {
 		rp3d::Transform t;
 		m_world->lockPhysics();
 		m_rigidBody = world->getPhysicsWorld()->createRigidBody(t); // PHYSICS WORLD DOES NOT HAVE MUTEX, DANGEROUS
-		log::out << "create rigidbody " << (void*)m_rigidBody << "\n";
+		//log::out << "create rigidbody " << (void*)m_rigidBody << "\n";
 		m_world->unlockPhysics();
 		if (!m_rigidBody) {
 			log::out << log::RED << "EngineObject : RigidBody is null\n";
@@ -51,6 +51,7 @@ namespace engone {
 
 #ifdef ENGONE_PHYSICS
 	void EngineObject::setOnlyTrigger(bool yes) {
+		return;
 		if (!m_rigidBody)
 			return;
 		if ((m_flags & ONLY_TRIGGER) == yes)

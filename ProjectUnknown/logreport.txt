@@ -1,72 +1,20 @@
-[15:56:49] create rigidbody 00000264CAE1D0EB
-[15:56:49] Create OBJECT_PLAYER 560bbaa5-8a2d-8620
-[15:56:49] ComplexDataRegistry: Registered 'atk' as 1
-[15:56:49] ComplexDataRegistry: Registered 'knock' as 2
-[15:56:49] ModelRegistry: Registered 'Sword/Sword' as 1
-[15:56:49] ModelRegistry: Registered 'Dagger/Dagger' as 2
-[15:56:49] ModelRegistry: Registered 'Spear/Spear' as 3
-[15:56:49] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
-[15:56:49] ItemTypeRegistry: Registered 'sword' as 1
-[15:56:49] ItemTypeRegistry: Registered 'dagger' as 2
-[15:56:49] ItemTypeRegistry: Registered 'spear' as 3
-[15:56:49] ItemTypeRegistry: Registered 'gold_ingot' as 4
-[15:56:49] create rigidbody 00000264CAE1D103
-[15:56:49] Create OBJECT_DUMMY 7ba2221b-4e89-722a
-[15:56:49] create rigidbody 00000264CAE1D11B
-[15:56:49] Create OBJECT_TERRAIN 89af127b-fe54-acca
-[15:56:49] create rigidbody 00000264CAE1D133
-[15:56:49] Create OBJECT_WEAPON bab30f54-0b55-a9bf
-[15:56:49] create rigidbody 00000264CAE1D14B
-[15:56:49] Create OBJECT_DUMMY 42ed17af-69ef-c113
-[15:56:51] create rigidbody 00000264CAE1D163
-[15:56:51] Create OBJECT_DUMMY f0b506c6-97b7-6aba
-[15:56:51] create rigidbody 00000264CAE1D17B
-[15:56:51] Create OBJECT_DUMMY 7de1f949-8cef-4aba
-[15:56:57] create rigidbody 00000264CAE1D193
-[15:56:57] Create OBJECT_DUMMY df6ee8e4-4605-b095
-[15:56:57] create rigidbody 00000264CAE1D1AB
-[15:56:57] Create OBJECT_DUMMY cfa67c6c-bd40-2b08
-[15:56:57] create rigidbody 00000264CAE1D1C3
-[15:56:57] Create OBJECT_DUMMY 1edc06d4-1eb6-10b6
-[15:57:09] create rigidbody 00000264CAE1D1DB
-[15:57:09] Create OBJECT_DUMMY ac9bca73-1c27-331b
-[15:57:09] create rigidbody 00000264CAE1D1F3
-[15:57:09] Create OBJECT_DUMMY 839a41d6-5a12-01f1
-[15:57:09] create rigidbody 00000264CAE1D20B
-[15:57:09] Create OBJECT_DUMMY 68b4097d-dbed-08df
-[15:57:09] create rigidbody 00000264CAE1D223
-[15:57:09] Create OBJECT_DUMMY a8365958-aaf4-76ba
-[15:57:17] GameApp : CLEANUP NOT IMPLEMENTED
-[15:57:17] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D0EB
-[15:57:17] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D103
-[15:57:17] destroy rigidbody 00000264CAE1D11B
-[15:57:17] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D133
-[15:57:17] EngineObject::cleanup - Object Info is 3, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D14B
-[15:57:17] EngineObject::cleanup - Object Info is 4, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D163
-[15:57:17] EngineObject::cleanup - Object Info is 5, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D17B
-[15:57:17] EngineObject::cleanup - Object Info is 6, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D193
-[15:57:17] EngineObject::cleanup - Object Info is 7, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D1AB
-[15:57:17] EngineObject::cleanup - Object Info is 8, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D1C3
-[15:57:17] EngineObject::cleanup - Object Info is 9, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D1DB
-[15:57:17] EngineObject::cleanup - Object Info is 10, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D1F3
-[15:57:17] EngineObject::cleanup - Object Info is 11, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D20B
-[15:57:17] EngineObject::cleanup - Object Info is 12, did you forget to free memory?
-[15:57:17] destroy rigidbody 00000264CAE1D223
-[15:57:17] Queues: 55 / 53 Track/Untracks: 54 / 53  AddMem/SubMem: 15 / 3
-[15:57:17] Memory leak? 2526 expected 0
-[15:57:17] Memory summary:
+[00:38:57] ComplexDataRegistry: Registered 'atk' as 1
+[00:38:57] ComplexDataRegistry: Registered 'knock' as 2
+[00:38:57] ModelRegistry: Registered 'Sword/Sword' as 1
+[00:38:57] ModelRegistry: Registered 'Dagger/Dagger' as 2
+[00:38:57] ModelRegistry: Registered 'Spear/Spear' as 3
+[00:38:57] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
+[00:38:57] ItemTypeRegistry: Registered 'sword' as 1
+[00:38:57] ItemTypeRegistry: Registered 'dagger' as 2
+[00:38:57] ItemTypeRegistry: Registered 'spear' as 3
+[00:38:57] ItemTypeRegistry: Registered 'gold_ingot' as 4
+[00:39:00] GameApp : CLEANUP NOT IMPLEMENTED
+[00:39:03] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:39:03] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[00:39:03] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[00:39:04] Queues: 55 / 53 Track/Untracks: 54 / 53  AddMem/SubMem: 15 / 3
+[00:39:04] Memory leak? 2526 expected 0
+[00:39:04] Memory summary:
  Tracker Total: 6046
  Alloc: 347966
  Floating: 0

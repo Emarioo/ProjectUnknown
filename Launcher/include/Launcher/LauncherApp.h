@@ -17,9 +17,15 @@ namespace launcher {
 		//LauncherDownloading
 		//LauncherConnecting
 	};
+	struct LauncherAppInfo {
+		std::string settingsPath=SETTINGS_PATH;
+		std::string cachePath=CACHE_PATH;
+		LauncherState state; // values other than ClientMenu, ServerMenu will be ignored.
+		//std::string gameFilesPath=GAME_FILES_PATH; // not used in LauncherApp for now
+	};
 	class LauncherApp : public engone::Application {
 	public:
-		LauncherApp(engone::Engone* engone,const std::string& settings="settings.dat");
+		LauncherApp(engone::Engone* engone, LauncherAppInfo& info);
 		~LauncherApp() override;
 
 		void update(engone::LoopInfo& info) override;
@@ -67,7 +73,7 @@ namespace launcher {
 		float diffMY=0;
 
 	private:
-		engone::Window* m_window;
+		engone::Window* m_window=nullptr;
 		Settings m_settings;
 		GameCache m_cache;
 		std::string root = "download\\";
@@ -75,16 +81,9 @@ namespace launcher {
 		engone::Client m_client;
 		engone::Server m_server;
 
-		// UI app detail
-		LauncherState state = LauncherConnecting;
-		std::string launcherName = "A game launcher"; // Main text when app starts.
-		float loadingTime = 0;
-		engone::ui::TextBox addressText;
-		engone::ui::TextBox infoText; // do not editing=true on this.
-
+		float downloadTime = 0;
 		float topMoveEdge = 25;
 
-		// NEW
 		LauncherState launcherState = LauncherClientMenu;
 		bool isConnecting = false;
 		float connectTime = 0;

@@ -33,9 +33,11 @@ namespace prounk {
 		void Input(engone::LoopInfo& info);
 
 		void performSkills(engone::LoopInfo& info);
-
+		void simpleTest(engone::LoopInfo& info);
 		// This updates the position of the weapon when held
-		void WeaponUpdate(engone::LoopInfo& info);
+
+		void DetectHeldWeapon(engone::LoopInfo& info);
+		void UpdateWeaponTransform(engone::LoopInfo& info);
 
 		std::string hoveredItem;
 

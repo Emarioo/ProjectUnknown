@@ -238,7 +238,7 @@ namespace prounk {
 			m_mutex.unlock();
 		}
 
-		SpawnLogic(info);
+		//SpawnLogic(info);
 
 		while (obj = iterator.next()) {
 			if (obj->getPosition().y < KILL_BELOW_Y) {
@@ -254,7 +254,7 @@ namespace prounk {
 						//combatData->health = 0;
 					}
 				} else {
-					DeleteObject(this, obj);
+					//DeleteObject(this, obj);
 					// no need to send netDelete because the other clients will probably run this code too.
 					// if they don't, this client doesn't really care
 				}
@@ -264,15 +264,19 @@ namespace prounk {
 				continue;
 			m_mutex.lock();
 			if (dummyEnabled) {
-				obj->getRigidBody()->setLinearDamping(0);
-				obj->getRigidBody()->setAngularDamping(0);
 				m_mutex.unlock();
+				if(obj->getRigidBody()->getLinearDamping()!=0)
+					obj->getRigidBody()->setLinearDamping(0);
+				if (obj->getRigidBody()->getAngularDamping() != 0)
+					obj->getRigidBody()->setAngularDamping(0);
 				DummyLogic(info, obj);
 			} else {
 				m_mutex.unlock();
 				GetCombatData(obj)->target = 0;
-				obj->getRigidBody()->setLinearDamping(2);
-				obj->getRigidBody()->setAngularDamping(1);
+				if (obj->getRigidBody()->getLinearDamping() != 2)
+					obj->getRigidBody()->setLinearDamping(2);
+				if (obj->getRigidBody()->getAngularDamping() != 1)
+					obj->getRigidBody()->setAngularDamping(1);
 			}
 		}
 		

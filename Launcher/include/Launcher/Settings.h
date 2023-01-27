@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Launcher/Defaults.h"
+
 namespace launcher {
 #define PATH_DELIM '\\'
 	void FormatPath(std::string& path);
@@ -14,20 +16,20 @@ namespace launcher {
 		// Will save settings file
 		void save();
 
+		void setPath(const std::string& path);
+
 		std::string get(const std::string& key) const;
 		void set(const std::string& key, const std::string& value);
 		void remove(const std::string& key);
 
-		static std::string PORT;
 	private:
 		std::unordered_map<std::string, std::string> m_map;
-		std::string m_path="settings.dat";
+		std::string m_path;
 	};
 	struct FileInfo {
 		std::string path;
 		uint64_t time;
 	};
-#define GAME_CACHE_PATH "launcher.cache"
 	class GameCache {
 	public:
 		GameCache() = default;
@@ -36,16 +38,12 @@ namespace launcher {
 		void save();
 		void set(FileInfo file);
 		
+		void setPath(const std::string& path);
+
 		inline std::vector<FileInfo>& getFiles() { return m_files; }
 
 	private:
+		std::string m_path;
 		std::vector<FileInfo> m_files;
 	};
-	
-	struct Entry {
-		std::string originPath;
-		std::string path;
-	};
-#define GAME_FILES_PATH "gameFiles.dat"
-	std::vector<Entry> LoadGameFiles();
 }

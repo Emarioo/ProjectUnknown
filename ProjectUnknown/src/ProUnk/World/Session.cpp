@@ -77,10 +77,8 @@ namespace prounk {
 				m_messageQueue.push_back({ copy,uuid });
 				m_messageQueueMutex.unlock();
 
-				if (m_clients.size() > 1) {
-					MessageBuffer sendMsg = msg; // copy
-					m_server.send(sendMsg, uuid, true); // relay received message to other clients
-				}
+				MessageBuffer sendMsg = msg; // copy
+				m_server.send(sendMsg, uuid, true); // relay received message to other clients
 			} else {
 				// no data found for client. This should not happen because data was made when client connected.
 				log::out << log::RED << "Session - no data for client!\n";
@@ -103,7 +101,7 @@ namespace prounk {
 	}
 	void Session::cleanup() {
 		using namespace engone;
-		log::out << log::RED << "Session : CLEANUP IS NOT IMPLEMENTED!\n";
+		log::out << log::RED << "Session : Objects are not cleaned up which results in objectinfo not being unregistered\n";
 	}
 
 	std::vector<Dimension*>& Session::getDimensions() {
@@ -246,7 +244,16 @@ namespace prounk {
 		NetMessageType cmd;
 		msg->pull(&cmd);
 
-		if (cmd != NET_MOVE&&cmd!=NET_DAMAGE) {
+		NetMessageType blacklist[]{ NET_MOVE,NET_DAMAGE,NET_ANIMATE,NET_EDIT_BODY,NET_EDIT_TRIGGER,NET_EDIT_HEALTH,NET_EDIT_MODEL };
+
+		bool isBlacklisted = false;
+		for (int i = 0; i < sizeof(blacklist) / sizeof(NetMessageType); i++) {
+			if (cmd == blacklist[i]) 				{
+				isBlacklisted = true;
+				break;
+			}
+		}
+		if(!isBlacklisted){
 			if (sender->isServer()) {
 				//log::out <<"Server(" << clientUUID.data[0] << "): " << cmd << "\n";
 				log::out <<log::GRAY<<"Server: " << cmd << "\n";

@@ -1,3 +1,3 @@
 address=192.168.0.5
-state=client
 port=5492
+state=client

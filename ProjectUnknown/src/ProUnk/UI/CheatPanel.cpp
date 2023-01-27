@@ -17,18 +17,18 @@ namespace prounk {
 		availableItems.push_back(Item(sword, 1));
 		ComplexData* data = availableItems.back().getComplexData();
 		data->set(atk,30.f);
-		data->set(knock,0.f);
+		data->set(knock,0.2f);
 
 		availableItems.push_back(Item(dagger, 1));
 		data = availableItems.back().getComplexData();
 		data->set(atk, 10);
 		//data->set(atk, 999.f);
-		data->set(knock, 0.f);
+		data->set(knock, 0.1f);
 
 		availableItems.push_back(Item(spear, 1));
 		data = availableItems.back().getComplexData();
 		data->set(atk, 50.f);
-		data->set(knock, 0.f);
+		data->set(knock, 0.3f);
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;

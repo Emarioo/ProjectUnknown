@@ -1,46 +1,46 @@
-[00:40:01] create rigidbody 000002FBC4F9A0EB
-[00:40:01] Create OBJECT_PLAYER 2c478eb3-25ad-cce9
-[00:40:01] ComplexDataRegistry: Registered 'atk' as 1
-[00:40:01] ComplexDataRegistry: Registered 'knock' as 2
-[00:40:01] ModelRegistry: Registered 'Sword/Sword' as 1
-[00:40:01] ModelRegistry: Registered 'Dagger/Dagger' as 2
-[00:40:01] ModelRegistry: Registered 'Spear/Spear' as 3
-[00:40:01] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
-[00:40:01] ItemTypeRegistry: Registered 'sword' as 1
-[00:40:01] ItemTypeRegistry: Registered 'dagger' as 2
-[00:40:01] ItemTypeRegistry: Registered 'spear' as 3
-[00:40:01] ItemTypeRegistry: Registered 'gold_ingot' as 4
-[00:40:01] create rigidbody 000002FBC4F9A103
-[00:40:01] Create OBJECT_DUMMY ffecceb0-4218-8bbe
-[00:40:01] create rigidbody 000002FBC4F9A11B
-[00:40:01] Create OBJECT_WEAPON 759ce920-c64e-36fb
-[00:40:01] create rigidbody 000002FBC4F9A133
-[00:40:01] Create OBJECT_DUMMY 2cb73051-5d05-0060
-[00:40:02] create rigidbody 000002FBC4F9A14B
-[00:40:02] Create OBJECT_DUMMY c7b23dcd-65d6-d8e7
-[00:40:02] create rigidbody 000002FBC4F9A163
-[00:40:02] Create OBJECT_DUMMY fcdee0e0-8de1-6b5e
-[00:40:03] Client : Worker : err code: 10061
-[00:40:03] Client : Failed
-[00:40:05] GameApp : CLEANUP NOT IMPLEMENTED
-[00:40:05] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A0EB
-[00:40:05] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A103
-[00:40:05] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A11B
-[00:40:05] EngineObject::cleanup - Object Info is 3, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A133
-[00:40:05] EngineObject::cleanup - Object Info is 4, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A14B
-[00:40:05] EngineObject::cleanup - Object Info is 5, did you forget to free memory?
-[00:40:05] destroy rigidbody 000002FBC4F9A163
-[00:40:05] Queues: 42 / 40 Track/Untracks: 41 / 40  AddMem/SubMem: 15 / 3
-[00:40:05] Memory leak? 2526 expected 0
-[00:40:05] Memory summary:
+[23:17:42] create rigidbody 0000001B740430EB
+[23:17:42] Create OBJECT_PLAYER 0e9cf6b7-d5f1-b56d
+[23:17:42] ComplexDataRegistry: Registered 'atk' as 1
+[23:17:42] ComplexDataRegistry: Registered 'knock' as 2
+[23:17:42] ModelRegistry: Registered 'Sword/Sword' as 1
+[23:17:42] ModelRegistry: Registered 'Dagger/Dagger' as 2
+[23:17:42] ModelRegistry: Registered 'Spear/Spear' as 3
+[23:17:42] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
+[23:17:42] ItemTypeRegistry: Registered 'sword' as 1
+[23:17:42] ItemTypeRegistry: Registered 'dagger' as 2
+[23:17:42] ItemTypeRegistry: Registered 'spear' as 3
+[23:17:42] ItemTypeRegistry: Registered 'gold_ingot' as 4
+[23:17:42] create rigidbody 0000001B74043103
+[23:17:42] Create OBJECT_DUMMY b01618f5-9895-d20e
+[23:17:42] create rigidbody 0000001B7404311B
+[23:17:42] Create OBJECT_WEAPON 71705cc1-22be-b69e
+[23:17:42] create rigidbody 0000001B74043133
+[23:17:42] Create OBJECT_DUMMY 262b5023-d6dd-a5f2
+[23:17:43] create rigidbody 0000001B7404314B
+[23:17:43] Create OBJECT_DUMMY 3d3864d4-b0df-9d01
+[23:17:43] create rigidbody 0000001B74043163
+[23:17:43] Create OBJECT_DUMMY 3eae2986-8230-b02a
+[23:17:44] GameApp : CLEANUP NOT IMPLEMENTED
+[23:17:44] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B740430EB
+[23:17:44] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B74043103
+[23:17:44] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B7404311B
+[23:17:44] EngineObject::cleanup - Object Info is 3, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B74043133
+[23:17:44] EngineObject::cleanup - Object Info is 4, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B7404314B
+[23:17:44] EngineObject::cleanup - Object Info is 5, did you forget to free memory?
+[23:17:44] destroy rigidbody 0000001B74043163
+[23:17:44] Queues: 42 / 40 Track/Untracks: 41 / 40  AddMem/SubMem: 15 / 3
+[23:17:44] Client : Worker : err code: 10038
+[23:17:44] Memory leak? 2526 expected 0
+[23:17:44] Memory summary:
  Tracker Total: 6046
  Alloc: 345894
  Floating: 0
+Client : Failed
  TrackNode:      3520, 0, 3520
  Window:         1440, 1, 0
  ItemVector:     1086, 0, 1086

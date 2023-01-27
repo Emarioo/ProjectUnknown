@@ -18,6 +18,8 @@ namespace engone {
 		uint64_t sentBytes() const { return m_sentBytes; }
 		uint64_t sentMessages() const { return m_sentMessages; }
 
+		void reset() { m_receivedBytes = 0; m_sentBytes = 0; m_receivedMessages = 0; m_sentMessages = 0; }
+
 		// this is the bytes given to winsock m_sentBytes + (totalBytes ? sizeof(uint32_t) * sentMessages() : 0);
 	};
 //#ifndef ENGONE_RANDOM

@@ -52,53 +52,97 @@ void runApp(int argc, char** argv) {
 	Engone engine;
 
 	//ConvertArguments("--server", argc, argv);
+	//ConvertArguments("--server 1025", argc, argv);
 	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 	
-	//ConvertArguments("--server --client 127.0.0.1", argc, argv);
-
-	//-- Special options when starting the game. Like allocating a console if in Release mode.
+	//ConvertArguments("--server --client 127.0.0.1 --client 127.0.0.1", argc, argv);
+	
+	bool writeLogReport = false;
+	bool preventStart = false;
+	
+	// help is prioritized, any other commands will be skipped
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--console") == 0) {
-			CreateConsole();
+		if (strcmp(argv[i], "--help") == 0) {
+			CreateConsole(); /// so that you can see the commands in a console
+			preventStart = true;
+			log::out
+				<< "Commands:\n"
+				<< " --help (will not start game)\n"
+				<< " --console\n"
+				<< " --logreport\n"
+				<< " --server [port] (default port is " << Session::DEFAULT_PORT << ")\n"
+				<< " --client <ip> [port] (default port is " << Session::DEFAULT_PORT << ")\n";
+			break;
 		}
-		if (strcmp(argv[i], "--server") == 0) {
-			GameAppInfo info = { GameApp::START_SERVER, Session::DEFAULT_PORT }; // don't use 1000 as port
-			
-			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
-			engine.addApplication(app);
-		}
-		if (strcmp(argv[i], "--client") == 0) {
-			if (i+1<argc) {
-				i++;
-				std::string ip = argv[i];
+	}
+
+	if (preventStart) {
+		system("pause"); // find a replacement? it is here so that you can read the help commands
+	}else{
+		//-- Special options when starting the game. Like allocating a console if in Release mode.
+		for (int i = 0; i < argc; i++) {
+			if (strcmp(argv[i], "--console") == 0) {
+				CreateConsole();
+				continue;
+			}
+			if (strcmp(argv[i], "--logreport") == 0) {
+				writeLogReport = true;
+				continue;
+			}
+			if (strcmp(argv[i], "--server") == 0) {
 				std::string port = Session::DEFAULT_PORT;
 				if (i + 1 < argc) { // port is optional
-					if (argv[i+1][0] != '-') {
+					if (argv[i + 1][0] != '-') {
 						i++;
 						port = argv[i];
 					}
 				}
+				GameAppInfo info = { GameApp::START_SERVER, port, "127.0.0.1" };
 
-				GameAppInfo info = { GameApp::START_CLIENT, port, ip };
 				GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 				engine.addApplication(app);
-			} else {
-				log::out << log::RED << "runApp - client argument is invalid\n";
+				continue;
 			}
+			if (strcmp(argv[i], "--client") == 0) {
+				if (i + 1 < argc) {
+					if (argv[i + 1][0] == '-') {
+						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--client 192.168.1.66')\n";
+					} else {
+						i++;
+						std::string ip = argv[i];
+						std::string port = Session::DEFAULT_PORT;
+						if (i + 1 < argc) { // port is optional
+							if (argv[i + 1][0] != '-') {
+								i++;
+								port = argv[i];
+							}
+						}
+
+						GameAppInfo info = { GameApp::START_CLIENT, port, ip };
+						GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
+						engine.addApplication(app);
+					}
+				} else {
+					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--client 192.168.1.66')\n";
+				}
+				continue;
+			}
+
+			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see --help)\n";
+		}
+		if (engine.getApplications().size() == 0) {
+			GameAppInfo info = { 0, Session::DEFAULT_PORT, "127.0.0.1" };
+			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
+			engine.addApplication(app);
+		}
+		engine.start();
+		if (writeLogReport) {
+			// any log message in deconstructors will not be saved. (deconstructors of global variables that is)
+			log::out.getSelected().saveReport(nullptr);
 		}
 	}
-	if (engine.getApplications().size() == 0) {
-		GameAppInfo info = { 0, Session::DEFAULT_PORT, "127.0.0.1"};
-		GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
-		engine.addApplication(app);
-	}
-
-	engine.start();
 	//FreeArguments(argc, argv);
-
-	// any log message in deconstructors will not be saved. (deconstructors of global variables that is)
-	log::out.getSelected().saveReport(nullptr);
 
 	//std::cin.get();
 }

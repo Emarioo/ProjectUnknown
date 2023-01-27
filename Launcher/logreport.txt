@@ -1,17 +1,11 @@
-[00:39:52] FileMonitor : Checking gameFiles.dat
-[00:39:52] FileMonitor : Checking ..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe
-[00:39:52] FileMonitor : Checking ..\ProjectUnknown\assets
-[00:39:53] FileMonitor : Checking gameFiles.dat
-[00:39:53] FileMonitor : Checking ..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe
-[00:39:53] FileMonitor : Checking ..\ProjectUnknown\assets
-[00:40:00] New writer download\startconfig
-[00:40:00] del writer download\startconfig
-[00:40:21] Queues: 23 / 19 Track/Untracks: 21 / 19  AddMem/SubMem: 13 / 5
-[00:40:21] Memory leak? 4364 expected 0
-[00:40:21] Memory summary:
- Tracker Total: 6284
- Alloc: 57812
+[23:39:03] FileMonitor::check - invalid path : game_files.txt
+[23:39:03] LauncherApp::LauncherApp - access to 'game_files.txt' was denied
+[23:39:05] Queues: 11 / 9 Track/Untracks: 10 / 9  AddMem/SubMem: 8 / 2
+[23:39:05] Memory leak? 1758 expected 0
+[23:39:05] Memory summary:
+ Tracker Total: 3358
+ Alloc: 24457
  Floating: 0
- TrackNode:     1920, 0, 1920
- ItemVector:    1484, 0, 1484
- Window:        2880, 2, 0
+ TrackNode:     1600, 0, 1600
+ ItemVector:    462,  0, 462
+ Window:        1296, 1, 0

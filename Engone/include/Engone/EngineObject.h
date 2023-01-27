@@ -21,6 +21,7 @@ namespace engone {
 		// uuid as 0 will generate a new uuid.
 		void init(EngineWorld* world, UUID uuid = 0);
 
+		// Sets the colliders based on the model too.
 		void setModel(ModelAsset* asset);
 		ModelAsset* getModel();
 

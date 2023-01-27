@@ -83,7 +83,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)bin/Engone/RelBasex64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -104,6 +104,7 @@
     <ClInclude Include="include\Engone\NetworkModule.h" />
     <ClInclude Include="include\Engone\Networking\Sender.h" />
     <ClInclude Include="include\Engone\Networking\Server.h" />
+    <ClInclude Include="include\Launcher\Defaults.h" />
     <ClInclude Include="include\Launcher\LogLevels.h" />
     <ClInclude Include="include\Launcher\pch.h" />
     <ClInclude Include="include\laupch.h" />

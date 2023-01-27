@@ -305,6 +305,16 @@ namespace prounk {
 		firstDim->getWorld()->getPhysicsWorld()->setEventListener(this);
 		firstDim->getWorld()->unlockPhysics();
 
+		//auto logger = getPhysicsCommon()->createDefaultLogger();
+		//rp3d::uint logLevel = static_cast<rp3d::uint>(static_cast<rp3d::uint>(rp3d::Logger::Level::Warning) | static_cast<rp3d::uint>(rp3d::Logger::Level::Error)| static_cast<rp3d::uint>(rp3d::Logger::Level::Information));
+		//// Output the logs into an HTML file 
+		//logger->addFileDestination("rp3d_log_.html", logLevel, rp3d::DefaultLogger::Format::HTML);
+		//// Output the logs into the standard output 
+		//logger->addStreamDestination(std::cout, logLevel, rp3d::DefaultLogger::Format::Text);
+		//// Set the logger 
+		//getPhysicsCommon()->setLogger(logger);
+
+
 		EngineObject* player = CreatePlayer(firstDim);
 		//playerController.setPlayerObject(player);
 		playerController.setPlayerObject(player->getUUID());
@@ -330,16 +340,17 @@ namespace prounk {
 		firstDim->getWorld()->releaseAccess(dummy->getUUID());
 		
 		//-- Setup network stuff
+		sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
 		if (info.flags & START_SERVER) {
 			sessionPanel->setDefaultPortIP(info.port, info.ip, "Server");
 		} else if (info.flags & START_CLIENT) {
 			sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
 		}
 
-		if (info.flags != START_CLIENT) {
+		//if (info.flags != START_CLIENT) {
 			EngineObject* terrain = CreateTerrain(firstDim, "ProtoArena/ProtoArena");
 			firstDim->getWorld()->releaseAccess(terrain->getUUID());
-		}
+		//}
 
 		if (info.flags & START_SERVER) {
 			m_session->getServer().start(info.port);
@@ -454,7 +465,7 @@ namespace prounk {
 
 		sessionPanel = ALLOC_NEW(SessionPanel)(this);
 		panelHandler.addPanel(sessionPanel);
-		sessionPanel->setSize(130, 140);
+		sessionPanel->setSize(230, 140);
 		sessionPanel->setPosition(0, GetHeight() / 2);
 
 		sessionPanel->setHidden(true);
@@ -476,69 +487,23 @@ namespace prounk {
 
 		panelInput(info);
 
-		//if (startTime == 0) {
-		//	startTime = GetSystemTime();
-		//}
-		//travel += 10 * info.timeStep;
-		//if(stage==0) {
-		//	if (travel >= 100) {
-		//		double now = GetSystemTime();
-		//		double diff = (now - startTime);
-		//		log::out << "Done: " << diff<<" seconds ts: "<<info.timeStep<<" Travel: " << travel << " stage: " << stage << " Avg:"<< (travel/diff) << "\n";
-		//		startTime = now;
-		//		travel = 0;
-		//		stage++;
-		//		info.app->getEngine()->getStats().setUPSLimit(5);
+		//if (partRequested) {
+		//	CombatParticle* parts = combatParticles->getParticles();
+		//	for (int i = 0; i < combatParticles->getCount(); i++) {
+		//		//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
+		//		float rad = GetRandom() * 0.5;
+		//		glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
+		//		norm = glm::normalize(norm);
+		//		parts[i].pos = requestPos + norm * rad;
+		//		parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
+		//		parts[i].lifeTime = 1 + GetRandom() * 3.f;
 		//	}
-		//} else if(stage==1) {
-		//	if (travel >= 100) {
-		//		double now = GetSystemTime();
-		//		double diff = (now - startTime);
-		//		log::out << "Done: " << diff << " seconds ts: " << info.timeStep << " Travel: "<<travel<<" stage: "<<stage<<" Avg:" << (travel / diff) << "\n";
-		//		startTime = now;
-		//		stage = 0;
-		//		info.app->getEngine()->getStats().setUPSLimit(60);
-		//		travel = 0;
-		//	}
+		//	partRequested = false;
 		//}
-		//log::out << "travel: "<<travel << " stage: " << stage << " \n";
-		//if (engone::IsKeybindingPressed(KeyPause)) {
-		//	if(engone::GetActiveWindow()->isCursorLocked()){
-		//		engone::GetActiveWindow()->lockCursor(false);
-		//	} else {
-		//		engone::GetActiveWindow()->lockCursor(true);
-		//	}
-		//}
-		if (partRequested) {
-			CombatParticle* parts = combatParticles->getParticles();
-			for (int i = 0; i < combatParticles->getCount(); i++) {
-				//float rad = glm::pi<float>() * (pow(2, 3) - pow(2 * GetRandom(), 3)) / 3.f;
-				float rad = GetRandom() * 0.5;
-				glm::vec3 norm = glm::vec3(GetRandom() - 0.5f, GetRandom() - 0.5f, GetRandom() - 0.5f);
-				norm = glm::normalize(norm);
-				parts[i].pos = requestPos + norm * rad;
-				parts[i].vel = norm * (0.1f + (float)GetRandom()) * 1.f;
-				parts[i].lifeTime = 1 + GetRandom() * 3.f;
-			}
-			partRequested = false;
-		}
 
 		playerController.update(info);
 
 		m_session->update(info);
-
-		//float t = info.timeStep;
-		//float vx = (wantX - x)/t;
-		//vx *= 0.5;
-		//float dvx = vx - velX;
-		//velX += dvx;
-
-		//x += velX*info.timeStep;
-		//
-		//if (IsKeyDown(GLFW_MOUSE_BUTTON_LEFT)) {
-		//	wantX = GetMouseX();
-		//	velX = 0;
-		//}
 	}
 	
 	void GameApp::render(engone::LoopInfo& info) {

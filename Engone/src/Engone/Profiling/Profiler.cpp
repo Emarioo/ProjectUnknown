@@ -172,7 +172,7 @@ namespace engone {
 		//}
 
 
-		const ui::Color areaColor = { 0,0.3 };
+		const ui::Color areaColor = { 0.f,0.3 };
 		float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth()};
 		//float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth(), sleepBox.getWidth(),speedBox.getWidth() };
 		float areaW = 0;
