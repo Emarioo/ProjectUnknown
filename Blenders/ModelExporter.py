@@ -99,6 +99,7 @@ class ExportLog:
 binaryForm=False
 class FileWriter:
     def __init__(self,path):
+        self.path=path
         try:
             if binaryForm:
                 self.file=open(path,"wb")
@@ -512,7 +513,6 @@ def WriteAnimation(log, file, object, action):
     log.print('INFO',action.name)
 
 def WriteMaterial(log,file,material):
-    
     textureName=""
     color = material.diffuse_color
     if material.use_nodes:
@@ -526,10 +526,16 @@ def WriteMaterial(log,file,material):
                     if textureName[-4:]==".png":
                         textureName = textureName[:-4]
                 
-                # copy file to the material´s
+                index = file.path.rfind("\\")
+                if index == -1:
+                    log.print('ERROR',"Bad path? "+file.path)
+                    return
+                path = file.path[:index+1]
+                
+                # copy file to the material's
                 shutil.copyfile(bpy.path.abspath("//")+base.links[0].from_node.image.filepath,path+textureName+".png")
             else:
-                Logging(log,'WARNING',"Only Image Texture node allowed in Material "+material.name)
+                log.print('WARNING',"Only Image Texture node allowed in Material "+material.name)
         else:
             color = base.default_value
     
@@ -993,12 +999,14 @@ def WriteModel(log,file,instances,animations,originName):
 
     sort = []
     
+   # print("Size: ",len(instances))
     # add the root, should be the first one but this might change in the future so better be safe
     for inst in instances:
+        #print("HELLO!",inst.asset)
         if inst.object.parent==None:
             sort.append(inst)
             instCopy.remove(inst)
-            break
+            #break
         
     index = 0
     limit = len(instCopy)*len(instCopy) # safety feature
@@ -1036,7 +1044,9 @@ def WriteModel(log,file,instances,animations,originName):
     file.writeComment("Instance count")
     file.writeUChar(len(sort))
 
+
     for inst in sort:
+        #print("Eh",inst.asset)
         parentIndex = -1
         for j in range(0,len(sort)):
             if inst.object.parent==sort[j].object:
@@ -1098,11 +1108,6 @@ class Instance:
         self.asset=asset
         self.object=object
 
-def ConvertAxis(obj):      
-    obj.matrix_world = axisConvert @ obj.matrix_world
-    obj.data.transform(axisConvert)
-    obj.matrix_world = obj.matrix_world @ axisIConvert
-            
 def ExportAssets(log,assetPath):
     if not bpy.context.mode=='OBJECT':
         log.print('ERROR',"Must be in object mode!")
@@ -1152,82 +1157,77 @@ def ExportAssets(log,assetPath):
                     for strip in track.strips:
                         action=strip.action
                 
-                        found = None
+                        foundAsset = None
                         for asset in animations:
                             if asset.action.name == action.name:
-                                found=asset
+                                foundAsset=asset
                                 break
                         
-                        if not found:
-                            found = Asset("ANIMATION",object,action)
-                            animations.append(found)
+                        if foundAsset==None:
+                            foundAsset = Asset("ANIMATION",object,action)
+                            animations.append(foundAsset)
             
             # Write mesh or collider
             if object.type=='MESH':
                 if object.data.name[:2]=="C-":
-                    found = None
+                    foundAsset = None
                     for asset in colliders:
                         if asset.object.data.name==object.data.name:
-                            found=asset
+                            foundAsset=asset
                             break
                     
-                    if not found:
-                        found = Asset("COLLIDER",object)
-                        colliders.append(found)
-                    instances.append(Instance(found,object))
+                    if foundAsset == None:
+                        foundAsset = Asset("COLLIDER",object)
+                        colliders.append(foundAsset)
+                    instances.append(Instance(foundAsset,object))
                     
                 else:
-                    found=None
+                    foundAsset=None
                     for asset in meshes:
                         if asset.object.data.name==object.data.name:
-                            found=asset
+                            foundAsset=asset
                             break
                                
-                    if not found:
-                        found = Asset("MESH",object)
-                        meshes.append(found)
+                    if foundAsset==None:
+                        foundAsset = Asset("MESH",object)
+                        meshes.append(foundAsset)
                         for mat in object.data.materials:
-                            found2=False
+                            found=False
                             for m in materials:
                                 if m.name==mat.name:
                                     found=True
                                     break
                             
-                            if not found2:
+                            if not found:
                                 materials.append(mat)
                                 
-                    instances.append(Instance(found,object))
+                    instances.append(Instance(foundAsset,object))
                         
             # Write Armature    
             elif object.type=='ARMATURE':
-                found=None
+                foundAsset=None
                 for asset in armatures:
                     if asset.object.data.name==object.data.name:
-                        found=asset
+                        foundAsset=asset
                         break
                 
                 if not found:
-                    found = Asset("ARMATURE",object)
-                    armatures.append(found)
-                instances.append(Instance(found,object))
+                    foundAsset = Asset("ARMATURE",object)
+                    armatures.append(foundAsset)
+                instances.append(Instance(foundAsset,object))
 
+         # maybe do try catch when reading file?
         for asset in animations:
             file = FileWriter(modelPath+asset.action.name+".animation")
-            if file.error:
-                continue
-            
-            WriteAnimation(log,file,asset.object,asset.action);
-            
-            file.close()
+            if not file.error:
+                WriteAnimation(log,file,asset.object,asset.action);
+                file.close()
             
         for o in materials:
             file = FileWriter(modelPath+o.name+".material")
-            if file.error:
-                return
-            
-            WriteMaterial(log,file,o)
-            
-            file.close()
+            if not file.error:
+                WriteMaterial(log,file,o)
+                file.close()
         
         
         assets = meshes+colliders+armatures
@@ -1238,7 +1238,11 @@ def ExportAssets(log,assetPath):
             bpy.context.scene.collection.objects.link(objectCopy)
             objectCopy.select_set(True)
             bpy.context.view_layer.objects.active=objectCopy
-           
+            
+            objectCopy.matrix_world = axisConvert @ objectCopy.matrix_world
+            objectCopy.data.transform(axisConvert)
+            objectCopy.matrix_world = objectCopy.matrix_world @ axisIConvert
+            
             bpy.context.view_layer.update()
             
             asset.name=asset.object.data.name
@@ -1257,8 +1261,6 @@ def ExportAssets(log,assetPath):
                         else:
                             isBoned=True
                     
-                    ConvertAxis(objectCopy) # convert after modifers are applied
-                    
                     file = FileWriter(modelPath+asset.name+".mesh")
                     if not file.error:
                         WriteMesh(log,file,objectCopy,isBoned,asset.name)
@@ -1270,8 +1272,6 @@ def ExportAssets(log,assetPath):
                         for mod in object.modifiers:
                             bpy.ops.object.modifier_apply(modifier=mod.name)
                         
-                        ConvertAxis(objectCopy) # convert after modifers are applied
-                    
                         # collider name needs to be overwritten
                         asset.name=colliderType+asset.object.data.name[1:]
                         
@@ -1283,8 +1283,6 @@ def ExportAssets(log,assetPath):
                     for mod in object.modifiers:
                         bpy.ops.object.modifier_apply(modifier=mod.name)
                     
-                    ConvertAxis(objectCopy) # convert after modifers are applied
-                    
                     file = FileWriter(modelPath+asset.name+".armature")
                     if not file.error:
                         WriteArmature(log,file,objectCopy,asset.name)
@@ -1292,8 +1290,8 @@ def ExportAssets(log,assetPath):
                 print(traceback.format_exc())
                 log.print("ERROR","See console!")
             
-            if file:
-                file.close()
+            if not file == None:
+                file.close() # close file here in case an exception occurs
             
             bpy.ops.object.delete()
         
@@ -1302,11 +1300,12 @@ def ExportAssets(log,assetPath):
             file = FileWriter(modelPath+root.name+".model")
             if not file.error:
                 WriteModel(log,file,instances,animations,root.name)   
+            
         except Exception:
             print(traceback.format_exc())
             log.out("ERROR","See console!")
         
-        if file:
+        if not file == None:
             file.close()
         
     # select previously selected objects

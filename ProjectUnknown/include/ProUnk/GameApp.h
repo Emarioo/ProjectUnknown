@@ -21,6 +21,8 @@
 
 #include "ProUnk/Effects/VisualEffects.h"
 
+#include "Engone/Sound/SoundStream.h"
+
 namespace prounk {
 
 	struct CombatParticle {
@@ -67,6 +69,8 @@ namespace prounk {
 
 		engone::DelayCode delayed;
 
+		rp3d::RigidBody* testRB = nullptr;
+
 		//inline World* getWorld() override { return (World*)Application::getWorld(); }
 		//inline void setWorld(World* world) { Application::setWorld(world); }
 
@@ -82,6 +86,8 @@ namespace prounk {
 		void doParticles(glm::vec3 pos) {
 			partRequested = true; requestPos = pos;
 		}
+
+		engone::SoundStream melody;
 
 		//std::unordered_map<std::string, bool>& getStates() {
 		//	return m_stateMap;

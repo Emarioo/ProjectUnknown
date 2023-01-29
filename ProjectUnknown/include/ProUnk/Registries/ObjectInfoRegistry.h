@@ -13,6 +13,7 @@ namespace prounk {
 		std::string displayName;
 		CombatData combatData;
 		uint32 inventoryDataIndex = 0;
+		int onGround = 0;
 	};
 	struct ObjectItemInfo {
 		Item item;

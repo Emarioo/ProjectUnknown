@@ -3,6 +3,7 @@
 #include "Engone/Sound/SoundStream.h"
 #include "Engone/Utilities/Utilities.h"
 
+#define AL_LIBTYPE_STATIC
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "Engone/vendor/Libaudio.h"
@@ -26,7 +27,6 @@ namespace engone {
 			return -1;
 		}
 	}
-
 	SoundStream::~SoundStream() {
 		if (isInitialized) {
 			delete bufferData;

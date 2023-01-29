@@ -41,7 +41,8 @@ namespace engone {
 		};
 		typedef uint8_t LoadFlags;
 
-		Asset(AssetType type) : type(type) {};
+		Asset(AssetType type) : type(type) {}
+		virtual ~Asset() {}
 
 		virtual void cleanup() = 0;
 		// Same as load but with path.

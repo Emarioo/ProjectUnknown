@@ -90,11 +90,11 @@ namespace engone {
 	//}
 	void Profiler::renderBasicDebugInfo(LoopInfo& info) {
 		//if (IsKeyDown(GLFW_KEY_F3) && IsKeyPressed(GLFW_KEY_B)) {
-		if (IsKeyPressed(GLFW_KEY_F3)) {
-			m_profilingData[info.window].show = !m_profilingData[info.window].show;
-		}
+		//if (IsKeyPressed(GLFW_KEY_F3)) {
+		//	m_profilingData[info.window].show = !m_profilingData[info.window].show;
+		//}
 
-		if(!m_profilingData[info.window].show) return;
+		//if(!m_profilingData[info.window].show) return;
 
 		float sw = GetWidth();
 		float sh = GetHeight();
@@ -193,8 +193,93 @@ namespace engone {
 		ui::Draw(upsBox);
 		//ui::Draw(speedBox);
 	}
-	void Profiler::render(engone::LoopInfo& info) {
+	void Profiler::render(LoopInfo& info) {
+		if (IsKeyPressed(GLFW_KEY_F3)) {
+			m_profilingData[info.window].show = !m_profilingData[info.window].show;
+		}
+
+		if (!m_profilingData[info.window].show) return;
+
 		renderBasicDebugInfo(info);
+		updateGraph.renderBack(info);
+		updateGraph.render(info);
+		renderGraph.render(info);
+	}
+	void Profiler::Graph::start() {
+		originTime = GetSystemTime();
+	}
+	Profiler::Graph::~Graph() {
+		if(points)
+			alloc::free(points,sizeof(float)*MAX_POINTS);
+	}
+	void Profiler::Graph::plot(double time) {
+		if (!points) {
+			points = (float*)alloc::malloc(sizeof(float) * MAX_POINTS);
+			for (int i = 0; i < MAX_POINTS; i++) {
+				points[i] = 0;
+			}
+		}
+		points[pushIndex] = time - originTime;
+		pushIndex = (pushIndex + 1) % MAX_POINTS;
+	}
+	void Profiler::Graph::renderBack(LoopInfo& info) {
+		const ui::Color timelineColor = { 1,1,1,1 };
+		const ui::Color backColor = { 0,0,0,0.1 };
+
+		ui::Box back = { 0,0,GetWidth(),40,backColor };
+		ui::Box timeline = { 0,0,GetWidth(),2 ,timelineColor };
+		timeline.y = GetHeight() - timeline.h - 40;
+		back.y = timeline.y - back.h / 2;
+		ui::Draw(back);
+		ui::Draw(timeline);
+	}
+	void Profiler::Graph::render(LoopInfo& info) {
+		//CommonRenderer* renderer = GET_COMMON_RENDERER();
+		//renderer->
+		float speedX = 10;
+		float zoomPower = 1.01;
+		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+			speedX *= 16;
+			zoomPower *= 1.04;
+		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+			speedX *= 4;
+			zoomPower *= 1.02;
+		}
+
+		if (IsKeyDown(GLFW_KEY_LEFT)) {
+			offsetX += speedX/zoom;
+		}
+		if (IsKeyDown(GLFW_KEY_RIGHT)) {
+			offsetX -= speedX/zoom;
+		}
+		if (IsKeyDown(GLFW_KEY_UP)) {
+			float prevZoom = zoom;
+			zoom *= zoomPower;
+			//offsetX += GetWidth() / 2 * (zoom-prevZoom);
+		}
+		if (IsKeyDown(GLFW_KEY_DOWN)) {
+			float prevZoom = zoom;
+			zoom /= zoomPower;
+			//offsetX += GetWidth() / 2 * (zoom - prevZoom);
+			//offsetX = offsetX * prevZoom / zoom;
+		}
+
+		ui::Box timeline = { 0,0,GetWidth(),2};
+		timeline.y = GetHeight()-timeline.h-40;
+
+		if (!points)
+			return;
+
+		for (int i = 0; i < MAX_POINTS;i++) {
+			float x = points[i];
+			if (x == 0)
+				continue;
+			ui::Box box = { 0,0,2,20,color };
+			box.y = timeline.y + offsetY;
+			box.x = GetWidth()/2+(x-GetWidth()/2 + offsetX) * zoom;
+			//+GetWidth() / 2;
+			ui::Draw(box);
+		}
 	}
 	std::vector<Profiler::TimedSection>& Profiler::getSections() {
 		return m_timedSections;

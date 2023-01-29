@@ -116,7 +116,8 @@ namespace prounk {
 				auto& oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
 				
 				if (!oinfo.displayName.empty()) {
-					glm::vec3 pos3 = obj->getPosition() + glm::vec3(0, obj->getModel()->boundingPoint.y + obj->getModel()->boundingRadius, 0);
+					glm::vec3 modelPos = obj->getInterpolatedMat4(info.interpolation)[3];
+					glm::vec3 pos3 = modelPos + glm::vec3(0, obj->getModel()->boundingPoint.y + obj->getModel()->boundingRadius, 0);
 					//obj->getModel()->boundingPoint
 					// use model asset to get bounds and offset text position by?
 					glm::vec4 pos = projMat * glm::vec4(pos3, 1);

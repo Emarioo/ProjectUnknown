@@ -11,7 +11,7 @@ namespace prounk {
 	class PanelHandler;
 	class Panel {
 	public:
-		Panel() = default;
+		Panel();
 
 		typedef int EdgeType;
 		static const EdgeType TOP=0;
@@ -31,10 +31,14 @@ namespace prounk {
 		//void setY(float f);
 		//void setW(float f);
 		//void setH(float f);
+
+		void move(float dx, float dy);
+		//void resize(float dx, float dy);
 		void setLeft(float f);
 		void setRight(float f);
 		void setTop(float f);
 		void setBottom(float f);
+
 		void setPosition(float x, float y);
 		void setSize(float w, float h);
 		engone::ui::Box getBox();
@@ -50,8 +54,8 @@ namespace prounk {
 		void updateConstraints();
 
 		// new type will replace old types
-		void addConstraint(EdgeType type, float offset, float minOffset, Panel* attached);
-		void removeConstraint(EdgeType type);
+		//void addConstraint(EdgeType type, float offset, float minOffset, Panel* attached);
+		//void removeConstraint(EdgeType type);
 
 		void setHidden(bool yes) { m_hidden = yes; }
 		bool getHidden() { return m_hidden; }
@@ -72,14 +76,19 @@ namespace prounk {
 				float m_sizes[2];
 			};
 			struct {
-				float m_height, m_width;
+				float m_height;
+				float m_width;
 			};
 		};
 		float m_minWidth = 20;
 		float m_minHeight = 20;
+		float m_maxWidth = 900;
+		float m_maxHeight = 900;
 
 		void setMinWidth(float f);
 		void setMinHeight(float f);
+		void setMaxWidth(float f);
+		void setMaxHeight(float f);
 
 	private:
 		bool m_movable=true; // Some panels like MasterInventoryPanel cannot be moved.
@@ -88,8 +97,8 @@ namespace prounk {
 		
 		PanelHandler* m_panelHandler=nullptr; // used when updating depth
 
-		Constraint m_constraints[4];
-		std::vector<Panel*> m_attachments;
+		//Constraint m_constraints[4];
+		//std::vector<Panel*> m_attachments;
 
 		friend class PanelHandler;
 	};
@@ -106,7 +115,7 @@ namespace prounk {
 
 	private:
 
-		bool m_canMovePanels = true; // Todo: this should be false by default
+		bool m_canMovePanels = false;
 
 		Panel* m_editPanel = nullptr;
 		float m_editFromX=0;

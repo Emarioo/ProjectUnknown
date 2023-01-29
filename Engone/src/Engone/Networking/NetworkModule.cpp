@@ -692,6 +692,7 @@ namespace engone {
 							hints.ai_socktype = SOCK_STREAM;
 							hints.ai_protocol = IPPROTO_TCP;
 							hints.ai_flags = AI_PASSIVE;
+							// Todo: fix htons and stuff
 
 							int err = getaddrinfo(NULL, action.port.c_str(), &hints, &result);
 							if (err != 0) {

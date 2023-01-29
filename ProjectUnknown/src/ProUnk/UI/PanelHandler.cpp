@@ -5,7 +5,15 @@
 #include "Engone/Window.h"
 
 namespace prounk {
-
+	Panel::Panel() {
+		// has to initialize here
+		m_left = 0;
+		m_top = 0;
+		m_bottom = 0;
+		m_right = 0;
+		m_width = 0;
+		m_height = 0;
+	}
 	float Panel::getDepth() {
 		return m_depth;
 	}
@@ -23,114 +31,166 @@ namespace prounk {
 	engone::ui::Box Panel::getBox() {
 		return { m_left,m_top,m_right-m_left,m_bottom-m_top };
 	}
-	void Panel::addConstraint(EdgeType type, float offset, float minOffset, Panel* attached) {
-		Constraint& c = m_constraints[type];
-		// remove old attachment
-		if (c.attached) {
-			Panel* p = c.attached;
-			for (int i = 0; i < p->m_attachments.size(); i++) {
-				if (this == p->m_attachments[i]) {
-					p->m_attachments.erase(p->m_attachments.begin() + i);
-					break;
-				}
-			}
-			m_constraints[type].attached = nullptr;
-		}
+	//void Panel::addConstraint(EdgeType type, float offset, float minOffset, Panel* attached) {
+	//	Constraint& c = m_constraints[type];
+	//	// remove old attachment
+	//	if (c.attached) {
+	//		Panel* p = c.attached;
+	//		for (int i = 0; i < p->m_attachments.size(); i++) {
+	//			if (this == p->m_attachments[i]) {
+	//				p->m_attachments.erase(p->m_attachments.begin() + i);
+	//				break;
+	//			}
+	//		}
+	//		m_constraints[type].attached = nullptr;
+	//	}
 
-		c.active = true;
-		c.offset = offset;
-		c.minOffset = minOffset;
-		c.attached = attached;
-		if (c.attached) {
-			c.attached->m_attachments.push_back(this);
-		}
+	//	c.active = true;
+	//	c.offset = offset;
+	//	c.minOffset = minOffset;
+	//	c.attached = attached;
+	//	if (c.attached) {
+	//		c.attached->m_attachments.push_back(this);
+	//	}
 
-		updateConstraints();
-	}
-	void Panel::removeConstraint(EdgeType type) {
-		Constraint& c = m_constraints[type];
-		if (c.attached) {
-			Panel* p = c.attached;
-			for (int i = 0; i < p->m_attachments.size();i++) {
-				if (this == p->m_attachments[i]) {
-					p->m_attachments.erase(p->m_attachments.begin() + i);
-					break;
-				}
-			}
-			m_constraints[type].attached = nullptr;
-		}
+	//	updateConstraints();
+	//}
+	//void Panel::removeConstraint(EdgeType type) {
+	//	Constraint& c = m_constraints[type];
+	//	if (c.attached) {
+	//		Panel* p = c.attached;
+	//		for (int i = 0; i < p->m_attachments.size();i++) {
+	//			if (this == p->m_attachments[i]) {
+	//				p->m_attachments.erase(p->m_attachments.begin() + i);
+	//				break;
+	//			}
+	//		}
+	//		m_constraints[type].attached = nullptr;
+	//	}
 
-		m_constraints[type].active = false;
+	//	m_constraints[type].active = false;
 
-		updateConstraints();
-	}
+	//	updateConstraints();
+	//}
 	void Panel::setTop(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
-		Constraint& c = m_constraints[TOP];
+		//Constraint& c = m_constraints[TOP];
 
-		m_height = fabs(m_bottom - f);
-		if (c.active) {
-			if (c.attached) {
-				c.offset = f - c.attached->m_bottom;
-				if (c.offset < c.minOffset)
-					c.offset = c.minOffset;
-			}
+		if (f < 0) {
+			m_top = 0;
+		} else if (f > GetHeight()) {
+			m_top = GetHeight();
 		} else {
 			m_top = f;
 		}
-		updateConstraints();
+		if (m_bottom - m_top > m_maxHeight) {
+			m_top = m_bottom - m_maxHeight;
+		}
+		if (m_bottom - m_top < m_minHeight) {
+			m_top = m_bottom - m_minHeight;
+		}
+		//m_height = fabs(m_bottom - f);
+		//if (c.active) {
+		//	if (c.attached) {
+		//		c.offset = f - c.attached->m_bottom;
+		//		if (c.offset < c.minOffset)
+		//			c.offset = c.minOffset;
+		//	}
+		//} else {
+			//m_top = f;
+		//}
+		//updateConstraints();
 	}
 	void Panel::setLeft(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
-		Constraint& c = m_constraints[LEFT];
+		//Constraint& c = m_constraints[LEFT];
 
-		m_width = fabs(m_right - f);
-		if (c.active) {
-			if (c.attached) {
-				c.offset = f - c.attached->m_right;
-				if (c.offset < c.minOffset)
-					c.offset = c.minOffset;
-			}
+		if (f < 0) {
+			m_left = 0;
+		} else if (f > GetWidth()) {
+			m_left = GetWidth(); // rare scenario, check if m_right is less than m_left?
 		} else {
 			m_left = f;
 		}
-		updateConstraints();
+		if (m_right-m_left > m_maxWidth) {
+			m_left = m_right - m_maxWidth;
+		}
+		if (m_right - m_left < m_minWidth) {
+			m_left = m_right - m_minWidth;
+		}
+		//m_width = fabs(m_right - f);
+		//if (c.active) {
+		//	if (c.attached) {
+		//		c.offset = f - c.attached->m_right;
+		//		if (c.offset < c.minOffset)
+		//			c.offset = c.minOffset;
+		//	}
+		//} else {
+			//m_left = f;
+		//}
+		//updateConstraints();
 	}
 	void Panel::setRight(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
-		Constraint& c = m_constraints[RIGHT];
+		//Constraint& c = m_constraints[RIGHT];
 
-		m_width = fabs(f - m_left);
-		if (c.active) {
-			if (c.attached) {
-				c.offset = -f + c.attached->m_left;
-				if (c.offset < c.minOffset)
-					c.offset = c.minOffset;
-			}
+		if (f < 0) {
+			m_right = 0; // m_left?
+		} else if (f > GetWidth()) {
+			m_right = GetWidth();
 		} else {
-			m_right = f;
+			m_right = f; // m_left?
 		}
-		updateConstraints();
+		if (m_right - m_left > m_maxWidth) {
+			m_right = m_left + m_maxWidth;
+		}
+		if (m_right - m_left < m_minWidth) {
+			m_right = m_left + m_minWidth;
+		}
+		//m_width = fabs(f - m_left);
+		//if (c.active) {
+		//	if (c.attached) {
+		//		c.offset = -f + c.attached->m_left;
+		//		if (c.offset < c.minOffset)
+		//			c.offset = c.minOffset;
+		//	}
+		//} else {
+			//m_right = f;
+		//}
+		//updateConstraints();
 	}
 	void Panel::setBottom(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
-		Constraint& c = m_constraints[BOTTOM];
+		//Constraint& c = m_constraints[BOTTOM];
 
-		m_height = fabs(f - m_top);
-		if (c.active) {
-			if (c.attached) {
-				c.offset = -f + c.attached->m_top;
-				if (c.offset < c.minOffset)
-					c.offset = c.minOffset;
-			}
+		if (f < 0) {
+			m_bottom = 0;
+		} else if (f > GetHeight()) {
+			m_bottom = GetHeight();
 		} else {
 			m_bottom = f;
 		}
-		updateConstraints();
+		if (m_bottom - m_top > m_maxHeight) {
+			m_bottom = m_top + m_maxHeight;
+		}
+		if (m_bottom - m_top < m_minHeight) {
+			m_bottom = m_top + m_minHeight;
+		}
+		//m_height = fabs(f - m_top);
+		//if (c.active) {
+		//	if (c.attached) {
+		//		c.offset = -f + c.attached->m_top;
+		//		if (c.offset < c.minOffset)
+		//			c.offset = c.minOffset;
+		//	}
+		//} else {
+			//m_bottom = f;
+		//}
+		//updateConstraints();
 	}
 	void Panel::setMinWidth(float f) {
 		if (m_minWidth != f) {
@@ -144,104 +204,215 @@ namespace prounk {
 			updateConstraints();
 		}
 	}
+	void Panel::setMaxWidth(float f) {
+		if (m_maxWidth != f) {
+			m_maxWidth = f;
+			updateConstraints();
+		}
+	}
+	void Panel::setMaxHeight(float f) {
+		if (m_maxHeight != f) {
+			m_maxHeight = f;
+			updateConstraints();
+		}
+	}
 	void Panel::setSize(float w, float h) {
 		setRight(m_left + w);
 		setBottom(m_top + h);
 	}
 	void Panel::setPosition(float x, float y) {
-		float w = m_right - m_left;
-		float h = m_bottom - m_top;
-		setRight(x+w);
-		setLeft(x);
-		setBottom(y+h);
-		setTop(y);
+		move(x - m_left,y-m_top);
 	}
+	void Panel::move(float dx, float dy) {
+		using namespace engone;
+		if (m_left + dx < 0) {
+			m_right = m_right - m_left;
+			m_left = 0;
+		}else if (m_right + dx > GetWidth()) {
+			m_left = GetWidth() - (m_right-m_left);
+			m_right = GetWidth();
+		} else {
+			m_left += dx;
+			m_right += dx;
+		}
+		if (m_top + dy < 0) {
+			m_bottom = m_bottom - m_top;
+			m_top = 0;
+		}else if (m_bottom + dy > GetHeight()) {
+			m_top = GetHeight() - (m_bottom - m_top);
+			m_bottom = GetHeight();
+		} else {
+			m_top += dy;
+			m_bottom += dy;
+		}
+	}
+	//void Panel::resize(float dx, float dy) {
+	//	using namespace engone;
+	//	if (dx < 0) {
+	//		if (m_left + dx < 0) {
+	//			m_left = 0;
+	//		} else {
+	//			m_left += dx;
+	//		}
+	//	} else if(dx>0) {
+	//		if (m_right + dx > GetWidth()) {
+	//			m_right = GetWidth();
+	//		} else {
+	//			m_right += dx;
+	//		}
+	//	}
+	//	if (dy < 0) {
+	//		if (m_top + dy < 0) {
+	//			m_top = 0;
+	//		} else {
+	//			m_top += dy;
+	//		}
+	//	} else if (dy > 0) {
+	//		if (m_top + dy > GetHeight()) {
+	//			m_top = GetHeight();
+	//		} else {
+	//			m_bottom += dy;
+	//		}
+	//	}
+	//}
 	void Panel::updateConstraints() {
 		using namespace engone;
-		// size to maintain
-		float prev[4]{ m_top,m_left, m_bottom,m_right };
-		//float sizes[2]{ m_bottom-m_top,m_right-m_left };
-		float limits[4]{ 0,0,GetHeight(),GetWidth() };
-
-		// update constraints
-		for (EdgeType type = 0; type < 4; type++) {
-			Constraint& c = m_constraints[type];
-			EdgeType type2 = type^2; // xor
-			if (c.active) {
-				if (c.attached) {
-					m_edges[type] = c.attached->m_edges[type2];
-					if (type & 2) m_edges[type] -= c.offset;
-					else m_edges[type] += c.offset;
-				} else {
-					m_edges[type] = limits[type];
-					if (type & 2) m_edges[type] -= c.offset;
-					else m_edges[type] += c.offset;
-				}
-			}
-			if (!m_constraints[type2].active) {
-				// maintain previous width or height
-				float size = m_sizes[type&1];
-				//float size = m_sizes[type&1];
-
-				m_edges[type2] = m_edges[type];
-				if (type & 2) {
-					m_edges[type2] -= size;
-				} else {
-					m_edges[type2] += size;
-				}
-			}
+		
+		if (m_right - m_left > GetWidth()) {
+			m_left = 0;
+			m_right = GetWidth();
+		}
+		if (m_bottom - m_top > GetHeight()) {
+			m_left = 0;
+			m_right = GetWidth();
+		}
+		if (m_left < 0) {
+			m_right = m_right - m_left;
+			m_left = 0;
+		}
+		if (m_right > GetWidth()) {
+			m_left = GetWidth()-(m_right-m_left);
+			m_right = GetWidth();
+		}
+		if (m_top < 0) {
+			m_bottom = m_bottom - m_top;
+			m_top = 0;
+		}
+		if (m_bottom > GetHeight()) {
+			m_top = GetHeight() - (m_bottom - m_top);
+			m_bottom = GetHeight();
 		}
 		
-		// check minimums, forced change like pushing repelling magnets together
-		float w = m_right - m_left;
-		if (w < m_minWidth) {
-			//log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
-			if (prev[LEFT] == m_left) {
-				m_left = m_right - m_minWidth;
-				if(m_constraints[LEFT].active)
-					if(m_constraints[LEFT].attached)
-						m_constraints[LEFT].offset = m_left - m_constraints[LEFT].attached->m_right;
-				//log::out << "new left " << m_left << "\n";
-			}
-			if(prev[RIGHT] == m_right) {
-				m_right = m_left + m_minWidth;
-				if (m_constraints[RIGHT].active)
-					if (m_constraints[RIGHT].attached)
-						m_constraints[RIGHT].offset = -m_right + m_constraints[RIGHT].attached->m_left;
-				//log::out << "new right " << m_right << "\n";
-			}
+		if (m_bottom - m_top > m_maxHeight) {
+			m_bottom = m_top + m_maxHeight;
 		}
-		float h = m_bottom - m_top;
-		if(h < m_minHeight) {
-			if (prev[TOP] == m_top) {
-				m_top = m_bottom - m_minHeight;
-				if (m_constraints[TOP].active)
-					if (m_constraints[TOP].attached)
-						m_constraints[TOP].offset = m_top - m_constraints[TOP].attached->m_bottom;
-				//log::out << "new left " << m_left << "\n";
-			}
-			if (prev[BOTTOM] == m_bottom) {
-				m_bottom = m_top + m_minHeight;
-				if (m_constraints[BOTTOM].active)
-					if (m_constraints[BOTTOM].attached)
-						m_constraints[BOTTOM].offset = -m_bottom + m_constraints[BOTTOM].attached->m_top;
-				//log::out << "new right " << m_right << "\n";
-			}
-			//if (prev[TOP] == m_top) {
-				//m_bottom = m_top + m_minHeight;
-			//} else {
-			//	m_top = m_bottom - m_minHeight;
-			//}
+		if (m_bottom - m_top < m_minHeight) {
+			m_bottom = m_top + m_minHeight;
+		}
+		if (m_right - m_left > m_maxWidth) {
+			m_right = m_left + m_maxWidth;
+		}
+		if (m_right - m_left < m_minWidth) {
+			m_right = m_left + m_minWidth;
 		}
 
-		m_width = fabs(m_right - m_left);
-		m_height = fabs(m_bottom - m_top);
+		//if (m_top < 0)
+		//	m_top = 0;
+		//if (m_right > GetWidth())
+		//	m_right = GetWidth(); // should it be GetWidth()-1 ?
+		//if (m_bottom > GetHeight())
+		//	m_bottom = GetHeight();
 
-		// update panels from the chain
-		for (Panel* p : m_attachments) {
-			p->updateConstraints();
-		}
+		m_width = m_right - m_left;
+		m_height = m_bottom - m_top;
+		//log::out <<"w/h: "<< m_width << " " << m_height << "\n";
 	}
+	//void Panel::updateConstraints() {
+	//	using namespace engone;
+	//	// size to maintain
+	//	float prev[4]{ m_top,m_left, m_bottom,m_right };
+	//	//float sizes[2]{ m_bottom-m_top,m_right-m_left };
+	//	float limits[4]{ 0,0,GetHeight(),GetWidth() };
+
+	//	// update constraints
+	//	for (EdgeType type = 0; type < 4; type++) {
+	//		Constraint& c = m_constraints[type];
+	//		EdgeType type2 = type^2; // xor
+	//		if (c.active) {
+	//			if (c.attached) {
+	//				m_edges[type] = c.attached->m_edges[type2];
+	//				if (type & 2) m_edges[type] -= c.offset;
+	//				else m_edges[type] += c.offset;
+	//			} else {
+	//				m_edges[type] = limits[type];
+	//				if (type & 2) m_edges[type] -= c.offset;
+	//				else m_edges[type] += c.offset;
+	//			}
+	//		}
+	//		if (!m_constraints[type2].active) {
+	//			// maintain previous width or height
+	//			float size = m_sizes[type&1];
+	//			//float size = m_sizes[type&1];
+
+	//			m_edges[type2] = m_edges[type];
+	//			if (type & 2) {
+	//				m_edges[type2] -= size;
+	//			} else {
+	//				m_edges[type2] += size;
+	//			}
+	//		}
+	//	}
+	//	
+	//	// check minimums, forced change like pushing repelling magnets together
+	//	float w = m_right - m_left;
+	//	if (w < m_minWidth) {
+	//		//log::out << w<<" "<<m_right<<" "<<m_left<<" "<<prev[LEFT] << "\n";
+	//		if (prev[LEFT] == m_left) {
+	//			m_left = m_right - m_minWidth;
+	//			if(m_constraints[LEFT].active)
+	//				if(m_constraints[LEFT].attached)
+	//					m_constraints[LEFT].offset = m_left - m_constraints[LEFT].attached->m_right;
+	//			//log::out << "new left " << m_left << "\n";
+	//		}
+	//		if(prev[RIGHT] == m_right) {
+	//			m_right = m_left + m_minWidth;
+	//			if (m_constraints[RIGHT].active)
+	//				if (m_constraints[RIGHT].attached)
+	//					m_constraints[RIGHT].offset = -m_right + m_constraints[RIGHT].attached->m_left;
+	//			//log::out << "new right " << m_right << "\n";
+	//		}
+	//	}
+	//	float h = m_bottom - m_top;
+	//	if(h < m_minHeight) {
+	//		if (prev[TOP] == m_top) {
+	//			m_top = m_bottom - m_minHeight;
+	//			if (m_constraints[TOP].active)
+	//				if (m_constraints[TOP].attached)
+	//					m_constraints[TOP].offset = m_top - m_constraints[TOP].attached->m_bottom;
+	//			//log::out << "new left " << m_left << "\n";
+	//		}
+	//		if (prev[BOTTOM] == m_bottom) {
+	//			m_bottom = m_top + m_minHeight;
+	//			if (m_constraints[BOTTOM].active)
+	//				if (m_constraints[BOTTOM].attached)
+	//					m_constraints[BOTTOM].offset = -m_bottom + m_constraints[BOTTOM].attached->m_top;
+	//			//log::out << "new right " << m_right << "\n";
+	//		}
+	//		//if (prev[TOP] == m_top) {
+	//			//m_bottom = m_top + m_minHeight;
+	//		//} else {
+	//		//	m_top = m_bottom - m_minHeight;
+	//		//}
+	//	}
+
+		//m_width = fabs(m_right - m_left);
+		//m_height = fabs(m_bottom - m_top);
+
+	//	// update panels from the chain
+	//	//for (Panel* p : m_attachments) {
+	//	//	p->updateConstraints();
+	//	//}
+	//}
 	void PanelHandler::addPanel(Panel* panel) {
 		m_panels.push_back(panel);
 		panel->m_panelHandler = this;
@@ -294,6 +465,12 @@ namespace prounk {
 		const ui::Color darkHighlight = { 0.6,0.6,0.04,1.f };
 		const ui::Color resizeHighlight = { 1.0,1.0,0.8,1.f };
 		
+		for (int i = 0; i < m_panels.size(); i++) {
+			if (m_panels[i]->getHidden())
+				continue;
+			m_panels[i]->updateConstraints();
+		}
+
 		for (int i =0; i < m_panels.size(); i++) {
 			if (m_panels[i]->getHidden())
 				continue;
@@ -406,14 +583,16 @@ namespace prounk {
 					float ny = m_editFromY + GetMouseY();
 
 					auto box = m_editPanel->getBox();
-					m_editPanel->setRight(nx+box.w);
-					m_editPanel->setLeft(m_editPanel->m_right-box.w);
+
+					m_editPanel->move(nx-box.x, ny-box.y);
+					//m_editPanel->setRight(nx+box.w);
+					//m_editPanel->setLeft(m_editPanel->m_right-box.w);
 
 					//m_editPanel->setTop(ny);
 					//m_editPanel->setBottom(m_editPanel->m_top + box.h);
 
-					m_editPanel->setBottom(ny + box.h);
-					m_editPanel->setTop(m_editPanel->m_bottom-box.h);
+					//m_editPanel->setBottom(ny + box.h);
+					//m_editPanel->setTop(m_editPanel->m_bottom-box.h);
 
 					if (IsKeyReleased(GLFW_MOUSE_BUTTON_1)) {
 						m_editPanel = nullptr;
@@ -464,7 +643,7 @@ namespace prounk {
 								if (offset < minOffset)
 									offset = minOffset;
 								
-								m_editPanel->addConstraint(type2, offset, minOffset, panel);
+								//m_editPanel->addConstraint(type2, offset, minOffset, panel);
 								break;
 							}
 						}
@@ -491,6 +670,7 @@ namespace prounk {
 								m_editResizingX = 0;
 								nw = m_editPanel->m_minWidth;
 							}
+							//m_editPanel->resize(nw-(m_editPanel->m_right-m_editPanel->m_left),0);
 							m_editPanel->setRight(area.x+nw);
 						} else {
 							float fixed = area.x + area.w;
@@ -503,6 +683,7 @@ namespace prounk {
 								nx = fixed - m_editPanel->m_minWidth;
 								m_editResizingX = 0;
 							}
+							//m_editPanel->resize(nw - (m_editPanel->m_right - m_editPanel->m_left), 0);
 							m_editPanel->setLeft(nx);
 							//m_editPanel->setW(nw);
 							//m_editPanel->setX(nx);
@@ -523,6 +704,7 @@ namespace prounk {
 								m_editResizingY = 0;
 								nh = m_editPanel->m_minHeight;
 							}
+							//m_editPanel->resize(0, nh - (m_editPanel->m_bottom - m_editPanel->m_top));
 							m_editPanel->setBottom(area.y+nh);
 						} else {
 							float fixed = area.y + area.h;
@@ -534,6 +716,7 @@ namespace prounk {
 								ny = fixed - m_editPanel->m_minHeight;
 								m_editResizingY = 0;
 							}
+							//m_editPanel->resize(0, nh - (m_editPanel->m_bottom - m_editPanel->m_top));
 							m_editPanel->setTop(ny);
 							//m_editPanel->setH(nh);
 							//m_editPanel->setY(ny);
@@ -547,9 +730,5 @@ namespace prounk {
 				}
 			}
 		}
-		//if (IsKeyPressed(GLFW_KEY_P)) {
-		//	m_canMovePanels = !m_canMovePanels;
-		//	m_editPanel = nullptr;
-		//}
 	}
 }

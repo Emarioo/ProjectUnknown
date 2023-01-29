@@ -34,6 +34,14 @@ void runApp(int argc, char** argv) {
 		//-- Special options when starting the game. Like allocating a console if in Release mode.
 		// Todo: Move this to a sub function.
 		for (int i = 0; i < argc; i++) {
+			if (i == 0) {
+				int len = strlen(argv[i]);
+				if (len >= 2) {
+					if (argv[i][1] == ':') {
+						continue; // exe path is ignored
+					}
+				}
+			}
 			if (strcmp(argv[i], "--console") == 0) {
 				CreateConsole();
 				continue;

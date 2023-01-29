@@ -57,7 +57,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_PHYSICS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;ENGONE_PHYSICS;ENGONE_SOUND</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)Engone/include;$(SolutionDir)libs/GLFW/include;$(SolutionDir)libs/GLEW/include;</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs/reactphysics3d/include</AdditionalIncludeDirectories>

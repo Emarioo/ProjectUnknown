@@ -65,6 +65,8 @@ namespace engone {
 		// where are default executions added to control?
 		for (Application* app : m_applications) {
 			app->getWindow(0)->getControl().addExecution(&app->getProfiler());
+			app->getProfiler().updateGraph.start();
+			app->getProfiler().renderGraph.start();
 		}
 		while (true) {
 			
@@ -166,36 +168,43 @@ namespace engone {
 		mainRenderTimer.step();
 
 		//-- Update execution
+		bool once = false;
 		while (mainUpdateTimer.accumulate()) {
+			once = true;
 			//printf("update\n");
 			for (Application* app : m_applications) {
-				if (!app->isMultiThreaded()) {
+				if (app->isMultiThreaded())
+					continue;
+				app->getProfiler().updateGraph.plot(GetSystemTime());
 
-					if (app->getWindow(0))
-						app->getWindow(0)->setActiveContext();
+				if (app->getWindow(0))
+					app->getWindow(0)->setActiveContext();
 
-					currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
-					//currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
+				currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
+				//currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
+				//currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
 					
-					for (Window* win : app->getAttachedWindows()) {
-						// should be changed, storage should use a thread pool, a set of asset tasks to do. (seperate from TaskHandler...)
-						if(!win->getStorage()->getIOProcessors().empty())
-							win->getStorage()->getIOProcessors()[0]->process();
-						if(!win->getStorage()->getDataProcessors().empty())
-							win->getStorage()->getDataProcessors()[0]->process();
-					}
+				for (Window* win : app->getAttachedWindows()) {
+					// should be changed, storage should use a thread pool, a set of asset tasks to do. (seperate from TaskHandler...)
+					if(!win->getStorage()->getIOProcessors().empty())
+						win->getStorage()->getIOProcessors()[0]->process();
+					if(!win->getStorage()->getDataProcessors().empty())
+						win->getStorage()->getDataProcessors()[0]->process();
+				}
 
-					app->update(currentLoopInfo);
-					update(currentLoopInfo); // should maybe be moved outside loop?
+				update(currentLoopInfo); // should maybe be moved outside loop?
+				app->update(currentLoopInfo);
 
-					app->getProfiler().getSampler(app).increment();
-					app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
+				app->getProfiler().getSampler(app).increment();
+				app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
 
-					for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-						app->getWindow(winIndex)->resetEvents(false);
-					}
+				for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
+					app->getWindow(winIndex)->resetEvents(false);
 				}
 			}
+		}
+		if (!once) {
+			//log::out << "skipped\n";
 		}
 		for (Application* app : m_applications) {
 			if (!app->isMultiThreaded()) {
@@ -203,66 +212,68 @@ namespace engone {
 			}
 		}
 		//-- Render execution
-		if (mainRenderTimer.accumulate()) {
+		//if (mainRenderTimer.accumulate()) {
 			//printf("render\n");
 			for (Application* app : m_applications) {
-				if (!app->isMultiThreaded()) {
-					app->m_renderingWindows = true;
-					for (Window* win : app->getAttachedWindows()) {
-						if (!win->isOpen()) continue;
+				if (app->isMultiThreaded())
+					continue;
+				app->getProfiler().renderGraph.plot(GetSystemTime());
+				app->m_renderingWindows = true;
+				for (Window* win : app->getAttachedWindows()) {
+					if (!win->isOpen()) continue;
 
-						//double interpolation = mainRenderTimer.delta / mainRenderTimer.aimedDelta; // Note: update accumulator should be there.
+					double interpolation = mainUpdateTimer.accumulator / mainUpdateTimer.aimedDelta; // Note: update accumulator should be there.
+					if(getFlags()&EngoneShowHitboxes)
+						interpolation = 1;
+					//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+					currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
+					// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
 
-						//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
-						currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,0};
-						// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
+					win->setActiveContext();
 
-						win->setActiveContext();
-
-						if (!win->getStorage()->getGraphicProcessors().empty()) {
-							win->getStorage()->getGraphicProcessors()[0]->process();
-						}
-
-						// Important setup
-						// DONE IN Window::setActiveContext
-						glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-						glDepthFunc(GL_LESS);
-						glEnable(GL_CULL_FACE);
-						glClearColor(0.15f, 0.18f, 0.18f, 1.f);
-						//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
-						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-						// 3d stuff
-						app->render(currentLoopInfo);
-
-						render(currentLoopInfo);
-
-						app->getProfiler().getSampler(win).increment();
-						win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
-
-						// orthogonal was set before hand
-						win->getPipeline()->render(currentLoopInfo);
-
-						glfwSwapInterval(0); // turning off vsync?
-						//Timer swapT("glSwapBuffers");
-						glfwSwapBuffers(win->glfw());
-						//swapT.stop();
-						// frame reset
-						win->resetEvents(true);
-						char endChr;
-						while (endChr = win->pollChar()) {
-							//log::out << "endpoll " << endChr << "\n";
-						}
+					if (!win->getStorage()->getGraphicProcessors().empty()) {
+						win->getStorage()->getGraphicProcessors()[0]->process();
 					}
-					app->m_renderingWindows = false;
+
+					// Important setup
+					// DONE IN Window::setActiveContext
+					glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					glDepthFunc(GL_LESS);
+					glEnable(GL_CULL_FACE);
+					glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+					//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
+					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+					// 3d stuff
+					app->render(currentLoopInfo);
+
+					render(currentLoopInfo);
+
+					app->getProfiler().getSampler(win).increment();
+					win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
+
+					// orthogonal was set before hand
+					win->getPipeline()->render(currentLoopInfo);
+
+					glfwSwapInterval(0); // turning off vsync?
+					//Timer swapT("glSwapBuffers");
+					glfwSwapBuffers(win->glfw());
+					//swapT.stop();
+					// frame reset
+					win->resetEvents(true);
+					char endChr;
+					while (endChr = win->pollChar()) {
+						//log::out << "endpoll " << endChr << "\n";
+					}
 				}
+				app->m_renderingWindows = false;
 			}
-		}
+		//}
 		for (Application* app : m_applications) {
 			if (!app->isMultiThreaded()) {
 				for (Window* win : app->getAttachedWindows()) {
-					app->getProfiler().getSampler(win).next(mainUpdateTimer.delta);
+					app->getProfiler().getSampler(win).next(mainRenderTimer.delta);
 				}
 			}
 		}
@@ -479,7 +490,7 @@ namespace engone {
 				for (int i = 0; i < info.app->m_worlds.size(); i++) {
 					info.app->m_worlds[i]->lockPhysics();
 					rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
-					world->setIsDebugRenderingEnabled(true);
+					world->setIsDebugRenderingEnabled(false);
 					info.app->m_worlds[i]->unlockPhysics();
 				}
 			}
@@ -518,7 +529,14 @@ namespace engone {
 				if (!model) continue;
 				if (!model->valid()) continue;
 				world->lockPhysics();
-				glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+				
+
+
+				//rp3d::Transform::interpolateTransforms();
+
+				//glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+				glm::mat4 modelMatrix = obj->getInterpolatedMat4(info.interpolation);
+
 				world->unlockPhysics();
 				//Animator* animator = &obj->animator;
 
@@ -608,7 +626,8 @@ namespace engone {
 					if (!model) continue;
 					if (!model->valid()) continue;
 
-					glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+					//glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+					glm::mat4 modelMatrix = obj->getInterpolatedMat4(info.interpolation);
 
 					bindLights(shader, modelMatrix[3]);
 

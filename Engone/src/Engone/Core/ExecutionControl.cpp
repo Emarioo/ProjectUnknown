@@ -39,6 +39,9 @@ namespace engone {
 		if (accumulator < aimedDelta)
 			return false;
 		accumulator -= aimedDelta;
+		if (accumulator < 0) {
+			DebugBreak();
+		}
 		return true;
 	}
 	ExecutionControl::~ExecutionControl() {

@@ -97,6 +97,7 @@ namespace engone {
 		EngineObject* obj=nullptr;
 		while (obj=iterator.next()) {
 #ifdef ENGONE_PHYSICS
+			obj->prevTransform = obj->getRigidBody()->getTransform();
 			if (obj->m_flags & EngineObject::PENDING_COLLIDERS) {
 				obj->loadColliders();
 			}
@@ -254,6 +255,8 @@ namespace engone {
 			using namespace engone;
 			// check if item
 			EngineObject* object = (EngineObject*)raycastInfo.body->getUserData();
+			if (!object)
+				return 1.f;
 			if (object->getObjectType() == ignoreType)
 				return 1.f;
 			if (object) {

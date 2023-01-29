@@ -85,7 +85,10 @@ namespace prounk {
 		float flyFastSpeed = 90.f;
 		float walkSpeed = 8.f;
 		float sprintSpeed = 15.f;
-		float jumpForce = 10.f;
+		float jumpForce = 17.f;
+
+		float jumpTime = 0;
+		float jumpDelay = 0.4;
 
 		ItemType lastItemType=0;
 
@@ -93,8 +96,6 @@ namespace prounk {
 		float targetRotation=0;
 
 		//engone::Camera testCam;
-
-		bool onGround = false;
 
 		GameApp* app=nullptr;
 

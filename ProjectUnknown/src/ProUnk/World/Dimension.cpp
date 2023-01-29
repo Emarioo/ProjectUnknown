@@ -305,6 +305,12 @@ namespace prounk {
 				combatData->update(info);
 			//	combatData->wasUpdated = true;
 			//}
+
+			if (obj->getObjectType() & OBJECT_CREATURE) {
+				auto& oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
+				oinfo.onGround = false;
+				//log::out << "start2 " << oinfo.onGround << "\n";
+			}
 		}
 
 		//m_world->deleteIterator(iterator);

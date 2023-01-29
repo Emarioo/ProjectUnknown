@@ -2,6 +2,7 @@
 
 #ifdef ENGONE_SOUND
 
+// only use alCall with an active context
 #define alCall(x) x; if(al_check_error()) __debugbreak();
 bool al_check_error();
 

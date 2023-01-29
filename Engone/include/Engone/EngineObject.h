@@ -48,6 +48,9 @@ namespace engone {
 		const glm::vec3& getAngularVelocity();
 		// applyWorldForceAtCenterOfMass
 		void applyForce(const glm::vec3& force);
+
+		glm::mat4 getInterpolatedMat4(float interpolation);
+
 #endif
 
 		UUID getUUID() const;
@@ -68,6 +71,7 @@ namespace engone {
 		ModelAsset* m_modelAsset = nullptr;
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* m_rigidBody = nullptr;
+		rp3d::Transform prevTransform; // used for interpolation
 #endif
 		int m_objectInfo = 0;
 		Animator* m_animator = nullptr;

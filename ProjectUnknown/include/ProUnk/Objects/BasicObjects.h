@@ -27,6 +27,7 @@ namespace prounk {
 	bool IsDead(engone::EngineObject* object);
 	CombatData* GetCombatData(engone::EngineObject* object);
 	Inventory* GetInventory(engone::EngineObject* object);
+	Session* GetSession(engone::EngineObject* object);
 
 	//-- Creation functions
 

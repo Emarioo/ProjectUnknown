@@ -2,6 +2,8 @@
 
 #include "Engone/Core/ExecutionControl.h"
 
+#include "Engone/Rendering/UIRenderer.h"
+
 namespace engone {
 	class Profiler : public Execution {
 	public:
@@ -49,6 +51,38 @@ namespace engone {
 			int accCount = 0; // accumulation
 		};
 		std::vector<TimedSection>& getSections();
+
+		class Graph {
+		public:
+			Graph() = default;
+			Graph(ui::Color color, float offsetY) : color(color), offsetY(offsetY){};
+			~Graph();
+
+			void start();
+
+			void render(LoopInfo& info);
+			void renderBack(LoopInfo& info);
+			void plot(double time);
+
+		private:
+
+			ui::Color color;
+			double originTime = 0;
+			float offsetX = 0;
+			float offsetY = 0;
+			float zoom = 1;
+
+			static const int MAX_POINTS=60*100;
+			int pushIndex=0;
+			float* points = nullptr;
+		};
+
+		//void startGraphs() {
+		//	updateGraph.start();
+		//	renderGraph.start();
+		//}
+		Graph updateGraph{ {0,0,1,1},-15 };
+		Graph renderGraph{ {1,0,0,1},-5 };
 
 	private:
 		std::unordered_map<std::string, uint32> m_timedSectionsMap;

@@ -17,7 +17,7 @@ namespace prounk {
 	void PlayerController::setPlayerObject(engone::UUID player) {
 		m_playerId = player;
 
-		setFlight(true);
+		//setFlight(true);
 	}
 	//void PlayerController::setPlayerObject(engone::EngineObject* player) {
 	//	m_player = player;
@@ -47,9 +47,9 @@ namespace prounk {
 	static Item temp;
 	void PlayerController::update(engone::LoopInfo& info) {
 		using namespace engone;
+		Movement(info);
 		DetectHeldWeapon(info);
 		UpdateWeaponTransform(info);
-		Movement(info);
 		Input(info);
 	}
 	void PlayerController::DetectHeldWeapon(engone::LoopInfo& info) {
@@ -59,6 +59,8 @@ namespace prounk {
 			return;
 		// first slot in inventory is the held weapon.
 		Inventory* inv = getInventory();
+		if (!inv)
+			return;
 
 		EngineObject* heldObject = requestHeldObject();
 
@@ -184,7 +186,8 @@ namespace prounk {
 
 		flight = yes;
 		plr->getWorld()->lockPhysics();
-
+		
+		plr->getRigidBody()->setIsSleeping(false);
 		plr->getRigidBody()->enableGravity(!yes);
 		plr->getRigidBody()->setLinearDamping(yes? 7.0 : 0.f);
 
@@ -274,6 +277,7 @@ namespace prounk {
 	Inventory* PlayerController::getInventory() {
 		using namespace engone;
 		EngineObject* plr = requestPlayer();
+		if (!plr) return nullptr;
 		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
 		releasePlayer(plr);
 		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryDataIndex);
@@ -463,6 +467,11 @@ namespace prounk {
 		if (IsKeyPressed(GLFW_KEY_G)) {
 			setFlight(!flight);
 		}
+		if (IsKeyPressed(GLFW_KEY_T)) {
+			engone::EngineObject* plr = requestPlayer();
+			plr->applyForce({0,100,0});
+			//setFlight(!flight);
+		}
 		if (IsKeyPressed(GLFW_KEY_C)) {
 			setNoClip(!noclip);
 		}
@@ -525,8 +534,11 @@ namespace prounk {
 			ui::Draw(textBox);
 		}
 		EngineObject* plr = requestPlayer();
+		if (!plr)
+			return;
 		if (plr->getRigidBody() && !IsDead(plr)) {
-			glm::vec3 pos = plr->getPosition();
+			//glm::vec3 pos = plr->getPosition();
+			glm::vec3 pos = plr->getInterpolatedMat4(info.interpolation)[3];
 			CommonRenderer* renderer = GET_COMMON_RENDERER();
 			if (!renderer) {
 				log::out << log::RED << "PlayerController::render : renderer is null\n";
@@ -633,19 +645,16 @@ namespace prounk {
 		bool doMove = true;
 		if (!plr->getRigidBody()->isGravityEnabled() && glm::length(moveDir) == 0) {
 			doMove = false;
-			log::out << "no\n";
 		}
 		setFlight(false);
 		if (doMove) {
 			float tolerance = 0.0001;
 			if (glm::length(flatVelDiff) < tolerance && !flight) {
-				log::out << "what\n";
 				glm::vec3 other{};
 				if (!flight)
 					other.y = keepY + moveDirY;
 				plr->getRigidBody()->setLinearVelocity(ToRp3dVec3(other));
 			} else {
-				log::out << "haha\n";
 				flatVelDiff *= 0.25;
 				if (!flight)
 					flatVelDiff.y = moveDirY;
@@ -802,6 +811,9 @@ namespace prounk {
 			flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
 		}
 		glm::vec3 moveDir = flatMove;
+		jumpTime -= info.timeStep;
+		if (jumpTime < 0)
+			jumpTime = 0;
 		if (!IsDead(plr)) {
 			if (flight) {
 				if (IsKeybindingDown(KeyJump)) {
@@ -811,31 +823,44 @@ namespace prounk {
 					moveDir.y -= speed;
 				}
 			} else {
-				if (IsKeybindingPressed(KeyJump)) {
-					moveDir.y += jumpForce;
+				if (IsKeybindingDown(KeyJump)) {
+					auto& oinfo = GetSession(plr)->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+					if (oinfo.onGround) {
+						if (jumpTime == 0) {
+							moveDir.y += jumpForce;
+							oinfo.onGround = false;
+							jumpTime = jumpDelay;
+						}
+					}
 				}
 				if (IsKeybindingPressed(KeyCrouch)) {
 					moveDir.y -= jumpForce;
 				}
 			}
 		}
+		//return;
 		if (plr->getRigidBody() && !IsDead(plr)) {
 			plr->getWorld()->lockPhysics();
 			rp3d::Vector3 rot = ToEuler(plr->getRigidBody()->getTransform().getOrientation());
 			float realY = rot.y;
 			float wantY = realY;
 
+			const float targetMargin = 0.05; // low margin is hard to achive because of friction.
+			float diff = fabs(AngleDifference(realY, targetRotation));
+			if (diff < targetMargin) {
+				followTargetRotation = false;
+			}
+
 			if (IsKeybindingDown(KeyMoveCamera) || zoom == 0) {
 				targetRotation = camera->getRotation().y - glm::pi<float>();
 				followTargetRotation = true;
 			}
-			const float targetMargin = 0.01;
-			if (fabs(AngleDifference(realY, targetRotation)) < 0.01)
-				followTargetRotation = false;
 
 			if (followTargetRotation) {
 				wantY = targetRotation;
+				//log::out << "follow cam "<<diff<<" \n";
 			}else if (glm::length(flatMove) != 0) {
+				//log::out << "follow wasd\n";
 				wantY = std::atan2(flatMove.x, flatMove.z);
 			}
 
@@ -882,7 +907,7 @@ namespace prounk {
 			if (!flight) {
 				rp3d::Vector3 extraDownForce = { 0,0,0 };
 				float mass = plr->getRigidBody()->getMass();
-				extraDownForce.y += -0.34 * 9.82 * mass;
+				extraDownForce.y += -1 * 9.82 * mass;
 				if (plr->getRigidBody()->getLinearVelocity().y < 0) {
 					rp3d::Vector3 force = { 0,0,0 };
 					extraDownForce.y += -1.2 * 9.82 * mass;

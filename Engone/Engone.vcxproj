@@ -205,7 +205,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)\libs\GLFW\include;$(SolutionDir)\libs\GLEW\include;</AdditionalIncludeDirectories>
       <!-- $(SolutionDir)\libs\ASIO\include -->
@@ -220,7 +220,10 @@
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)\libs\GLFW\lib;$(SolutionDir)\libs\GLEW\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;</AdditionalDependencies>
+      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;winmm.lib</AdditionalDependencies>
+      
+      <!-- OpenAL needs these -->
+      <AdditionalDependencies>%(AdditionalDependencies);kernel32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <!-- x32 -->
@@ -276,8 +279,14 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Debug</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Release</AdditionalLibraryDirectories>
+      <!-- PC -->
+      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Release</AdditionalLibraryDirectories> -->
+      <!-- LAPTOP -->
+      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories> -->
+      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories>
+      
       <AdditionalDependencies>%(AdditionalDependencies);reactphysics3d.lib</AdditionalDependencies>
 
       <!-- <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
@@ -287,12 +296,10 @@
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|x64'">%(AdditionalDependencies);reactphysics3d_r64.lib</AdditionalDependencies> -->
     </Lib>
   </ItemDefinitionGroup>
+  
   <!-- with sound -->
-  <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))">
-    <Message Importance="High" Text="Building with sound is not finished." />
-    <!-- Sound is pretty much finished in here but OpenAL32 requires you to install it on your computer which I don't want.
-          I just want a static lib without any installing which works nicely with the executable. -->
-    <!--
+  <ItemDefinitionGroup>
+  <!-- <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))"> -->
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_SOUND</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)\libs\AL\include</AdditionalIncludeDirectories>
@@ -301,8 +308,8 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)\libs\AL\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);OpenAL32.lib</AdditionalDependencies>
     </Lib>
-  -->
   </ItemDefinitionGroup>
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

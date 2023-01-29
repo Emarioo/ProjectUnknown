@@ -3,7 +3,7 @@
 #include "ProUnk/GameApp.h"
 
 namespace prounk {
-	const char* Session::DEFAULT_PORT = "3567";
+	const char* Session::DEFAULT_PORT = "43567";
 
 	float NetworkStats::getBytesSentPerSecond() {
 		return sentPerSecond;

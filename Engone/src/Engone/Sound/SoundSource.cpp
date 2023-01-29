@@ -1,6 +1,8 @@
 #ifdef ENGONE_SOUND
 
 #include "Engone/Sound/SoundSource.h"
+
+#define AL_LIBTYPE_STATIC
 #include "AL/al.h"
 #include "AL/alc.h"
 

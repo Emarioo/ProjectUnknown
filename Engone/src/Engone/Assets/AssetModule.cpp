@@ -147,6 +147,183 @@ namespace engone {
 			return;
 		}
 	}
+	
+	Asset* AssetStorage::load(AssetType type, const std::string& path, uint8_t flags) {
+		// ask to load an asset as a task through processors.
+		// reload asset if already loaded
+		m_assetMutex.lock();
+		std::string _path = modifyPath(type,path);
+
+		Asset* asset = nullptr;
+
+		//-- Find asset, (simular to AssetStorage::get)
+		auto& list = m_assets[type];
+		auto find = list.find(path);
+		if (find != list.end()) {
+			asset = find->second;
+		}
+
+		if (!asset) {
+			//log::out << "Load " << path << "\n";
+			//asset = ALLOC_NEW(T)();
+			asset = allocateAsset(type);
+
+			asset->setStorage(this);
+			//GetTracker().track(asset);
+			m_assets[type][path] = asset;
+			_path += GetFormat(type);
+			asset->setPath(_path);
+			asset->setLoadName(path);
+		}
+		m_assetMutex.unlock();
+
+		if (asset->m_state == Asset::Processing || asset->m_state == Asset::Loaded) // return if asset already is being processed
+			return asset;
+
+		asset->m_state = Asset::Processing;
+		if (flags & SYNC) {
+			// load returns flags but we can safely ignore them.
+
+			//asset->load(Asset::LoadAll);
+			asset->m_flags = asset->load(Asset::LoadIO | Asset::LoadData);
+			if (asset->m_error != Error::ErrorNone) {
+				asset->m_flags = Asset::LoadNone;
+				log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
+			}
+			if (asset->m_state & Asset::Loaded) {
+				if (asset->getPath().size() != 0) {
+					//ENGONE_DEBUG(log::out << "Loaded " << asset->getPath() << "\n", ASSET_LEVEL, 2)
+				}
+			} else {
+				//ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+			}
+			// may need to load graphics
+			AssetTask task(asset);
+			processTask(task);
+		} else {
+			asset->m_flags = Asset::LoadIO;
+			AssetTask task(asset);
+			processTask(task);
+		}
+		return asset;
+	}
+	void AssetStorage::unload(AssetType type, const std::string& path, uint8_t flags) {
+		m_assetMutex.lock();
+		std::string _path = modifyPath(type,path);
+
+		auto& list = m_assets[type];
+		auto find = list.find(path);
+		if (find != list.end()) {
+			if (find->second->m_state == Asset::Processing) {
+				//log::out << "AssetStorage::unload - Asset cannot be unloaded while being processed!\n";
+			} else {
+				ALLOC_DELETE(Asset, find->second);
+				//delete find->second; // can asset be deleted?
+				//GetTracker().untrack(find->second);
+				list.erase(find);
+			}
+		}
+		m_assetMutex.unlock();
+	}
+	Asset* AssetStorage::get(AssetType type, const std::string& str, uint8_t flags) {
+		m_assetMutex.lock();
+		auto& list = m_assets[type];
+		auto find = list.find(str);
+		Asset* out = nullptr;
+		if (find != list.end()) {
+			out = find->second;
+		}
+		m_assetMutex.unlock();
+		return out;
+	}
+	Asset* AssetStorage::set(AssetType type, const std::string& name, Asset* asset, uint8_t flags) {
+		asset->m_path.clear(); // no path, asset cannot reload, you can of course change it's data yourself
+
+		m_assetMutex.lock();
+
+		auto& list = m_assets[type];
+		auto find = list.find(name);
+		Asset* t = nullptr;
+		bool doStuff = false;
+		if (find != list.end()) {
+			t = find->second;
+			if (t == asset) {
+				// fine
+			} else {
+				// not fine
+				// should maybe warn here
+				//log::out << log::YELLOW << "AssetStorage::set - overwriting asset, deleting old one.\n";
+				//ALLOC_DELETE(T,t); // ISSUE: DELETING DOES NOT WORK IF IT IS OPENGL STUFF
+				doStuff = false;
+				//doStuff = true;
+				//t = asset;
+			}
+		} else {
+			t = asset;
+			doStuff = true;
+		}
+		if (doStuff) {
+			t->setStorage(this);
+			//GetTracker().track(asset);
+			m_assets[type][name] = t;
+
+			if (t->m_flags == Asset::LoadNone) {
+				t->m_state = Asset::Loaded;
+			} else {
+				t->m_state = Asset::Processing;
+				if (flags & SYNC) {
+					//t->load(Asset::LoadAll);
+					t->m_flags = t->load(Asset::LoadIO | Asset::LoadData);
+					if (t->m_error != Error::ErrorNone) {
+						t->m_flags = Asset::LoadNone;
+						log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
+					}
+					if (t->m_state & Asset::Loaded) {
+						if (t->getPath().size() != 0) {
+							//ENGONE_DEBUG(log::out << "Loaded " << t->getPath() << "\n", ASSET_LEVEL, 2)
+						}
+					} else {
+						//ENGONE_DEBUG(log::out << "AssetModule::load - not sure?\n", ASSET_LEVEL, 1)
+					}
+					AssetTask task(t);
+					processTask(task);
+				} else {
+					AssetTask task(t);
+					processTask(t);
+				}
+			}
+		}
+		m_assetMutex.unlock();
+
+		return t;
+	}
+	Asset* AssetStorage::allocateAsset(AssetType type) {
+		switch (type) {
+		case AssetTexture: return ALLOC_NEW(TextureAsset)();
+		case AssetFont: return ALLOC_NEW(FontAsset)();
+		case AssetShader: return nullptr; //ALLOC_NEW(ShaderAsset)();
+		case AssetMaterial: return ALLOC_NEW(MaterialAsset)();
+		case AssetMesh: return ALLOC_NEW(MeshAsset)();
+		case AssetAnimation: return ALLOC_NEW(AnimationAsset)();
+		case AssetArmature: return ALLOC_NEW(ArmatureAsset)();
+		case AssetCollider: return ALLOC_NEW(ColliderAsset)();
+		case AssetModel: return ALLOC_NEW(ModelAsset)();
+		}
+	}
+	std::string AssetStorage::modifyPath(AssetType type, const std::string& str) {
+		std::string out;
+		// optimize this
+		if (!m_storagePath.empty() && !str._Starts_with(m_storagePath))
+			out += m_storagePath;
+
+		if (type == ModelAsset::TYPE)
+			out += "models/";
+
+		out += str;
+
+		return out;
+	}
+	
 	AssetProcessor::AssetProcessor(AssetStorage* storage, Asset::LoadFlag type) 
 		: m_storage(storage), m_processType(type) {
 	}

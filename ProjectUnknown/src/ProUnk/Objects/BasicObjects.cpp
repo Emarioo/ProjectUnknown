@@ -103,11 +103,14 @@ namespace prounk {
 		} 
 		return nullptr;
 	}
+	Session* GetSession(engone::EngineObject* object) {
+		return ((Dimension*)object->getWorld()->getUserData())->getParent();
+	}
 	void DeleteObject(Dimension* dimension, engone::EngineObject* object) {
 		using namespace engone;
 		
 		if (object->getObjectInfo() != 0) {
-			log::out << "del " << (BasicObjectType)object->getObjectType() << " " << object->getObjectInfo() << "\n";
+			//log::out << "del " << (BasicObjectType)object->getObjectType() << " " << object->getObjectInfo() << "\n";
 			auto& reg = dimension->getParent()->objectInfoRegistry;
 			if (object->getObjectType() & OBJECT_ITEM) {
 				reg.unregisterItemInfo(object->getObjectInfo());

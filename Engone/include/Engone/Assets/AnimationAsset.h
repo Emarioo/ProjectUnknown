@@ -48,8 +48,8 @@ namespace engone {
 	class AnimationAsset : public Asset {
 	public:
 		static const AssetType TYPE = AssetAnimation;
-		AnimationAsset() : Asset(TYPE) {  };
-		~AnimationAsset() { cleanup(); }
+		AnimationAsset() : Asset(TYPE) { };
+		~AnimationAsset() override { cleanup(); }
 
 		void cleanup() override;
 		LoadFlags load(LoadFlags flags) override;

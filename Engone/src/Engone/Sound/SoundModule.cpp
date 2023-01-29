@@ -1,24 +1,70 @@
 #ifdef ENGONE_SOUND
 #include "Engone/SoundModule.h"
 
+#include "Engone/Logger.h"
+
+#define AL_LIBTYPE_STATIC
 #include "AL/al.h"
 #include "AL/alc.h"
 
 namespace engone {
 
 	// Add Debug option? sound_device_list
-	void list_audio_devices(const char* devices)
-	{
-		const ALCchar* device = devices, * next = devices + 1;
-		uint32_t len = 0;
+	//void list_audio_devices(const char* devices)
+	//{
+	//	const ALCchar* device = devices, * next = devices + 1;
+	//	uint32_t len = 0;
 
-		std::cout << "Devices list:" << std::endl;;
-		while (device && *device != '\0' && next && *next != '\0') {
-			std::cout << " " << device << std::endl;;
-			len = strlen(device);
-			device += (len + 1);
-			next += (len + 2);
+	//	std::cout << "Devices list:" << std::endl;;
+	//	while (device && *device != '\0' && next && *next != '\0') {
+	//		std::cout << " " << device << std::endl;;
+	//		len = strlen(device);
+	//		device += (len + 1);
+	//		next += (len + 2);
+	//	}
+	//}
+	std::string ListDefaultDevice() {
+		const char* str = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+		return str;
+	}
+	std::vector<std::string> ListDevices() {
+		std::vector<std::string> out;
+
+		const char* str = nullptr;
+
+		// Check if enumeration is available
+		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) {
+			str = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+		} else {
+			log::out << log::YELLOW << "ALC_ENUMERATE_ALL_EXT not available\n";
 		}
+		if (!str&&alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT")) {
+			str = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+		} else if (!str){
+			log::out << log::YELLOW << "ALC_ENUMERATION_EXT not available\n";
+		}
+
+		if (!str) {
+			// Use default device
+			out.push_back(ListDefaultDevice());
+		} else {
+			// Extract device names
+			while (true) {
+				int len = strlen(str);
+				if (len != 0)
+					out.push_back(std::string(str));
+				str += len + 1;
+				if (*str == '\0')
+					break;
+			}
+		}
+
+		// Log devices
+		log::out << "Devices:\n";
+		for (std::string& s : out)
+			log::out << " " << s << "\n";
+
+		return out;
 	}
 	// Switch to vec3
 	void ListenerPosition(float x, float y, float z) {
@@ -36,32 +82,23 @@ namespace engone {
 	bool InitSound() {
 		//ALvoid* data;
 		//ALint source_state;
-		ALboolean enumeration = alCall(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"));
-		if (enumeration == AL_FALSE)
 
-			std::cout << "Enumeration extension not available" << std::endl;
+		ListDevices();
 
-		//list_audio_devices(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
-		//std::cout << alcGetString(NULL, ALC_DEVICE_SPECIFIER) << std::endl;
+		std::string defaultDeviceName = ListDefaultDevice();
 
-		const ALCchar* defaultDeviceName = alCall(alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
-
-		device = alCall(alcOpenDevice(defaultDeviceName));
+		device = alcOpenDevice(defaultDeviceName.c_str());
 		if (!device) {
 			std::cout << "Unable to open default device" << std::endl;
 			return false;
 		}
-		// Add Debug option? sound_device_list
-		const ALchar* spec = alCall(alcGetString(device, ALC_DEVICE_SPECIFIER));
-		//std::cout << "Device: " << spec << std::endl;
-
-		context = alCall(alcCreateContext(device, NULL));
+		
+		context = alcCreateContext(device, NULL);
 		bool b = alCall(alcMakeContextCurrent(context));
 		if (!b) {
 			std::cout << "Failed to make default context" << std::endl;
 			return false;
 		}
-		//TEST_ERROR("make default context");
 
 		ListenerPosition(0, 0, 0);
 		ListenerVelocity(0, 0, 0);

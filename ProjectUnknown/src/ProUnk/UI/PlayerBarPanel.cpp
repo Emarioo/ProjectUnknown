@@ -16,8 +16,12 @@ namespace prounk {
 		EngineObject* plr = playerController->requestPlayer();
 		CombatData* combatData = GetCombatData(plr);
 		
-		float& health = combatData->health;
-		float maxHealth = combatData->getMaxHealth();
+		float health = 0;
+		float maxHealth = 0;
+		if (combatData) {
+			health = combatData->health;
+			maxHealth = combatData->getMaxHealth();
+		}
 		float atk = 0;
 		// Todo: displaying atk of weapon here is temporary and should be removed.
 		//		It is useful for debugging so display it in some debug menu.

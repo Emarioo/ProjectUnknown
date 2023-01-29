@@ -14,40 +14,11 @@
 
 #include "ProUnk/UI/UIMenus.h"
 
+#include "Engone/SoundModule.h"
+#include "Engone/Sound/SoundStream.h"
+
 namespace prounk {
-
-	//void GameApp::onTrigger(const rp3d::CollisionCallback::CallbackData& callbackData) {
-	//	using namespace engone;
-	//	//log::out << "COMEON \n";
-	//	for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
-	//		auto pair = callbackData.getContactPair(pairI);
-	//		void* ptr1 = pair.getCollider1()->getUserData();
-	//		void* ptr2 = pair.getCollider2()->getUserData();
-	//		if (!ptr1 || !ptr2) continue;
-	//		UserData* userData1 = (UserData*)ptr1;
-	//		UserData* userData2 = (UserData*)ptr2;
-	//		log::out << userData1 << " " << userData2 << "\n";
-	//		if (userData1->type != userData2->type) {
-	//			if (userData1->type == AttackData::TYPE && userData2->type == DefenseData::TYPE) {
-	//				engone::log::out << "WOW\n";
-	//				DefenseData* atk = (DefenseData*)userData2;
-	//				rp3d::CollisionBody* defBody = pair.getBody2();
-	//				rp3d::Vector3 medNorm{};
-	//				rp3d::Vector3 medPoint{};
-	//				for (int j = 0; j < pair.getNbContactPoints(); j++) {
-	//					auto point = pair.getContactPoint(j);
-	//					medNorm += point.getWorldNormal();
-	//					medPoint += point.getLocalPointOnCollider2();
-	//				}
-	//				medNorm /= (float)pair.getNbContactPoints();
-	//				medPoint /= (float)pair.getNbContactPoints();
-	//				// for now, defense can be assumed to be a rigidbody
-	//				((rp3d::RigidBody*)defBody)->applyWorldForceAtLocalPosition(medNorm, medPoint);
-	//			}
-	//		}
-	//	}
-	//}
-
+	int s_test1 = 0;
 	// arguments passed to function cannot be nullptr
 	void GameApp::dealCombat(engone::EngineObject* atkObj, engone::EngineObject* defObj, glm::vec3 contactPoint) {
 		using namespace engone;
@@ -176,16 +147,58 @@ namespace prounk {
 		for (int pairI = 0; pairI < callbackData.getNbContactPairs(); pairI++) {
 			auto pair = callbackData.getContactPair(pairI);
 
+			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
+			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
+			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
+
+			//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStart) {
+			//	s_test1++;
+			//	log::out << "start1 " << s_test1 << "\n";
+			//} else if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit) {
+			//	s_test1--;
+			//	log::out << "stop1 " << s_test1 << "\n";
+			//}
+
+			//log::out << "Contact: " << (int)pair.getEventType() << "\n";
+			if (!obj1 || !obj2) continue;
+			
+			//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStart) {
+			if (obj1->getObjectType() & OBJECT_CREATURE) {
+				auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj1->getObjectInfo());
+				oinfo.onGround=true;
+				//log::out << "start1 " << oinfo.onGround << "\n";
+			}
+			if (obj2->getObjectType() & OBJECT_CREATURE) {
+				auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj2->getObjectInfo());
+				oinfo.onGround=true;
+				//log::out << "start2 " << oinfo.onGround << "\n";
+			}
+			//} else if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit) {
+			//	if (obj1->getObjectType() & OBJECT_CREATURE) {
+			//		auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj1->getObjectInfo());
+			//		oinfo.onGround--;
+			//		log::out << "stop1 " << oinfo.onGround << "\n";
+			//	}
+			//	if (obj2->getObjectType() & OBJECT_CREATURE) {
+			//		auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj2->getObjectInfo());
+			//		oinfo.onGround--;
+			//		log::out << "stop2 " << oinfo.onGround << "\n";
+			//	}
+			//}
+			//engone::EngineObject* plr = nullptr;
+			//if (obj1->getObjectType() == OBJECT_PLAYER) {
+			//	plr = obj1;
+			//}
+			//if (obj2->getObjectType() == OBJECT_PLAYER) {
+			//	plr = obj2;
+			//}
+			//if (plr) {
+			//	auto oinfo = ((Dimension*)plr->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+			//	log::out << "ground: " << oinfo.onGround << "\n";
+			//}
 			if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit)
 				continue;
 
-			EngineObject* obj1 = (EngineObject*)pair.getBody1()->getUserData();
-			EngineObject* obj2 = (EngineObject*)pair.getBody2()->getUserData();
-			//continue;
-			//log::out << getGround()->getClient().isRunning() << " " << getGround()->getClient().isRunning() <<" "<< pair.getBody1() << " " << pair.getBody2() << "\n";
-
-			if (!obj1 || !obj2) continue;
-			
 			// Checking for combat data instead of creature because a barrel could be broken but isn't a creature.
 			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
@@ -240,7 +253,7 @@ namespace prounk {
 	}
 	GameApp::GameApp(engone::Engone* engone, GameAppInfo info) : Application(engone) {
 		using namespace engone;
-		
+
 		m_window = createWindow({ ModeWindowed,1000,800 });
 
 		m_window->setTitle("Project Unknown");
@@ -251,7 +264,7 @@ namespace prounk {
 		AssetStorage* assets = getStorage();
 
 		ShaderAsset* blur = assets->set("blur", ALLOC_NEW(ShaderAsset)(blurGLSL));
-		
+
 		//Shader* shaderPart = new Shader(particleGLSL);
 		//particleGroup = new ParticleGroup<DefaultParticle>();
 		//particleGroup->init(m_window, shaderPart);
@@ -276,7 +289,7 @@ namespace prounk {
 		//	parts[i].vel = -norm*(0.33f + (float)GetRandom())*7.f;
 		//	parts[i].lifeTime = 30+GetRandom()*10.f;
 		//}
-		
+
 		firstDim->getWorld()->addParticleGroup(combatParticles);
 
 		//-- Assets
@@ -291,7 +304,7 @@ namespace prounk {
 		// ISSUE: if default keybindings change but keybindings.dat exists then the new keybinds won't apply.
 		//		Temp. fix by always creating default bindings.
 		//if (LoadKeybindings("data/keybindings.dat") < KEY_COUNT) {
-			CreateDefualtKeybindings();
+		CreateDefualtKeybindings();
 		//}
 
 		// This should be moved into engone
@@ -314,6 +327,21 @@ namespace prounk {
 		//// Set the logger 
 		//getPhysicsCommon()->setLogger(logger);
 
+		engone::InitSound();
+
+		melody.Init("assets/sounds/melody.wav");
+		melody.source.Play();
+		melody.source.Gain(0.1);
+
+		//auto pworld = firstDim->getWorld()->getPhysicsWorld();
+		//rp3d::Transform tr;
+		//tr.setPosition({ 0,5,0 });
+		//testRB = pworld->createRigidBody(tr);
+		//rp3d::Vector3 size = {1,1,1};
+		//auto shape = getPhysicsCommon()->createBoxShape(size);
+		//testRB->addCollider(shape,tr);
+		//testRB->updateLocalCenterOfMassFromColliders();
+		//testRB->updateLocalInertiaTensorFromColliders();
 
 		EngineObject* player = CreatePlayer(firstDim);
 		//playerController.setPlayerObject(player);
@@ -328,16 +356,15 @@ namespace prounk {
 		inv->resizeSlots(16, nullptr);
 
 		registerItems();
-
 		createPanels();
 
 		// Temporary? one function to do this?
 		sessionPanel->setHidden(false);
 		incrCursor();
 		
-		EngineObject* dummy = CreateDummy(firstDim);
-		dummy->setPosition({ 4,7,8 });
-		firstDim->getWorld()->releaseAccess(dummy->getUUID());
+		//EngineObject* dummy = CreateDummy(firstDim);
+		//dummy->setPosition({ 4,7,8 });
+		//firstDim->getWorld()->releaseAccess(dummy->getUUID());
 		
 		//-- Setup network stuff
 		sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
@@ -348,7 +375,7 @@ namespace prounk {
 		}
 
 		//if (info.flags != START_CLIENT) {
-			EngineObject* terrain = CreateTerrain(firstDim, "ProtoArena/ProtoArena");
+			EngineObject* terrain = CreateTerrain(firstDim, "ProtoArena2/ProtoArena2");
 			firstDim->getWorld()->releaseAccess(terrain->getUUID());
 		//}
 
@@ -386,11 +413,12 @@ namespace prounk {
 		
 		ItemType gold_ingot = m_session->itemTypeRegistry.registerType("gold_ingot", goldModel);
 
-		auto plr = playerController.requestPlayer();
-		Item godSword = { sword,1 };
-		godSword.getComplexData()->set(atkProperty, 999);
-		GetInventory(plr)->transferItem(godSword);
-		playerController.releasePlayer(plr);
+		//auto plr = playerController.requestPlayer();
+		//Item godSword = { sword,1 };
+		//godSword.getComplexData()->set(atkProperty, 999);
+		//GetInventory(plr)->transferItem(godSword);
+		//playerController.releasePlayer(plr);
+	
 	}
 	void GameApp::panelInput(engone::LoopInfo& info) {
 		using namespace engone;
@@ -431,17 +459,18 @@ namespace prounk {
 	}
 	void GameApp::createPanels() {
 		using namespace engone;
-		EngineObject* plr = playerController.requestPlayer();
-
-		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
-
-		playerController.releasePlayer(plr);
 
 		inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
 		panelHandler.addPanel(inventoryPanel);
 		inventoryPanel->setSize(250, 230);
 		inventoryPanel->setPosition(GetWidth()-260, 10);
-		inventoryPanel->setInventory(playerInfo.inventoryDataIndex);
+
+		EngineObject* plr = playerController.requestPlayer();
+		if (plr) {
+			auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+			playerController.releasePlayer(plr);
+			inventoryPanel->setInventory(playerInfo.inventoryDataIndex);
+		}
 
 		masterInventoryPanel = ALLOC_NEW(MasterInventoryPanel)(this);
 		masterInventoryPanel->setDepth(9999);
@@ -486,6 +515,13 @@ namespace prounk {
 		visualEffects.update(info);
 
 		panelInput(info);
+
+		melody.UpdateStream();
+
+		if (IsKeyPressed(GLFW_KEY_N)) {
+			rp3d::Vector3 test{0,100,0};
+			testRB->applyWorldForceAtCenterOfMass(test);
+		}
 
 		//if (partRequested) {
 		//	CombatParticle* parts = combatParticles->getParticles();

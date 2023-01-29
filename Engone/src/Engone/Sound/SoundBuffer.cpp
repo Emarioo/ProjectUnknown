@@ -4,14 +4,20 @@
 
 #include "Engone/Utilities/Utilities.h"
 
+#define AL_LIBTYPE_STATIC
 #include "AL/al.h"
 #include "AL/alc.h"
 #include "Engone/vendor/Libaudio.h"
 
 bool al_check_error() {
+	// Todo: Check if there is an active context?
 	ALenum err = alGetError();
 	if (err != AL_NO_ERROR) {
-		std::cout << alGetString(err) << std::endl;
+		const ALchar* str = alGetString(err);
+		if (str) {
+			engone::log::out << "Al Err: " << err << " " << str << "\n";
+		} else
+			engone::log::out << "Al Err: " << err << " null string, no active context?" << "\n";
 		return true;
 	}
 	return false;

@@ -71,18 +71,28 @@ namespace engone {
 	bool EngineObject::isOnlyTrigger() {
 		return m_flags & ONLY_TRIGGER;
 	}
+	glm::mat4 EngineObject::getInterpolatedMat4(float interpolation) {
+		return ToMatrix(rp3d::Transform::interpolateTransforms(prevTransform, m_rigidBody->getTransform(),interpolation));
+		//glm::mat4 modelMatrix = ToMatrix(body->getTransform());
+	}
+	rp3d::RigidBody* EngineObject::getRigidBody() {
+		return m_rigidBody;
+	}
+#endif
 	void EngineObject::setModel(ModelAsset* asset) {
 		if (m_modelAsset == asset)
 			return;
 
 		// cleanup previous model
 		if (m_modelAsset) {
+#ifdef ENGONE_PHYSICS
 			if (m_rigidBody) {
 				while (m_rigidBody->getNbColliders() != 0) {
 					rp3d::Collider* col = m_rigidBody->getCollider(0);
 					m_rigidBody->removeCollider(col);
 				}
 			}
+#endif
 			if (m_animator)
 				m_animator->cleanup(); // cleanup instead of delete since you may still want an animator if you change the models
 			m_modelAsset = nullptr;
@@ -93,12 +103,10 @@ namespace engone {
 		if (m_animator) {
 			m_animator->asset = m_modelAsset;
 		}
+#ifdef ENGONE_PHYSICS
 		loadColliders();
-	}
-	rp3d::RigidBody* EngineObject::getRigidBody() {
-		return m_rigidBody;
-	}
 #endif
+	}
 	ModelAsset* EngineObject::getModel() {
 		return m_modelAsset;
 	}
@@ -246,8 +254,10 @@ namespace engone {
 		//glm::vec3 temp;
 		rp3d::Vector3 temp = m_rigidBody->getTransform().getPosition();
 		//*(rp3d::Vector3*)&temp = m_rigidBody->getTransform().getPosition();
+		//glm::mat4 mat = getInterpolatedMat4(m_world->getApp()->getEngine()->getLoopInfo().interpolation);
 		m_world->unlockPhysics();
 		return *(glm::vec3*)&temp;
+		//return mat[3];
 	}
 	void EngineObject::setPosition(const glm::vec3& position) {
 		m_world->lockPhysics();
