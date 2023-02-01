@@ -1,0 +1,4 @@
+assets=assets
+ProjectUnknown.exe=ProjectUnknown.exe
+exe=ProjectUnknown.exe
+args=--console

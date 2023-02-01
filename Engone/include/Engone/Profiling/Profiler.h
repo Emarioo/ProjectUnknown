@@ -52,47 +52,68 @@ namespace engone {
 		};
 		std::vector<TimedSection>& getSections();
 
-		class Graph {
-		public:
+		//class Graph {
+		//public:
+		//	Graph() = default;
+		//	Graph(ui::Color color, float offsetY) : color(color), offsetY(offsetY){};
+		//	~Graph();
+
+		//	void start();
+
+		//	void render(LoopInfo& info);
+		//	static void RenderBack(LoopInfo& info);
+		//	void plot(double time);
+
+		//private:
+
+		//	ui::Color color;
+		//	double originTime = 0;
+		//	float offsetX = 0;
+		//	float offsetY = 0;
+		//	float zoom = 1;
+
+		//	static const int MAX_POINTS=60*100;
+		//	int pushIndex=0;
+		//	float* points = nullptr;
+		//};
+		
+		struct Graph {
 			Graph() = default;
-			Graph(ui::Color color, float offsetY) : color(color), offsetY(offsetY){};
 			~Graph();
-
-			void start();
-
-			void render(LoopInfo& info);
-			void renderBack(LoopInfo& info);
-			void plot(double time);
-
-		private:
-
+			static const int MAX_POINTS = 60 * 100;
 			ui::Color color;
-			double originTime = 0;
-			float offsetX = 0;
-			float offsetY = 0;
-			float zoom = 1;
-
-			static const int MAX_POINTS=60*100;
-			int pushIndex=0;
+			int pushIndex = 0;
 			float* points = nullptr;
+			float offsetY = 0;
+
+			void plot(double time);
 		};
+
+		Graph& getGraph(const std::string& name);
 
 		//void startGraphs() {
 		//	updateGraph.start();
 		//	renderGraph.start();
 		//}
-		Graph updateGraph{ {0,0,1,1},-15 };
-		Graph renderGraph{ {1,0,0,1},-5 };
+		//Graph updateGraph{ {0,0,1,1},-15 };
+		//Graph renderGraph{ {1,0,0,1},-5 };
 
 	private:
 		std::unordered_map<std::string, uint32> m_timedSectionsMap;
 		
 		void sort();
 
+		float offsetX = 0;
+		float zoom = 1;
+
 		void renderBasicDebugInfo(LoopInfo& info);
+		void renderGraphs(LoopInfo& info);
+		void renderGraph(LoopInfo& info, Graph& graph);
 
 		std::unordered_map<void*, Sampler> m_samples;
 		std::unordered_map<void*, ProfilingData> m_profilingData;
+
+		std::unordered_map<std::string, Graph> m_graphs;
 
 		std::vector<TimedSection> m_timedSections;
 	};

@@ -23,9 +23,10 @@ namespace engone {
 		void Stop();
 		int GetState();
 
+		bool valid() { return id; }
+
 	private:
 		unsigned int id=0;
-		bool isInitialized = false;
 
 		friend class SoundStream;
 	};

@@ -16,5 +16,5 @@ void CreateDefualtKeybindings() {
 	AddKeybinding(KeyMoveCamera, GLFW_MOUSE_BUTTON_RIGHT);
 	AddKeybinding(KeyPause, GLFW_KEY_ESCAPE);
 	
-	SaveKeybindings(KEYBINDING_FILE);
+	//SaveKeybindings(KEYBINDING_FILE);
 }

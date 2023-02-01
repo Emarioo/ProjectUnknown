@@ -95,7 +95,7 @@ namespace engone {
 		if (action != 0 && (key == GLFW_KEY_BACKSPACE || key == GLFW_KEY_DELETE || key == GLFW_KEY_ENTER || key == GLFW_KEY_LEFT || key == GLFW_KEY_RIGHT)) {
 			CharCallback(window, key);
 		}
-		win->runListeners();
+		//win->runListeners();
 	}
 	void MouseCallback(GLFWwindow* window, int button, int action, int mods) {
 		Window* win = GetMappedWindow(window);
@@ -119,7 +119,7 @@ namespace engone {
 		e.my = (float)my;
 		e.window = win;
 		win->addEvent(e);
-		win->runListeners();
+		//win->runListeners();
 	}
 	void CursorPosCallback(GLFWwindow* window, double mx, double my) {
 		Window* win = GetMappedWindow(window);
@@ -134,7 +134,7 @@ namespace engone {
 		e.my = (float)my;
 		e.window = win;
 		win->addEvent(e);
-		win->runListeners();
+		//win->runListeners();
 	}
 	void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		Window* win = GetMappedWindow(window);
@@ -152,7 +152,7 @@ namespace engone {
 		e.my = win->getMouseY();
 		e.window = win;
 		win->addEvent(e);
-		win->runListeners();
+		//win->runListeners();
 	}
 	static void FocusCallback(GLFWwindow* window, int focused) {
 		Window* win = GetMappedWindow(window);
@@ -172,7 +172,7 @@ namespace engone {
 		e.height = (float)height;
 		e.window = win;
 		win->addEvent(e);
-		win->runListeners();
+		//win->runListeners();
 
 		win->w = (float)width;
 		win->h = (float)height;
@@ -224,6 +224,7 @@ namespace engone {
 					rot.x = remainder(rot.x, glm::pi<float>() * 2);
 					rot.y = remainder(rot.y, glm::pi<float>() * 2);
 					camera->setRotation(rot); // set the new rotation
+					//log::out << "FIRST PERSON\n";
 				}
 			}
 		}

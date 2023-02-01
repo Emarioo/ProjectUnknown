@@ -52,6 +52,7 @@ namespace prounk {
 		static const int OBJECT_NETMOVE = 0x00010000;
 
 		static const char* DEFAULT_PORT;
+		static const char* DEFAULT_IP;
 
 		Session(GameApp* app);
 		~Session();

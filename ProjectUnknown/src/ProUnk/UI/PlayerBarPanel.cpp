@@ -37,7 +37,7 @@ namespace prounk {
 
 		//-- panel background
 		ui::Box area = getBox();
-		area.rgba = { 0.4,0.5,0.6,1 };
+		area.rgba = { 0.4,0.5,0.6,0.5 };
 		ui::Draw(area);
 
 		//-- Colors & Settings
@@ -85,6 +85,7 @@ namespace prounk {
 		float maxWidth=healthWidth;
 		if (maxWidth < atkWidth)
 			maxWidth = atkWidth;
+
 		setMinWidth(maxWidth);
 		setMinHeight(healthBack.h + barGap + atkBack.h);
 	}

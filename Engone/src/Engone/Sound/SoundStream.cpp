@@ -30,7 +30,7 @@ namespace engone {
 	SoundStream::~SoundStream() {
 		if (isInitialized) {
 			delete bufferData;
-			source.~SoundSource();
+			source.~SoundSource(); // Todo: Should this be here?
 			alCall(alDeleteBuffers(NUM_BUFFERS, &buffer_id[0]));
 		}
 	}

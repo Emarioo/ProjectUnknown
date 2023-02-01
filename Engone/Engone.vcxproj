@@ -205,7 +205,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;AL_LIBTYPE_STATIC</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include;$(SolutionDir)\libs\GLFW\include;$(SolutionDir)\libs\GLEW\include;</AdditionalIncludeDirectories>
       <!-- $(SolutionDir)\libs\ASIO\include -->
@@ -221,27 +221,24 @@
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)\libs\GLFW\lib;$(SolutionDir)\libs\GLEW\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;winmm.lib</AdditionalDependencies>
-      
-      <!-- OpenAL needs these -->
-      <AdditionalDependencies>%(AdditionalDependencies);kernel32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <!-- x32 -->
-  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
-    <Message Importance="High" Text="MSGTEST with 32 bit" />
+ <!--  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32</PreprocessorDefinitions>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>%(AdditionalDependencies);glew32s.lib;glfw332.lib</AdditionalDependencies>
     </Lib>
-  </ItemDefinitionGroup>
+  </ItemDefinitionGroup> -->
   <!-- x64 -->
   <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
     <ClCompile>
       <!-- <PreprocessorDefinitions>%(PreprocessorDefinitions);</PreprocessorDefinitions> -->
     </ClCompile>
-    <Message Importance="High" Text="MSGTEST with 64 bit" />
+    <!-- <UseUtf8Encoding>Always</UseUtf8Encoding> -->
+    <!-- <Message>MSGTEST with 64 bit</Message> -->
     <Lib>
       <AdditionalDependencies>%(AdditionalDependencies);glew64s.lib;glfw364.lib</AdditionalDependencies>
     </Lib>
@@ -279,21 +276,15 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)libs\reactphysics3d\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
-      <!-- PC -->
-      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Debug</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\x64\Release</AdditionalLibraryDirectories> -->
-      <!-- LAPTOP -->
-      <!-- <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories> -->
-      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
+      <!-- Directly from rp3d build -->
+      <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories>
-      
       <AdditionalDependencies>%(AdditionalDependencies);reactphysics3d.lib</AdditionalDependencies>
-
+      
+      <!-- Libs -->
       <!-- <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|Win32'">%(AdditionalDependencies);reactphysics3d_d32.lib</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|x64'">%(AdditionalDependencies);reactphysics3d_d64.lib</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|Win32'">%(AdditionalDependencies);reactphysics3d_r32.lib</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|x64'">%(AdditionalDependencies);reactphysics3d_r64.lib</AdditionalDependencies> -->
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|x64'">%(AdditionalDependencies);reactphysics3d_debug64.lib</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|x64'">%(AdditionalDependencies);reactphysics3d_release64.lib</AdditionalDependencies> -->
     </Lib>
   </ItemDefinitionGroup>
   
@@ -301,12 +292,13 @@
   <ItemDefinitionGroup>
   <!-- <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))"> -->
     <ClCompile>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_SOUND</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_SOUND;AL_LIBTYPE_STATIC</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)\libs\AL\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)\libs\AL\lib;</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);OpenAL32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);kernel32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   

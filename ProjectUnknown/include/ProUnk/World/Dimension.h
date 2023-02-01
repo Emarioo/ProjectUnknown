@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engone/World/EngineWorld.h"
+#include "ProUnk/World/Dungeon.h"
 
 namespace prounk {
 
@@ -28,6 +29,8 @@ namespace prounk {
 		int spawnCount=1;
 		float spawnTime=0;
 		float spawnDelay=1;
+
+		Dungeon dungeon;
 
 		void SpawnLogic(engone::LoopInfo& info);
 		void DummyLogic(engone::LoopInfo& info, engone::EngineObject* obj);

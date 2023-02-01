@@ -70,6 +70,9 @@ namespace engone {
 		//}
 		return m_samples[key];
 	}
+	Profiler::Graph& Profiler::getGraph(const std::string& name) {
+		return m_graphs[name];
+	}
 	//void Profiler::show() {
 	//	auto win = engone::GetActiveWindow();
 	//	auto app = win->getParent();
@@ -201,12 +204,62 @@ namespace engone {
 		if (!m_profilingData[info.window].show) return;
 
 		renderBasicDebugInfo(info);
-		updateGraph.renderBack(info);
-		updateGraph.render(info);
-		renderGraph.render(info);
+		renderGraphs(info);
+		//updateGraph.renderBack(info);
+		//updateGraph.render(info);
+		//renderGraph.render(info);
 	}
-	void Profiler::Graph::start() {
-		originTime = GetSystemTime();
+	void Profiler::renderGraphs(LoopInfo& info) {
+		//-- Base graph timeline
+		const ui::Color timelineColor = { 1,1,1,1 };
+		const ui::Color backColor = { 0,0,0,0.1 };
+
+		ui::Box back = { 0,0,GetWidth(),40,backColor };
+		ui::Box timeline = { 0,0,GetWidth(),2 ,timelineColor };
+		timeline.y = GetHeight() - timeline.h - 40;
+		back.y = timeline.y - back.h / 2;
+		ui::Draw(back);
+		ui::Draw(timeline);
+		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+
+		//ui::TextBox zoomText{ std::to_string(zoom),0,0,20,consolas,{1}};
+		//zoomText.x = 10;
+		//zoomText.y = GetHeight()-150;
+		//ui::Draw(zoomText);
+
+		//-- Input
+		float speedX = 300;
+		float zoomPower = 4;
+		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+			speedX *= 16;
+			zoomPower *= 1.04;
+		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+			speedX *= 4;
+			zoomPower *= 1.02;
+		}
+
+		if (IsKeyDown(GLFW_KEY_LEFT)) {
+			offsetX += speedX / zoom * info.timeStep;
+		}
+		if (IsKeyDown(GLFW_KEY_RIGHT)) {
+			offsetX -= speedX / zoom * info.timeStep;
+		}
+		if (IsKeyDown(GLFW_KEY_UP)) {
+			float prevZoom = zoom;
+			zoom *= pow(zoomPower, info.timeStep);
+			//offsetX += GetWidth() / 2 * (zoom-prevZoom);
+		}
+		if (IsKeyDown(GLFW_KEY_DOWN)) {
+			float prevZoom = zoom;
+			zoom /= pow(zoomPower, info.timeStep);
+			//offsetX += GetWidth() / 2 * (zoom - prevZoom);
+			//offsetX = offsetX * prevZoom / zoom;
+		}
+
+		//-- Graphs
+		for (auto& [name, graph] : m_graphs) {
+			renderGraph(info, graph);
+		}
 	}
 	Profiler::Graph::~Graph() {
 		if(points)
@@ -219,63 +272,94 @@ namespace engone {
 				points[i] = 0;
 			}
 		}
-		points[pushIndex] = time - originTime;
+		points[pushIndex] = time - engone::GetActiveWindow()->getParent()->getEngine()->getUpdateTimer().startTime;
 		pushIndex = (pushIndex + 1) % MAX_POINTS;
 	}
-	void Profiler::Graph::renderBack(LoopInfo& info) {
-		const ui::Color timelineColor = { 1,1,1,1 };
-		const ui::Color backColor = { 0,0,0,0.1 };
-
-		ui::Box back = { 0,0,GetWidth(),40,backColor };
-		ui::Box timeline = { 0,0,GetWidth(),2 ,timelineColor };
-		timeline.y = GetHeight() - timeline.h - 40;
-		back.y = timeline.y - back.h / 2;
-		ui::Draw(back);
-		ui::Draw(timeline);
-	}
-	void Profiler::Graph::render(LoopInfo& info) {
+	void Profiler::renderGraph(LoopInfo& info, Graph& graph) {
 		//CommonRenderer* renderer = GET_COMMON_RENDERER();
 		//renderer->
-		float speedX = 10;
-		float zoomPower = 1.01;
-		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-			speedX *= 16;
-			zoomPower *= 1.04;
-		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-			speedX *= 4;
-			zoomPower *= 1.02;
-		}
-
-		if (IsKeyDown(GLFW_KEY_LEFT)) {
-			offsetX += speedX/zoom;
-		}
-		if (IsKeyDown(GLFW_KEY_RIGHT)) {
-			offsetX -= speedX/zoom;
-		}
-		if (IsKeyDown(GLFW_KEY_UP)) {
-			float prevZoom = zoom;
-			zoom *= zoomPower;
-			//offsetX += GetWidth() / 2 * (zoom-prevZoom);
-		}
-		if (IsKeyDown(GLFW_KEY_DOWN)) {
-			float prevZoom = zoom;
-			zoom /= zoomPower;
-			//offsetX += GetWidth() / 2 * (zoom - prevZoom);
-			//offsetX = offsetX * prevZoom / zoom;
-		}
+		
+		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
 		ui::Box timeline = { 0,0,GetWidth(),2};
 		timeline.y = GetHeight()-timeline.h-40;
 
-		if (!points)
+		//-- time points
+		
+		// This stuff is complicated and annoying. 2 hours gone
+#ifdef gone
+		//float timeX = 0;
+		//float pixelX = GetWidth() / 2 + (timeX - GetWidth() / 2 + offsetX) * zoom;
+
+		//float minX = offsetX * zoom;
+		//float maxX = minX + GetWidth();
+		//float pixelX = GetWidth();
+		//float timeX = (pixelX - GetWidth() / 2) / zoom - offsetX + GetWidth()/2;
+		char buffer[100];
+		//snprintf(buffer,sizeof(buffer),"%.1f",timeX);
+
+		//float pixelSpacing = 200;
+		float timeSpacing = GetWidth()/zoom/5;
+
+		float hm = 5*(zoom*zoom);
+		float tsd = floor(zoom*zoom) * hm;
+		if(tsd==0||hm==0)
+			timeSpacing = GetWidth() / 5;
+		else
+			timeSpacing = GetWidth()/ tsd / 5;
+		log::out << "timeSpacing " << timeSpacing << "\n";
+
+		float pixelView = GetWidth();
+		//float pixelView = GetWidth()+timeSpacing;
+		int amount = ceil((pixelView / timeSpacing) / zoom); // do ceil?
+		log::out << "Amount: " << amount << "\n";
+		for (int i = 0; i < amount;i++) {
+			float timePoint = i * timeSpacing;
+			
+			float pixelX = GetWidth() / 2 + (timePoint - GetWidth() / 2 + offsetX) * zoom;
+
+			float view = pixelView * zoom;
+			
+			//if (pixelX < 0) {
+				//int hops = floor((pixelX) / pixelView);
+				////int nhops = floor((pixelX + timeSpacing / 2) / view);
+				//if (hops != 0) {
+				//	float pv= pixelX;
+				//	pixelX -= pixelView * hops;
+				//	timePoint -= hops * pixelView;
+				//	log::out << timePoint << " " << hops << " "<<pv<<" "<<pixelX << "\n";
+				//}
+			//} 
+			//log::out << timePoint << " " << hops << " "<< pv<<" "<<pixelX << "\n";
+			//log::out << timePoint << " " << pixelX<<"\n";
+
+			snprintf(buffer, sizeof(buffer), "%.2f", timePoint);
+
+			ui::TextBox time{ buffer,0,0,16,consolas,{1} };
+			
+			ui::Box stripe = { 0,0,2,20,{1} };
+			stripe.x = pixelX;
+			stripe.y = timeline.y - stripe.h;
+
+			time.x = stripe.x+4;
+			time.y = stripe.y;
+			ui::Draw(stripe);
+			ui::Draw(time);
+		}
+#endif
+		//-- points
+		if (!graph.points)
 			return;
 
-		for (int i = 0; i < MAX_POINTS;i++) {
-			float x = points[i];
+		//log::out << "st " << info.app->getEngine()->getUpdateTimer().startTime << "\n";
+		for (int i = 0; i < Graph::MAX_POINTS;i++) {
+			float x = graph.points[i];
 			if (x == 0)
 				continue;
-			ui::Box box = { 0,0,2,20,color };
-			box.y = timeline.y + offsetY;
+			//if(i == graph.pushIndex-1)
+			//	log::out << " " <<x<< "\n";
+			ui::Box box = { 0,0,2,20,graph.color };
+			box.y = timeline.y + graph.offsetY;
 			box.x = GetWidth()/2+(x-GetWidth()/2 + offsetX) * zoom;
 			//+GetWidth() / 2;
 			ui::Draw(box);

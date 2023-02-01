@@ -67,6 +67,9 @@ namespace engone {
 		void bindLights(Shader* shader, glm::vec3 objectPos);
 		// returns current loop info
 		LoopInfo& getLoopInfo();
+
+		inline ExecutionTimer& getUpdateTimer() { return mainUpdateTimer; };
+		inline ExecutionTimer& getRenderTimer() { return mainRenderTimer; };
 		
 		static TrackerId trackerId;
 	private:

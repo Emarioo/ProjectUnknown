@@ -27,10 +27,25 @@ namespace prounk {
 			session->getClient().stop();
 		}
 	}
-	void SessionPanel::setDefaultPortIP(const std::string& port, const std::string& ip, const std::string& type) {
+	IPAndPort SplitAddress(const std::string& address) {
+		std::string ip = Session::DEFAULT_IP;
+		std::string port = Session::DEFAULT_PORT;
+
+		//-- Convert address
+		std::vector<std::string> split = engone::SplitString(address, ":");
+		if (split.size() >= 1) {
+			if (!split[0].empty())
+				ip = split[0];
+		}
+		if (split.size() >= 2) {
+			if (!split[1].empty())
+				port = split[1];
+		}
+		return { ip, port };
+	}
+	void SessionPanel::setDefaultAddress(const std::string& address, const std::string& type) {
 		m_type = type;
-		m_ipBox.text = ip;
-		m_portBox.text = port;
+		m_address = address;
 	}
 	void SessionPanel::connect(engone::LoopInfo& info) {
 		using namespace engone;
@@ -46,15 +61,18 @@ namespace prounk {
 
 		if (!session->getServer().isRunning() && !session->getClient().isRunning()) {
 			bool result = false;
+
+			auto [ip, port] = SplitAddress(m_address);
+
 			// TODO: handle potential error messages.
 			if (m_type == "Client") {
-				result = session->getClient().start(m_ipBox.text, m_portBox.text);
+				result = session->getClient().start(ip,port);
 				if (!result)
-					log::out << log::RED << "SessionPanel : Client failed (ip: " << m_ipBox.text << ", port: " << m_portBox.text << "\n";
+					log::out << log::RED << "SessionPanel : Client failed (ip: " << ip << ", port: " << port << "\n";
 			} else if (m_type == "Server") {
-				result = session->getServer().start(m_portBox.text);
+				result = session->getServer().start(port);
 				if (!result)
-					log::out << log::RED << "SessionPanel : Server failed (ip: " << m_ipBox.text << ", port: " << m_portBox.text << "\n";
+					log::out << log::RED << "SessionPanel : Server failed (ip: " << ip << ", port: " << port<< "\n";
 			}
 		}
 	}
@@ -74,6 +92,7 @@ namespace prounk {
 
 		const ui::Color backColor = { 0.,0.,0.,0.5 };
 		const ui::Color textColor = { 1 };
+		const ui::Color hiddenColor = { 0.7, 1 };
 
 		ui::Box area = getBox();
 		area.rgba = backColor;
@@ -94,64 +113,88 @@ namespace prounk {
 			connType.text = m_type;
 		}
 
-		ui::TextBox portText = { "Port: ",0,0,textHeight,consolas,textColor};
-		portText.x = offsetX;
-		portText.y = offsetY;
+		ui::Box addressBack = { 0,0,0,0,{0,0,0.1,0.1} };
+		addressBack.x = offsetX;
+		addressBack.y = offsetY;
 
-		m_portBox.x = offsetX + portText.getWidth();
-		m_portBox.y = offsetY;
-		m_portBox.h = textHeight;
-		m_portBox.font = consolas;
-		m_portBox.rgba = textColor;
-		
-		offsetY += portText.h;
+		ui::TextBox addressDesc = { "Address: ",0,0,textHeight,consolas,textColor};
+		addressDesc.x = addressBack.x;
+		addressDesc.y = addressBack.y;
 
-		int clickPortBox = ui::Clicked(m_portBox);
-		int clickPortBox2 = ui::Clicked(portText);
-		if (clickPortBox == 1|| clickPortBox2==1) {
-			m_portBox.editing = true;
-		} else if (clickPortBox == -1|| clickPortBox2==-1) {
-			m_portBox.editing = false;
+		ui::TextBox addressText = { m_address,0,0,addressDesc.h,consolas,textColor };
+		addressText.x = addressDesc.x + addressDesc.getWidth();
+		addressText.y = addressDesc.y;
+
+		ui::TextBox suggestText = { "",0,0,addressText.h, consolas, hiddenColor };
+		suggestText.x = addressText.x + addressText.getWidth();
+		suggestText.y = addressText.y;
+		if (m_address.empty()) {
+			suggestText.text = std::string(Session::DEFAULT_IP) + ":" + std::string(Session::DEFAULT_PORT);
+		} else {
+			int index = addressText.text.find_last_of(':');
+			if (index == -1)
+				suggestText.text = ":" + std::string(Session::DEFAULT_PORT);
+			else if (index == addressText.text.length() - 1)
+				suggestText.text = Session::DEFAULT_PORT;
+		}
+		addressBack.w = addressDesc.getWidth() + addressText.getWidth()+ suggestText.getWidth();
+		addressBack.h = addressDesc.h;
+
+		offsetY += addressBack.h;
+
+		addressText.editing = editingAddress;
+		addressText.at = editingAt;
+
+		int clickAddress = ui::Clicked(addressBack);
+		//int clickPortBox2 = ui::Clicked(portText);
+		if (clickAddress == 1) {
+			addressText.editing = true;
+		} else if (clickAddress == -1) {
+			addressText.editing = false;
 		}
 
-		ui::Edit(&m_portBox);
+		ui::Edit(&addressText);
 
-		ui::TextBox ipText = { "IP: " ,0,0,textHeight,consolas,textColor };
-		ipText.x = offsetX;
-		ipText.y = offsetY;
+		editingAddress = addressText.editing;
+		editingAt = addressText.at;
 
-		m_ipBox.x = offsetX + ipText.getWidth();
-		m_ipBox.y = offsetY;
-		m_ipBox.h = textHeight;
-		m_ipBox.font = consolas;
-		m_ipBox.rgba = textColor;
+		m_address = addressText.text;
 
-		offsetY += portText.h;
+		//ui::TextBox ipText = { "IP: " ,0,0,textHeight,consolas,textColor };
+		//ipText.x = offsetX;
+		//ipText.y = offsetY;
 
-		int clickIpBox = ui::Clicked(m_ipBox);
-		int clickIpBox2 = ui::Clicked(ipText);
-		if (clickIpBox == 1|| clickIpBox2 == 1) {
-			m_ipBox.editing = true;
-		} else if (clickIpBox == -1|| clickIpBox2 == -1) {
-			m_ipBox.editing = false;
-		}
+		//m_ipBox.x = offsetX + ipText.getWidth();
+		//m_ipBox.y = offsetY;
+		//m_ipBox.h = textHeight;
+		//m_ipBox.font = consolas;
+		//m_ipBox.rgba = textColor;
 
-		ui::Edit(&m_ipBox);
+		//offsetY += portText.h;
+
+		//int clickIpBox = ui::Clicked(m_ipBox);
+		//int clickIpBox2 = ui::Clicked(ipText);
+		//if (clickIpBox == 1|| clickIpBox2 == 1) {
+		//	m_ipBox.editing = true;
+		//} else if (clickIpBox == -1|| clickIpBox2 == -1) {
+		//	m_ipBox.editing = false;
+		//}
+
+		//ui::Edit(&m_ipBox);
 
 		ui::Draw(area);
 		ui::Draw(connType);
-		ui::Draw(portText);
-		ui::Draw(ipText);
-		ui::Draw(m_portBox);
-		ui::Draw(m_ipBox);
+		ui::Draw(addressBack);
+		ui::Draw(addressDesc);
+		ui::Draw(addressText);
+		ui::Draw(suggestText);
 
-		ui::TextBox stopBox = { "Stop",offsetX,offsetY,textHeight,consolas, textColor };
 		ui::TextBox connectBox = { "Connect",offsetX,offsetY,textHeight,consolas, textColor };
 		if (session->getServer().isRunning() || session->getClient().isRunning()) {
-			if (ui::Clicked(stopBox) == 1) {
+			connectBox.text = "Stop";
+			if (ui::Clicked(connectBox) == 1) {
 				stop(info);
 			}
-			ui::Draw(stopBox);
 		} else {
 			if (m_type == "Server") {
 				connectBox.text = "Start";
@@ -159,11 +202,11 @@ namespace prounk {
 			if (ui::Clicked(connectBox) == 1) {
 				connect(info);
 			}
-			ui::Draw(connectBox);
 		}
+		ui::Draw(connectBox);
 		offsetY += textHeight; // textHeight to leave some room for start/stop textBox
 
-		float stoof[] = { connType.getWidth() , portText.getWidth()+m_portBox.getWidth(), ipText.getWidth() + m_ipBox.getWidth(), connectBox.getWidth()};
+		float stoof[] = { connType.getWidth() , addressBack.w, connectBox.getWidth()};
 		//float stoof[] = { fpsBox.getWidth() , upsBox.getWidth(), runtimeBox.getWidth(), sleepBox.getWidth(),speedBox.getWidth() };
 		float areaW = 0;
 		for (int i = 0; i < sizeof(stoof) / sizeof(float); i++) {
@@ -175,5 +218,19 @@ namespace prounk {
 		setMinWidth(areaW+2*border); // Todo: hardcoded not great
 
 		DrawToolTip(area.x + area.w, area.y, 20, 20, "Session panel: Server/Client stuff\nClick Client/Server to switch\nFill in port and ip\nPress Start/Connect");
+
+		// Special keybindings
+		ui::TextBox infodump = { "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies",0,0,17,consolas,{1} };
+		infodump.x = 3;
+		infodump.y = GetHeight()-infodump.getHeight() - 3;
+
+		ui::Box infoback = { 0,0,0,0,{0.f,0.5f} };
+		infoback.x = 0;
+		infoback.y = infodump.y;
+		infoback.w = infodump.getWidth()+6;
+		infoback.h = infodump.getHeight()+6;
+		ui::Draw(infoback);
+
+		ui::Draw(infodump);
 	}
 }

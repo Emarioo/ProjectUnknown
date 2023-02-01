@@ -109,6 +109,7 @@
     <ClCompile Include="src\ProUnk\Magic.cpp" />
     <ClCompile Include="src\ProUnk\main.cpp" />
     <ClCompile Include="src\ProUnk\Keybindings.cpp" />
+    <ClCompile Include="src\ProUnk\World\Dungeon.cpp" />
     <ClCompile Include="src\ProUnk\World\Session.cpp" />
     <ClCompile Include="src\ProUnk\UI\CheatPanel.cpp" />
     <ClCompile Include="src\ProUnk\UI\CraftingPanel.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="include\ProUnk\Registries\ComplexDataRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\MasterRegistry.h" />
     <ClInclude Include="include\ProUnk\Registries\RecipeRegistry.h" />
+    <ClInclude Include="include\ProUnk\World\Dungeon.h" />
     <ClInclude Include="include\ProUnk\World\Session.h" />
     <ClInclude Include="include\ProUnk\UI\CheatPanel.h" />
     <ClInclude Include="include\ProUnk\UI\CraftingPanel.h" />

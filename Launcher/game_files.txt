@@ -1,0 +1,5 @@
+..\bin\ProjectUnknown\Debugx64\ProjectUnknown.exe=ProjectUnknown.exe
+..\ProjectUnknown\assets=assets
+args=--client 192.168.0.5
+exe=ProjectUnknown.exe
+f

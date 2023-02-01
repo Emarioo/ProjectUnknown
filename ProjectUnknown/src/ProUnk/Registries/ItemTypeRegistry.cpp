@@ -120,11 +120,13 @@ namespace prounk {
 			
 			m_nameTypes[name] = itemType;
 
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_ALL)
 			log::out << log::LIME<<"ItemTypeRegistry: Registered '" << name << "' as " << itemType << "\n";
 
 		} else {
 			// found, the info is already there.
 			// you may want to load more info into ItemTypeInfo.
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_ERROR)
 			log::out << log::RED << "ItemTypeRegistry: '" << name << "' is already registered\n";
 			m_nameTypes[name] = itemType;
 		}

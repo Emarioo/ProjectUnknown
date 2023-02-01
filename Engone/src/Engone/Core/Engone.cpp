@@ -65,8 +65,10 @@ namespace engone {
 		// where are default executions added to control?
 		for (Application* app : m_applications) {
 			app->getWindow(0)->getControl().addExecution(&app->getProfiler());
-			app->getProfiler().updateGraph.start();
-			app->getProfiler().renderGraph.start();
+			app->getProfiler().getGraph("update").color = {0,0,1,1};
+			app->getProfiler().getGraph("update").offsetY = -15;
+			app->getProfiler().getGraph("render").color = {1,0,0,1};
+			app->getProfiler().getGraph("render").offsetY = -5;
 		}
 		while (true) {
 			
@@ -175,10 +177,9 @@ namespace engone {
 			for (Application* app : m_applications) {
 				if (app->isMultiThreaded())
 					continue;
-				app->getProfiler().updateGraph.plot(GetSystemTime());
-
 				if (app->getWindow(0))
 					app->getWindow(0)->setActiveContext();
+				app->getProfiler().getGraph("update").plot(GetSystemTime());
 
 				currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
 				//currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
@@ -192,8 +193,12 @@ namespace engone {
 						win->getStorage()->getDataProcessors()[0]->process();
 				}
 
-				update(currentLoopInfo); // should maybe be moved outside loop?
 				app->update(currentLoopInfo);
+
+				// physics should be done last to make sure that the position of newly created objects have been simulated.
+				// not simulating objects causes the renderer to render objects at (0,0,0) but next frame they would be rendered at the correct location
+				// causing a visible teleportation.
+				update(currentLoopInfo);
 
 				app->getProfiler().getSampler(app).increment();
 				app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
@@ -213,11 +218,11 @@ namespace engone {
 		}
 		//-- Render execution
 		//if (mainRenderTimer.accumulate()) {
+			//log::out << "RENDER\n";
 			//printf("render\n");
 			for (Application* app : m_applications) {
 				if (app->isMultiThreaded())
 					continue;
-				app->getProfiler().renderGraph.plot(GetSystemTime());
 				app->m_renderingWindows = true;
 				for (Window* win : app->getAttachedWindows()) {
 					if (!win->isOpen()) continue;
@@ -226,10 +231,12 @@ namespace engone {
 					if(getFlags()&EngoneShowHitboxes)
 						interpolation = 1;
 					//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
-					currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
+					currentLoopInfo = { mainRenderTimer.delta,app,win,interpolation};
+					//currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
 					// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
 
 					win->setActiveContext();
+					app->getProfiler().getGraph("render").plot(GetSystemTime());
 
 					if (!win->getStorage()->getGraphicProcessors().empty()) {
 						win->getStorage()->getGraphicProcessors()[0]->process();
@@ -274,6 +281,7 @@ namespace engone {
 			if (!app->isMultiThreaded()) {
 				for (Window* win : app->getAttachedWindows()) {
 					app->getProfiler().getSampler(win).next(mainRenderTimer.delta);
+					win->runListeners();
 				}
 			}
 		}

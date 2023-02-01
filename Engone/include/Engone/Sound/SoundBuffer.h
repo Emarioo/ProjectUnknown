@@ -13,9 +13,10 @@ namespace engone {
 		~SoundBuffer();
 		void Init(const char* path);
 
+		inline bool valid() { return id; }
+
 	private:
 		unsigned int id=0;
-		bool isInitialized = false;
 
 		friend class SoundSource;
 	};

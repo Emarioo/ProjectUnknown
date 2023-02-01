@@ -36,8 +36,7 @@ namespace prounk {
 	// flags, port, ip
 	struct GameAppInfo {
 		int flags=0;
-		std::string port;
-		std::string ip;
+		std::string address;
 	};
 	class GameApp : public engone::Application, public rp3d::EventListener {
 	public:

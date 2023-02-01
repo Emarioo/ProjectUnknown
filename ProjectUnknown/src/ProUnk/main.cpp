@@ -20,7 +20,7 @@
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
-	 
+
 	//printf("Size: %d %d\n", sizeof(EngineObject),sizeof(std::mutex));
 
 	//char mem[sizeof(EngineObject)];
@@ -51,30 +51,34 @@ void runApp(int argc, char** argv) {
 
 	Engone engine;
 
-	//ConvertArguments("--server", argc, argv);
-	//ConvertArguments("--server 1025", argc, argv);
-	//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
-	//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
+	char** originArgv = argv;
+	// Don't replace args from console unless there are none
+	if (argc == 1) {
+		
+		//ConvertArguments("-server", argc, argv);
+		//ConvertArguments("-server 1025", argc, argv);
+		//ConvertArguments("-server -client 127.0.0.1 1000 -client 127.0.0.1 1000", argc, argv);
+		//ConvertArguments("-client 127.0.0.1 1000 -client 127.0.0.1 1000", argc, argv);
+		// 
+		//ConvertArguments("-server -client", argc, argv);
+	}
 	
-	ConvertArguments("--server --client 127.0.0.1", argc, argv);
-
-	//ConvertArguments("--server --client 127.0.0.1 --client 127.0.0.1", argc, argv);
-	
-	bool writeLogReport = false;
+	bool writeLogReport = true;
 	bool preventStart = false;
 	
 	// help is prioritized, any other commands will be skipped
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "-?") == 0) {
 			CreateConsole(); /// so that you can see the commands in a console
 			preventStart = true;
 			log::out
-				<< "Commands:\n"
-				<< " --help (will not start game)\n"
-				<< " --console\n"
-				<< " --logreport\n"
-				<< " --server [port] (default port is " << Session::DEFAULT_PORT << ")\n"
-				<< " --client <ip> [port] (default port is " << Session::DEFAULT_PORT << ")\n";
+				<< log::YELLOW << "Commands:\n"
+				<< log::YELLOW << " -help (will not start game)\n"
+				<< log::YELLOW << " -console\n"
+				<< log::YELLOW << " -noreport\n"
+				<< log::YELLOW << " -logreport\n"
+				<< log::YELLOW << " -server [port] (default port is " << Session::DEFAULT_PORT << ")\n"
+				<< log::YELLOW << " -client [ip:port] (default ip:port is " << Session::DEFAULT_IP<<":"<< Session::DEFAULT_PORT << ")\n";
 			break;
 		}
 	}
@@ -85,64 +89,57 @@ void runApp(int argc, char** argv) {
 		//-- Special options when starting the game. Like allocating a console if in Release mode.
 		for (int i = 0; i < argc; i++) {
 			if (i == 0) {
-				int len = strlen(argv[i]);
-				if (len >= 2) {
-					if (argv[i][1] == ':') {
-						continue; // exe path is ignored
-					}
-				}
+				if (originArgv == argv)
+					continue; // skip path to this executable
 			}
-			if (strcmp(argv[i], "--console") == 0) {
+			if (strcmp(argv[i], "-console") == 0) {
 				CreateConsole();
 				continue;
 			}
-			if (strcmp(argv[i], "--logreport") == 0) {
+			if (strcmp(argv[i], "-noreport") == 0) {
+				writeLogReport = false;
+				continue;
+			}
+			if (strcmp(argv[i], "-logreport") == 0) {
 				writeLogReport = true;
 				continue;
 			}
-			if (strcmp(argv[i], "--server") == 0) {
-				std::string port = Session::DEFAULT_PORT;
+			if (strcmp(argv[i], "-server") == 0) {
+				std::string port;
 				if (i + 1 < argc) { // port is optional
 					if (argv[i + 1][0] != '-') {
 						i++;
 						port = argv[i];
 					}
 				}
-				GameAppInfo info = { GameApp::START_SERVER, port, "127.0.0.1" };
+				GameAppInfo info = { GameApp::START_SERVER};
+				if (!port.empty()) {
+					info.address = "127.0.0.1:" + port;
+				}
 
 				GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 				engine.addApplication(app);
 				continue;
 			}
-			if (strcmp(argv[i], "--client") == 0) {
+			if (strcmp(argv[i], "-client") == 0) {
+				std::string adr;
 				if (i + 1 < argc) {
-					if (argv[i + 1][0] == '-') {
-						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--client 192.168.1.66')\n";
-					} else {
+					if (argv[i + 1][0] != '-') {
 						i++;
-						std::string ip = argv[i];
-						std::string port = Session::DEFAULT_PORT;
-						if (i + 1 < argc) { // port is optional
-							if (argv[i + 1][0] != '-') {
-								i++;
-								port = argv[i];
-							}
-						}
-
-						GameAppInfo info = { GameApp::START_CLIENT, port, ip };
-						GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
-						engine.addApplication(app);
+						adr = argv[i];
 					}
-				} else {
-					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--client 192.168.1.66')\n";
 				}
+				GameAppInfo info = { GameApp::START_CLIENT, adr };
+
+				GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
+				engine.addApplication(app);
 				continue;
 			}
-
-			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see --help)\n";
+			CreateConsole(); // user won't see the text without console
+			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see -help)\n";
 		}
 		if (engine.getApplications().size() == 0) {
-			GameAppInfo info = { 0, Session::DEFAULT_PORT, "127.0.0.1" };
+			GameAppInfo info = { 0, "" };
 			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 			engine.addApplication(app);
 		}
@@ -152,9 +149,9 @@ void runApp(int argc, char** argv) {
 			log::out.getSelected().saveReport(nullptr);
 		}
 	}
-	//FreeArguments(argc, argv);
-
-	//std::cin.get();
+	if (originArgv != argv) {
+		FreeArguments(argc, argv);
+	}
 }
 // Runs the game without a console
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {

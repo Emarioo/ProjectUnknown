@@ -93,6 +93,7 @@ namespace prounk {
 
 						app->getActiveSession()->netAddGeneral(heldObject);
 						app->getActiveSession()->netEditTrigger(heldObject, true);
+						app->getActiveSession()->netMoveObject(heldObject);
 					}
 					// damage in combat data is set when doing a skill
 				}
@@ -311,6 +312,7 @@ namespace prounk {
 			releasePlayer(plr);
 		}
 		app->getActiveSession()->netAddGeneral(object);
+		app->getActiveSession()->netMoveObject(object);
 		releaseHeldObject(heldObject);
 	}
 	void PlayerController::dropAllItems() {
@@ -363,6 +365,7 @@ namespace prounk {
 			dim->getWorld()->unlockPhysics();
 
 			app->getActiveSession()->netAddGeneral(object);
+			app->getActiveSession()->netMoveObject(object);
 
 			dim->getWorld()->releaseAccess(object->getUUID());
 		}
@@ -469,7 +472,10 @@ namespace prounk {
 		}
 		if (IsKeyPressed(GLFW_KEY_T)) {
 			engone::EngineObject* plr = requestPlayer();
-			plr->applyForce({0,100,0});
+			auto renderer = GET_COMMON_RENDERER();
+			plr->setPosition(plr->getPosition() + renderer->getCamera()->getFlatLookVector()*5.f);
+			//plr->setPosition(plr->getPosition() + glm::vec3(0, -4, 0));
+			//plr->applyForce({0,100,0});
 			//setFlight(!flight);
 		}
 		if (IsKeyPressed(GLFW_KEY_C)) {
@@ -499,6 +505,7 @@ namespace prounk {
 		if (IsKeyPressed(GLFW_KEY_R)) {
 			if (IsDead(plr)) {
 				deathTime = 0;
+				info.window->enableFirstPerson(true);
 				plr->getWorld()->lockPhysics();
 				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0});
 				//auto tr = rigidBody->getTransform(); // only reset orientation
@@ -744,6 +751,7 @@ namespace prounk {
 			deathTime = 5; // respawn time
 
 			setFlight(false);
+			info.window->enableFirstPerson(false);
 
 			plr->getWorld()->lockPhysics();
 			// make player jump
@@ -769,6 +777,7 @@ namespace prounk {
 			deathTime = 0;
 			if (IsDead(plr)) {
 				//log::out << "Respawn player\n";
+				info.window->enableFirstPerson(true);
 				plr->getWorld()->lockPhysics();
 				auto tr = plr->getRigidBody()->getForce();
 				auto br = plr->getRigidBody()->getTorque();
@@ -803,6 +812,7 @@ namespace prounk {
 				if (length > maxLength) {
 					cam->setPosition(dir* maxLength +pos);
 				}
+				//log::out << "CAM LOCK\n";
 			}
 		}
 
@@ -845,9 +855,11 @@ namespace prounk {
 			float realY = rot.y;
 			float wantY = realY;
 
-			const float targetMargin = 0.05; // low margin is hard to achive because of friction.
-			float diff = fabs(AngleDifference(realY, targetRotation));
-			if (diff < targetMargin) {
+			float targetMargin = 0.06; // low margin is hard to achive because of friction.
+			float targetSnapSpeed = 0.3;
+			float targetDiff = fabs(AngleDifference(realY, targetRotation));
+			//log::out << "diff " << targetDiff << "\n";
+			if (targetDiff < targetMargin) {
 				followTargetRotation = false;
 			}
 
@@ -858,21 +870,23 @@ namespace prounk {
 
 			if (followTargetRotation) {
 				wantY = targetRotation;
-				//log::out << "follow cam "<<diff<<" \n";
 			}else if (glm::length(flatMove) != 0) {
-				//log::out << "follow wasd\n";
 				wantY = std::atan2(flatMove.x, flatMove.z);
 			}
 
 			float dv = AngleDifference(wantY, realY) / (info.timeStep);
-			dv *= 0.3; // snap speed
-			float velRotY = dv - plr->getRigidBody()->getAngularVelocity().y;
-			// inertia tensor needs to be accounted for when applying torque.
-			
-			//rp3d::Vector3 newVel = rigidBody->getAngularVelocity();
-			//newVel.y += velRotY;
-			rp3d::Vector3 newVel = { 0,dv,0 };
-			plr->getRigidBody()->setAngularVelocity(newVel);
+			//log::out << "a " << dv << "\n";
+			//if (dv < 0.01) {
+			//	rp3d::Transform t = plr->getRigidBody()->getTransform();
+			//	t.setOrientation(rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(0,wantY,0)));
+			//	plr->getRigidBody()->setTransform(t);
+			//} else {
+				dv *= targetSnapSpeed;
+				if (targetDiff < targetMargin * 2) // extra snap when close to margin so that the turning doesn't get stuck.
+					dv *= 3;
+				rp3d::Vector3 newVel = { 0,dv,0 };
+				plr->getRigidBody()->setAngularVelocity(newVel);
+			//}
 			//log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
 			//log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
 			//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
@@ -904,6 +918,8 @@ namespace prounk {
 					plr->getRigidBody()->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
 				}
 			}
+
+			//-- Extra down force
 			if (!flight) {
 				rp3d::Vector3 extraDownForce = { 0,0,0 };
 				float mass = plr->getRigidBody()->getMass();

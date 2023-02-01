@@ -1014,9 +1014,11 @@ namespace engone {
 										int code = WSAGetLastError();
 										// Error with client connect
 										if (code == WSAETIMEDOUT) {
-											log::out << "Client::Worker : Connection timed out (errcode: " << code << ")\n";
-										}else
-										log::out << "Client : Worker : err code: " << code << "\n";
+											log::out << "Client : Connection timed out (err: " << code << ")\n";
+										} else if (code == WSAECONNREFUSED) {
+											log::out << "Client : Connection refused (err: " << code << ")\n";
+										} else
+											log::out << "Client : Error code: " << code << "\n";
 											//ENGONE_DEBUG(printf("Did not connect %d\n", code);)
 										if (m_connection) {
 											ALLOC_DELETE(Connection, m_connection);

@@ -263,7 +263,16 @@ namespace engone {
 	}
 	void MaterialAsset::cleanup() {
 		if (diffuse_map) {
-			DebugBreak(); // fix code below
+			log::out << log::RED<< "MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)\n";
+			if (!diffuse_map->getStorage()) {
+				ALLOC_DELETE(TextureAsset,diffuse_map);
+				GetTracker().untrack(diffuse_map);
+			} else {
+				// texture belongs to storage, storage will delete texture
+				// bad things happen if asset already is deleted.
+			}
+			diffuse_map = nullptr;
+			//DebugBreak(); // fix code below
 			//if (!diffuse_map->m_parent) {
 			//	GetTracker().untrack(diffuse_map);
 			//	delete diffuse_map;
@@ -566,13 +575,14 @@ namespace engone {
 		return out;
 	}
 	void MeshAsset::cleanup() {
-		DebugBreak(); // fix this code
 		for (int i = 0; i < materials.size(); i++) {
 			MaterialAsset* mat = materials[i];
-			//if (!mat->m_parent) {
-			//	GetTracker().untrack(mat);
-			//	delete mat;
-			//}
+			if (!mat->getStorage()) {
+				GetTracker().untrack(mat);
+				ALLOC_DELETE(MaterialAsset, mat);
+			} else {
+				// material belong to storage
+			}
 		}
 		materials.clear();
 		// cleanup should be called on VBO, IBO and VAO.

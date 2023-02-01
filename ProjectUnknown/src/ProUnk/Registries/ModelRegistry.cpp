@@ -19,7 +19,8 @@ namespace prounk {
 	ModelId ModelRegistry::registerModel(engone::ModelAsset* model) {
 		using namespace engone;
 		if (!model) {
-			log::out << log::RED << "ModelRegistry::registerModel - model was nullptr\n";
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_ERROR)
+				log::out << log::RED << "ModelRegistry::registerModel - model was nullptr\n";
 			return -1;
 		}
 
@@ -41,17 +42,20 @@ namespace prounk {
 			m_entries.back().name = model->getLoadName();
 			m_entries.back().model = model;
 
-			log::out << log::LIME << "ModelRegistry: Registered '" << model->getLoadName() << "' as " << id << "\n";
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_ALL)
+				log::out << log::LIME << "ModelRegistry: Registered '" << model->getLoadName() << "' as " << id << "\n";
 			
 		}
 		else {
 			// found
 			Entry& entry = m_entries[id-1];
 			if (entry.model) {
-				log::out <<log::RED<< "ModelRegistry: '" << model->getLoadName() << "' is already registered\n";
+				REGISTER_IF_LEVEL(REGISTRY_LEVEL_ERROR)
+					log::out <<log::RED<< "ModelRegistry: '" << model->getLoadName() << "' is already registered\n";
 			} else {
 				entry.model = model; // the dataIndex existed before but it didn't have the model
-				log::out << log::LIME << "ModelRegistry: (soft) Registered '" << model->getLoadName() << "' as " << id << "\n";
+				REGISTER_IF_LEVEL(REGISTRY_LEVEL_ALL)
+					log::out << log::LIME << "ModelRegistry: (soft) Registered '" << model->getLoadName() << "' as " << id << "\n";
 			}
 		}
 		return id;

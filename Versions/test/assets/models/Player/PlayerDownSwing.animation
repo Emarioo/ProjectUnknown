@@ -1,0 +1,237 @@
+# Start frame
+0
+# End frame
+25
+# FPS
+25
+# Object count
+3
+# Animnation data
+# Object
+3
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+0.7983248233795166
+# Frame
+2
+20
+-0.14922788739204407
+# Frame
+2
+25
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+0.06063716113567352
+# Frame
+2
+20
+0.0023106951266527176
+# Frame
+2
+25
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+-0.026839666068553925
+# Frame
+2
+20
+0.05636817216873169
+# Frame
+2
+25
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+15
+0.5985656976699829
+# Frame
+2
+20
+0.9871922731399536
+# Frame
+2
+25
+1.0
+# Object
+4
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+0.07110550999641418
+# Frame
+2
+20
+-0.3320191502571106
+# Frame
+2
+25
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+-0.015187165699899197
+# Frame
+2
+20
+-0.005867938976734877
+# Frame
+2
+25
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+-0.05805953964591026
+# Frame
+2
+20
+0.019038554280996323
+# Frame
+2
+25
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+15
+0.9956617951393127
+# Frame
+2
+20
+0.9430626034736633
+# Frame
+2
+25
+1.0
+# Object
+5
+# Channels
+7680
+# Frames for qX
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+-0.00041741132736206055
+# Frame
+2
+20
+-0.3660508394241333
+# Frame
+2
+25
+0.0
+# Frames for qY
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+0.07723216712474823
+# Frame
+2
+20
+0.09897547960281372
+# Frame
+2
+25
+0.0
+# Frames for qZ
+4
+# Frame
+2
+0
+0.0
+# Frame
+1
+15
+0.013777494430541992
+# Frame
+2
+20
+0.026112690567970276
+# Frame
+2
+25
+0.0
+# Frames for qW
+4
+# Frame
+2
+0
+1.0
+# Frame
+1
+15
+0.9969180226325989
+# Frame
+2
+20
+0.9249483942985535
+# Frame
+2
+25
+1.0

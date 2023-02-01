@@ -4,3 +4,4 @@
 #define SETTINGS_PATH "launcher_settings.txt"
 #define CACHE_PATH "launcher_cache.txt"
 #define DEFAULT_PORT "5492"
+#define DEFAULT_IP "127.0.0.1"

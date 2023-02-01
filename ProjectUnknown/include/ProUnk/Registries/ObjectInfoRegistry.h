@@ -21,6 +21,11 @@ namespace prounk {
 	struct ObjectWeaponInfo {
 		CombatData combatData;
 	};
+	struct ObjectTriggerInfo {
+		std::vector<engone::UUID> collisions;
+		bool hit(engone::UUID uuid);
+	};
+	ObjectTriggerInfo& GetTriggerInfo(engone::EngineObject* object);
 	
 	// This class has a lot of repetition in it.
 	// Can it be improved? macros perhaps?
@@ -43,12 +48,16 @@ namespace prounk {
 		uint32 registerCreatureInfo(const std::string& name);
 		void unregisterCreatureInfo(uint32 dataIndex);
 		
+		ObjectTriggerInfo& getTriggerInfo(uint32 dataIndex);
+		uint32 registerTriggerInfo();
+		void unregisterTriggerInfo(uint32 dataIndex);
 
 	private:
 		// Each allocated frame has 128 infos
 		engone::FrameArray<ObjectCreatureInfo> m_creatureInfos{128};
 		engone::FrameArray<ObjectItemInfo> m_itemInfos{128};
 		engone::FrameArray<ObjectWeaponInfo> m_weaponInfos{128};
+		engone::FrameArray<ObjectTriggerInfo> m_triggerInfos{128};
 		
 	};
 }

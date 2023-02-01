@@ -32,9 +32,11 @@ namespace engone {
 		m_assetMutex.lock();
 		for (auto& map : m_assets) {
 			for (auto& pair : map.second) {
-				GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
-				//GetTracker().untrack(, pair.second);
-				ALLOC_DELETE(Asset,pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
+				if (pair.second) {
+					GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
+					//GetTracker().untrack(, pair.second);
+					ALLOC_DELETE(Asset, pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
+				}
 			}
 		}
 		m_assets.clear();

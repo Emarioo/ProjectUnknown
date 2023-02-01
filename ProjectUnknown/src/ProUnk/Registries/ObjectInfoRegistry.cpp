@@ -4,6 +4,18 @@
 
 namespace prounk {
 
+	bool ObjectTriggerInfo::hit(engone::UUID uuid) {
+		for (engone::UUID& u : collisions) {
+			if (u == uuid)
+				return true;
+		}
+		return false;
+	}
+
+	ObjectTriggerInfo& GetTriggerInfo(engone::EngineObject* object) {
+		return ((Dimension*)object->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(object->getObjectInfo());
+	}
+
 	void ObjectInfoRegistry::serialize() {
 		using namespace engone;
 		log::out << log::RED<<"ObjectInfoRegistry - Serialization is not implemented\n";
@@ -48,5 +60,20 @@ namespace prounk {
 			session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
 
 		m_creatureInfos.remove(dataIndex-1);
+	}
+
+	uint32 ObjectInfoRegistry::registerTriggerInfo() {
+		return m_triggerInfos.add({}) + 1;
+	}
+	ObjectTriggerInfo& ObjectInfoRegistry::getTriggerInfo(uint32 dataIndex) {
+		return *m_triggerInfos.get(dataIndex - 1);
+	}
+	void ObjectInfoRegistry::unregisterTriggerInfo(uint32 dataIndex) {
+		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		auto oinfo = m_triggerInfos.get(dataIndex - 1);
+		//if (oinfo->inventoryDataIndex)
+		//	session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
+
+		m_triggerInfos.remove(dataIndex - 1);
 	}
 }

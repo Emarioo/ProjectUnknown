@@ -18,6 +18,8 @@ namespace engone {
 	}
 	void ExecutionTimer::step() {
 		now = engone::GetSystemTime();
+		if (startTime == 0)
+			startTime = now;
 		if (lastTime == 0)
 			delta = 1 / 60.f;
 		else

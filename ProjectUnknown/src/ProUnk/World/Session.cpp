@@ -4,6 +4,7 @@
 
 namespace prounk {
 	const char* Session::DEFAULT_PORT = "43567";
+	const char* Session::DEFAULT_IP = "127.0.0.1";
 
 	float NetworkStats::getBytesSentPerSecond() {
 		return sentPerSecond;
@@ -131,14 +132,13 @@ namespace prounk {
 	void Session::update(engone::LoopInfo& info) {
 		using namespace engone;
 
-		processMessages();
-		
 		for (int i = 0; i < m_dimensions.size(); i++) {
 			m_dimensions[i]->update(info);
 		}
 
 		m_networkStats.updateSample(info.timeStep,this);
-		
+
+		processMessages();
 	}
 	void Session::processEvent(bool isServer, engone::NetEvent e, engone::UUID uuid) {
 		using namespace engone;
@@ -154,7 +154,7 @@ namespace prounk {
 					netAddGeneral(obj);
 					netEditTrigger(obj, obj->isOnlyTrigger());
 					netEditBody(obj, (uint64_t)obj->getRigidBody()->getType());
-					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(),obj->rigidBody->getLinearVelocity(),obj->rigidBody->getAngularVelocity());
+					netMoveObject(obj);
 				}
 			} else if (e == NetEvent::Disconnect) {
 				auto find = m_clients.find(uuid);
@@ -203,6 +203,7 @@ namespace prounk {
 						netAddGeneral(obj);
 						netEditTrigger(obj, obj->isOnlyTrigger());
 						netEditBody(obj, (uint64_t)obj->getRigidBody()->getType());
+						netMoveObject(obj);
 					}
 					//netMoveObject(obj->getUUID(), obj->rigidBody->getTransform(), obj->rigidBody->getLinearVelocity(), obj->rigidBody->getAngularVelocity());
 				}

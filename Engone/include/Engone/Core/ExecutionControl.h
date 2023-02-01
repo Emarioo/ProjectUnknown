@@ -28,6 +28,7 @@ namespace engone {
 		double delta = 0;
 		double accumulator = 0;
 		double runtime = 0;
+		double startTime = 0;
 
 		double aimedDelta = 1/60.f;
 

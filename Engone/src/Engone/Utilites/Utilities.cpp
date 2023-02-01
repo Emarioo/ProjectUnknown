@@ -682,14 +682,18 @@ namespace engone {
 		}
 		// m_running is set to false in thread
 	}
-	void FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
+	bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
+		if (!std::filesystem::exists(path))
+			return false;
+			//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
+		
 		m_mutex.lock();
 
 		// Just a heads up for you. This functions is not beautiful.
 
 		if (m_root == path) { // no reason to check the same right?
 			m_mutex.unlock();
-			return;
+			return true;
 		}
 		//if (m_threadHandle) {
 		//	CancelSynchronousIo(m_threadHandle);
@@ -712,160 +716,153 @@ namespace engone {
 			m_callback = callback;
 			m_flags = flags;
 
-			bool failed = false;
-			if (!std::filesystem::exists(m_root)) {
-				failed = true;
-				log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
-			}
 			int attributes = GetFileAttributesA(m_root.c_str());
 			if (attributes == INVALID_FILE_ATTRIBUTES) {
-				
-			} else if(attributes & FILE_ATTRIBUTE_DIRECTORY) {
+
+			} else if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
 				m_dirPath = m_root;
 			} else {
 				int index = m_root.find_last_of('\\');
 				if (index == -1) {
 					m_dirPath = ".\\";
 				} else {
-					m_dirPath = m_root.substr(0,index);
+					m_dirPath = m_root.substr(0, index);
 				}
 			}
-			if (!failed) {
-				m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE,
-					FILE_NOTIFY_CHANGE_LAST_WRITE|FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME);
+			m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE,
+				FILE_NOTIFY_CHANGE_LAST_WRITE|FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME);
 
-				if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
-					failed = true;
+			if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
+				m_changeHandle = NULL;
+				DWORD err = GetLastError();
+				log::out << log::RED << "FileMonitor::check - invalid handle (err: "<< (int)err <<"): " << m_dirPath << "\n";
+				m_mutex.unlock();
+				return false;
+			}
+
+			//FILE_FLAG_OVERLAPPED
+			m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY, 
+				FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
+				OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
+				m_dirHandle = NULL;
+				DWORD err = GetLastError();
+				log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err <<"): " << m_dirPath << "\n";
+				if (m_changeHandle != NULL) {
+					FindCloseChangeNotification(m_changeHandle);
 					m_changeHandle = NULL;
-					DWORD err = GetLastError();
-					log::out << log::RED << "FileMonitor::check - invalid handle("<< (int)err <<"): " << m_dirPath << "\n";
 				}
+				m_mutex.unlock();
+				return false;
 			}
-			if (!failed) {
-				//FILE_FLAG_OVERLAPPED
-				m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY, 
-					FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
-					OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-				if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
-					failed = true;
-					m_dirHandle = NULL;
-					DWORD err = GetLastError();
-					log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err <<"): " << m_dirPath << "\n";
-					if (m_changeHandle != NULL) {
-						FindCloseChangeNotification(m_changeHandle);
-						m_changeHandle = NULL;
-					}
-				}
-			}
-			if (!failed) {
-				m_running = true;
+			m_running = true;
 
-				log::out << "FileMonitor : Checking " << m_root << "\n";
-				m_thread = std::thread([this]() {
-					SetThreadName(GetCurrentThreadId(), "FileMonitor");
-					//m_threadHandle = GetCurrentThread();
-					std::string temp;
-					DWORD waitStatus;
-					while (true) {
-						waitStatus = WaitForSingleObject(m_changeHandle, INFINITE);
+			//log::out << "FileMonitor : Checking " << m_root << "\n";
+			m_thread = std::thread([this]() {
+				SetThreadName(GetCurrentThreadId(), "FileMonitor");
+				//m_threadHandle = GetCurrentThread();
+				std::string temp;
+				DWORD waitStatus;
+				while (true) {
+					waitStatus = WaitForSingleObject(m_changeHandle, INFINITE);
 
-						if (!m_running)
-							break;
-						if (waitStatus == WAIT_OBJECT_0) {
-							//log::out << "FileMonitor::check - catched " << m_root << "\n";
+					if (!m_running)
+						break;
+					if (waitStatus == WAIT_OBJECT_0) {
+						//log::out << "FileMonitor::check - catched " << m_root << "\n";
 
+						if (!m_buffer) {
+							m_buffer = (FILE_NOTIFY_INFORMATION*)alloc::malloc(INITIAL_SIZE);
 							if (!m_buffer) {
-								m_buffer = (FILE_NOTIFY_INFORMATION*)alloc::malloc(INITIAL_SIZE);
-								if (!m_buffer) {
-									m_bufferSize = 0;
-									log::out << log::RED << "FileMonitor::check - buffer allocation failed\n";
-									break;
-								}
-								m_bufferSize = INITIAL_SIZE;
+								m_bufferSize = 0;
+								log::out << log::RED << "FileMonitor::check - buffer allocation failed\n";
+								break;
 							}
+							m_bufferSize = INITIAL_SIZE;
+						}
 
-							DWORD bytes = 0;
-							BOOL success = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags & WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME, &bytes, NULL, NULL);
-							//log::out << "ReadDir change\n";
-							if (bytes == 0) {
-								// try to read changes again but with bigger buffer? while loop?
-								//log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
+						DWORD bytes = 0;
+						BOOL success = ReadDirectoryChangesW(m_dirHandle, m_buffer, m_bufferSize, m_flags & WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME, &bytes, NULL, NULL);
+						//log::out << "ReadDir change\n";
+						if (bytes == 0) {
+							// try to read changes again but with bigger buffer? while loop?
+							//log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
+							// this could also mean that we cancelled the read.
+						}
+						if (success == 0) {
+							int err = GetLastError();
+
+							// ERROR_INVALID_HANDLE
+							// ERROR_INVALID_PARAMETER
+							// ERROR_INVALID_FUNCTION
+							// ERROR_OPERATION_ABORTED
+
+							if(err != ERROR_OPERATION_ABORTED)
 								// this could also mean that we cancelled the read.
-							}
-							if (success == 0) {
-								int err = GetLastError();
-
-								// ERROR_INVALID_HANDLE
-								// ERROR_INVALID_PARAMETER
-								// ERROR_INVALID_FUNCTION
-								// ERROR_OPERATION_ABORTED
-
-								if(err != ERROR_OPERATION_ABORTED)
-									// this could also mean that we cancelled the read.
-									log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges win error " << err << " (path: "<<m_root<<")\n";
-								break;
-							} else {
-								int offset = 0;
-								while (true) {
-									FILE_NOTIFY_INFORMATION& info = *(FILE_NOTIFY_INFORMATION*)((char*)m_buffer + offset);
-									int length = info.FileNameLength / sizeof(WCHAR);
-									if (length < MAX_PATH + 1) {
-										temp.resize(length);
-										for (int i = 0; i < length; i++) {
-											temp.data()[i] = (char)*(info.FileName + i);
-										}
-									}
-
-									if (m_dirPath == m_root || temp == m_root) {
-										//log::out << "FileMonitor::check - call callback " << temp << "\n";
-										ChangeType type = (ChangeType)0;
-										if (info.Action == FILE_ACTION_MODIFIED||info.Action==FILE_ACTION_ADDED) type = FILE_MODIFIED;
-										if (info.Action == FILE_ACTION_REMOVED) type = FILE_REMOVED;
-										if (type == 0) {
-											log::out << log::YELLOW<<"FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
-											//DebugBreak();
-										}
-										m_callback(temp,type);
-									}
-
-									if (info.NextEntryOffset == 0)
-										break;
-									offset += info.NextEntryOffset;
-								}
-							}
-
-							m_mutex.lock();
-							bool yes = FindNextChangeNotification(m_changeHandle);
-							m_mutex.unlock();
-
-							if (!yes) {
-								// handle could have been closed
-								break;
-							}
+								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges win error " << err << " (path: "<<m_root<<")\n";
+							break;
 						} else {
-							// not sure why we are here but it isn't good so stop.
+							int offset = 0;
+							while (true) {
+								FILE_NOTIFY_INFORMATION& info = *(FILE_NOTIFY_INFORMATION*)((char*)m_buffer + offset);
+								int length = info.FileNameLength / sizeof(WCHAR);
+								if (length < MAX_PATH + 1) {
+									temp.resize(length);
+									for (int i = 0; i < length; i++) {
+										temp.data()[i] = (char)*(info.FileName + i);
+									}
+								}
+
+								if (m_dirPath == m_root || temp == m_root) {
+									//log::out << "FileMonitor::check - call callback " << temp << "\n";
+									ChangeType type = (ChangeType)0;
+									if (info.Action == FILE_ACTION_MODIFIED||info.Action==FILE_ACTION_ADDED) type = FILE_MODIFIED;
+									if (info.Action == FILE_ACTION_REMOVED) type = FILE_REMOVED;
+									if (type == 0) {
+										log::out << log::YELLOW<<"FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
+										//DebugBreak();
+									}
+									m_callback(temp,type);
+								}
+
+								if (info.NextEntryOffset == 0)
+									break;
+								offset += info.NextEntryOffset;
+							}
+						}
+
+						m_mutex.lock();
+						bool yes = FindNextChangeNotification(m_changeHandle);
+						m_mutex.unlock();
+
+						if (!yes) {
+							// handle could have been closed
 							break;
 						}
+					} else {
+						// not sure why we are here but it isn't good so stop.
+						break;
 					}
-					m_mutex.lock();
-					m_running = false;
+				}
+				m_mutex.lock();
+				m_running = false;
 
-					if (m_changeHandle) {
-						FindCloseChangeNotification(m_changeHandle);
-						m_changeHandle = NULL;
-					}
+				if (m_changeHandle) {
+					FindCloseChangeNotification(m_changeHandle);
+					m_changeHandle = NULL;
+				}
 
-					if (m_dirHandle) {
-						CloseHandle(m_dirHandle);
-						m_dirHandle = NULL;
-					}
-					m_root.clear();
-					m_mutex.unlock();
-					//log::out << "FileMonitor - finished thread\n";
-				});
-			}
+				if (m_dirHandle) {
+					CloseHandle(m_dirHandle);
+					m_dirHandle = NULL;
+				}
+				m_root.clear();
+				m_mutex.unlock();
+				//log::out << "FileMonitor - finished thread\n";
+			});
 		}
 		m_mutex.unlock();
+		return true;
 	}
 
 	// Code below comes from https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022

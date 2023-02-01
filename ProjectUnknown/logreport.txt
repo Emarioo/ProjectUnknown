@@ -1,23 +1,38 @@
-[00:38:57] ComplexDataRegistry: Registered 'atk' as 1
-[00:38:57] ComplexDataRegistry: Registered 'knock' as 2
-[00:38:57] ModelRegistry: Registered 'Sword/Sword' as 1
-[00:38:57] ModelRegistry: Registered 'Dagger/Dagger' as 2
-[00:38:57] ModelRegistry: Registered 'Spear/Spear' as 3
-[00:38:57] ModelRegistry: Registered 'GoldIngot/GoldIngot' as 4
-[00:38:57] ItemTypeRegistry: Registered 'sword' as 1
-[00:38:57] ItemTypeRegistry: Registered 'dagger' as 2
-[00:38:57] ItemTypeRegistry: Registered 'spear' as 3
-[00:38:57] ItemTypeRegistry: Registered 'gold_ingot' as 4
-[00:39:00] GameApp : CLEANUP NOT IMPLEMENTED
-[00:39:03] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[00:39:03] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
-[00:39:03] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[00:39:04] Queues: 55 / 53 Track/Untracks: 54 / 53  AddMem/SubMem: 15 / 3
-[00:39:04] Memory leak? 2526 expected 0
-[00:39:04] Memory summary:
- Tracker Total: 6046
- Alloc: 347966
+[14:27:44] Client : Connect
+[14:27:44] Server : Connect
+[14:27:44] netAddGeneral OBJECT_PLAYER
+[14:27:44] netAddGeneral OBJECT_TERRAIN
+[14:27:44] netAddGeneral OBJECT_PLAYER
+[14:27:44] netAddGeneral OBJECT_TERRAIN
+[14:27:44] Client: NET_ADD_CREATURE
+[14:27:44] Client: NET_ADD_TERRAIN
+[14:27:45] Server: NET_ADD_CREATURE
+[14:27:45] Server: NET_ADD_TERRAIN
+[14:27:58] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:27:58] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:27:58] AnimationAsset::cleanup - not implemented
+[14:27:58] AnimationAsset::cleanup - not implemented
+[14:27:58] AnimationAsset::cleanup - not implemented
+[14:27:58] GameApp : CLEANUP NOT IMPLEMENTED
+[14:27:58] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[14:27:58] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[14:28:00] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:28:00] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:28:00] AnimationAsset::cleanup - not implemented
+[14:28:00] AnimationAsset::cleanup - not implemented
+[14:28:00] AnimationAsset::cleanup - not implemented
+[14:28:00] GameApp : CLEANUP NOT IMPLEMENTED
+[14:28:00] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[14:28:00] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[14:28:00] Queues: 6 / 88 Track/Untracks: 4 / 2  AddMem/SubMem: 11 / 7
+[14:28:00] Server : Disconnect
+[14:28:00] Client : Disconnect
+[14:28:00] Server : Stopped
+[14:28:00] Memory leak? 6220 expected 0
+[14:28:00] Memory summary:
+ Tracker Total: 6860
+ Alloc: 1308956
  Floating: 0
- TrackNode:      3520, 0, 3520
- Window:         1440, 1, 0
- ItemVector:     1086, 0, 1086
+ Window:         2896, 2, 0
+ TrackNode:      640,  0, 640
+ ItemVector:     3324, 0, 3324

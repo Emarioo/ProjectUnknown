@@ -2,7 +2,7 @@
 
 namespace prounk {
 
-#define IF_LEVEL(level) if (HasLogLevel(REGISTRY_LEVEL, level))
+#define IF_LEVEL(LEVEL) if (HasLogLevel(REGISTRY_LEVEL, LEVEL))
 
 	Registry::Registry(const std::string& name) : m_name(name) {}
 	Registry::Registry(const std::string& name, const std::string& path) : m_name(name), m_path(path) {}

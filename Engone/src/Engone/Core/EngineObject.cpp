@@ -273,6 +273,11 @@ namespace engone {
 		m_world->unlockPhysics();
 		return temp;
 	}
+	void EngineObject::setLinearVelocity(const glm::vec3& vec3) {
+		m_world->lockPhysics();
+		m_rigidBody->setLinearVelocity(*(rp3d::Vector3*)&vec3);
+		m_world->unlockPhysics();
+	}
 	const glm::vec3& EngineObject::getAngularVelocity() {
 		m_world->lockPhysics();
 		glm::vec3 temp;

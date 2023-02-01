@@ -9,6 +9,8 @@ namespace prounk {
 	enum BasicObjectType : int {
 		OBJECT_TERRAIN=0x1000, // model
 		
+		OBJECT_TRIGGER=0x1100,
+
 		OBJECT_ITEM=0x2000, // item
 		
 		OBJECT_WEAPON=0x4000, // model, combat data
@@ -16,6 +18,7 @@ namespace prounk {
 		OBJECT_CREATURE=0x8000,// inv, combat data, model
 		OBJECT_DUMMY,
 		OBJECT_PLAYER,
+
 	};
 	const char* to_string(BasicObjectType value);
 	engone::Logger& operator<<(engone::Logger& log, BasicObjectType value);
@@ -44,6 +47,7 @@ namespace prounk {
 
 	// Creates an item you can pickup.
 	engone::EngineObject* CreateItem(Dimension* dimension, Item& item, engone::UUID uuid = 0);
+	engone::EngineObject* CreateTrigger(Dimension* dimension, glm::vec3 size, engone::UUID uuid = 0);
 
 	engone::EngineObject* CreateDummy(Dimension* dimension, engone::UUID uuid = 0);
 	engone::EngineObject* CreatePlayer(Dimension* dimension, engone::UUID uuid = 0);

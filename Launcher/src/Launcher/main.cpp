@@ -1,5 +1,7 @@
 #include "Launcher/LauncherApp.h"
 
+#define CONSOLE_ON_BAD CreateConsole();
+
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace launcher;
@@ -7,24 +9,34 @@ void runApp(int argc, char** argv) {
 	Engone engone;
 
 	//SetLogLevel(NETWORK_LEVEL, NETWORK_LEVEL_ALL & (~NETWORK_LEVEL_SPAM));
-	//ConvertArguments("--server --client 127.0.0.1 1000", argc, argv);
+	//ConvertArguments("-server -client", argc, argv);
 	
+	char** originArgv = argv;
+	
+	// Don't replace args from console unless there are none
+	if (argc == 1) {
+		ConvertArguments("-server -client", argc, argv);
+	}
+
 	LauncherAppInfo info{};
-	bool writeLogReport = false;
+	bool writeLogReport = true;
 	
 	bool preventStart = false;
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "--help") == 0) {
+		if (strcmp(argv[i], "-help") == 0) {
 			CreateConsole();
 			preventStart = true;
 			log::out
-				<< "Commands:\n"
-				<< " --help (will not start the launcher)\n"
-				<< " --console\n"
-				<< " --logreport\n"
-				<< " --cachepath <path to cache>\n"
-				<< " --settingspath <path to settings>\n"
-				<< " --state <'server' OR 'client'> (without apostrophes)\n";
+				<< log::YELLOW << "Commands:\n"
+				<< log::YELLOW << " -help (will not start the launcher)\n"
+				<< log::YELLOW << " -console\n"
+				<< log::YELLOW << " -noreport\n"
+				<< log::YELLOW << " -logreport\n"
+				<< log::YELLOW << " -cachepath <path to cache>\n"
+				<< log::YELLOW << " -settingspath <path to settings>\n"
+				<< log::YELLOW << " -state <server OR client>\n"
+				<< log::YELLOW << " -server [port] (default port is " << DEFAULT_PORT << ")\n"
+				<< log::YELLOW << " -client [ip:port] (default ip:port is " << DEFAULT_IP << ":" << DEFAULT_PORT << ")\n";
 			break;
 		}
 	}
@@ -35,51 +47,56 @@ void runApp(int argc, char** argv) {
 		// Todo: Move this to a sub function.
 		for (int i = 0; i < argc; i++) {
 			if (i == 0) {
-				int len = strlen(argv[i]);
-				if (len >= 2) {
-					if (argv[i][1] == ':') {
-						continue; // exe path is ignored
-					}
-				}
+				if (originArgv == argv)
+					continue; // skip path to this executable
 			}
-			if (strcmp(argv[i], "--console") == 0) {
+			if (strcmp(argv[i], "-console") == 0) {
 				CreateConsole();
 				continue;
 			}
-			if (strcmp(argv[i], "--logreport") == 0) {
+			if (strcmp(argv[i], "-noreport") == 0) {
+				writeLogReport = false;
+				continue;
+			}
+			if (strcmp(argv[i], "-logreport") == 0) {
 				writeLogReport = true;
 				continue;
 			}
-			if (strcmp(argv[i], "--cachepath") == 0) {
+			if (strcmp(argv[i], "-cachepath") == 0) {
 				if (i + 1 < argc) {
 					if (argv[i + 1][0] == '-') {
-						log::out << log::YELLOW << "Missing path string for '" << argv[i] << "' (example: '--cachepath somewhere/launcher_cache.txt')\n";
+						CONSOLE_ON_BAD
+							log::out << log::YELLOW << "Missing path string for '" << argv[i] << "' (example: '-cachepath somewhere/launcher_cache.txt')\n";
 					} else {
 						i++;
 						info.cachePath = argv[i];
 					}
 				} else {
-					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--cachepath somewhere/launcher_cache.txt')\n";
+					CONSOLE_ON_BAD
+						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '-cachepath somewhere/launcher_cache.txt')\n";
 				}
 				continue;
 			}
-			if (strcmp(argv[i], "--settingspath") == 0) {
+			if (strcmp(argv[i], "-settingspath") == 0) {
 				if (i + 1 < argc) {
 					if (argv[i + 1][0] == '-') {
-						log::out << log::YELLOW << "Missing path string for '" << argv[i] << "' (example: '--cachepath somedir/launcher_settings.txt')\n";
+						CONSOLE_ON_BAD
+							log::out << log::YELLOW << "Missing path string for '" << argv[i] << "' (example: '-cachepath somedir/launcher_settings.txt')\n";
 					} else {
 						i++;
 						info.settingsPath = argv[i];
 					}
 				} else {
-					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--settingspath somedir/launcher_settings.txt')\n";
+					CONSOLE_ON_BAD
+						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '-settingspath somedir/launcher_settings.txt')\n";
 				}
 				continue;
 			}
-			if (strcmp(argv[i], "--state") == 0) {
+			if (strcmp(argv[i], "-state") == 0) {
 				if (i + 1 < argc) {
 					if (argv[i + 1][0] == '-') {
-						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--state server')\n";
+						CONSOLE_ON_BAD
+						log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '-state server')\n";
 					} else {
 						i++;
 						if (strcmp(argv[i], "server")) {
@@ -87,40 +104,65 @@ void runApp(int argc, char** argv) {
 						} else if (strcmp(argv[i], "client")) {
 							info.state = LauncherClientMenu;
 						} else {
+							CONSOLE_ON_BAD
 							log::out << log::YELLOW << "Unknown '" << argv[i] << "' for '" << argv[i] << "' (use server OR client)\n";
 						}
 					}
 				} else {
-					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '--state server')\n";
+					CONSOLE_ON_BAD
+					log::out << log::YELLOW << "To few arguments for '" << argv[i] << "' (example: '-state server')\n";
 				}
 				continue;
 			}
+			if (strcmp(argv[i], "-server") == 0) {
+				std::string port;
+				if (i + 1 < argc) { // port is optional
+					if (argv[i + 1][0] != '-') {
+						i++;
+						port = argv[i];
+					}
+				}
+				LauncherAppInfo appInfo{};
+				appInfo.cachePath = info.cachePath;
+				appInfo.settingsPath = info.settingsPath;
+				appInfo.state = LauncherServerMenu;
+				appInfo.autoConnect = true;
+				if (!port.empty()) {
+					appInfo.address = "127.0.0.1:" + port;
+				}
+				LauncherApp* app = ALLOC_NEW(LauncherApp)(&engone, appInfo);
+				engone.addApplication(app);
+				continue;
+			}
+			if (strcmp(argv[i], "-client") == 0) {
+				std::string adr;
+				if (i + 1 < argc) {
+					if (argv[i + 1][0] != '-') {
+						i++;
+						adr = argv[i];
+					}
+				}
+				LauncherAppInfo appInfo{};
+				appInfo.cachePath = info.cachePath;
+				appInfo.settingsPath = info.settingsPath;
+				appInfo.state = LauncherClientMenu;
+				appInfo.address = adr;
+				appInfo.autoConnect = true;
 
-			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see --help)\n";
-			//if (strcmp(argv[i], "--server") == 0 || strcmp(argv[i], "-s") == 0) {
-			//	//GameAppInfo info = { GameApp::START_SERVER, "1000" };
-
-			//	LauncherApp* app = ALLOC_NEW(LauncherApp)(&engone, "settings1.dat");
-			//	engone.addApplication(app);
-			//}
-			//if (strcmp(argv[i], "--client") == 0 || strcmp(argv[i], "-cl") == 0) {
-			//	if (argc - i > 2) {
-			//		i++;
-			//		std::string ip = argv[i];
-			//		i++;
-			//		std::string port = argv[i];
-			//		GameAppInfo info = { GameApp::START_CLIENT, port, ip };
-			//		GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
-			//		engine.addApplication(app);
-			//	} else {
-			//		log::out << log::RED << "runApp - client argument is invalid\n";
-			//	}
-			//}
+				LauncherApp* app = ALLOC_NEW(LauncherApp)(&engone, appInfo);
+				engone.addApplication(app);
+				continue;
+			}
+			CONSOLE_ON_BAD
+			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see -help)\n";
 		}
 		if (engone.getApplications().size() == 0) {
 			LauncherAppInfo info{};
 			LauncherApp* app = ALLOC_NEW(LauncherApp)(&engone, info);
 			engone.addApplication(app);
+			//app = ALLOC_NEW(LauncherApp)(&engone, info);
+			//engone.addApplication(app);
+
 			//LauncherApp* app = ALLOC_NEW(LauncherApp)(&engone, "settings1.txt");
 			//LauncherApp* app2 = ALLOC_NEW(LauncherApp)(&engone, "settings.txt");
 			//engone.addApplication(app);
@@ -131,7 +173,9 @@ void runApp(int argc, char** argv) {
 			log::out.getSelected().saveReport(nullptr);
 		}
 	}
-	//std::cin.get();
+	if (originArgv != argv) {
+		FreeArguments(argc, argv);
+	}
 }
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
 	int argc;

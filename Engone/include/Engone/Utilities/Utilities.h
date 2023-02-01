@@ -216,7 +216,8 @@ namespace engone {
 		// path can be file or directory
 		// calling this again will restart the tracking with new arguments.
 		// the argument in the callback is a relative path from root to the file that was changed.
-		void check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
+		// returns false if root path was invalid
+		bool check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
 
 		inline const std::string& getRoot() { return m_root; }
 

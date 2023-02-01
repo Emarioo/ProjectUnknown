@@ -1,11 +1,10 @@
-[23:39:03] FileMonitor::check - invalid path : game_files.txt
-[23:39:03] LauncherApp::LauncherApp - access to 'game_files.txt' was denied
-[23:39:05] Queues: 11 / 9 Track/Untracks: 10 / 9  AddMem/SubMem: 8 / 2
-[23:39:05] Memory leak? 1758 expected 0
-[23:39:05] Memory summary:
- Tracker Total: 3358
- Alloc: 24457
+[17:13:47] (Game Files) : Bad format on line: 'f'
+[17:13:53] Queues: 6 / 18 Track/Untracks: 4 / 2  AddMem/SubMem: 10 / 6
+[17:13:53] Memory leak? 5004 expected 0
+[17:13:53] Memory summary:
+ Tracker Total: 5644
+ Alloc: 48140
  Floating: 0
- TrackNode:     1600, 0, 1600
- ItemVector:    462,  0, 462
- Window:        1296, 1, 0
+ Window:        2896, 2, 0
+ TrackNode:     640,  0, 640
+ ItemVector:    2108, 0, 2108

@@ -119,7 +119,8 @@ namespace prounk {
 		auto find = m_propertyStrings.find(name);
 		if (find != m_propertyStrings.end()) {
 			// type with name already exists
-			log::out << log::YELLOW<<"ComplexDataRegistry: '" << name << "' is already registered (as '"<<find->second<<"')\n";
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_WARNING)
+				log::out << log::YELLOW<<"ComplexDataRegistry: '" << name << "' is already registered (as '"<<find->second<<"')\n";
 
 			return nullptr; // returns null because intention of registering a new property failed.
 		}
@@ -132,7 +133,8 @@ namespace prounk {
 		prop->name = name;
 		m_propertyStrings[name] = dataIndex;
 
-		log::out << log::LIME << "ComplexDataRegistry: Registered '" << name << "' as " << dataIndex << "\n";
+		REGISTER_IF_LEVEL(REGISTRY_LEVEL_ALL)
+			log::out << log::LIME << "ComplexDataRegistry: Registered '" << name << "' as " << dataIndex << "\n";
 
 		return prop;
 	}
@@ -140,7 +142,8 @@ namespace prounk {
 		using namespace engone;
 		auto find = m_propertyStrings.find(name);
 		if (find == m_propertyStrings.end()) {
-			log::out << log::YELLOW << "ComplexDataRegistry: Cannot find and unregister '"<<name<<"'.\n";
+			REGISTER_IF_LEVEL(REGISTRY_LEVEL_WARNING)
+				log::out << log::YELLOW << "ComplexDataRegistry: Cannot find and unregister '"<<name<<"'.\n";
 			return;
 		}
 		m_propertyTypes.remove(find->second - 1);

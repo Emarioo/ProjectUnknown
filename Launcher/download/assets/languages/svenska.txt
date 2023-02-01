@@ -1,3 +1,0 @@
-btn_quit=Avsluta
-btn_logout=Logga Ut
-btn_settings=Inställningar

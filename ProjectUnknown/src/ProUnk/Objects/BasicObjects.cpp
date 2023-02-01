@@ -7,6 +7,7 @@ namespace prounk {
 	const char* to_string(BasicObjectType value) {
 		switch (value) {
 		case OBJECT_TERRAIN: return "OBJECT_TERRAIN";
+		case OBJECT_TRIGGER: return "OBJECT_TRIGGER";
 		case OBJECT_ITEM: return "OBJECT_ITEM";
 		case OBJECT_WEAPON: return "OBJECT_WEAPON";
 		case OBJECT_CREATURE: return "OBJECT_CREATURE";
@@ -69,6 +70,7 @@ namespace prounk {
 			dim->getWorld()->unlockPhysics();
 
 			dim->getParent()->netAddGeneral(itemObject);
+			dim->getParent()->netMoveObject(itemObject);
 
 			dim->getWorld()->releaseAccess(itemObject->getUUID());
 		}
@@ -285,4 +287,34 @@ namespace prounk {
 
 		return out;
 	}
+	engone::EngineObject* CreateTrigger(Dimension* dimension, glm::vec3 size, engone::UUID uuid) {
+		using namespace engone;
+		EngineObject* out = dimension->getWorld()->createObject(uuid);
+		out->setObjectType(OBJECT_TRIGGER);
+
+		LOG_CREATE_OBJ()
+
+			if (uuid == 0)
+				out->setFlags(out->getFlags() | Session::OBJECT_NETMOVE);
+		//engone::AssetStorage* assets = engone::GetActiveWindow()->getStorage();
+		//out->setModel(assets->load<engone::ModelAsset>("SwordBase/SwordBase"));
+
+		out->getRigidBody()->setType(rp3d::BodyType::STATIC);
+
+		auto* shape = dimension->getWorld()->getPhysicsCommon()->createBoxShape(ToRp3dVec3(size));
+		auto* collider = out->getRigidBody()->addCollider(shape, {});
+		collider->setIsTrigger(true);
+		//ModelAsset* model = dimension->getParent()->modelRegistry.getModel(item.getModelId());
+		//out->setModel(model);
+
+		Session* session = dimension->getParent();
+
+		int id = session->objectInfoRegistry.registerTriggerInfo();
+		out->setObjectInfo(id);
+
+		//session->objectInfoRegistry.getTriggerInfo(id).item = item;
+
+		return out;
+	}
+
 }

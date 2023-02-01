@@ -238,6 +238,21 @@ namespace prounk {
 
 			if (!obj1 || !obj2) continue;
 			
+			if (pair.getEventType() != rp3d::OverlapCallback::OverlapPair::EventType::OverlapExit) {
+				if (obj1->getObjectType() != obj2->getObjectType()) {
+					if (obj1->getObjectType() & OBJECT_TRIGGER) {
+						auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj1->getObjectInfo());
+						if(!oinfo.hit(obj2->getUUID()))
+							oinfo.collisions.push_back(obj2->getUUID());
+					}
+					if (obj2->getObjectType() & OBJECT_TRIGGER) {
+						auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj2->getObjectInfo());
+						if (!oinfo.hit(obj1->getUUID()))
+							oinfo.collisions.push_back(obj1->getUUID());
+					}
+				}
+			}
+
 			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				rp3d::Vector3 cp2 = (pair.getCollider1()->getLocalToWorldTransform().getPosition() + pair.getCollider2()->getLocalToWorldTransform().getPosition()) / 2;
 				//rp3d::Vector3 cp2 = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
@@ -327,11 +342,10 @@ namespace prounk {
 		//// Set the logger 
 		//getPhysicsCommon()->setLogger(logger);
 
-		engone::InitSound();
-
-		melody.Init("assets/sounds/melody.wav");
-		melody.source.Play();
-		melody.source.Gain(0.1);
+		//engone::InitSound();
+		//melody.Init("assets/sounds/melody.wav");
+		//melody.source.Play();
+		//melody.source.Gain(0.1);
 
 		//auto pworld = firstDim->getWorld()->getPhysicsWorld();
 		//rp3d::Transform tr;
@@ -346,7 +360,7 @@ namespace prounk {
 		EngineObject* player = CreatePlayer(firstDim);
 		//playerController.setPlayerObject(player);
 		playerController.setPlayerObject(player->getUUID());
-		player->setPosition({ 0,0,0 });
+		player->setPosition({ 3*(GetRandom()-0.5),3 * (GetRandom() - 0.5),3 * (GetRandom() - 0.5)});
 		firstDim->getWorld()->releaseAccess(player->getUUID());
 
 		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
@@ -367,11 +381,11 @@ namespace prounk {
 		//firstDim->getWorld()->releaseAccess(dummy->getUUID());
 		
 		//-- Setup network stuff
-		sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
+		sessionPanel->setDefaultAddress(info.address, "Client");
 		if (info.flags & START_SERVER) {
-			sessionPanel->setDefaultPortIP(info.port, info.ip, "Server");
+			sessionPanel->setDefaultAddress(info.address, "Server");
 		} else if (info.flags & START_CLIENT) {
-			sessionPanel->setDefaultPortIP(info.port, info.ip, "Client");
+			sessionPanel->setDefaultAddress(info.address, "Client");
 		}
 
 		//if (info.flags != START_CLIENT) {
@@ -379,10 +393,12 @@ namespace prounk {
 			firstDim->getWorld()->releaseAccess(terrain->getUUID());
 		//}
 
+		auto[ip,port] = SplitAddress(info.address);
+
 		if (info.flags & START_SERVER) {
-			m_session->getServer().start(info.port);
+			m_session->getServer().start(port);
 		} else if (info.flags & START_CLIENT) {
-			m_session->getClient().start(info.ip,info.port);
+			m_session->getClient().start(ip,port);
 		}
 
 		//-- Other
@@ -463,7 +479,7 @@ namespace prounk {
 		inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
 		panelHandler.addPanel(inventoryPanel);
 		inventoryPanel->setSize(250, 230);
-		inventoryPanel->setPosition(GetWidth()-260, 10);
+		inventoryPanel->setPosition(GetWidth()-270, 10);
 
 		EngineObject* plr = playerController.requestPlayer();
 		if (plr) {
@@ -484,13 +500,13 @@ namespace prounk {
 
 		playerBarPanel = ALLOC_NEW(PlayerBarPanel)(this);
 		panelHandler.addPanel(playerBarPanel);
-		playerBarPanel->setSize(100, 70);
-		playerBarPanel->setPosition(130, 50);
+		playerBarPanel->setSize(200, 70);
+		playerBarPanel->setPosition(20, 20);
 
 		cheatPanel = ALLOC_NEW(CheatPanel)(this);
 		panelHandler.addPanel(cheatPanel);
 		cheatPanel->setSize(220, 100);
-		cheatPanel->setPosition(GetWidth()-230, 260);
+		cheatPanel->setPosition(GetWidth()-240, 260);
 
 		sessionPanel = ALLOC_NEW(SessionPanel)(this);
 		panelHandler.addPanel(sessionPanel);
@@ -516,12 +532,13 @@ namespace prounk {
 
 		panelInput(info);
 
-		melody.UpdateStream();
+		//melody.UpdateStream();
 
-		if (IsKeyPressed(GLFW_KEY_N)) {
-			rp3d::Vector3 test{0,100,0};
-			testRB->applyWorldForceAtCenterOfMass(test);
-		}
+		//if (IsKeyPressed(GLFW_KEY_N)) {
+		//	rp3d::Vector3 test{0,100,0};
+		//	if(testRB)
+		//	testRB->applyWorldForceAtCenterOfMass(test);
+		//}
 
 		//if (partRequested) {
 		//	CombatParticle* parts = combatParticles->getParticles();

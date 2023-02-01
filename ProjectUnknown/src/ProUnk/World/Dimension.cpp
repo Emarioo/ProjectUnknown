@@ -7,6 +7,8 @@ namespace prounk {
 	Dimension::Dimension(Session* session) : m_parent(session) {
 		m_world = session->getParent()->createWorld();
 		m_world->setUserData(this);
+
+		dungeon.init(this, { 20,0,0 }, {-20,0,0});
 	}
 	engone::EngineWorld* Dimension::getWorld() {
 		return m_world;
@@ -31,6 +33,7 @@ namespace prounk {
 
 			DropInventory(obj); // does this happen for dummy on client and server because that may lead to double items.
 			// maybe respawn dummy?
+			getParent()->netDeleteObject(obj);
 			DeleteObject(this, obj);
 			return;
 		}
@@ -48,13 +51,16 @@ namespace prounk {
 
 		//-- Auto heal
 		if (combatData->lastDamagedSeconds > 5) {
-			combatData->health += 20*info.timeStep;
-			if (combatData->health > combatData->getMaxHealth())
-				combatData->health = combatData->getMaxHealth();
-			combatData->lastHealth = combatData->health;
+			if (combatData->health < combatData->getMaxHealth()) {
+				combatData->health += 20 * info.timeStep;
+				if (combatData->health > combatData->getMaxHealth())
+					combatData->health = combatData->getMaxHealth();
+				combatData->lastHealth = combatData->health;
+				getParent()->netEditHealth(obj, combatData->health);
+			}
 		}
 		
-		if (combatData->health < combatData->getMaxHealth() * 0.4) {
+		if (combatData->health < combatData->getMaxHealth() * 0.35) {
 			// flee
 			combatData->target = 0;
 
@@ -80,7 +86,7 @@ namespace prounk {
 			if (plr) {
 				glm::vec3 diff = plr->getPosition() - obj->getPosition();
 				float length = glm::length(diff);
-				float speed = 7.f;
+				float speed = 2.f;
 				//if (glm::length(diff) > 10) {
 				//	speed *= 1.1;
 				//}
@@ -215,6 +221,7 @@ namespace prounk {
 					engone::EngineObject* obj = CreateDummy(this);
 					obj->setPosition(spawnLocations[i]+glm::vec3(0,5,0)*(float)j);
 					getParent()->netAddGeneral(obj);
+					getParent()->netMoveObject(obj);
 				}
 			}
 			alloc::free(locationCount,allocBytes);
@@ -222,8 +229,11 @@ namespace prounk {
 			spawnCount += 1;
 		}
 	}
-	engone::Mutex m_mutex;
-	static bool dummyEnabled=false;
+	struct Temp {
+		bool dummyEnabled = false;
+		bool spawningEnabled = false;
+	};
+	std::unordered_map<engone::Application*, Temp> enables;
 	void Dimension::update(engone::LoopInfo& info) {
 		using namespace engone;
 
@@ -233,12 +243,19 @@ namespace prounk {
 		EngineObject* obj;
 
 		if (IsKeyPressed(GLFW_KEY_I)) {
-			m_mutex.lock();
-			dummyEnabled = !dummyEnabled;
-			m_mutex.unlock();
+			Temp& temp = enables[info.app];
+			temp.dummyEnabled = !temp.dummyEnabled;
+		}
+		if (IsKeyPressed(GLFW_KEY_J)) {
+			Temp& temp = enables[info.app];
+			temp.spawningEnabled = !temp.spawningEnabled;
 		}
 
-		//SpawnLogic(info);
+		if (getParent()->getServer().isRunning()) {
+			Temp& temp = enables[info.app];
+			if(temp.spawningEnabled)
+				SpawnLogic(info);
+		}
 
 		while (obj = iterator.next()) {
 			if (obj->getPosition().y < KILL_BELOW_Y) {
@@ -262,16 +279,18 @@ namespace prounk {
 
 			if (obj->getObjectType() != OBJECT_DUMMY)
 				continue;
-			m_mutex.lock();
-			if (dummyEnabled) {
-				m_mutex.unlock();
+
+			Temp& temp = enables[info.app];
+		//}
+			if (temp.dummyEnabled) {
+				//m_mutex.unlock();
 				if(obj->getRigidBody()->getLinearDamping()!=0)
 					obj->getRigidBody()->setLinearDamping(0);
 				if (obj->getRigidBody()->getAngularDamping() != 0)
 					obj->getRigidBody()->setAngularDamping(0);
 				DummyLogic(info, obj);
 			} else {
-				m_mutex.unlock();
+				//m_mutex.unlock();
 				GetCombatData(obj)->target = 0;
 				if (obj->getRigidBody()->getLinearDamping() != 2)
 					obj->getRigidBody()->setLinearDamping(2);
@@ -291,9 +310,18 @@ namespace prounk {
 				}
 			}
 		}
+		
+		dungeon.update(info); // Note: do this before clearing collisions!
+
 		// combatdata
 		//iterator->restart();
 		while (obj = iterator.next()) {
+			if (obj->getObjectType() == OBJECT_TRIGGER) {
+				auto& oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj->getObjectInfo());
+				oinfo.collisions.clear();
+				continue;
+			}
+			
 			CombatData* combatData = GetCombatData(obj);
 			if (!combatData)
 				continue;

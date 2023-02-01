@@ -16,9 +16,10 @@ bool al_check_error() {
 		const ALchar* str = alGetString(err);
 		if (str) {
 			engone::log::out << "Al Err: " << err << " " << str << "\n";
-		} else
+			return true;
+		} else {
 			engone::log::out << "Al Err: " << err << " null string, no active context?" << "\n";
-		return true;
+		}
 	}
 	return false;
 }
@@ -43,8 +44,8 @@ namespace engone {
 		}
 	}
 	SoundBuffer::~SoundBuffer() {
-		if (isInitialized)
-			alCall(alDeleteBuffers(1, &id));
+		if (!valid()) return;
+		alCall(alDeleteBuffers(1, &id));
 	}
 	void SoundBuffer::Init(const char* path) {
 		if (engone::FindFile(path)) {
@@ -59,8 +60,8 @@ namespace engone {
 			alCall(alBufferData(id, format, bufferData, size, freq));
 
 			delete bufferData;
-			isInitialized = true;
 		} else {
+			log::out << log::RED <<"SoundBuffer : "<< path << " not found\n";
 			// TODO: Error code
 		}
 	}

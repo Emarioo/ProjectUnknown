@@ -1,2 +1,2 @@
+state=server
 address=
-state=client

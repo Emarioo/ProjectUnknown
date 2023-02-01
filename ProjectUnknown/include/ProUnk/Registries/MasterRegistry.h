@@ -11,6 +11,8 @@ namespace prounk {
 #define REGISTRY_LEVEL_ERROR 0x04
 #define REGISTRY_LEVEL 991528
 
+#define REGISTER_IF_LEVEL(LEVEL) if (HasLogLevel(REGISTRY_LEVEL, LEVEL))
+
 	typedef uint32_t RegistryId;
 	class Registry {
 	public:
