@@ -187,8 +187,9 @@ namespace engone {
 			m_consoleHandle = GetStdHandle(-11);
 			if (m_consoleHandle == NULL) return;
 		}
-		if (m_color == color) return;
-		m_color = color;
+		auto ccolor = getThreadInfo().color;
+		if (ccolor == color) return;
+		ccolor = color;
 		SetConsoleTextAttribute(m_consoleHandle, color);
 		//if(b)
 		//	m_mutex.unlock();

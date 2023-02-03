@@ -31,6 +31,9 @@
 #ifdef ENGONE_PHYSICS
 #include "Engone/Utilities/rp3d.h"
 #endif
+
+#include "Engone/Utilities/Thread.h"
+
 namespace engone {
 	// cannot be zero initialized with malloc and memset
 	class LogReport {
@@ -141,24 +144,24 @@ namespace engone {
 		Logger(const Logger&) = delete;
 		Logger& operator =(const Logger&) = delete;
 
-		void setConsoleFilter(log::Filter filter) {
-			m_mutex.lock();
-			m_consoleFilter = filter;
-			m_mutex.unlock();
-		}
-		void setReportFilter(log::Filter filter) {
-			m_mutex.lock();
-			m_reportFilter = filter;
-			m_mutex.unlock();
-		}
+		//void setConsoleFilter(log::Filter filter) {
+		//	m_mutex.lock();
+		//	getThreadInfo().consoleFilter = filter;
+		//	m_mutex.unlock();
+		//}
+		//void setReportFilter(log::Filter filter) {
+		//	m_mutex.lock();
+		//	getThreadInfo().reportFilter = filter;
+		//	m_mutex.unlock();
+		//}
 		// reference to report filter. setting it's value to log::Info will cause report to only catch info level reports.
-		log::Filter reportFilter() const {
-			return m_reportFilter;
-		}
-		// reference to filter.
-		log::Filter consoleFilter() const {
-			return m_consoleFilter;
-		}
+		//log::Filter reportFilter() {
+		//	return getThreadInfo().reportFilter;
+		//}
+		//// reference to filter.
+		//log::Filter consoleFilter() {
+		//	return getThreadInfo().consoleFilter;
+		//}
 
 		void print(char* str, int len);
 
@@ -197,9 +200,20 @@ namespace engone {
 		Logger& operator<<(const rp3d::Quaternion& value);
 #endif
 
+		struct ThreadInfo {
+			log::Color color = log::SILVER;
+			log::Filter currentFilter = log::FilterAll;
+			//log::Filter reportFilter = log::FilterAll;
+			//log::Filter consoleFilter = log::FilterAll;
+		};
+
 		//set the current filter.
 		Logger& operator<<(log::Filter value) {
-			m_currentFilter = value;
+			getThreadInfo().currentFilter |= value;
+			return *this;
+		}
+		Logger& operator>>(log::Filter value) {
+			getThreadInfo().currentFilter &= ~value;
 			return *this;
 		}
 		Logger& operator<<(log::Color value) {
@@ -225,8 +239,8 @@ namespace engone {
 			else
 				m_select = index;
 		}
-		log::Color getColor() const {
-			return m_color;
+		log::Color getColor() {
+			return getThreadInfo().color;
 		}
 		// Mutex is locked per \n instead of per << operator which looks better
 		// True by default.
@@ -235,14 +249,19 @@ namespace engone {
 			mutexPerLine = yes;
 			m_mutex.unlock();
 		}
+		ThreadInfo& getThreadInfo() {
+			return m_threadInfos[Thread::GetThisThreadId()];
+		}
 	private:
 		inline bool reportMatch() {
-			//return m_reportFilter & m_currentFilter && (m_reportFilter & log::Disable)==0;
-			return true;
+			//return getThreadInfo().reportFilter & getThreadInfo().currentFilter && (getThreadInfo().reportFilter & log::Disable)==0;
+			return (getThreadInfo().currentFilter & log::Disable)==0;
+			//return true;
 		}
 		inline bool consoleMatch() {
-			//return m_consoleFilter & m_currentFilter && (m_consoleFilter & log::Disable) == 0;
-			return true;
+			return (getThreadInfo().currentFilter & log::Disable) == 0;
+			//return getThreadInfo().consoleFilter & getThreadInfo().currentFilter && (getThreadInfo().consoleFilter & log::Disable) == 0;
+			//return true;
 		}
 
 		void setColor(log::Color color);
@@ -252,10 +271,12 @@ namespace engone {
 		std::thread::id m_threadId{}; // owner of mutex
 		bool mutexPerLine=true;
 
-		log::Color m_color = log::SILVER;
-		log::Filter m_currentFilter = log::FilterAll;
-		log::Filter m_reportFilter = log::FilterAll;
-		log::Filter m_consoleFilter = log::FilterAll;
+		std::unordered_map<ThreadId, ThreadInfo> m_threadInfos;
+
+		//log::Color m_color = log::SILVER;
+		//log::Filter m_currentFilter = log::FilterAll;
+		//log::Filter m_reportFilter = log::FilterAll;
+		//log::Filter m_consoleFilter = log::FilterAll;
 		uint32_t m_select = 0;
 		static const int MAX_REPORTS = 5; // probably never gonna need more than one.
 		LogReport m_reports[MAX_REPORTS];

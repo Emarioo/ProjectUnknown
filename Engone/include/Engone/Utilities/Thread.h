@@ -2,6 +2,7 @@
 
 namespace engone {
 
+	typedef uint32 ThreadId;
 	class Thread {
 	public:
 		Thread() = default;
@@ -14,13 +15,13 @@ namespace engone {
 
 		bool isRunning();
 
-		static uint32_t GetThisThreadId();
+		static ThreadId GetThisThreadId();
 
-		uint32_t getId();
+		ThreadId getId();
 
 	private:
 		HANDLE m_handle=NULL;
-		uint32_t m_threadId=0;
+		ThreadId m_threadId=0;
 	};
 
 	class ThreadPool {

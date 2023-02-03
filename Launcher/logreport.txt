@@ -1,10 +1,10 @@
-[17:13:47] (Game Files) : Bad format on line: 'f'
-[17:13:53] Queues: 6 / 18 Track/Untracks: 4 / 2  AddMem/SubMem: 10 / 6
-[17:13:53] Memory leak? 5004 expected 0
-[17:13:53] Memory summary:
- Tracker Total: 5644
- Alloc: 48140
+[20:27:47] (Game Files) : Bad format on line: 'f'
+[20:27:51] Queues: 3 / 9 Track/Untracks: 2 / 1  AddMem/SubMem: 5 / 2
+[20:27:51] Memory leak? 1798 expected 0
+[20:27:51] Memory summary:
+ Tracker Total: 2438
+ Alloc: 23553
  Floating: 0
- Window:        2896, 2, 0
+ ItemVector:    494,  0, 494
+ Window:        1304, 1, 0
  TrackNode:     640,  0, 640
- ItemVector:    2108, 0, 2108

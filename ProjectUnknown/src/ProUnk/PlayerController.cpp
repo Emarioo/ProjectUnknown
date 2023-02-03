@@ -171,8 +171,8 @@ namespace prounk {
 		heldObject->getRigidBody()->setTransform(swordTrans);
 		heldObject->getRigidBody()->setAngularVelocity(body->getAngularVelocity());
 		heldObject->getRigidBody()->setLinearVelocity(body->getLinearVelocity());
-		heldObject->getRigidBody()->resetForce();
-		heldObject->getRigidBody()->resetTorque();
+		heldObject->getRigidBody()->applyWorldForceAtCenterOfMass(body->getForce());
+		heldObject->getRigidBody()->applyWorldTorque(body->getTorque());
 		heldObject->getWorld()->unlockPhysics();
 
 		// cleanup
@@ -301,16 +301,26 @@ namespace prounk {
 			return;
 		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
 
+		engone::EngineObject* object = nullptr;
+		//if (item.getCount() > count) {
+		//	Item copyItem;
+		//	item.transfer(copyItem,count);
+		//	object = CreateItem(dim, copyItem);
+		//} else {
+		Item copyItem;
+		item.transfer(copyItem,count);
+		object = CreateItem(dim, copyItem);
+		
+		// held object is deleted automatically later if item is zero
 		auto heldObject = requestHeldObject();
-		auto object = CreateItem(dim,item);
-		item = Item(); // clear slot
-		if (heldObject) {
+		if (slotIndex==0&&heldObject) {
 			object->getRigidBody()->setTransform(heldObject->getRigidBody()->getTransform());
 		} else {
 			EngineObject* plr = requestPlayer();
 			object->setPosition(plr->getPosition());
 			releasePlayer(plr);
 		}
+
 		app->getActiveSession()->netAddGeneral(object);
 		app->getActiveSession()->netMoveObject(object);
 		releaseHeldObject(heldObject);

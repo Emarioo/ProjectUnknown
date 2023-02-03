@@ -41,10 +41,10 @@ namespace engone {
 	bool Thread::isRunning() {
 		return m_handle!=NULL;
 	}
-	uint32_t Thread::getId() {
+	ThreadId Thread::getId() {
 		return m_threadId;
 	}
-	uint32_t Thread::GetThisThreadId() {
+	ThreadId Thread::GetThisThreadId() {
 		return GetCurrentThreadId();
 	}
 

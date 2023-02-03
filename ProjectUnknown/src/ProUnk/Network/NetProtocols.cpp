@@ -82,8 +82,12 @@ namespace prounk {
 		msg.push(cmd);
 		pushObject(msg, object);
 
-		msg.push(object->getModel()->getLoadName());
-
+		if(object->getModel())
+			msg.push(object->getModel()->getLoadName());
+		else {
+			std::string oj;
+			msg.push(oj);
+		}
 		//-- Send message
 		networkSend(msg);
 	}

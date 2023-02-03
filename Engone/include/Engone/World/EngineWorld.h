@@ -115,7 +115,8 @@ namespace engone {
 		std::vector<ParticleGroupT*> m_particleGroups;
 
 		Mutex m_objectsMutex;
-		FrameArray<EngineObject> m_objects = { 128 }; // number stands for how many objects in one frame
+		FrameArray<EngineObject> m_objects = { 8 }; // number stands for how many objects in one frame
+		//FrameArray<EngineObject> m_objects = { 64 }; // number stands for how many objects in one frame
 		
 		//std::vector<EngineObject*> m_objects;
 

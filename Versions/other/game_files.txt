@@ -1,0 +1,4 @@
+../../ProjectUnknown/assets=assets
+../../bin/ProjectUnknown/Debugx64/ProjectUnknown.exe=ProjectUnknown.exe
+args=-console -client 83.254.249.225
+exe=ProjectUnknown.exe

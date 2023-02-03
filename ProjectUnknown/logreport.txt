@@ -1,38 +1,17 @@
-[14:27:44] Client : Connect
-[14:27:44] Server : Connect
-[14:27:44] netAddGeneral OBJECT_PLAYER
-[14:27:44] netAddGeneral OBJECT_TERRAIN
-[14:27:44] netAddGeneral OBJECT_PLAYER
-[14:27:44] netAddGeneral OBJECT_TERRAIN
-[14:27:44] Client: NET_ADD_CREATURE
-[14:27:44] Client: NET_ADD_TERRAIN
-[14:27:45] Server: NET_ADD_CREATURE
-[14:27:45] Server: NET_ADD_TERRAIN
-[14:27:58] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
-[14:27:58] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
-[14:27:58] AnimationAsset::cleanup - not implemented
-[14:27:58] AnimationAsset::cleanup - not implemented
-[14:27:58] AnimationAsset::cleanup - not implemented
-[14:27:58] GameApp : CLEANUP NOT IMPLEMENTED
-[14:27:58] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[14:27:58] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
-[14:28:00] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
-[14:28:00] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
-[14:28:00] AnimationAsset::cleanup - not implemented
-[14:28:00] AnimationAsset::cleanup - not implemented
-[14:28:00] AnimationAsset::cleanup - not implemented
-[14:28:00] GameApp : CLEANUP NOT IMPLEMENTED
-[14:28:00] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
-[14:28:00] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
-[14:28:00] Queues: 6 / 88 Track/Untracks: 4 / 2  AddMem/SubMem: 11 / 7
-[14:28:00] Server : Disconnect
-[14:28:00] Client : Disconnect
-[14:28:00] Server : Stopped
-[14:28:00] Memory leak? 6220 expected 0
-[14:28:00] Memory summary:
- Tracker Total: 6860
- Alloc: 1308956
+[17:08:01] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[17:08:01] AnimationAsset::cleanup - not implemented
+[17:08:01] AnimationAsset::cleanup - not implemented
+[17:08:01] AnimationAsset::cleanup - not implemented
+[17:08:01] GameApp : CLEANUP NOT IMPLEMENTED
+[17:08:01] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[17:08:01] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[17:08:01] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[17:08:01] Queues: 3 / 42 Track/Untracks: 2 / 1  AddMem/SubMem: 6 / 3
+[17:08:01] Memory leak? 2534 expected 0
+[17:08:01] Memory summary:
+ Tracker Total: 3174
+ Alloc: 333326
  Floating: 0
- Window:         2896, 2, 0
+ ItemVector:     1086, 0, 1086
+ Window:         1448, 1, 0
  TrackNode:      640,  0, 640
- ItemVector:     3324, 0, 3324

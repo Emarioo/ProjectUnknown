@@ -1,0 +1,9 @@
+[20:27:22] Queues: 6 / 18 Track/Untracks: 4 / 2  AddMem/SubMem: 10 / 6
+[20:27:22] Memory leak? 4716 expected 0
+[20:27:22] Memory summary:
+ Tracker Total: 5356
+ Alloc: 47526
+ Floating: 0
+ ItemVector:    2108, 0, 2108
+ Window:        2608, 2, 0
+ TrackNode:     640,  0, 640

@@ -198,7 +198,7 @@ namespace prounk {
 
 		if (spawnTime <= 0) {
 			spawnTime += spawnDelay;
-			spawnDelay = 6*spawnCount;
+			spawnDelay = 5;
 			//spawnDelay *= 0.95;
 			//if (spawnDelay < 1)
 			//	spawnDelay = 1;
@@ -209,8 +209,8 @@ namespace prounk {
 
 			int spawn = spawnCount;
 
-			if (getWorld()->getObjectCount() > 50)
-				spawn = 0;
+			//if (getWorld()->getObjectCount() > 50)
+			//	spawn = 0;
 
 			for (int i = 0; i < spawn;i++) {
 				int index = GetRandom()*spawnLocations.size();
@@ -251,11 +251,11 @@ namespace prounk {
 			temp.spawningEnabled = !temp.spawningEnabled;
 		}
 
-		if (getParent()->getServer().isRunning()) {
+		//if (getParent()->getServer().isRunning()) {
 			Temp& temp = enables[info.app];
 			if(temp.spawningEnabled)
 				SpawnLogic(info);
-		}
+		//}
 
 		while (obj = iterator.next()) {
 			if (obj->getPosition().y < KILL_BELOW_Y) {

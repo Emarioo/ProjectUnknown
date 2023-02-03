@@ -13,9 +13,12 @@ namespace engone {
 		// constructor does nothing except remember the variable
 		// valuesPerFrame is forced to be divisible by 64. (data alignment * bits as bools)
 		FrameArray(uint32 valuesPerFrame) : m_valuesPerFrame(valuesPerFrame) {
-			uint32 off = valuesPerFrame & 63;
-			if(off!=0)
-				m_valuesPerFrame += 64 - off;
+			//uint32 off = valuesPerFrame & 63;
+			//if(off!=0)
+			//	m_valuesPerFrame += 64 - off;
+			uint32 off = valuesPerFrame & 7;
+			if (off != 0)
+				m_valuesPerFrame += 8 - off;
 		}
 		~FrameArray() {
 			cleanup();
@@ -42,32 +45,47 @@ namespace engone {
 		uint32 add(Value value) {
 			if (m_valuesPerFrame == 0) return -1;
 
+			//if(m_valuesPerFrame !=8)
+			//	log::out << log::Disable;
+
+			//log::out << "FA : ADD "<<m_valuesPerFrame<<"\n";
 			// Find available frame
 			int frameIndex = -1;
 			for (int i = 0; i < m_frames.max; i++) {
 				Frame& frame = m_frames.data[i];
+				//log::out << "FA : " << frame.count << " != " << m_valuesPerFrame<< "\n";
 				if (frame.count != m_valuesPerFrame) {
 					frameIndex = i;
+					//log::out << "FA : found frame "<<i<<" with "<< frame.count << " objects\n";
 					break;
 				}
 			}
 			// Create new frame if non found
 			if (frameIndex==-1) {
 				int initialMax = m_frames.max;
-				bool yes = m_frames.resize(m_frames.max*1.25+1);
-				if (!yes) return -1;
+				bool yes = m_frames.resize(m_frames.max*1.5+1);
+				if (!yes) {
+					//log::out >> log::Disable;
+					return -1;
+				}
 				memset(m_frames.data + initialMax, 0, (m_frames.max - initialMax) * sizeof(Frame));
 				frameIndex = initialMax;
+				//log::out << "FA : Create frame " << frameIndex << "\n";
 			}
 			
 			// Insert value into frame
 			Frame& frame = m_frames.data[frameIndex];
 			if (frame.memory.max==0) {
-				bool yes = frame.memory.resize(m_valuesPerFrame/8+ m_valuesPerFrame * sizeof(Value));
-				if (!yes) return -1;
+				bool yes = frame.memory.resize(m_valuesPerFrame+ m_valuesPerFrame * sizeof(Value));
+				//bool yes = frame.memory.resize(m_valuesPerFrame/8+ m_valuesPerFrame * sizeof(Value));
+				if (!yes) { 
+					//log::out >> log::Disable; 
+					return -1; 
+				}
 
-				//memset(frame.memory.data,0,frame.memory.max);
-				memset(frame.memory.data,0,m_valuesPerFrame/8);
+				//memset(frame.memory.data,0,m_valuesPerFrame/8);
+				memset(frame.memory.data,0,m_valuesPerFrame);
+				//log::out << "FA : Reserve values\n";
 			}
 			
 			// Find empty slot
@@ -76,20 +94,26 @@ namespace engone {
 				bool yes = frame.getBool(i);
 				if (!yes) {
 					valueIndex = i;
+					//log::out << "FA : found spot " << i << "\n";
 					break;
+				} else {
+					//log::out << "FA : checked spot " << i <<"\n";
 				}
 			}
 
 			if (valueIndex == -1) {
 				log::out << log::RED << "FrameArray : Impossible error adding value in frame " << frameIndex << "\n";
+				//log::out >> log::Disable;
 				return -1;
 			}
 			frame.count++;
+			//log::out << "Frame : New object count " << frame.count << "\n";
 			m_valueCount++;
 			frame.setBool(valueIndex, true);
 			Value* ptr = frame.getValue(valueIndex, m_valuesPerFrame);
 			new(ptr)Value(value);
-			return valueIndex;
+			//log::out >> log::Disable;
+			return frameIndex*m_valuesPerFrame+valueIndex;
 		}
 		
 		Value* get(uint32 index) {
@@ -186,23 +210,26 @@ namespace engone {
 			Memory<char> memory{};
 			int count = 0;
 			Value* getValue(uint32 index, uint32 vpf) {
-				return (Value*)(memory.data+ vpf/8+index*sizeof(Value));
+				//return (Value*)(memory.data+ vpf/8+index*sizeof(Value));
+				return (Value*)(memory.data+ vpf+index*sizeof(Value));
 			}
 			bool getBool(uint32 index) {
-				uint32 i = index / 8;
-				uint32 j = index % 8;
-				char byte = memory.data[i];
-				char bit = byte&(1<<j);
-				return bit;
+				//uint32 i = index / 8;
+				//uint32 j = index % 8;
+				//char byte = memory.data[i];
+				//char bit = byte&(1<<j);
+
+				return memory.data[index];
 			}
 			void setBool(uint32 index, bool yes) {
-				uint32 i = index / 8;
-				uint32 j = index % 8;
-				if (yes) {
-					memory.data[i] = memory.data[i] | (1 << j);
-				} else {
-					memory.data[i] = memory.data[i] & (~(1 << j));
-				}
+				//uint32 i = index / 8;
+				//uint32 j = index % 8;
+				//if (yes) {
+				//	memory.data[i] = memory.data[i] | (1 << j);
+				//} else {
+				//	memory.data[i] = memory.data[i] & (~(1 << j));
+				//}
+				memory.data[index] = yes;
 			}
 		};
 

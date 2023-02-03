@@ -55,12 +55,12 @@ void runApp(int argc, char** argv) {
 	// Don't replace args from console unless there are none
 	if (argc == 1) {
 		
-		//ConvertArguments("-server", argc, argv);
-		//ConvertArguments("-server 1025", argc, argv);
-		//ConvertArguments("-server -client 127.0.0.1 1000 -client 127.0.0.1 1000", argc, argv);
-		//ConvertArguments("-client 127.0.0.1 1000 -client 127.0.0.1 1000", argc, argv);
+		//ConvertArguments("--server", argc, argv);
+		//ConvertArguments("--server 1025", argc, argv);
+		//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
+		//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 		// 
-		//ConvertArguments("-server -client", argc, argv);
+		ConvertArguments("--server --client", argc, argv);
 	}
 	
 	bool writeLogReport = true;
@@ -68,17 +68,17 @@ void runApp(int argc, char** argv) {
 	
 	// help is prioritized, any other commands will be skipped
 	for (int i = 0; i < argc; i++) {
-		if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "-?") == 0) {
+		if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
 			CreateConsole(); /// so that you can see the commands in a console
 			preventStart = true;
 			log::out
 				<< log::YELLOW << "Commands:\n"
-				<< log::YELLOW << " -help (will not start game)\n"
-				<< log::YELLOW << " -console\n"
-				<< log::YELLOW << " -noreport\n"
-				<< log::YELLOW << " -logreport\n"
-				<< log::YELLOW << " -server [port] (default port is " << Session::DEFAULT_PORT << ")\n"
-				<< log::YELLOW << " -client [ip:port] (default ip:port is " << Session::DEFAULT_IP<<":"<< Session::DEFAULT_PORT << ")\n";
+				<< log::YELLOW << " --help (will not start game)\n"
+				<< log::YELLOW << " --console\n"
+				<< log::YELLOW << " --noreport\n"
+				<< log::YELLOW << " --logreport\n"
+				<< log::YELLOW << " --server [port] (default port is " << Session::DEFAULT_PORT << ")\n"
+				<< log::YELLOW << " --client [ip:port] (default ip:port is " << Session::DEFAULT_IP<<":"<< Session::DEFAULT_PORT << ")\n";
 			break;
 		}
 	}
@@ -92,7 +92,7 @@ void runApp(int argc, char** argv) {
 				if (originArgv == argv)
 					continue; // skip path to this executable
 			}
-			if (strcmp(argv[i], "-console") == 0) {
+			if (strcmp(argv[i], "--console") == 0) {
 				CreateConsole();
 				continue;
 			}
@@ -100,11 +100,11 @@ void runApp(int argc, char** argv) {
 				writeLogReport = false;
 				continue;
 			}
-			if (strcmp(argv[i], "-logreport") == 0) {
+			if (strcmp(argv[i], "--logreport") == 0) {
 				writeLogReport = true;
 				continue;
 			}
-			if (strcmp(argv[i], "-server") == 0) {
+			if (strcmp(argv[i], "--server") == 0) {
 				std::string port;
 				if (i + 1 < argc) { // port is optional
 					if (argv[i + 1][0] != '-') {
@@ -121,7 +121,7 @@ void runApp(int argc, char** argv) {
 				engine.addApplication(app);
 				continue;
 			}
-			if (strcmp(argv[i], "-client") == 0) {
+			if (strcmp(argv[i], "--client") == 0) {
 				std::string adr;
 				if (i + 1 < argc) {
 					if (argv[i + 1][0] != '-') {
@@ -136,7 +136,7 @@ void runApp(int argc, char** argv) {
 				continue;
 			}
 			CreateConsole(); // user won't see the text without console
-			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see -help)\n";
+			log::out << log::YELLOW << "Argument '" << argv[i] << "' is unknown (see --help)\n";
 		}
 		if (engine.getApplications().size() == 0) {
 			GameAppInfo info = { 0, "" };

@@ -1,4 +1,4 @@
 assets=assets
 ProjectUnknown.exe=ProjectUnknown.exe
 exe=ProjectUnknown.exe
-args=--console
+args=--console -client 83.254.249.225
