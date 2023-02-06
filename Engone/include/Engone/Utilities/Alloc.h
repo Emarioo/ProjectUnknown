@@ -18,6 +18,7 @@ namespace engone {
 		void free(void* ptr, uint64_t size);
 		uint32_t allocatedBytes();
 	}
+	// Does not have a destructor. You need to free the memory with resize(0)
 	template<class T>
 	struct Memory {
 		uint32_t max = 0;

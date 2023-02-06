@@ -1,7 +1,7 @@
 #include "Engone/Utilities/ImageUtility.h"
 
 #include "Engone/Utilities/Alloc.h"
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 #include "Engone/vendor/stb_image/stb_image.h"
 
 namespace engone {

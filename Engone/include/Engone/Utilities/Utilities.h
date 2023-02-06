@@ -22,6 +22,9 @@ namespace engone {
 	float bezier(float x, float xStart, float xEnd);
 	//std::string Crypt(const std::string& word,const std::string& key, bool encrypt);
 	
+	float Min(float a, float b);
+	float Max(float a, float b);
+
 	// differnce between two angles, if difference is large clockwise then difference will be negative.
 	float AngleDifference(float a, float b);
 	//void Insert4(float* ar, int ind, float f0, float f1, float f2, float f3);

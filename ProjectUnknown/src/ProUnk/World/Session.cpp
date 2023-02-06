@@ -151,6 +151,7 @@ namespace prounk {
 				EngineObjectIterator iter = dim->getWorld()->createIterator();
 				EngineObject* obj;
 				while (obj = iter.next()) {
+
 					netAddGeneral(obj);
 					netEditTrigger(obj, obj->isOnlyTrigger());
 					netEditBody(obj, (uint64_t)obj->getRigidBody()->getType());
@@ -291,6 +292,8 @@ namespace prounk {
 			}
 		} else if (cmd == NET_ADD_TERRAIN) {
 			recAddTerrain(msg, clientUUID);
+		} else if (cmd == NET_ADD_TRIGGER) {
+			recAddTrigger(msg, clientUUID);
 		} else if (cmd == NET_ADD_ITEM) {
 			recAddItem(msg, clientUUID);
 		} else if (cmd == NET_ADD_WEAPON) {

@@ -15,6 +15,8 @@ namespace prounk {
 		trigger0 = CreateTrigger(dimension, {1,1,1});
 		trigger1 = CreateTrigger(dimension, {1,1,1});
 
+		auto we = trigger0->getRigidBody()->getCollider(0);
+
 		float diff = 2;
 
 		trigger0->setPosition(pos0 + glm::vec3(0,0,diff));
@@ -61,7 +63,7 @@ namespace prounk {
 				auto obj = m_dimension->getWorld()->requestAccess(u);
 				if (obj) {
 					//if (obj->getObjectType() == OBJECT_PLAYER) {
-					if (obj->getObjectType() & OBJECT_CREATURE) {
+					if (IsObject(obj, OBJECT_CREATURE)) {
 						obj->setPosition(obj->getPosition()+e0to1 + up);
 						//objvels.push_back({ obj,obj->getLinearVelocity() });
 						ResetDownVelocity(obj);
@@ -78,7 +80,7 @@ namespace prounk {
 			for (auto& u : oinfo.collisions) {
 				auto obj = m_dimension->getWorld()->requestAccess(u);
 				if (obj) {
-					if (obj->getObjectType() & OBJECT_CREATURE) {
+					if (IsObject(obj,OBJECT_CREATURE)) {
 					//if (obj->getObjectType() == OBJECT_PLAYER) {
 						obj->setPosition(obj->getPosition() - e0to1 + up);
 						//objvels.push_back({ obj,obj->getLinearVelocity() });

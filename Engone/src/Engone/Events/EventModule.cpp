@@ -25,9 +25,12 @@ namespace engone {
 		if (win) return win->pollPathDrop();
 		else return "";
 	}
-	uint32_t PollChar() {
+	uint32 PollChar() {
 		Window* win = GetActiveWindow();
-		if (win) return win->pollChar();
+		uint32 code = win->pollChar();
+		//if(code)
+			//printf("char: %u\n", code);
+		if (win) return code;
 		else return 0;
 	}
 	float GetMouseX() {

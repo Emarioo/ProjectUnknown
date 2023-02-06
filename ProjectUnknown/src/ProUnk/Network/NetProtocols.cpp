@@ -9,6 +9,7 @@ namespace prounk {
 	const char* to_string(NetMessageType value) {
 		switch (value) {
 		case NET_ADD_TERRAIN: return "NET_ADD_TERRAIN";
+		case NET_ADD_TRIGGER: return "NET_ADD_TRIGGER";
 		case NET_ADD_ITEM: return "NET_ADD_ITEM";
 		case NET_ADD_WEAPON: return "NET_ADD_WEAPON";
 		case NET_ADD_CREATURE: return "NET_ADD_CREATURE";
@@ -55,16 +56,20 @@ namespace prounk {
 	}
 	void NetProtocols::netAddGeneral(engone::EngineObject* object) {
 		using namespace engone;
-		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
-		if (object->getObjectType() & OBJECT_TERRAIN) {
-			netAddTerrain(object);
-		}else if (object->getObjectType() & OBJECT_ITEM) {
-			netAddItem(object);
-		} else if (object->getObjectType() & OBJECT_WEAPON) {
-			netAddWeapon(object);
-		}else if (object->getObjectType() & OBJECT_CREATURE) {
-			netAddCreature(object);
+		if (!networkRunning()) {
+			return;
 		}
+		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType();
+		//if (object->getModel())
+		//	object->getModel()->getLoadName();
+		log::out << "\n";
+
+		if (IsObject(object,OBJECT_TERRAIN)) netAddTerrain(object);
+		else if (IsObject(object,OBJECT_TRIGGER)) netAddTrigger(object);
+		else if (IsObject(object, OBJECT_ITEM)) netAddItem(object);
+		else if (IsObject(object, OBJECT_WEAPON))netAddWeapon(object);
+		else if (IsObject(object, OBJECT_CREATURE)) netAddCreature(object);
+		
 	}
 	void NetProtocols::netAddTerrain(engone::EngineObject* object) {
 		using namespace engone;
@@ -74,7 +79,7 @@ namespace prounk {
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
-		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "" "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -91,6 +96,39 @@ namespace prounk {
 		//-- Send message
 		networkSend(msg);
 	}
+	void NetProtocols::netAddTrigger(engone::EngineObject* object) {
+		using namespace engone;
+		if (!networkRunning()) {
+			//log::out << log::RED << "World::addObject - neither server or client is running\n";
+			return;
+		}
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "" "\n";
+
+		//-- Prepare message
+		MessageBuffer msg;
+		NetMessageType cmd = NET_ADD_TRIGGER;
+		msg.push(cmd);
+		pushObject(msg, object);
+
+
+		Session* session = getSession();
+		//auto& info = session->objectInfoRegistry.getItemInfo(object->getObjectInfo());
+		glm::vec3 size= { 5,5,5 };
+		if (object->getRigidBody()->getNbColliders() != 0) {
+			size = ToGlmVec3(((rp3d::BoxShape*)object->getRigidBody()->getCollider(0)->getCollisionShape())->getHalfExtents());
+		} else {
+			printf("trigger has no collider\n");
+		}
+		msg.push(size);
+		//if (object->getModel())
+		//	msg.push(object->getModel()->getLoadName());
+		//else {
+		//std::string oj;
+		//msg.push(oj);
+		//}
+		//-- Send message
+		networkSend(msg);
+	}
 	void NetProtocols::netAddItem(engone::EngineObject* object) {
 		using namespace engone;
 		if (!networkRunning()) {
@@ -99,7 +137,7 @@ namespace prounk {
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
-		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -141,7 +179,7 @@ namespace prounk {
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
-		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -168,7 +206,7 @@ namespace prounk {
 		}
 		//log::out << m_server.isRunning() << " " << object->modelAsset->getLoadName() << " Add object\n";
 
-		log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
+		//log::out << "netAddGeneral " << (BasicObjectType)object->getObjectType() << "\n";
 
 		//-- Prepare message
 		MessageBuffer msg;
@@ -369,6 +407,42 @@ namespace prounk {
 		}
 		EngineObject* newObject = CreateTerrain(obj.dim, modelAsset, obj.uuid);
 		if(!newObject){
+			log::out << log::RED << "NetProtocols : Failed creating " << obj.uuid << "\n";
+			return;
+		}
+		if (clientUUID != 0) {
+			auto find = session->getClientData().find(clientUUID);
+			if (find == session->getClientData().end()) {
+				log::out << log::RED << "NetProtocols : Could not find client data for " << clientUUID << "\n";
+			} else {
+				find->second.ownedObjects.push_back(newObject);
+			}
+		}
+		obj.dim->getWorld()->releaseAccess(obj.uuid);
+	}
+	void NetProtocols::recAddTrigger(engone::MessageBuffer* msg, engone::UUID clientUUID) {
+		using namespace engone;
+		Session* session = getSession();
+
+		//-- Extract data
+		UUID_DIM obj;
+		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
+
+		glm::vec3 size;
+		msg->pull(&size);
+
+		//-- don't create object if uuid exists
+		if (!obj.dim)
+			return;
+
+		EngineObject* object = obj.dim->getWorld()->requestAccess(obj.uuid);
+		if (object) {
+			obj.dim->getWorld()->releaseAccess(obj.uuid);
+			log::out << log::RED << "NetProtocols : Cannot add " << obj.uuid << " because it exists\n";
+			return;
+		}
+		EngineObject* newObject = CreateTrigger(obj.dim,size, obj.uuid);
+		if (!newObject) {
 			log::out << log::RED << "NetProtocols : Failed creating " << obj.uuid << "\n";
 			return;
 		}

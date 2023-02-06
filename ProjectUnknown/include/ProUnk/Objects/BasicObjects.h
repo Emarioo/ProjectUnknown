@@ -6,20 +6,20 @@
 #include "ProUnk/Combat/CombatData.h"
 
 namespace prounk {
-	enum BasicObjectType : int {
-		OBJECT_TERRAIN=0x1000, // model
-		
-		OBJECT_TRIGGER=0x1100,
-
-		OBJECT_ITEM=0x2000, // item
-		
-		OBJECT_WEAPON=0x4000, // model, combat data
-		
-		OBJECT_CREATURE=0x8000,// inv, combat data, model
+	enum BasicObjectType : uint32 {
+		OBJECT_CREATURE=0x0100,// inv, combat data, model
 		OBJECT_DUMMY,
 		OBJECT_PLAYER,
 
+		OBJECT_TERRAIN=0x0200, // model
+		
+		OBJECT_TRIGGER=0x0400,
+
+		OBJECT_ITEM=0x0800, // item
+		
+		OBJECT_WEAPON=0x1000 // model, combat data
 	};
+	bool IsObject(engone::EngineObject* obj, BasicObjectType type);
 	const char* to_string(BasicObjectType value);
 	engone::Logger& operator<<(engone::Logger& log, BasicObjectType value);
 

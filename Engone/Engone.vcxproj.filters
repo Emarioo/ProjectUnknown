@@ -99,9 +99,6 @@
     <ClInclude Include="include\Engone\ParticleModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\LoggingModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -228,6 +225,21 @@
     <ClInclude Include="include\Engone\Profiling\Profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\LogModule\Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\LogModule\LogTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\FileModule\FileReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\PlatformModule\PlatformModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\LogModule\LoggingModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
@@ -311,9 +323,6 @@
     <ClCompile Include="src\Engone\Assets\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engone\Utilites\FileUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -357,6 +366,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Profiling\Profiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Logging\Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\PlatformModule\Win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\FileModule\FileReader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\PlatformModule\Linux.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

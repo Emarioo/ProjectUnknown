@@ -62,6 +62,8 @@ namespace prounk {
 		float zoomSpeed = 0;
 
 		glm::vec3 camOffset = {0,2.4f,0}; // offset from player position
+		float offsetTransitionTime = 0;
+		float offsetTransitionTimeMax = 0.1;
 
 		// object held in hand
 		//engone::EngineObject* heldObject = nullptr;

@@ -1,6 +1,6 @@
 #ifdef ENGONE_LOGGER  // ENGONE_LOGGER
 
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/LogModule/LoggingModule.h"
 
 #ifdef ENGONE_TRACKER
 // tracker is required when doing implementation

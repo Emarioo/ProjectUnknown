@@ -4,7 +4,7 @@
 
 #include "Engone/Utilities/rp3d.h"
 
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 
 #include "ProUnk/Tests/AllTests.h"
 
@@ -146,7 +146,7 @@ void runApp(int argc, char** argv) {
 		engine.start();
 		if (writeLogReport) {
 			// any log message in deconstructors will not be saved. (deconstructors of global variables that is)
-			log::out.getSelected().saveReport(nullptr);
+			//log::out.getSelected().saveReport(nullptr);
 		}
 	}
 	if (originArgv != argv) {

@@ -25,7 +25,7 @@ namespace prounk {
 
 		int atkId = atkObj->getObjectInfo();
 		int defId = defObj->getObjectInfo();
-		if (!atkId || !defId) {
+		if (!atkId || !defId){
 			log::out << log::RED << "GameApp::dealCombat - one of the object's id are 0\n";
 			return;
 		}
@@ -42,7 +42,7 @@ namespace prounk {
 
 		if (!atkData->attacking) return;
 
-		if (atkObj->getObjectType() == OBJECT_DUMMY && defObj->getObjectType() == OBJECT_DUMMY)
+		if (IsObject(atkObj, OBJECT_DUMMY) && IsObject(defObj, OBJECT_DUMMY))
 			return;
 
 		if (!(atkObj->getFlags() & Session::OBJECT_NETMOVE)) // ensure collision is done once, one of the clients or server not all of them.
@@ -163,12 +163,12 @@ namespace prounk {
 			if (!obj1 || !obj2) continue;
 			
 			//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStart) {
-			if (obj1->getObjectType() & OBJECT_CREATURE) {
+			if (IsObject(obj1,OBJECT_CREATURE)) {
 				auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj1->getObjectInfo());
 				oinfo.onGround=true;
 				//log::out << "start1 " << oinfo.onGround << "\n";
 			}
-			if (obj2->getObjectType() & OBJECT_CREATURE) {
+			if (IsObject(obj2,OBJECT_CREATURE)) {
 				auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj2->getObjectInfo());
 				oinfo.onGround=true;
 				//log::out << "start2 " << oinfo.onGround << "\n";
@@ -198,7 +198,7 @@ namespace prounk {
 			//}
 			if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit)
 				continue;
-
+		
 			// Checking for combat data instead of creature because a barrel could be broken but isn't a creature.
 			if (HasCombatData(obj1->getObjectType()) && HasCombatData(obj2->getObjectType())) {
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
@@ -240,12 +240,12 @@ namespace prounk {
 			
 			if (pair.getEventType() != rp3d::OverlapCallback::OverlapPair::EventType::OverlapExit) {
 				if (obj1->getObjectType() != obj2->getObjectType()) {
-					if (obj1->getObjectType() & OBJECT_TRIGGER) {
+					if (IsObject(obj1, OBJECT_TRIGGER)) {
 						auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj1->getObjectInfo());
 						if(!oinfo.hit(obj2->getUUID()))
 							oinfo.collisions.push_back(obj2->getUUID());
 					}
-					if (obj2->getObjectType() & OBJECT_TRIGGER) {
+					if (IsObject(obj2, OBJECT_TRIGGER)) {
 						auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj2->getObjectInfo());
 						if (!oinfo.hit(obj1->getUUID()))
 							oinfo.collisions.push_back(obj1->getUUID());

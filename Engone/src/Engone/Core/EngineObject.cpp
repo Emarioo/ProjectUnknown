@@ -128,16 +128,16 @@ namespace engone {
 		m_animator->asset = m_modelAsset;
 		return m_animator;
 	}
-	void EngineObject::setObjectType(int type) {
+	void EngineObject::setObjectType(uint32 type) {
 		m_objectType = type;
 	}
-	int EngineObject::getObjectType() {
+	uint32 EngineObject::getObjectType() {
 		return m_objectType;
 	}
-	void EngineObject::setObjectInfo(int info) {
+	void EngineObject::setObjectInfo(uint32 info) {
 		m_objectInfo = info;
 	}
-	int EngineObject::getObjectInfo() {
+	uint32 EngineObject::getObjectInfo() {
 		return m_objectInfo;
 	}
 	void EngineObject::setFlags(int flags) {

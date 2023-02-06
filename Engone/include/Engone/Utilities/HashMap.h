@@ -88,6 +88,8 @@ namespace engone {
 			Key key;
 			Value value;
 		};
+		
+		
 		Memory<Chain> keymap{};
 		Memory<Chain> chainData{};
 		Stack<int> emptySpots;

@@ -56,10 +56,10 @@ namespace engone {
 
 		UUID getUUID() const;
 
-		void setObjectType(int type);
-		int getObjectType();
-		void setObjectInfo(int info);
-		int getObjectInfo();
+		void setObjectType(uint32 type);
+		uint32 getObjectType();
+		void setObjectInfo(uint32 info);
+		uint32 getObjectInfo();
 
 		void setFlags(int flags);
 		int getFlags();
@@ -67,14 +67,14 @@ namespace engone {
 		EngineWorld* getWorld();
 
 	private:
-		int m_objectType = 0;
+		uint32 m_objectType = 0;
 		UUID m_uuid=0;
 		ModelAsset* m_modelAsset = nullptr;
 #ifdef ENGONE_PHYSICS
 		rp3d::RigidBody* m_rigidBody = nullptr;
 		rp3d::Transform prevTransform; // used for interpolation
 #endif
-		int m_objectInfo = 0;
+		uint32 m_objectInfo = 0;
 		Animator* m_animator = nullptr;
 		int m_flags = 0;
 

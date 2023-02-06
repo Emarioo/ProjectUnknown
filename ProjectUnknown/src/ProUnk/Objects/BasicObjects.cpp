@@ -16,6 +16,13 @@ namespace prounk {
 		}
 		return "Unknown";
 	}
+	bool IsObject(engone::EngineObject* obj, BasicObjectType type) {
+		if (type & 0xFF) {
+			return obj->getObjectType() == type;
+		} else {
+			return (obj->getObjectType()&(~(uint32)0xFF)) == type;
+		}
+	}
 	engone::Logger& operator<<(engone::Logger& log, BasicObjectType value) {
 		return log << to_string(value);
 	}

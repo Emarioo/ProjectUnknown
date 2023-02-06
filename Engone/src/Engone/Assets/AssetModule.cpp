@@ -155,9 +155,11 @@ namespace engone {
 		// reload asset if already loaded
 		m_assetMutex.lock();
 		std::string _path = modifyPath(type,path);
+		
+		//log::out << "load "<<path << "\n";
 
 		Asset* asset = nullptr;
-
+		
 		//-- Find asset, (simular to AssetStorage::get)
 		auto& list = m_assets[type];
 		auto find = list.find(path);

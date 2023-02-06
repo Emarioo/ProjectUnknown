@@ -61,10 +61,15 @@
     <ClInclude Include="include\Engone\Error.h" />
     <ClInclude Include="include\Engone\EngineObject.h" />
     <ClInclude Include="include\Engone\Core\ExecutionControl.h" />
+    <ClInclude Include="include\Engone\FileModule\FileReader.h" />
     <ClInclude Include="include\Engone\Logger.h" />
+    <ClInclude Include="include\Engone\LogModule\Logger.h" />
+    <ClInclude Include="include\Engone\LogModule\LoggingModule.h" />
+    <ClInclude Include="include\Engone\LogModule\LogTypes.h" />
     <ClInclude Include="include\Engone\ModuleDefs.h" />
     <ClInclude Include="include\Engone\Networking\NetworkModule.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\PlatformModule\PlatformModule.h" />
     <ClInclude Include="include\Engone\Profiling\Profiler.h" />
     <ClInclude Include="include\Engone\Profiling\ScopeTimer.h" />
     <ClInclude Include="include\Engone\Rendering\CommonRenderer.h" />
@@ -79,7 +84,6 @@
     <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
     <ClInclude Include="include\Engone\Utilities\HashMap.h" />
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h" />
-    <ClInclude Include="include\Engone\Utilities\LoggingModule.h" />
     <ClInclude Include="include\Engone\Utilities\LogLevels.h" />
     <ClInclude Include="include\Engone\Utilities\RandomUtility.h" />
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
@@ -124,6 +128,10 @@
     <ClCompile Include="include\Engone\LoopInfo.h" />
     <ClCompile Include="src\Engone\Core\EngineWorld.cpp" />
     <ClCompile Include="src\Engone\Core\ExecutionControl.cpp" />
+    <ClCompile Include="src\Engone\FileModule\FileReader.cpp" />
+    <ClCompile Include="src\Engone\Logging\Logger.cpp" />
+    <ClCompile Include="src\Engone\PlatformModule\Linux.cpp" />
+    <ClCompile Include="src\Engone\PlatformModule\Win32.cpp" />
     <ClCompile Include="src\Engone\Profiling\Profiler.cpp" />
     <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp" />
     <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp" />
@@ -146,7 +154,6 @@
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
     <ClCompile Include="src\Engone\Utilites\FileUtility.cpp" />
     <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp" />
-    <ClCompile Include="src\Engone\Utilites\LoggingModule.cpp" />
     <ClCompile Include="src\Engone\Utilites\rp3d.cpp" />
     <ClCompile Include="src\Engone\Utilites\Thread.cpp" />
     <ClCompile Include="src\Engone\Utilites\Tracker.cpp" />
@@ -224,7 +231,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <!-- x32 -->
- <!--  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
+  <!--  <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32</PreprocessorDefinitions>
     </ClCompile>
@@ -280,17 +287,15 @@
       <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Deb'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Debug</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="$(Configuration.StartsWith('Rel'))">%(AdditionalLibraryDirectories);$(SolutionDir)..\ReactPhysics\build\Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);reactphysics3d.lib</AdditionalDependencies>
-      
       <!-- Libs -->
       <!-- <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(SolutionDir)libs\reactphysics3d\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='DebPhys|x64'">%(AdditionalDependencies);reactphysics3d_debug64.lib</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='RelPhys|x64'">%(AdditionalDependencies);reactphysics3d_release64.lib</AdditionalDependencies> -->
     </Lib>
   </ItemDefinitionGroup>
-  
   <!-- with sound -->
   <ItemDefinitionGroup>
-  <!-- <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))"> -->
+    <!-- <ItemDefinitionGroup Condition="$(Configuration.Contains('Sound'))"> -->
     <ClCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);ENGONE_SOUND;AL_LIBTYPE_STATIC</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)\libs\AL\include</AdditionalIncludeDirectories>
@@ -301,7 +306,6 @@
       <AdditionalDependencies>%(AdditionalDependencies);kernel32.lib;winspool.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

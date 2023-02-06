@@ -552,7 +552,7 @@ namespace engone {
 			m_writeMutex.lock();
 			//ENGONE_DEBUG(log::out << m_uuid << " write thread start\n";)
 			while (m_outMessages.size() != 0) {
-				auto msg = m_outMessages.front();
+				auto& msg = m_outMessages.front();
 				uint32_t length = msg->size() + sizeof(uint32_t);
 				//log::out << "SENDING "<<m_server << " "<<m_client <<" "<< length << "\n";
 				//ENGONE_DEBUG(log::out << "send " <<length << "\n";)

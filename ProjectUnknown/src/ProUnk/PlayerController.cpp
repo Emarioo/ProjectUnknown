@@ -75,25 +75,30 @@ namespace prounk {
 						heldObjectId = 0;
 						heldObject = nullptr;
 					} else {
-						// reuse held object
-						ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
-						heldObject->setModel(model);
-						heldObject->setOnlyTrigger(true);
-						app->getActiveSession()->netEditTrigger(heldObject, true);
-						app->getActiveSession()->netEditModel(heldObject, model->getLoadName());
+						if (!IsDead(plr)) {
+							// reuse held object
+							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+							heldObject->setModel(model);
+							heldObject->setOnlyTrigger(true);
+							app->getActiveSession()->netEditTrigger(heldObject, true);
+							app->getActiveSession()->netEditModel(heldObject, model->getLoadName());
+						}
 					}
 				} else {
 					if (item.getType() != 0) {
-						// create new object
-						ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
-						heldObject = CreateWeapon((Dimension*)plr->getWorld()->getUserData(), model->getLoadName());
-						heldObjectId = heldObject->getUUID();
-						heldObject->setOnlyTrigger(true);
-						GetCombatData(heldObject)->owner = plr;
 
-						app->getActiveSession()->netAddGeneral(heldObject);
-						app->getActiveSession()->netEditTrigger(heldObject, true);
-						app->getActiveSession()->netMoveObject(heldObject);
+						if (!IsDead(plr)) {
+							// create new object
+							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+							heldObject = CreateWeapon((Dimension*)plr->getWorld()->getUserData(), model->getLoadName());
+							heldObjectId = heldObject->getUUID();
+							heldObject->setOnlyTrigger(true);
+							GetCombatData(heldObject)->owner = plr;
+
+							app->getActiveSession()->netAddGeneral(heldObject);
+							app->getActiveSession()->netEditTrigger(heldObject, true);
+							app->getActiveSession()->netMoveObject(heldObject);
+						}
 					}
 					// damage in combat data is set when doing a skill
 				}
@@ -444,34 +449,6 @@ namespace prounk {
 				}
 			}
 		}
-		//if (IsKeyDown(GLFW_KEY_F)) {
-		//	if (!weaponCombat->attacking) {
-		//		// Set damage of weapon
-		//		weaponCombat->damageType = CombatData::SINGLE_DAMAGE;
-		//		Inventory* inv = getInventory();
-		//		Item& firstItem = inv->getItem(0);
-		//		ComplexData* complexData = firstItem.getComplexData();
-		//		//ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
-		//		if (complexData) {
-		//			ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
-		//			ComplexPropertyType* knockProperty = app->getActiveSession()->complexDataRegistry.getProperty("knock");
-		//			weaponCombat->singleDamage = complexData->get(atkProperty);
-		//			weaponCombat->knockStrength = complexData->get(knockProperty); // side knock?
-		//			weaponCombat->singleDamage *= 1.1f; // amplify damage a little with this skill
-		//			// other stuff
-		//			weaponCombat->skillType = SKILL_SIDE_SLASH;
-		//			weaponCombat->attack();
-		//			plr->getAnimator()->enable("Player", "PlayerSideSwing", { false,1,1,0 });
-		//			app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSideSwing", false, 1, 1, 0);
-		//			AnimatorProperty* prop = plr->getAnimator()->getProp("Player");
-		//			if (prop) {
-		//				weaponCombat->animationTime = prop->getRemainingSeconds();
-		//			}
-		//		} else {
-		//			log::out << "PlayerController::performSkills : Weapon is missing complex data\n";
-		//		}
-		//	}
-		//}
 		releasePlayer(plr);
 		releaseHeldObject(plr);
 	}
@@ -555,13 +532,21 @@ namespace prounk {
 			return;
 		if (plr->getRigidBody() && !IsDead(plr)) {
 			//glm::vec3 pos = plr->getPosition();
-			glm::vec3 pos = plr->getInterpolatedMat4(info.interpolation)[3];
+			glm::mat4 mat = plr->getInterpolatedMat4(info.interpolation);
 			CommonRenderer* renderer = GET_COMMON_RENDERER();
 			if (!renderer) {
 				log::out << log::RED << "PlayerController::render : renderer is null\n";
 			} else {
 				Camera* cam = renderer->getCamera();
-				glm::vec3 camPos = pos + camOffset - cam->getLookVector() * zoom;
+				glm::vec3 camPos = glm::vec3(mat[3]) + camOffset - cam->getLookVector() * zoom;
+				
+				if (IsKeyDown(GLFW_MOUSE_BUTTON_2)&&zoom!=0) {
+					offsetTransitionTime = Min(offsetTransitionTime +info.timeStep,offsetTransitionTimeMax);
+				} else {
+					offsetTransitionTime = Max(offsetTransitionTime - info.timeStep, 0);
+				}
+				//if(zoom!=0)
+					camPos+=cam->getRightVector() * .9f * bezier(offsetTransitionTime,0, offsetTransitionTimeMax);
 				cam->setPosition(camPos);
 			}
 		}
@@ -569,126 +554,6 @@ namespace prounk {
 			//log::out << "DEAD\n";
 		}
 		releasePlayer(plr);
-	}
-	void PlayerController::simpleTest(engone::LoopInfo& info) {
-		using namespace engone;
-		
-		Window* window = engone::GetActiveWindow();
-		if (!window) return;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
-		//Renderer* renderer = window->getRenderer(); // if window is valid, render and camera should as well. BUT i may change somethings which would break this assumption. So i'll keep it.
-		if (!renderer) return;
-		Camera* camera = renderer->getCamera();
-		if (!camera) return;
-
-		glm::vec3 flatInput = { 0,0,0 };
-		if (IsKeybindingDown(KeyForward)) {
-			flatInput.z += 1;
-		}
-		if (IsKeybindingDown(KeyLeft)) {
-			flatInput.x -= 1;
-		}
-		if (IsKeybindingDown(KeyBack)) {
-			flatInput.z -= 1;
-		}
-		if (IsKeybindingDown(KeyRight)) {
-			flatInput.x += 1;
-		}
-		EngineObject* plr = requestPlayer();
-		if (!plr) return;
-
-		float speed = 1;
-		glm::vec3 flatMove{};
-		if (glm::length(flatInput) != 0) {
-			flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
-		}
-		//glm::vec3 moveDir = flatMove;
-		glm::vec3 moveDir = flatMove;
-			//if (flight) {
-			//	if (IsKeybindingDown(KeyJump)) {
-			//		moveDir.y += speed;
-			//	}
-			//	if (IsKeybindingDown(KeyCrouch)) {
-			//		moveDir.y -= speed;
-			//	}
-			//} else {
-			//	if (IsKeybindingPressed(KeyJump)) {
-			//		moveDir.y += jumpForce;
-			//	}
-			//	if (IsKeybindingPressed(KeyCrouch)) {
-			//		moveDir.y -= jumpForce;
-			//	}
-			//}
-
-		rp3d::Vector3 rot = ToEuler(plr->getRigidBody()->getTransform().getOrientation());
-		float realY = rot.y;
-		float wantY = realY;
-
-		//if (IsKeybindingDown(KeyMoveCamera) || zoom == 0) {
-		//	targetRotation = camera->getRotation().y - glm::pi<float>();
-		//	followTargetRotation = true;
-		//}
-		//const float targetMargin = 0.01;
-		//if (fabs(AngleDifference(realY, targetRotation)) < 0.01)
-		//	followTargetRotation = false;
-
-		//if (followTargetRotation) {
-		//	wantY = targetRotation;
-		//} else if (glm::length(flatMove) != 0) {
-		//	wantY = std::atan2(flatMove.x, flatMove.z);
-		//}
-
-		//float dv = AngleDifference(wantY, realY) / (info.timeStep);
-		//dv *= 0.3; // snap speed
-		//float velRotY = dv - plr->getRigidBody()->getAngularVelocity().y;
-		//// inertia tensor needs to be accounted for when applying torque.
-
-		////rp3d::Vector3 newVel = rigidBody->getAngularVelocity();
-		////newVel.y += velRotY;
-		//rp3d::Vector3 newVel = { 0,dv,0 };
-		//plr->getRigidBody()->setAngularVelocity(newVel);
-		////log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
-		////log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
-		////log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
-
-		glm::vec3 bodyVel = ToGlmVec3(plr->getRigidBody()->getLinearVelocity());
-		float keepY = bodyVel.y;
-		float moveDirY = moveDir.y;
-		if (!flight) {
-			moveDir.y = 0;
-			bodyVel.y = 0;
-		}
-		glm::vec3 flatVelDiff = moveDir - bodyVel;
-		bool doMove = true;
-		if (!plr->getRigidBody()->isGravityEnabled() && glm::length(moveDir) == 0) {
-			doMove = false;
-		}
-		setFlight(false);
-		if (doMove) {
-			float tolerance = 0.0001;
-			if (glm::length(flatVelDiff) < tolerance && !flight) {
-				glm::vec3 other{};
-				if (!flight)
-					other.y = keepY + moveDirY;
-				plr->getRigidBody()->setLinearVelocity(ToRp3dVec3(other));
-			} else {
-				flatVelDiff *= 0.25;
-				if (!flight)
-					flatVelDiff.y = moveDirY;
-				flatVelDiff /= info.timeStep;
-				plr->getRigidBody()->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
-			}
-		}
-		//if (!flight) {
-		//	rp3d::Vector3 extraDownForce = { 0,0,0 };
-		//	float mass = plr->getRigidBody()->getMass();
-		//	extraDownForce.y += -0.34 * 9.82 * mass;
-		//	if (plr->getRigidBody()->getLinearVelocity().y < 0) {
-		//		rp3d::Vector3 force = { 0,0,0 };
-		//		extraDownForce.y += -1.2 * 9.82 * mass;
-		//	}
-		//	plr->getRigidBody()->applyLocalForceAtCenterOfMass(extraDownForce);
-		//}
 	}
 	void PlayerController::Movement(engone::LoopInfo& info) {
 		using namespace engone;

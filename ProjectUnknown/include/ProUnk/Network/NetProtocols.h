@@ -8,6 +8,7 @@
 namespace prounk {
 	enum NetMessageType : int {
 		NET_ADD_TERRAIN,
+		NET_ADD_TRIGGER,
 		NET_ADD_ITEM,
 		NET_ADD_WEAPON,
 		NET_ADD_CREATURE,
@@ -36,6 +37,7 @@ namespace prounk {
 		void netAddWeapon(engone::EngineObject* object);
 		void netAddCreature(engone::EngineObject* object);
 		void netAddTerrain(engone::EngineObject* object);
+		void netAddTrigger(engone::EngineObject* object);
 
 		// change to move objects, how to provide multiple objects?
 		void netMoveObject(engone::EngineObject* object);
@@ -59,6 +61,7 @@ namespace prounk {
 
 		//-- Receive
 		void recAddTerrain(engone::MessageBuffer* msg, engone::UUID clientUUID);
+		void recAddTrigger(engone::MessageBuffer* msg, engone::UUID clientUUID);
 		void recAddItem(engone::MessageBuffer* msg, engone::UUID clientUUID);
 		void recAddWeapon(engone::MessageBuffer* msg, engone::UUID clientUUID);
 		void recAddCreature(engone::MessageBuffer* msg, engone::UUID clientUUID);

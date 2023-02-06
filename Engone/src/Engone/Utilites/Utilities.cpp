@@ -80,6 +80,14 @@ namespace engone {
 		float va = /*(pow(1 - t, 3) + 3 * pow(1 - t, 2) * t) +*/(3 * (1 - t) * (float)pow(t, 2) + (float)pow(t, 3));
 		return va;
 	}
+	float Min(float a, float b) {
+		if (a < b) return a;
+		return b;
+	}
+	float Max(float a, float b) {
+		if (a > b) return a;
+		return b;
+	}
 	/*
 	std::string Crypt(const std::string& word, const std::string& key, bool encrypt) {
 		std::string out = "";

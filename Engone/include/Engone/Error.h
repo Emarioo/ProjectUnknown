@@ -7,10 +7,13 @@
 #include "Logger.h"
 
 namespace engone {
-	enum Error : uint8_t {
+	enum Error : uint32 {
 		ErrorNone = 0,
 		ErrorMissingFile = 1, // could also mean that the file is used by another process (application/program)
 		ErrorCorruptedFile = 2,
+		FileNotFound,
+		EndOfFile,
+		AllocFailure,
 
 	};
 	Logger& operator<<(Logger& log, Error value);

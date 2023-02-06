@@ -8,7 +8,7 @@
 #define ENGONE_TRACKER_GUARD
 
 #ifdef ENGONE_LOGGER
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 #endif
 namespace engone {
 

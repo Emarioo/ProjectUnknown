@@ -5,7 +5,7 @@
 #define ENGONE_RANDOMUTIL_GUARD
 
 #ifdef ENGONE_LOGGER
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 #endif
 
 namespace engone {
@@ -59,7 +59,7 @@ struct std::hash<engone::UUID> {
 #undef ENGONE_RANDOMUTIL_IMPL
 
 #ifdef ENGONE_LOGGER
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 #endif
 
 namespace engone {

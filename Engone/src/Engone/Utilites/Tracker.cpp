@@ -1,6 +1,6 @@
 
 #include "Engone/Utilities/Tracker.h"
-#include "Engone/Utilities/LoggingModule.h"
+#include "Engone/Logger.h"
 #include "Engone/Utilities/Alloc.h"
 
 // uses random when debugging (ENGONE_DEBUG_TRACKER)
@@ -461,7 +461,7 @@ namespace engone {
 	void Tracker::printMemory() {
 		lock();
 		log::out << "Memory summary:\n";
-		log::out.disableTime(true);
+		//log::out.disableTime(true);
 		// total memory and alloc may share some counted memory.
 		log::out << " Tracker Total: " << m_totalMemory <<"\n";
 		log::out << " Alloc: " <<alloc::allocatedBytes() << "\n";
@@ -511,7 +511,7 @@ namespace engone {
 		if (m_trackedObjects.size() == 0) {
 			log::out << "No classes\n";
 		}
-		log::out.disableTime(false);
+		//log::out.disableTime(false);
 		unlock();
 	}
 	void Tracker::printTree() {
