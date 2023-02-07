@@ -23,9 +23,4 @@ namespace engone {
 		HANDLE m_handle=NULL;
 		ThreadId m_threadId=0;
 	};
-
-	class ThreadPool {
-	public:
-
-	};
 }

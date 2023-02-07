@@ -32,7 +32,6 @@
 
 // causes issues with std::numeric_limit::max in reactphysics
 #define NOMINMAX
-
 // don't include winsock ?
 
 // windows xp
