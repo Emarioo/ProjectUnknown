@@ -1,387 +1,507 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="include\Engone">
+      <UniqueIdentifier>{74BF1C00-608D-1006-4921-812C358EEC6A}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="include\Engone\Assets">
+      <UniqueIdentifier>{D69B3636-4208-F230-0BFC-898E77271499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Core">
+      <UniqueIdentifier>{4CACFB0C-B80D-D91A-417B-1FCDADDB0FDA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\LogModule">
+      <UniqueIdentifier>{4B3F24E4-3764-7364-60AF-58F44C337282}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Networking">
+      <UniqueIdentifier>{0B784285-773A-760F-C0EA-049C2CEC4EED}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\PlatformModule">
+      <UniqueIdentifier>{8EE2291E-FAFA-1048-C3A7-A0E12F7FA5E1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Profiling">
+      <UniqueIdentifier>{EDFC951C-D921-E59C-026D-CA2CEEF0E3BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Rendering">
+      <UniqueIdentifier>{C1694DB4-AD8E-9C34-D6D9-81C4C25D9B52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Sound">
+      <UniqueIdentifier>{2CCC92AD-185B-1C77-C179-3072ADE72C1D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Tests">
+      <UniqueIdentifier>{36619FAD-22F0-2877-CB0E-3D72B77C391D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\Utilities">
+      <UniqueIdentifier>{DFC4AD7B-CBE9-FCFB-F434-E28BE0B8FB19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\World">
+      <UniqueIdentifier>{2B21DBAD-17B0-6477-C0CE-7872AC3C751D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor">
+      <UniqueIdentifier>{51EBD7B0-BD57-93AB-864B-2B09F276B513}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm">
+      <UniqueIdentifier>{20B6AAE6-8C78-DE70-D528-6DFD412AB74E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\out">
+      <UniqueIdentifier>{A773740B-138C-5B35-DC38-EBCE4810F0CE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\out\build">
+      <UniqueIdentifier>{2621CEE7-92DA-3892-1B3A-536C87F2EE01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug">
+      <UniqueIdentifier>{0BDE6A7F-774E-6DF8-406D-E780AC9CA5F9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles">
+      <UniqueIdentifier>{6E962025-5A6B-68D8-831A-A8D46F4E76EF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes">
+      <UniqueIdentifier>{75F00C77-E164-A2D4-AAAE-EFE316E22D08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\glm\simd">
+      <UniqueIdentifier>{7CE6047A-680C-CFE0-5152-54AC3D17F4AC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engone\vendor\stb_image">
+      <UniqueIdentifier>{2BB509B3-9798-18F3-A09B-462F0CFEDE43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone">
+      <UniqueIdentifier>{98BA320E-8472-745B-ED79-4DB7D9500F4C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Assets">
+      <UniqueIdentifier>{7A26A6BF-E63C-A455-2FB4-2F779B0975DD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Core">
+      <UniqueIdentifier>{F03D0003-5CC9-6DC7-65DA-F0BBD1E4C9C7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Events">
+      <UniqueIdentifier>{7C8B29C9-E8A1-275F-3119-B3809D6EF8E6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Logging">
+      <UniqueIdentifier>{2EB3FEF8-1A97-BF4E-83F7-B9A16FFAA9D0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Networking">
+      <UniqueIdentifier>{AFB4FEFA-1B21-BAF5-E414-52535040DC5D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\PlatformModule">
+      <UniqueIdentifier>{32D13B5B-9E93-6FE5-E743-FE71534548C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Profiling">
+      <UniqueIdentifier>{1135AB2F-FDC3-34F9-A6E2-48F49250459F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Rendering">
+      <UniqueIdentifier>{E5A162C7-D130-EC90-7A4F-008C66BDFC36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Sound">
+      <UniqueIdentifier>{50922964-3C8B-48B6-65BD-2D3B511528C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Tests">
+      <UniqueIdentifier>{5A273664-4620-55B6-6F52-3A3B5BAA34C2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\Utilites">
+      <UniqueIdentifier>{1AAA0DED-860B-EBFA-0F79-31AD7BD921BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\vendor">
+      <UniqueIdentifier>{F575473A-618C-45D0-AA03-D1F116591658}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engone\vendor\stb_image">
+      <UniqueIdentifier>{CFDC517C-3BEA-7F62-C4D0-7B4D30DD4B19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Engone\Rendering\Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\Light.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\RenderModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Engone.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Utilities.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Sound\SoundBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Sound\SoundSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Sound\SoundStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\SoundModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\Buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\EventModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\NetworkModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Application.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Networking\Server.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Networking\Sender.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Networking\MessageBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Networking\NetEvent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Networking\Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\EngineObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\MemAllocator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Tests\BasicRendering.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\vendor\Libaudio.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\rp3d.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\RuntimeStats.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Tracker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\ParticleModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Logger.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\FileUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\TimeUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Defs\DEFS_BASE.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\RandomUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\pch.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\ModuleDefs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\ImageUtility.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\AssetModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\Asset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Error.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\MeshAsset.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Assets\AnimationAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\MaterialAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\ArmatureAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\ModelAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\ColliderAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Assets\TextureAsset.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Assets</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Assets\Animator.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ArmatureAsset.h">
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\Asset.h">
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ColliderAsset.h">
+      <Filter>include\Engone\Assets</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Assets\FontAsset.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\MaterialAsset.h">
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\MeshAsset.h">
+      <Filter>include\Engone\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Assets\ModelAsset.h">
+      <Filter>include\Engone\Assets</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Assets\ShaderAsset.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Assets</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Networking\NetworkModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\LogLevels.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\World\EngineWorld.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\EngoneInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\HashMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\StableArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Stack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\LinkedArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\RenderPipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\UIRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Rendering\CommonRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\FrameArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Locks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Thread.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\Assets\TextureAsset.h">
+      <Filter>include\Engone\Assets</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Core\ExecutionControl.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Core\TaskHandler.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Array.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\EngineObject.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Profiling\ScopeTimer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\Engone.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Typedefs.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\Error.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Profiling\Profiler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\LogModule\Logger.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\EventModule.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\LogModule\LogTypes.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\LogModule</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\FileModule\FileReader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\LogModule\Logger.h">
+      <Filter>include\Engone\LogModule</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Logger.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\LoopInfo.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\ModuleDefs.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\Client.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\MessageBuffer.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\NetEvent.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\NetworkModule.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\Sender.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Networking\Server.h">
+      <Filter>include\Engone\Networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\ParticleModule.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\PlatformModule\PlatformModule.h">
-      <Filter>Header Files</Filter>
+      <Filter>include\Engone\PlatformModule</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\LogModule\LoggingModule.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\Engone\Profiling\Profiler.h">
+      <Filter>include\Engone\Profiling</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Profiling\ScopeTimer.h">
+      <Filter>include\Engone\Profiling</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\RenderModule.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\Buffer.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\Camera.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\CommonRenderer.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\FrameBuffer.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\Light.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\RenderPipeline.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Rendering\UIRenderer.h">
+      <Filter>include\Engone\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Sound\SoundBuffer.h">
+      <Filter>include\Engone\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Sound\SoundSource.h">
+      <Filter>include\Engone\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Sound\SoundStream.h">
+      <Filter>include\Engone\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\SoundModule.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Tests\BasicRendering.h">
+      <Filter>include\Engone\Tests</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Alloc.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Array.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\EngoneInfo.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\FileUtility.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\FrameArray.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\GenEnum.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\HashMap.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\ImageUtility.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\LinkedArray.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Locks.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\LogLevels.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\MemAllocator.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\RandomUtility.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\RuntimeStats.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\StableArray.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Stack.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Thread.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\TimeUtility.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Tracker.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Typedefs.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\Utilities.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Utilities\rp3d.h">
+      <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Window.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\World\EngineWorld.h">
+      <Filter>include\Engone\World</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\pch.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\Libaudio.h">
+      <Filter>include\Engone\vendor</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes\foo.h">
+      <Filter>include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\common.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\exponential.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\geometric.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\integer.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\matrix.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\neon.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\packing.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\platform.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\trigonometric.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\glm\simd\vector_relational.h">
+      <Filter>include\Engone\vendor\glm\simd</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\stb_image\stb_image.h">
+      <Filter>include\Engone\vendor\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\vendor\stb_image\stb_image_write.h">
+      <Filter>include\Engone\vendor\stb_image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Core\Engone.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Sound\SoundSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Sound\SoundStream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\vendor\Libaudio.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Sound\SoundModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Events\EventModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Networking\NetworkModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Core\Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\Light.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Core\Application.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\Engone\LoopInfo.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\rp3d.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Tracker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Core\EngineObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\ParticleModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\IMPLS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Alloc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\pch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Assets\AssetModule.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Assets\Animator.cpp">
+      <Filter>src\Engone\Assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Assets\Asset.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Engone\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Assets\Animator.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Assets\AssetModule.cpp">
+      <Filter>src\Engone\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\FileUtility.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Core\Application.cpp">
+      <Filter>src\Engone\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Core\EngineObject.cpp">
+      <Filter>src\Engone\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Core\EngineWorld.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Engone\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\HashMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\Engone\Utilities\StableArray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\Engone\Utilities\Stack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="include\Engone\Shaders\text3d.glsl">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\FrameArray.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Locks.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Thread.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Core\Engone.cpp">
+      <Filter>src\Engone\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Core\ExecutionControl.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Engone\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Profiling\Profiler.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Core\Window.cpp">
+      <Filter>src\Engone\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Events\EventModule.cpp">
+      <Filter>src\Engone\Events</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\IMPLS.cpp">
+      <Filter>src\Engone</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Logging\Logger.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Engone\Logging</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\PlatformModule\Win32.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\Networking\NetworkModule.cpp">
+      <Filter>src\Engone\Networking</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\FileModule\FileReader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Engone\ParticleModule.cpp">
+      <Filter>src\Engone</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\PlatformModule\Linux.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>src\Engone\PlatformModule</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="include\Engone\Shaders\standard2D.glsl" />
+    <ClCompile Include="src\Engone\PlatformModule\Win32.cpp">
+      <Filter>src\Engone\PlatformModule</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Profiling\Profiler.cpp">
+      <Filter>src\Engone\Profiling</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\Buffer.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\CommonRenderer.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\FrameBuffer.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\Light.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\RenderModule.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp">
+      <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp">
+      <Filter>src\Engone\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Sound\SoundModule.cpp">
+      <Filter>src\Engone\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Sound\SoundSource.cpp">
+      <Filter>src\Engone\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Sound\SoundStream.cpp">
+      <Filter>src\Engone\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">
+      <Filter>src\Engone\Tests</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Alloc.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\FileUtility.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\FrameArray.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\HashMap.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Locks.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Thread.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Tracker.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Utilites\rp3d.cpp">
+      <Filter>src\Engone\Utilites</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\pch.cpp">
+      <Filter>src\Engone</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\vendor\Libaudio.cpp">
+      <Filter>src\Engone\vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\vendor\stb_image\stb_image.cpp">
+      <Filter>src\Engone\vendor\stb_image</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

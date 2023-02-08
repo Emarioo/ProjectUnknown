@@ -1,132 +1,29 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.2.32505.173
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectUnknown", "ProjectUnknown\ProjectUnknown.vcxproj", "{497A2588-E2DA-44F3-8F83-06A9A1BB3408}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engone", "Engone\Engone.vcxproj", "{61E1D3B0-4D83-FE86-363E-12DB227F85D7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engone", "Engone\Engone.vcxproj", "{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Launcher", "Launcher\Launcher.vcxproj", "{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectUnknown", "ProjectUnknown\ProjectUnknown.vcxproj", "{AC454EA4-9813-42AA-81A7-B2D06D141E0F}"
 	ProjectSection(ProjectDependencies) = postProject
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827} = {DCE4A99C-5733-4F0A-A6DA-33D4B1644827}
+		{61E1D3B0-4D83-FE86-363E-12DB227F85D7} = {61E1D3B0-4D83-FE86-363E-12DB227F85D7}
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		DebGame|x64 = DebGame|x64
-		DebGame|x86 = DebGame|x86
-		DebLauncher|x64 = DebLauncher|x64
-		DebLauncher|x86 = DebLauncher|x86
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		MinSizeRel|x64 = MinSizeRel|x64
-		MinSizeRel|x86 = MinSizeRel|x86
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-		RelGame|x64 = RelGame|x64
-		RelGame|x86 = RelGame|x86
-		RelLauncher|x64 = RelLauncher|x64
-		RelLauncher|x86 = RelLauncher|x86
-		RelWithDebInfo|x64 = RelWithDebInfo|x64
-		RelWithDebInfo|x86 = RelWithDebInfo|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebGame|x64.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebGame|x64.Build.0 = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebGame|x86.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebGame|x86.Build.0 = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebLauncher|x64.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebLauncher|x86.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.DebLauncher|x86.Build.0 = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Debug|x64.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Debug|x64.Build.0 = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Debug|x86.ActiveCfg = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Debug|x86.Build.0 = Debug|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.MinSizeRel|x64.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.MinSizeRel|x64.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.MinSizeRel|x86.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.MinSizeRel|x86.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Release|x64.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Release|x64.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Release|x86.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.Release|x86.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelGame|x64.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelGame|x64.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelGame|x86.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelGame|x86.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelLauncher|x64.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelLauncher|x86.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelLauncher|x86.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelWithDebInfo|x64.Build.0 = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelWithDebInfo|x86.ActiveCfg = Release|x64
-		{497A2588-E2DA-44F3-8F83-06A9A1BB3408}.RelWithDebInfo|x86.Build.0 = Release|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebGame|x64.ActiveCfg = DebPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebGame|x64.Build.0 = DebPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebGame|x86.ActiveCfg = DebPhys|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebGame|x86.Build.0 = DebPhys|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebLauncher|x64.ActiveCfg = DebBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebLauncher|x64.Build.0 = DebBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebLauncher|x86.ActiveCfg = DebBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.DebLauncher|x86.Build.0 = DebBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Debug|x64.ActiveCfg = Debug|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Debug|x64.Build.0 = Debug|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Debug|x86.ActiveCfg = Debug|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Debug|x86.Build.0 = Debug|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.MinSizeRel|x64.ActiveCfg = Debug|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.MinSizeRel|x64.Build.0 = Debug|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.MinSizeRel|x86.ActiveCfg = Debug|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.MinSizeRel|x86.Build.0 = Debug|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x64.ActiveCfg = RelPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x64.Build.0 = RelPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.ActiveCfg = RelPhys|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.Release|x86.Build.0 = RelPhys|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelGame|x64.ActiveCfg = RelPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelGame|x64.Build.0 = RelPhys|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelGame|x86.ActiveCfg = RelBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelGame|x86.Build.0 = RelBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelLauncher|x64.ActiveCfg = RelBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelLauncher|x64.Build.0 = RelBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelLauncher|x86.ActiveCfg = RelBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelLauncher|x86.Build.0 = RelBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x64.ActiveCfg = RelBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x64.Build.0 = RelBase|x64
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x86.ActiveCfg = RelBase|Win32
-		{DCE4A99C-5733-4F0A-A6DA-33D4B1644827}.RelWithDebInfo|x86.Build.0 = RelBase|Win32
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebGame|x64.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebGame|x86.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebGame|x86.Build.0 = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebLauncher|x64.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebLauncher|x64.Build.0 = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebLauncher|x86.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.DebLauncher|x86.Build.0 = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x64.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x64.Build.0 = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x86.ActiveCfg = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Debug|x86.Build.0 = Debug|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x64.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x64.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x86.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.MinSizeRel|x86.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x64.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.Release|x86.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelGame|x64.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelGame|x86.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelGame|x86.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelLauncher|x64.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelLauncher|x64.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelLauncher|x86.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelLauncher|x86.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x64.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x64.Build.0 = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x86.ActiveCfg = Release|x64
-		{63B2D89E-41C0-4A85-8FCA-745CB886F3FC}.RelWithDebInfo|x86.Build.0 = Release|x64
+		{61E1D3B0-4D83-FE86-363E-12DB227F85D7}.Debug|x64.ActiveCfg = Debug|x64
+		{61E1D3B0-4D83-FE86-363E-12DB227F85D7}.Debug|x64.Build.0 = Debug|x64
+		{61E1D3B0-4D83-FE86-363E-12DB227F85D7}.Release|x64.ActiveCfg = Release|x64
+		{61E1D3B0-4D83-FE86-363E-12DB227F85D7}.Release|x64.Build.0 = Release|x64
+		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Debug|x64.ActiveCfg = Debug|x64
+		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Debug|x64.Build.0 = Debug|x64
+		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Release|x64.ActiveCfg = Release|x64
+		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CDB5FA65-2DFB-4954-8709-DEEEE0DE8AF1}
 	EndGlobalSection
 EndGlobal

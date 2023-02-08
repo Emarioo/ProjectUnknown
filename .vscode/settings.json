@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "mutex": "cpp",
+        "algorithm": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xutility": "cpp",
+        "functional": "cpp"
+    }
+}

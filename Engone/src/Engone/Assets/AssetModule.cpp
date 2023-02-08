@@ -313,11 +313,12 @@ namespace engone {
 		case AssetCollider: return ALLOC_NEW(ColliderAsset)();
 		case AssetModel: return ALLOC_NEW(ModelAsset)();
 		}
+		return nullptr;
 	}
 	std::string AssetStorage::modifyPath(AssetType type, const std::string& str) {
 		std::string out;
 		// optimize this
-		if (!m_storagePath.empty() && !str._Starts_with(m_storagePath))
+		if (!m_storagePath.empty() && str.find(m_storagePath)!=0)
 			out += m_storagePath;
 
 		if (type == ModelAsset::TYPE)

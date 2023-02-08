@@ -44,9 +44,9 @@ namespace engone {
 		// rigidBody->setTransform...
 		void setPosition(const glm::vec3& position);
 		glm::vec3 getPosition();
-		const glm::vec3& getLinearVelocity();
+		glm::vec3 getLinearVelocity();
 		void setLinearVelocity(const glm::vec3& vec3);
-		const glm::vec3& getAngularVelocity();
+		glm::vec3 getAngularVelocity();
 		// applyWorldForceAtCenterOfMass
 		void applyForce(const glm::vec3& force);
 

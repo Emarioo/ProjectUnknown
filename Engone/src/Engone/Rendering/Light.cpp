@@ -1,5 +1,6 @@
 
 #include "Engone/Rendering/Light.h"
+#include "Engone/Rendering/Buffer.h"
 
 namespace engone {
 	void Light::bind(Shader* shader, int index) {

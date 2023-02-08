@@ -266,24 +266,26 @@ namespace engone {
 		m_rigidBody->setTransform(temp);
 		m_world->unlockPhysics();
 	}
-	const glm::vec3& EngineObject::getLinearVelocity() {
-		m_world->lockPhysics();
-		glm::vec3 temp;
-		*(rp3d::Vector3*)&temp = m_rigidBody->getLinearVelocity();
-		m_world->unlockPhysics();
-		return temp;
+	glm::vec3 EngineObject::getLinearVelocity() {
+		// m_world->lockPhysics();
+		// *(rp3d::Vector3*)&temp = m_rigidBody->getLinearVelocity();
+		// m_world->unlockPhysics();
+		
+		rp3d::Vector3 temp = m_rigidBody->getLinearVelocity();
+		return *(glm::vec3*)&temp;
 	}
 	void EngineObject::setLinearVelocity(const glm::vec3& vec3) {
 		m_world->lockPhysics();
 		m_rigidBody->setLinearVelocity(*(rp3d::Vector3*)&vec3);
 		m_world->unlockPhysics();
 	}
-	const glm::vec3& EngineObject::getAngularVelocity() {
-		m_world->lockPhysics();
-		glm::vec3 temp;
-		*(rp3d::Vector3*)&temp = m_rigidBody->getAngularVelocity();
-		m_world->unlockPhysics();
-		return temp;
+	glm::vec3 EngineObject::getAngularVelocity() {
+		// m_world->lockPhysics();
+		// *(rp3d::Vector3*)&temp = m_rigidBody->getAngularVelocity();
+		// m_world->unlockPhysics();
+		// return temp;
+		rp3d::Vector3 temp = m_rigidBody->getAngularVelocity();
+		return *(glm::vec3*)&temp;
 	}
 	void  EngineObject::applyForce(const glm::vec3& force) {
 		m_world->lockPhysics();

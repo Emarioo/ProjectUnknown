@@ -11,9 +11,11 @@ const char* test2dGLSL = {
 #include "Engone/Core/ExecutionControl.h"
 #include "Engone/Utilities/Thread.h"
 
-extern "C" {
-	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
-}
+// #ifdef WIN32
+// extern "C" {
+// 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
+// }
+// #endif
 namespace engone {
 	TrackerId Engone::trackerId = "Engone";
 

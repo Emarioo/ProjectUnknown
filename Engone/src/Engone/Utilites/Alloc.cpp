@@ -45,6 +45,7 @@ namespace engone {
 			return s_allocatedBytes; // reading doesn't really require a mutex
 		}
 	}
+	template<>
 	bool Memory<char>::resize(uint32_t size, uint32_t count) {
 		if (count == 0) {
 			if (data)

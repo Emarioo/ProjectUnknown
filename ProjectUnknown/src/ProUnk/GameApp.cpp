@@ -214,9 +214,9 @@ namespace prounk {
 					contactPoint = ToGlmVec3(mid);
 				}
 
-				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
+				if (((uint64)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint64)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
 					dealCombat(obj1, obj2, contactPoint);
-				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
+				if (((uint64)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint64)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
 					dealCombat(obj2, obj1, contactPoint);
 			}
 		}
@@ -259,9 +259,9 @@ namespace prounk {
 				//rp3d::Vector3 cp2 = (pair.getBody1()->getTransform().getPosition() + pair.getBody2()->getTransform().getPosition()) / 2;
 				glm::vec3 contactPoint = ToGlmVec3(cp2);
 				//printf("%d - %d\n", (uint32_t)pair.getCollider1()->getUserData(), (uint32_t)pair.getCollider2()->getUserData());
-				if(((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
+				if(((uint64)pair.getCollider1()->getUserData() & COLLIDER_IS_DAMAGE) && ((uint64)pair.getCollider2()->getUserData() & COLLIDER_IS_HEALTH))
 					dealCombat(obj1, obj2, contactPoint);
-				if (((uint32_t)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint32_t)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
+				if (((uint64)pair.getCollider1()->getUserData() & COLLIDER_IS_HEALTH) && ((uint64)pair.getCollider2()->getUserData() & COLLIDER_IS_DAMAGE))
 					dealCombat(obj2, obj1, contactPoint);
 			}
 		}

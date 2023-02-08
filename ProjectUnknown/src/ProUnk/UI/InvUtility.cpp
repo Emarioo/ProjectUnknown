@@ -53,7 +53,7 @@ namespace prounk {
 
 		const ui::Color counterColor = { 1.f };
 		//ui::TextBox counter = {"|",0,0,size*0.5,consolas,counterColor};
-		ui::TextBox counter = {std::to_string(item.getCount()),0,0,size*0.5,consolas,counterColor};
+		ui::TextBox counter = {std::to_string(item.getCount()),0,0,size*0.5f,consolas,counterColor};
 		float wid = counter.getWidth();
 		float some = 1.1f;
 		counter.x = pixelX + size*some-wid*some;

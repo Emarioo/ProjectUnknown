@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Engone/AssetModule.h"
-
 namespace engone {
 	enum class LightType {
 		None,
@@ -9,6 +7,7 @@ namespace engone {
 		Spot,
 		Point
 	};
+	class Shader;
 	class Light {
 	public:
 		Light(LightType type) : lightType(type), position({ 0,0,0 }), direction({ -1,-1,-1 }),

@@ -215,7 +215,7 @@ namespace engone {
 	}
 	void CommonRenderer::setPerspective() {
 		float ratio = GetWidth() / GetHeight();
-		if (isfinite(ratio))
+		if (std::isfinite(ratio))
 			perspectiveMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
 	void CommonRenderer::setOrthogonal() {

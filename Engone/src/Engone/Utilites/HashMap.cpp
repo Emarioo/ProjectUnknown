@@ -1,4 +1,3 @@
-#pragma once
 
 #include "Engone/Utilities/HashMap.h"
 

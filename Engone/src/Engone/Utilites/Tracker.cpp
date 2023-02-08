@@ -129,7 +129,7 @@ namespace engone {
 					return true;
 				} else return false;
 			}
-		} else if (ptr > valuePtr) {
+		} else {
 			if (b) {
 				return b->add(tree, ptr);
 			} else {

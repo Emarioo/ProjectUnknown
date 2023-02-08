@@ -82,27 +82,26 @@ namespace engone {
 	}
 	bool FileReader::read(std::string& var) {
 		if(!binaryForm)
-			readLine(var);
-		else {
-			uint8 length;
-			bool yes =read(&length);
-			if (!yes)
-				return false;
+			return readLine(var);
+		uint8 length;
+		bool yes =read(&length);
+		if (!yes)
+			return false;
 
-			if (length == 0u)
-				return true;
+		if (length == 0u)
+			return true;
 
-			if (buffer.used < m_bufferReadHead + length) {
-				m_error = EndOfFile;
-				return false;
-			}
-
-			var.resize(length);
-
-			memcpy(buffer.data+m_bufferReadHead,var.data(),length);
-			m_bufferReadHead += length;
-			m_readHead += length;
+		if (buffer.used < m_bufferReadHead + length) {
+			m_error = EndOfFile;
+			return false;
 		}
+
+		var.resize(length);
+
+		memcpy(buffer.data+m_bufferReadHead,var.data(),length);
+		m_bufferReadHead += length;
+		m_readHead += length;
+		return true;
 	}
 	bool FileReader::readLine(std::string& line) {
 		line.clear();
@@ -126,77 +125,78 @@ namespace engone {
 		}
 		if (binaryForm) {
 			return read(var, intSize * count);
-		} else {
-			std::string line;
-			std::vector<std::string> numbers;
-			while (numbers.size() < count) {
-				// requires buffer
-				bool yes = readLine(line);
-				
-				if(!yes) {
-					m_error = EndOfFile;
-					return false;
-				}
-				if (line[0] == '#')
-					continue;
-				if (line.back() == '\r')
-					line.erase(line.end() - 1);
-
-				// one two three
-				const std::string delim = " ";
-				int lastAt = 0;
-				while (true) {
-					int at = line.find(delim, lastAt);
-					if (at == -1) {
-						break;
-					}
-					std::string push = line.substr(lastAt, at - lastAt);
-					numbers.push_back(push);
-					lastAt = at + 1;
-				}
-				if (lastAt != line.size() || lastAt == 0)
-					numbers.push_back(line.substr(lastAt));
-				//readNumbers = SplitString(line, " "); // could use this instead but that would mean this header requires Utilities.h.
+		}
+		
+		std::string line;
+		std::vector<std::string> numbers;
+		while (numbers.size() < count) {
+			// requires buffer
+			bool yes = readLine(line);
+			
+			if(!yes) {
+				m_error = EndOfFile;
+				return false;
 			}
+			if (line[0] == '#')
+				continue;
+			if (line.back() == '\r')
+				line.erase(line.end() - 1);
 
-			uint32 index = 0;
-			for (auto& num : numbers) {
-				if (num.find('.') == -1) {
-					// not decimal
-					if (intSize == sizeof(int8)) {
-						try {
-							((int8*)var)[index] = std::stoi(num);
-						} catch (std::out_of_range e) {
-							((int8*)var)[index] = std::stoull(num);
-						}
-					}else if (intSize == sizeof(int16)) {
-						try {
-							((int16*)var)[index] = std::stoi(num);
-						} catch (std::out_of_range e) {
-							((int16*)var)[index] = std::stoull(num);
-						}
-					}else  if (intSize == sizeof(int32)) {
-						try {
-							((int32*)var)[index] = std::stoi(num);
-						} catch (std::out_of_range e) {
-							((int32*)var)[index] = std::stoull(num);
-						}
-					}else if (intSize == sizeof(int64)) {
-						try {
-							((int64*)var)[index] = std::stoi(num);
-						} catch (std::out_of_range e) {
-							((int64*)var)[index] = std::stoull(num);
-						}
+			// one two three
+			const std::string delim = " ";
+			int lastAt = 0;
+			while (true) {
+				int at = line.find(delim, lastAt);
+				if (at == -1) {
+					break;
+				}
+				std::string push = line.substr(lastAt, at - lastAt);
+				numbers.push_back(push);
+				lastAt = at + 1;
+			}
+			if (lastAt != line.size() || lastAt == 0)
+				numbers.push_back(line.substr(lastAt));
+			//readNumbers = SplitString(line, " "); // could use this instead but that would mean this header requires Utilities.h.
+		}
+
+		uint32 index = 0;
+		for (auto& num : numbers) {
+			if (num.find('.') == -1) {
+				// not decimal
+				if (intSize == sizeof(int8)) {
+					try {
+						((int8*)var)[index] = std::stoi(num);
+					} catch (std::out_of_range e) {
+						((int8*)var)[index] = std::stoull(num);
 					}
-				} else {
-					if (intSize == sizeof(float)) {
-						((float*)var)[index++] = std::stof(num);
-					} else if (intSize == sizeof(double)) {
-						((double*)var)[index++] = std::stof(num);
+				}else if (intSize == sizeof(int16)) {
+					try {
+						((int16*)var)[index] = std::stoi(num);
+					} catch (std::out_of_range e) {
+						((int16*)var)[index] = std::stoull(num);
 					}
+				}else  if (intSize == sizeof(int32)) {
+					try {
+						((int32*)var)[index] = std::stoi(num);
+					} catch (std::out_of_range e) {
+						((int32*)var)[index] = std::stoull(num);
+					}
+				}else if (intSize == sizeof(int64)) {
+					try {
+						((int64*)var)[index] = std::stoi(num);
+					} catch (std::out_of_range e) {
+						((int64*)var)[index] = std::stoull(num);
+					}
+				}
+			} else {
+				if (intSize == sizeof(float)) {
+					((float*)var)[index++] = std::stof(num);
+				} else if (intSize == sizeof(double)) {
+					((double*)var)[index++] = std::stof(num);
 				}
 			}
 		}
+		return true;
 	}
 	void FileReader::readAll(std::string& var) {
 		// works the same for both forms

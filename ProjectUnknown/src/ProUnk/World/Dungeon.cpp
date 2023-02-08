@@ -1,5 +1,3 @@
-#pragma once
-
 #include "ProUnk/World/Dungeon.h"
 
 #include "ProUnk/GameApp.h"

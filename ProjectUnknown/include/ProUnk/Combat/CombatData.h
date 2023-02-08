@@ -5,8 +5,8 @@
 #include "ProUnk/Combat/Skills.h"
 
 namespace prounk {
-	extern uint32_t COLLIDER_IS_DAMAGE;
-	extern uint32_t COLLIDER_IS_HEALTH;
+	extern uint64 COLLIDER_IS_DAMAGE;
+	extern uint64 COLLIDER_IS_HEALTH;
 	class CombatData {
 	public:
 		CombatData() {}

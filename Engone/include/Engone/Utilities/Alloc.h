@@ -6,6 +6,9 @@
 // Not that with ALLOC_DELETE you cannot use a class with a namespace.
 // 'ALLOC_DELETE(rp3d::PhysicsCommon,common)' will give 'common->rp3d::PhysicsCommon' which isn't allowed.
 
+#include <stdint.h>
+#include <cstdlib>
+
 #define ALLOC_NEW(CLASS) new((CLASS*)engone::alloc::malloc(sizeof(CLASS))) CLASS
 #define ALLOC_DELETE(CLASS,VAR) {VAR->~CLASS();engone::alloc::free(VAR,sizeof(CLASS));}
 

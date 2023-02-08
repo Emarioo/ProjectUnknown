@@ -4,6 +4,8 @@
 #include "Engone/Logger.h"
 #include "Engone/Error.h"
 
+#include <condition_variable>
+
 namespace engone {
 	enum AssetType : uint8_t {
 		AssetTexture = 0,
@@ -32,12 +34,12 @@ namespace engone {
 			Loaded = 2,
 			Failed = 3,
 		};
-		enum LoadFlag : uint8_t {
+		enum LoadFlag : uint8 {
 			LoadNone = 0,
 			LoadIO = 1,
 			LoadData = 2,
 			LoadGraphic = 4,
-			LoadAll = -1,
+			LoadAll = (uint8)-1,
 		};
 		typedef uint8_t LoadFlags;
 

@@ -22,7 +22,7 @@ namespace engone {
 			out.push_back(push);
 			lastAt = at + 1;
 		}
-		if (lastAt != text.size()||lastAt==0)
+		if (lastAt != text.size() || lastAt == 0)
 			out.push_back(text.substr(lastAt));
 
 
@@ -140,8 +140,7 @@ namespace engone {
 				m_writeIndex = 0;
 				m_readIndex = 0;
 			}
-		}
-		else {
+		} else {
 			if (!m_data) {
 				char* newData = (char*)alloc::malloc(size);
 				if (!newData) {
@@ -151,8 +150,7 @@ namespace engone {
 				GetTracker().addMemory<ItemVector>(size);
 				m_data = newData;
 				m_maxSize = size;
-			}
-			else {
+			} else {
 				char* newData = (char*)alloc::realloc(m_data, m_maxSize, size);
 				if (!newData) {
 					log::out << log::RED << "ItemVector failed reallocating memory\n";
@@ -191,7 +189,7 @@ namespace engone {
 	void DelayCode::Start(int id, float waitSeconds) {
 		delayers[id] = { waitSeconds };
 	}
-	void DelayCode::Stop(int id, float waitSeconds){
+	void DelayCode::Stop(int id, float waitSeconds) {
 		auto find = delayers.find(id);
 		DelayCode* dc = nullptr;
 		if (find != delayers.end()) {
@@ -207,7 +205,7 @@ namespace engone {
 		return false;
 	}
 	bool DelayCode::Run(int id, LoopInfo& info) {
-		return Run(id,info.timeStep);
+		return Run(id, info.timeStep);
 	}
 
 	//Timer::Timer() : time(GetAppTime()) { }
@@ -234,14 +232,14 @@ namespace engone {
 	//	log::out << name << " : " << (GetAppTime() - time) << "\n";
 	//	time = 0;
 	//}
-	void ConvertWide(const std::string& in,std::wstring& out) {
+	void ConvertWide(const std::string& in, std::wstring& out) {
 		out.resize(in.length(), 0);
 		for (int i = 0; i < in.length(); i++) {
 			out.data()[i] = in[i];
 		}
 	}
 	void ConvertWide(const std::wstring& in, std::string& out) {
-		out.resize(in.length(),0);
+		out.resize(in.length(), 0);
 		for (int i = 0; i < in.length(); i++) {
 			out.data()[i] = in[i];
 		}
@@ -252,7 +250,7 @@ namespace engone {
 		}
 
 		// additional information
-		STARTUPINFO si;
+		STARTUPINFOA si;
 		PROCESS_INFORMATION pi;
 
 		// set the size of the structures
@@ -264,13 +262,13 @@ namespace engone {
 
 		std::string workingDir = path.substr(0, slashIndex);
 
-//#ifdef NDEBUG
-//		std::wstring exeFile = convert(path);
-//		std::wstring workDir = convert(workingDir);
-//#else
+		//#ifdef NDEBUG
+		//		std::wstring exeFile = convert(path);
+		//		std::wstring workDir = convert(workingDir);
+		//#else
 		const std::string& exeFile = path;
 		std::string& workDir = workingDir;
-//#endif
+		//#endif
 		CreateProcessA(exeFile.c_str(),   // the path
 			commandLine,        // Command line
 			NULL,           // Process handle not inheritable
@@ -404,7 +402,7 @@ namespace engone {
 					return true;
 				} else return false;
 			}
-		} else if (ptr > m_value) {
+		} else {
 			if (b) {
 				return b->add(tree, ptr);
 			} else {
@@ -427,7 +425,7 @@ namespace engone {
 			} else {
 				return false;
 			}
-		} else if (ptr > m_value) {
+		} else {
 			if (b) {
 				return b->find(tree, ptr);
 			} else {
@@ -552,10 +550,10 @@ namespace engone {
 
 		if (wargv == NULL) {
 			int err = GetLastError();
-			log::out << log::RED<<"ConvertArguments - " << err << "\n";
+			log::out << log::RED << "ConvertArguments - " << err << "\n";
 		} else {
 			// argv will become a pointer to contigous memory which contain arguments.
-			int totalSize = argc*sizeof(char*);
+			int totalSize = argc * sizeof(char*);
 			int index = totalSize;
 			for (int i = 0; i < argc; i++) {
 				int length = wcslen(wargv[i]);
@@ -567,7 +565,7 @@ namespace engone {
 			char* argData = (char*)argv + index;
 			if (!argv) {
 				log::out << log::RED << "ConverArguments - allocation failed\n";
-			}else{
+			} else {
 				index = 0;
 				for (int i = 0; i < argc; i++) {
 					int length = wcslen(wargv[i]);
@@ -593,15 +591,15 @@ namespace engone {
 			int dataSize = 0;
 			int argsLength = strlen(args);
 			int argLength = 0;
-			for (int i = 0; i < argsLength+1; i++) {
+			for (int i = 0; i < argsLength + 1; i++) {
 				char chr = args[i];
-				if (chr == 0||chr==' ') {
+				if (chr == 0 || chr == ' ') {
 					if (argLength != 0) {
 						dataSize++; // null terminated character
 						argc++;
 					}
 					argLength = 0;
-					if(chr==0)
+					if (chr == 0)
 						break;
 				} else {
 					argLength++;
@@ -617,7 +615,7 @@ namespace engone {
 				log::out << log::RED << "ConverArguments - allocation failed\n";
 			} else {
 				int strIndex = 0; // index of char*
-				for (int i = 0; i < argsLength+1; i++) {
+				for (int i = 0; i < argsLength + 1; i++) {
 					char chr = args[i];
 
 					if (chr == 0 || chr == ' ') {
@@ -648,7 +646,7 @@ namespace engone {
 			//printf("len: %d\n", length);
 			totalSize += length + 1;
 		}
-		alloc::free(argv,totalSize);
+		alloc::free(argv, totalSize);
 	}
 	void CreateConsole() {
 		bool b = AllocConsole();
@@ -662,12 +660,12 @@ namespace engone {
 		m_mutex.lock();
 		m_running = false;
 		if (m_thread.joinable()) {
-			HANDLE handle = m_thread.native_handle();
+			HANDLE handle = (HANDLE)m_thread.native_handle();
 			int err = CancelSynchronousIo(handle);
 			if (err == 0) {
 				err = GetLastError();
 				// ERROR_NOT_FOUND
-				if(err!= ERROR_NOT_FOUND)
+				if (err != ERROR_NOT_FOUND)
 					log::out << log::RED << "FileMonitor::cleanup - err " << err << "\n";
 			}
 		}
@@ -675,7 +673,7 @@ namespace engone {
 			FindCloseChangeNotification(m_changeHandle);
 			m_changeHandle = NULL;
 		}
-		if (m_dirHandle!=NULL) {
+		if (m_dirHandle != NULL) {
 			CloseHandle(m_dirHandle);
 			m_dirHandle = NULL;
 		}
@@ -693,8 +691,8 @@ namespace engone {
 	bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
 		if (!std::filesystem::exists(path))
 			return false;
-			//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
-		
+		//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
+
 		m_mutex.lock();
 
 		// Just a heads up for you. This functions is not beautiful.
@@ -715,7 +713,7 @@ namespace engone {
 			m_dirHandle = NULL;
 		}
 
-		if(!m_running){
+		if (!m_running) {
 			if (m_thread.joinable())
 				m_thread.join();
 			//m_threadHandle = NULL;
@@ -737,25 +735,25 @@ namespace engone {
 					m_dirPath = m_root.substr(0, index);
 				}
 			}
-			m_changeHandle = FindFirstChangeNotification(m_dirPath.c_str(), flags&WATCH_SUBTREE,
-				FILE_NOTIFY_CHANGE_LAST_WRITE|FILE_NOTIFY_CHANGE_FILE_NAME|FILE_NOTIFY_CHANGE_DIR_NAME);
+			m_changeHandle = FindFirstChangeNotificationA(m_dirPath.c_str(), flags & WATCH_SUBTREE,
+				FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME);
 
 			if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
 				m_changeHandle = NULL;
 				DWORD err = GetLastError();
-				log::out << log::RED << "FileMonitor::check - invalid handle (err: "<< (int)err <<"): " << m_dirPath << "\n";
+				log::out << log::RED << "FileMonitor::check - invalid handle (err: " << (int)err << "): " << m_dirPath << "\n";
 				m_mutex.unlock();
 				return false;
 			}
 
 			//FILE_FLAG_OVERLAPPED
-			m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY, 
-				FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
+			m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY,
+				FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
 				OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
 			if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
 				m_dirHandle = NULL;
 				DWORD err = GetLastError();
-				log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err <<"): " << m_dirPath << "\n";
+				log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err << "): " << m_dirPath << "\n";
 				if (m_changeHandle != NULL) {
 					FindCloseChangeNotification(m_changeHandle);
 					m_changeHandle = NULL;
@@ -805,9 +803,9 @@ namespace engone {
 							// ERROR_INVALID_FUNCTION
 							// ERROR_OPERATION_ABORTED
 
-							if(err != ERROR_OPERATION_ABORTED)
+							if (err != ERROR_OPERATION_ABORTED)
 								// this could also mean that we cancelled the read.
-								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges win error " << err << " (path: "<<m_root<<")\n";
+								log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges win error " << err << " (path: " << m_root << ")\n";
 							break;
 						} else {
 							int offset = 0;
@@ -824,13 +822,13 @@ namespace engone {
 								if (m_dirPath == m_root || temp == m_root) {
 									//log::out << "FileMonitor::check - call callback " << temp << "\n";
 									ChangeType type = (ChangeType)0;
-									if (info.Action == FILE_ACTION_MODIFIED||info.Action==FILE_ACTION_ADDED) type = FILE_MODIFIED;
+									if (info.Action == FILE_ACTION_MODIFIED || info.Action == FILE_ACTION_ADDED) type = FILE_MODIFIED;
 									if (info.Action == FILE_ACTION_REMOVED) type = FILE_REMOVED;
 									if (type == 0) {
-										log::out << log::YELLOW<<"FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
+										log::out << log::YELLOW << "FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
 										//DebugBreak();
 									}
-									m_callback(temp,type);
+									m_callback(temp, type);
 								}
 
 								if (info.NextEntryOffset == 0)
@@ -872,7 +870,7 @@ namespace engone {
 		m_mutex.unlock();
 		return true;
 	}
-
+#ifdef VISUAL_STUDIO
 	// Code below comes from https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022
 	const DWORD MS_VC_EXCEPTION = 0x406D1388;
 #pragma pack(push,8)
@@ -898,5 +896,9 @@ namespace engone {
 		}
 #pragma warning(pop)
 	}
-
+#else
+	void SetThreadName(DWORD dwThreadID, const char* threadName) {
+		// Empty
+	}
+#endif
 }

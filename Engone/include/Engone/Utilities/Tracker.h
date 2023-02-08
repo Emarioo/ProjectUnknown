@@ -1,7 +1,9 @@
 //#define ENGONE_DEBUG_TRACKER
 
 // NOTE: turn tracker into a single header file. (ENGONE_TRACKER_IMPL)
+// NOTE: DO NOT turn into a single header file.
 
+#define ENGONE_TRACKER
 #ifdef ENGONE_TRACKER
 
 #ifndef ENGONE_TRACKER_GUARD

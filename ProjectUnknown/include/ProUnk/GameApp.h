@@ -86,7 +86,7 @@ namespace prounk {
 			partRequested = true; requestPos = pos;
 		}
 
-		engone::SoundStream melody;
+		// engone::SoundStream melody;
 
 		//std::unordered_map<std::string, bool>& getStates() {
 		//	return m_stateMap;

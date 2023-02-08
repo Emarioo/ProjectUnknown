@@ -1,4 +1,3 @@
-#pragma once
 
 #include "ProUnk/Registries/ItemTypeRegistry.h"
 

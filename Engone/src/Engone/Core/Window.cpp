@@ -154,13 +154,13 @@ namespace engone {
 		win->addEvent(e);
 		//win->runListeners();
 	}
-	static void FocusCallback(GLFWwindow* window, int focused) {
+	void FocusCallback(GLFWwindow* window, int focused) {
 		Window* win = GetMappedWindow(window);
 		if (win) {
 			win->m_focus = focused;
 		}
 	}
-	static void ResizeCallback(GLFWwindow* window, int width, int height) {
+	void ResizeCallback(GLFWwindow* window, int width, int height) {
 		Window* win = GetMappedWindow(window);
 		if (!win){
 			log::out << "Window isn't mapped\n";
@@ -177,7 +177,7 @@ namespace engone {
 		win->w = (float)width;
 		win->h = (float)height;
 	}
-	static void CloseCallback(GLFWwindow* window) {
+	void CloseCallback(GLFWwindow* window) {
 		Window* win = GetMappedWindow(window);
 		if (win) {
 			if (win->m_parent) {
@@ -187,7 +187,7 @@ namespace engone {
 			//	mainWindow = nullptr;
 		}
 	}
-	static void PosCallback(GLFWwindow* window, int x, int y) {
+	void PosCallback(GLFWwindow* window, int x, int y) {
 		Window* win = GetMappedWindow(window);
 		if (win) {
 			win->x = (float)x;

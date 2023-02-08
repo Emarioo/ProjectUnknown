@@ -244,7 +244,11 @@ namespace engone {
 				return start == src.start && length == src.length;
 			}
 		};
-		static struct { ShaderSource vs; ShaderSource fs; } GenerateSources(const char* source);
+		struct GenRes{
+			ShaderSource vs;
+			ShaderSource fs;
+		};
+		static GenRes GenerateSources(const char* source);
 
 		ShaderSource vs, fs;
 		const char* original = nullptr;

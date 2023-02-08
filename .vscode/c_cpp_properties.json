@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "intelliSenseMode": "${default}",
+            "includePath": [
+                "${workspaceFolder}/Engone/include/**",
+                "${workspaceFolder}/ProjectUnknown/include/**",
+                "${workspaceFolder}/libs/GLFW/include/**",
+                "${workspaceFolder}/libs/GLEW/include/**",
+                "${workspaceFolder}/ProjectUnknown/include/**",
+                "${workspaceFolder}/libs/reactphysics3d/include"
+            ],
+            "defines": [
+                "ENGONE_PHYSICS"
+            ],
+            "forcedInclude": [
+                "Engone/include/Engone/pch.h",
+                "ProjectUnknown/include/ProUnk/pch.h"
+            ],
+            "compilerPath": "C:/Program Files/mingw-w64/x86_64-12.2.0-release-posix-seh-ucrt-rt_v10-rev2/mingw64/bin/g++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "compileCommands": "",
+            "browse": {
+                "path": [],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}

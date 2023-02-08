@@ -239,7 +239,7 @@ namespace engone {
 		return img;
 	}
 	RawImage* RawImage::LoadFromPNG(int id, ImageFlags flags) {
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
+		HRSRC hs = FindResourceA(NULL, MAKEINTRESOURCEA(id), "PNG"); // Todo: Use FindResourceW.
 		HGLOBAL hg = LoadResource(NULL, hs);
 		void* ptr = LockResource(hg);
 		DWORD size = SizeofResource(NULL, hs);
@@ -264,7 +264,7 @@ namespace engone {
 		return img;
 	}
 	PNG* PNG::Load(int id) {
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "PNG");
+		HRSRC hs = FindResourceA(NULL, MAKEINTRESOURCEA(id), "PNG");
 		if (!hs) {
 			int err = GetLastError();
 			printf("ICO::Load - windows error %d\n", err);
@@ -284,7 +284,7 @@ namespace engone {
 	ICO* ICO::Load(int id) {
 		//HANDLE hnd = LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(id), IMAGE_ICON, 0, 0, 0);
 
-		HRSRC hs = FindResource(NULL, MAKEINTRESOURCE(id), "ICO");
+		HRSRC hs = FindResourceA(NULL, MAKEINTRESOURCEA(id), "ICO");
 		if (!hs) {
 			int err = GetLastError();
 			printf("ICO::Load - windows error %d\n", err);
