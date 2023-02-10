@@ -6,7 +6,8 @@
 #include "Engone/World/EngineWorld.h"
 
 #include "Engone/Profiling/Profiler.h"
-#include "Engone/Utilities/Locks.h"
+// #include "Engone/Utilities/Locks.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 namespace engone {
 
@@ -106,7 +107,8 @@ namespace engone {
 		Profiler m_profiler{};
 
 #ifdef ENGONE_PHYSICS
-		DepthMutex m_commonMutex;
+		Mutex m_commonMutex;
+		// DepthMutex m_commonMutex;
 		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
 #endif
 		friend class Engone;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ProUnk/Registries/MasterRegistry.h"
-#include "Engone/Utilities/HashMap.h"
-#include "Engone/Utilities/StableArray.h"
+#include "Engone/Structures/HashMap.h"
+#include "Engone/Structures/StableArray.h"
 
 namespace prounk {
 	struct ComplexPropertyType {

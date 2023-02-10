@@ -1,5 +1,8 @@
 #pragma once
 
+// causes issues with std::numeric_limit::max in reactphysics
+#define NOMINMAX
+
 // Try to remove some of these libraries
 // thread, mutex, chrono, filesystem
 // I should use Windows API to implement my own versions. This can be done whenever, no hurry.
@@ -12,8 +15,8 @@
 #include <chrono>
 #include <ctime>
 #include <random>
-#include <thread>
-#include <mutex>
+// #include <thread>
+// #include <mutex>
 
 #include <vector>
 #include <string>
@@ -29,16 +32,3 @@
 #include <Engone/vendor/glm/gtc/matrix_transform.hpp>
 
 #include "Engone/Utilities/Typedefs.h"
-
-// causes issues with std::numeric_limit::max in reactphysics
-#define NOMINMAX
-// don't include winsock ?
-
-// windows xp
-//#define _WIN32_WINNT 0x0501
-// windows 7
-#define _WIN32_WINNT 0x0601
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>

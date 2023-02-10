@@ -4,9 +4,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engone", "Engone\Engone.vcxproj", "{61E1D3B0-4D83-FE86-363E-12DB227F85D7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectUnknown", "ProjectUnknown\ProjectUnknown.vcxproj", "{AC454EA4-9813-42AA-81A7-B2D06D141E0F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{61E1D3B0-4D83-FE86-363E-12DB227F85D7} = {61E1D3B0-4D83-FE86-363E-12DB227F85D7}
-	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glew", "glew\glew.vcxproj", "{7463977C-609A-980D-0987-7E10F59C140F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw3", "GLFW3\glfw3.vcxproj", "{68D6830F-D4EA-ABC0-9D6C-4F200940A8F1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rp3d", "rp3d\rp3d.vcxproj", "{1E769D7C-0AAD-9E0D-B399-84109FAF1A0F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,6 +25,18 @@ Global
 		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Debug|x64.Build.0 = Debug|x64
 		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Release|x64.ActiveCfg = Release|x64
 		{AC454EA4-9813-42AA-81A7-B2D06D141E0F}.Release|x64.Build.0 = Release|x64
+		{7463977C-609A-980D-0987-7E10F59C140F}.Debug|x64.ActiveCfg = Debug|x64
+		{7463977C-609A-980D-0987-7E10F59C140F}.Debug|x64.Build.0 = Debug|x64
+		{7463977C-609A-980D-0987-7E10F59C140F}.Release|x64.ActiveCfg = Release|x64
+		{7463977C-609A-980D-0987-7E10F59C140F}.Release|x64.Build.0 = Release|x64
+		{68D6830F-D4EA-ABC0-9D6C-4F200940A8F1}.Debug|x64.ActiveCfg = Debug|x64
+		{68D6830F-D4EA-ABC0-9D6C-4F200940A8F1}.Debug|x64.Build.0 = Debug|x64
+		{68D6830F-D4EA-ABC0-9D6C-4F200940A8F1}.Release|x64.ActiveCfg = Release|x64
+		{68D6830F-D4EA-ABC0-9D6C-4F200940A8F1}.Release|x64.Build.0 = Release|x64
+		{1E769D7C-0AAD-9E0D-B399-84109FAF1A0F}.Debug|x64.ActiveCfg = Debug|x64
+		{1E769D7C-0AAD-9E0D-B399-84109FAF1A0F}.Debug|x64.Build.0 = Debug|x64
+		{1E769D7C-0AAD-9E0D-B399-84109FAF1A0F}.Release|x64.ActiveCfg = Release|x64
+		{1E769D7C-0AAD-9E0D-B399-84109FAF1A0F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

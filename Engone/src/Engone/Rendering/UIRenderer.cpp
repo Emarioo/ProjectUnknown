@@ -3,7 +3,7 @@
 #include "Engone/Window.h"
 #include "Engone/Rendering/CommonRenderer.h"
 
-#define GLEW_STATIC
+// #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
@@ -403,8 +403,9 @@ namespace engone {
 							asset->materials[j]->bind(shader, j);
 						}
 						uint32_t remaining = vector.size();
+						uint32 batchSize = UIRenderer::INSTANCE_BATCH;
 						while (remaining > 0) {
-							uint32_t batchAmount = std::min(remaining, UIRenderer::INSTANCE_BATCH);
+							uint32_t batchAmount = std::min(remaining, batchSize);
 
 							getInstanceBuffer().setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size() - remaining));
 
@@ -477,6 +478,6 @@ namespace engone {
 	}
 	UIRenderer::~UIRenderer() {
 		if (s_activeUIRenderer == this)
-			s_activeUIRenderer == nullptr;
+			s_activeUIRenderer = nullptr;
 	}
 }

@@ -82,8 +82,8 @@
     <Filter Include="src\Engone\Events">
       <UniqueIdentifier>{7C8B29C9-E8A1-275F-3119-B3809D6EF8E6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Engone\Logging">
-      <UniqueIdentifier>{2EB3FEF8-1A97-BF4E-83F7-B9A16FFAA9D0}</UniqueIdentifier>
+    <Filter Include="src\Engone\LogModule">
+      <UniqueIdentifier>{6F7739F7-5B06-C3C0-0425-D7BBF092D366}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Engone\Networking">
       <UniqueIdentifier>{AFB4FEFA-1B21-BAF5-E414-52535040DC5D}</UniqueIdentifier>
@@ -103,8 +103,8 @@
     <Filter Include="src\Engone\Tests">
       <UniqueIdentifier>{5A273664-4620-55B6-6F52-3A3B5BAA34C2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Engone\Utilites">
-      <UniqueIdentifier>{1AAA0DED-860B-EBFA-0F79-31AD7BD921BA}</UniqueIdentifier>
+    <Filter Include="src\Engone\Utilities">
+      <UniqueIdentifier>{03FDC28E-EF8B-4C58-98AA-605384185DFE}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Engone\vendor">
       <UniqueIdentifier>{F575473A-618C-45D0-AA03-D1F116591658}</UniqueIdentifier>
@@ -207,7 +207,7 @@
     <ClInclude Include="include\Engone\ParticleModule.h">
       <Filter>include\Engone</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\PlatformModule\PlatformModule.h">
+    <ClInclude Include="include\Engone\PlatformModule\PlatformLayer.h">
       <Filter>include\Engone\PlatformModule</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Profiling\Profiler.h">
@@ -282,9 +282,6 @@
     <ClInclude Include="include\Engone\Utilities\LinkedArray.h">
       <Filter>include\Engone\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Locks.h">
-      <Filter>include\Engone\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Utilities\LogLevels.h">
       <Filter>include\Engone\Utilities</Filter>
     </ClInclude>
@@ -303,9 +300,6 @@
     <ClInclude Include="include\Engone\Utilities\Stack.h">
       <Filter>include\Engone\Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Utilities\Thread.h">
-      <Filter>include\Engone\Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h">
       <Filter>include\Engone\Utilities</Filter>
     </ClInclude>
@@ -320,6 +314,9 @@
     </ClInclude>
     <ClInclude Include="include\Engone\Utilities\rp3d.h">
       <Filter>include\Engone\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Win32Includes.h">
+      <Filter>include\Engone</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Window.h">
       <Filter>include\Engone</Filter>
@@ -407,8 +404,8 @@
     <ClCompile Include="src\Engone\IMPLS.cpp">
       <Filter>src\Engone</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Logging\Logger.cpp">
-      <Filter>src\Engone\Logging</Filter>
+    <ClCompile Include="src\Engone\LogModule\Logger.cpp">
+      <Filter>src\Engone\LogModule</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp">
       <Filter>src\Engone\Networking</Filter>
@@ -461,38 +458,38 @@
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">
       <Filter>src\Engone\Tests</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Alloc.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\Alloc.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\FileUtility.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\FileUtility.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\FrameArray.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\FrameArray.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\HashMap.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\HashMap.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\ImageUtility.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\ImageUtility.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Locks.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\LogLevels.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\LogLevels.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\StableArray.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Thread.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\Stack.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Tracker.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\Tracker.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\Utilities.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\Utilities.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engone\Utilites\rp3d.cpp">
-      <Filter>src\Engone\Utilites</Filter>
+    <ClCompile Include="src\Engone\Utilities\rp3d.cpp">
+      <Filter>src\Engone\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\pch.cpp">
       <Filter>src\Engone</Filter>

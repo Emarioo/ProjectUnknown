@@ -4,7 +4,7 @@
 #include "Engone/Networking/NetworkModule.h"
 #include "Engone/ParticleModule.h"
 
-#include "Engone/Utilities/FrameArray.h"
+#include "Engone/Structures/FrameArray.h"
 
 namespace engone {
 
@@ -98,8 +98,8 @@ namespace engone {
 
 	private:
 #ifdef ENGONE_PHYSICS
-		DepthMutex m_physicsMutex;
-		//Mutex m_physicsMutex;
+		// DepthMutex m_physicsMutex;
+		Mutex m_physicsMutex;
 		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
 #endif
 

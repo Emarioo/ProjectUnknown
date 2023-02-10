@@ -102,6 +102,6 @@ namespace engone {
 	}
 	RenderPipeline::~RenderPipeline() {
 		if (s_activePipeline == this)
-			s_activePipeline == nullptr;
+			s_activePipeline = nullptr;
 	}
 }

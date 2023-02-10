@@ -5,7 +5,7 @@
 #include "ProUnk/Combat/CombatData.h"
 #include "ProUnk/Registries/InventoryRegistry.h"
 
-#include "Engone/Utilities/FrameArray.h"
+#include "Engone/Structures/FrameArray.h"
 
 namespace prounk {
 

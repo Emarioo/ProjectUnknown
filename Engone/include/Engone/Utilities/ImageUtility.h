@@ -15,6 +15,8 @@ ico can store png in it's entirety. Read about the ICO format and do some testin
 
 */
 
+#include "Engone/Win32Includes.h"
+
 namespace engone {
 	class Image;
 	class RawImage;

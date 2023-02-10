@@ -1,14 +1,19 @@
 #pragma once
 
-#include "Engone/Utilities/Thread.h"
-#include "Engone/Utilities/Locks.h"
+// #include "Engone/Utilities/Thread.h"
+// #include "Engone/Utilities/Locks.h"
 #include "Engone/LogModule/LogTypes.h"
+
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 #ifdef ENGONE_PHYSICS
 #include "Engone/Utilities/rp3d.h"
 #endif
 
 #include "Engone/Utilities/Alloc.h"
+
+#include <unordered_map>
+#include <vector>
 
 namespace engone {
 	
@@ -74,6 +79,7 @@ namespace engone {
 
 	private:
 		Mutex m_printMutex;
+		
 		void print(char* str, int length);
 		struct ThreadInfo {
 			log::Color masterColor = log::NO_COLOR;
@@ -89,18 +95,19 @@ namespace engone {
 			// use some of ensured space
 			void use(uint32 bytes);
 		};
-		inline ThreadInfo& getThreadInfo() {
-			auto id = Thread::GetThisThreadId();
-			auto find = m_threadInfos.find(id);
-			if (find == m_threadInfos.end()) {
-				m_threadInfos[id] = {};
-;			}
-			return m_threadInfos[Thread::GetThisThreadId()];
-		}
+		ThreadInfo& getThreadInfo();
+// 		 {
+// 			auto id = Thread::GetThisThreadId();
+// 			auto find = m_threadInfos.find(id);
+// 			if (find == m_threadInfos.end()) {
+// 				m_threadInfos[id] = {};
+// ;			}
+// 			return m_threadInfos[Thread::GetThisThreadId()];
+// 		}
 		
 		std::unordered_map<ThreadId, ThreadInfo> m_threadInfos;
 
-		HANDLE m_consoleHandle = NULL; // used to change colors
+		void* m_consoleHandle = NULL; // used to change colors
 
 	};
 	namespace log {

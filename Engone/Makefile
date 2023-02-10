@@ -22,16 +22,14 @@ RESCOMP = windres
 PCH = include/Engone/pch.h
 PCH_PLACEHOLDER = $(OBJDIR)/$(notdir $(PCH))
 GCH = $(PCH_PLACEHOLDER).gch
-DEFINES += -DWIN32 -DENGONE_PHYSICS -DENGONE_OPENGL
+DEFINES += -DENGONE_PHYSICS -DENGONE_OPENGL -DGLEW_STATIC -DWIN32
 INCLUDES += -Iinclude -I../libs/GLFW/include -I../libs/GLEW/include -I../libs/reactphysics3d/include
 FORCE_INCLUDE += -include Engone/pch.h -include Engone/ModuleDefs.h
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++17 -g
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++17
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-LIBS += -lWs2_32 -lgdi32 -luser32 -lshell32 -lopengl32 -lwinmm -lglew64s -lglfw364 -lreactphysics3d
-LDDEPS +=
-ALL_LDFLAGS += $(LDFLAGS) -L../libs/GLFW/lib -L../libs/GLEW/lib -L../../ReactPhysics/build/Debug -L/usr/lib64 -m64
+ALL_LDFLAGS += $(LDFLAGS) -L../bin/Debug -L/usr/lib64 -m64
 LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
 define PREBUILDCMDS
 endef
@@ -44,11 +42,15 @@ ifeq ($(config),debug)
 TARGETDIR = ../bin/Engone/Debug
 TARGET = $(TARGETDIR)/Engone.lib
 OBJDIR = ../bin/intermediates/Engone/Debug
+LIBS += ../bin/Debug/glew.lib ../bin/Debug/glfw3.lib ../bin/Debug/rp3d.lib -lWs2_32 -lgdi32 -luser32 -lshell32 -lopengl32 -lwinmm
+LDDEPS += ../bin/Debug/glew.lib ../bin/Debug/glfw3.lib ../bin/Debug/rp3d.lib
 
 else ifeq ($(config),release)
 TARGETDIR = ../bin/Engone/Release
 TARGET = $(TARGETDIR)/Engone.lib
 OBJDIR = ../bin/intermediates/Engone/Release
+LIBS += ../bin/Release/glew.lib ../bin/Release/glfw3.lib ../bin/Release/rp3d.lib -lWs2_32 -lgdi32 -luser32 -lshell32 -lopengl32 -lwinmm
+LDDEPS += ../bin/Release/glew.lib ../bin/Release/glfw3.lib ../bin/Release/rp3d.lib
 
 endif
 
@@ -84,7 +86,6 @@ GENERATED += $(OBJDIR)/ImageUtility.o
 GENERATED += $(OBJDIR)/Libaudio.o
 GENERATED += $(OBJDIR)/Light.o
 GENERATED += $(OBJDIR)/Linux.o
-GENERATED += $(OBJDIR)/Locks.o
 GENERATED += $(OBJDIR)/LogLevels.o
 GENERATED += $(OBJDIR)/Logger.o
 GENERATED += $(OBJDIR)/NetworkModule.o
@@ -98,7 +99,6 @@ GENERATED += $(OBJDIR)/SoundSource.o
 GENERATED += $(OBJDIR)/SoundStream.o
 GENERATED += $(OBJDIR)/StableArray.o
 GENERATED += $(OBJDIR)/Stack.o
-GENERATED += $(OBJDIR)/Thread.o
 GENERATED += $(OBJDIR)/Tracker.o
 GENERATED += $(OBJDIR)/UIRenderer.o
 GENERATED += $(OBJDIR)/Utilities.o
@@ -129,7 +129,6 @@ OBJECTS += $(OBJDIR)/ImageUtility.o
 OBJECTS += $(OBJDIR)/Libaudio.o
 OBJECTS += $(OBJDIR)/Light.o
 OBJECTS += $(OBJDIR)/Linux.o
-OBJECTS += $(OBJDIR)/Locks.o
 OBJECTS += $(OBJDIR)/LogLevels.o
 OBJECTS += $(OBJDIR)/Logger.o
 OBJECTS += $(OBJDIR)/NetworkModule.o
@@ -143,7 +142,6 @@ OBJECTS += $(OBJDIR)/SoundSource.o
 OBJECTS += $(OBJDIR)/SoundStream.o
 OBJECTS += $(OBJDIR)/StableArray.o
 OBJECTS += $(OBJDIR)/Stack.o
-OBJECTS += $(OBJDIR)/Thread.o
 OBJECTS += $(OBJDIR)/Tracker.o
 OBJECTS += $(OBJDIR)/UIRenderer.o
 OBJECTS += $(OBJDIR)/Utilities.o
@@ -248,7 +246,7 @@ $(OBJDIR)/EventModule.o: src/Engone/Events/EventModule.cpp
 $(OBJDIR)/IMPLS.o: src/Engone/IMPLS.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Logger.o: src/Engone/Logging/Logger.cpp
+$(OBJDIR)/Logger.o: src/Engone/LogModule/Logger.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/NetworkModule.o: src/Engone/Networking/NetworkModule.cpp
@@ -302,43 +300,37 @@ $(OBJDIR)/SoundStream.o: src/Engone/Sound/SoundStream.cpp
 $(OBJDIR)/BasicRendering.o: src/Engone/Tests/BasicRendering.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Alloc.o: src/Engone/Utilites/Alloc.cpp
+$(OBJDIR)/Alloc.o: src/Engone/Utilities/Alloc.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/FileUtility.o: src/Engone/Utilites/FileUtility.cpp
+$(OBJDIR)/FileUtility.o: src/Engone/Utilities/FileUtility.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/FrameArray.o: src/Engone/Utilites/FrameArray.cpp
+$(OBJDIR)/FrameArray.o: src/Engone/Utilities/FrameArray.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/HashMap.o: src/Engone/Utilites/HashMap.cpp
+$(OBJDIR)/HashMap.o: src/Engone/Utilities/HashMap.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/ImageUtility.o: src/Engone/Utilites/ImageUtility.cpp
+$(OBJDIR)/ImageUtility.o: src/Engone/Utilities/ImageUtility.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Locks.o: src/Engone/Utilites/Locks.cpp
+$(OBJDIR)/LogLevels.o: src/Engone/Utilities/LogLevels.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/LogLevels.o: src/Engone/Utilites/LogLevels.cpp
+$(OBJDIR)/StableArray.o: src/Engone/Utilities/StableArray.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/StableArray.o: src/Engone/Utilites/StableArray.cpp
+$(OBJDIR)/Stack.o: src/Engone/Utilities/Stack.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Stack.o: src/Engone/Utilites/Stack.cpp
+$(OBJDIR)/Tracker.o: src/Engone/Utilities/Tracker.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Thread.o: src/Engone/Utilites/Thread.cpp
+$(OBJDIR)/Utilities.o: src/Engone/Utilities/Utilities.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Tracker.o: src/Engone/Utilites/Tracker.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/Utilities.o: src/Engone/Utilites/Utilities.cpp
-	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/rp3d.o: src/Engone/Utilites/rp3d.cpp
+$(OBJDIR)/rp3d.o: src/Engone/Utilities/rp3d.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/pch.o: src/Engone/pch.cpp

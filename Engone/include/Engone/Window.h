@@ -4,7 +4,8 @@
 #include "Engone/EventModule.h"
 
 #include "Engone/Core/ExecutionControl.h"
-#include "Engone/Utilities/Thread.h"
+// #include "Engone/Utilities/Thread.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 namespace engone {
 

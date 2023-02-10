@@ -6,11 +6,12 @@
 
 //#include <functional>
 //#include <unordered_map>
-//#include <thread>
+#include <thread>
+#include <mutex>
 
-#ifdef ENGONE_TRACKER
-#include "Engone/Utilities/Tracker.h"
-#endif
+// #ifdef ENGONE_TRACKER
+// #include "Engone/Utilities/Tracker.h"
+// #endif
 
 namespace engone {
 	class Connection;
@@ -39,9 +40,9 @@ namespace engone {
 		// Never mutex lock this. A deadlock may occur
 		void cleanup();
 
-#ifdef ENGONE_TRACKER
-		static TrackerId trackerId;
-#endif
+// #ifdef ENGONE_TRACKER
+// 		static TrackerId trackerId;
+// #endif
 	private:
 		bool keepRunning = false;
 

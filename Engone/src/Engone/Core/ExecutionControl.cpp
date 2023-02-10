@@ -2,6 +2,8 @@
 
 #include "Engone/Logger.h"
 
+#include "Engone/Win32Includes.h"
+
 namespace engone {
 	Execution::Execution(std::string name, int priority) {
 		m_executionName = name;

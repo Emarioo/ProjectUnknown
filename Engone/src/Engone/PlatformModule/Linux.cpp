@@ -1,7 +1,6 @@
-#include "Engone/PlatformModule/PlatformModule.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 // Todo: Compile for Linux and test the functions
-
 #ifdef _linux_
 
 #include <unistd.h>

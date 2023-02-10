@@ -4,12 +4,12 @@
 #include "Engone/Networking/Sender.h"
 #include "Engone/Networking/MessageBuffer.h"
 
-//#include <functional>
-//#include <thread>
+#include <thread>
+#include <mutex>
 
-#ifdef ENGONE_TRACKER
-#include "Engone/Utilities/Tracker.h"
-#endif
+// #ifdef ENGONE_TRACKER
+// #include "Engone/Utilities/Tracker.h"
+// #endif
 namespace engone {
 	class Connection;
 	class Client : public Sender {
@@ -33,9 +33,9 @@ namespace engone {
 		// Waits for everything to terminate unlike stop.
 		// Do not mutex lock this (risk for deadlock).
 		void cleanup();
-#ifdef ENGONE_TRACKER
-		static TrackerId trackerId;
-#endif
+// #ifdef ENGONE_TRACKER
+		// static TrackerId trackerId;
+// #endif
 	private:
 		bool keepRunning = false;
 		Connection* m_connection = nullptr;
@@ -55,7 +55,7 @@ namespace engone {
 		void work();
 
 		std::thread m_workerThread; // connect thread
-
+	
 		std::mutex m_mutex; // general mutex
 		int mutexDepth = 0;
 		std::thread::id m_mutexOwner;

@@ -7,12 +7,11 @@
 
 #include <condition_variable>
 
+#include "Engone/Win32Includes.h"
+
 //#ifdef _WIN32
 //#define _WIN32_WINNT 0x0A00
 //#endif
-//#define ASIO_STANDALONE
-//#include <asio.hpp>
-
 
 //#define _WIN32_WINNT 0x0501
 //#define WIN32_LEAN_AND_MEAN

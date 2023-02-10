@@ -9,10 +9,16 @@ ifndef verbose
 endif
 
 ifeq ($(config),debug)
+  glew_config = debug
+  glfw3_config = debug
+  rp3d_config = debug
   Engone_config = debug
   ProjectUnknown_config = debug
 
 else ifeq ($(config),release)
+  glew_config = release
+  glfw3_config = release
+  rp3d_config = release
   Engone_config = release
   ProjectUnknown_config = release
 
@@ -20,25 +26,46 @@ else
   $(error "invalid configuration $(config)")
 endif
 
-PROJECTS := Engone ProjectUnknown
+PROJECTS := glew glfw3 rp3d Engone ProjectUnknown
 
 .PHONY: all clean help $(PROJECTS) 
 
 all: $(PROJECTS)
 
-Engone:
+glew:
+ifneq (,$(glew_config))
+	@echo "==== Building glew ($(glew_config)) ===="
+	@${MAKE} --no-print-directory -C glew -f Makefile config=$(glew_config)
+endif
+
+glfw3:
+ifneq (,$(glfw3_config))
+	@echo "==== Building glfw3 ($(glfw3_config)) ===="
+	@${MAKE} --no-print-directory -C GLFW3 -f Makefile config=$(glfw3_config)
+endif
+
+rp3d:
+ifneq (,$(rp3d_config))
+	@echo "==== Building rp3d ($(rp3d_config)) ===="
+	@${MAKE} --no-print-directory -C rp3d -f Makefile config=$(rp3d_config)
+endif
+
+Engone: glew glfw3 rp3d
 ifneq (,$(Engone_config))
 	@echo "==== Building Engone ($(Engone_config)) ===="
 	@${MAKE} --no-print-directory -C Engone -f Makefile config=$(Engone_config)
 endif
 
-ProjectUnknown:
+ProjectUnknown: Engone glew glfw3 rp3d
 ifneq (,$(ProjectUnknown_config))
 	@echo "==== Building ProjectUnknown ($(ProjectUnknown_config)) ===="
 	@${MAKE} --no-print-directory -C ProjectUnknown -f Makefile config=$(ProjectUnknown_config)
 endif
 
 clean:
+	@${MAKE} --no-print-directory -C glew -f Makefile clean
+	@${MAKE} --no-print-directory -C GLFW3 -f Makefile clean
+	@${MAKE} --no-print-directory -C rp3d -f Makefile clean
 	@${MAKE} --no-print-directory -C Engone -f Makefile clean
 	@${MAKE} --no-print-directory -C ProjectUnknown -f Makefile clean
 
@@ -52,6 +79,9 @@ help:
 	@echo "TARGETS:"
 	@echo "   all (default)"
 	@echo "   clean"
+	@echo "   glew"
+	@echo "   glfw3"
+	@echo "   rp3d"
 	@echo "   Engone"
 	@echo "   ProjectUnknown"
 	@echo ""

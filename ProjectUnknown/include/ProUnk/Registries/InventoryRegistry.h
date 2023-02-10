@@ -7,7 +7,7 @@
 
 #include "Engone/Assets/ModelAsset.h"
 
-#include "Engone/Utilities/FrameArray.h"
+#include "Engone/Structures/FrameArray.h"
 
 namespace prounk {
 	class Item {

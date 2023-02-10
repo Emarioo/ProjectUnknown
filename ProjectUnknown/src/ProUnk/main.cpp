@@ -21,6 +21,9 @@ void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
 
+	// FileReader reader("");
+
+	return;
 	//printf("Size: %d %d\n", sizeof(EngineObject),sizeof(std::mutex));
 
 	//char mem[sizeof(EngineObject)];

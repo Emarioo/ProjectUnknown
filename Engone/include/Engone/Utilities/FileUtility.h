@@ -2,13 +2,14 @@
 #ifndef ENGONE_FILEUTIL_GUARD
 #define ENGONE_FILEUTIL_GUARD
 
+// #define ENGONE_TRACKER
 #ifdef ENGONE_LOGGER
 #include "Engone/Logger.h"
 #endif
 #include "Engone/Error.h"
-#ifdef ENGONE_TRACKER
-#include "Engone/Utilities/Tracker.h"
-#endif
+// #ifdef ENGONE_TRACKER
+// #include "Engone/Utilities/Tracker.h"
+// #endif
 namespace engone {
 	// FILE
 	//enum FileError : char {
@@ -93,7 +94,7 @@ namespace engone {
 		}
 		void write(const std::string* var);
 		void writeComment(const std::string& str);
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 
 	private:
 		bool binaryForm = false;
@@ -234,7 +235,7 @@ namespace engone {
 		void readAll(std::string* var);
 		// Does not include \n
 		std::vector<std::string> readLines(bool includeNewLine = false);
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		bool binaryForm = false;
 		uint32_t readHead = 0;

@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Engone/LoopInfo.h"
-#include "Engone/Utilities/Locks.h"
+// #include "Engone/Utilities/Locks.h"
 // #include "Engone/Utilities/Thread.h"
 #include "Engone/Utilities/TimeUtility.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 namespace engone {
 

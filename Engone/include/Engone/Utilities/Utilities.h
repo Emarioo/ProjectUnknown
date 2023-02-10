@@ -10,6 +10,8 @@
 #include "Engone//Utilities/ImageUtility.h"
 #include "Engone/Utilities/Alloc.h"
 
+#include "Engone/PlatformModule/PlatformLayer.h"
+
 namespace engone {
 
 	std::vector<std::string> SplitString(std::string text, std::string delim);
@@ -233,15 +235,17 @@ namespace engone {
 		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
 		uint32 m_flags = 0;
 
-		HANDLE m_changeHandle=NULL;
-		std::mutex m_mutex;
-		std::thread m_thread;
+		void* m_changeHandle=NULL;
+		Mutex m_mutex;
+		Thread m_thread;
 		//HANDLE m_threadHandle = NULL; // used to cancel ReadDirectoryChangesW
 	
-		HANDLE m_dirHandle = NULL;
+		void* m_dirHandle = NULL;
 		void* m_buffer=nullptr;
 		uint32 m_bufferSize=0;
 		static const uint32 INITIAL_SIZE = 5 * (sizeof(FILE_NOTIFY_INFORMATION) + 500);
+	
+		friend uint32 RunMonitor(void* arg);
 	};
 	
 	// You set a threads name with it. Use -1 as threadId if you want to set the name for the current thread.

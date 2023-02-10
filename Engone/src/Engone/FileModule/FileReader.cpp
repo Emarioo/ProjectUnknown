@@ -1,22 +1,10 @@
 #include "Engone/FileModule/FileReader.h"
 
+#include <vector>
+#include <string>
 
-#ifdef ENGONE_LOGGER
-#include "Engone/Logger.h"
-#endif
+// #include "Engone/Logger.h"
 namespace engone {
-	//	const char* toString(FileError e) {
-	//		switch (e) {
-	//		case FileErrorMissing: return "Missing File";
-	//		case FileErrorCorrupted: return "Corrupted Data";
-	//		}
-	//		return "";
-	//	}
-	//#ifdef ENGONE_LOGGER
-	//	Logger& operator<<(Logger& log, FileError value) {
-	//		return log << toString(value);
-	//	}
-	//#endif // ENGONE_LOGGER
 	//bool FindFile(const std::string& path) {
 	//	struct stat buffer;
 	//	return (stat(path.c_str(), &buffer) == 0);
@@ -36,186 +24,203 @@ namespace engone {
 	//	return 0;
 	//}
 	FileReader::FileReader(const std::string& path, bool binaryForm) : binaryForm(binaryForm) {
-		m_file = engone::OpenFile(path.c_str(),&m_fileSize);
+		m_file = engone::FileOpen(path.c_str(),&m_fileSize,true);
 		if (!m_file) {
 			m_error = FileNotFound;
 			return;
 		}
-		bool yes = buffer.resize(m_fileSize);
+		bool yes = m_buffer.resize(BYTES_PER_READ);
 		if (!yes) {
 			m_error = AllocFailure;
 			return;
-
 		}
 		m_path = path;
-		uint64 bytes = engone::ReadFile(m_file, buffer.data, m_fileSize);
-		Assert(bytes==m_fileSize);
-
-		close();
+		uint64 bytes = engone::FileRead(m_file, m_buffer.data, BYTES_PER_READ);
+		m_buffer.used=bytes;
+		
+		if(bytes==m_fileSize){
+			close();
+		}
 	}
 	FileReader::~FileReader() {
-		close();
 		cleanup();
 	}
 	void FileReader::close() {
-		engone::CloseFile(m_file);
+		engone::FileClose(m_file);
 		m_file = 0;
 	}
 	void FileReader::cleanup() {
-		buffer.resize(0);
+		m_path.clear();
+		close();
+		m_fileSize = 0;
+		m_fileHead = 0;	
+		m_error = NoError;
+		m_bufferHead = 0;
+		m_buffer.resize(0);
 	}
-	bool FileReader::read(char* var, uint32 bytes) {
-		if (var == nullptr)
-			return false;
-		if (bytes == 0)
+	bool FileReader::read(void* ptr, uint64 bytes){
+		Assert(ptr)
+		uint64 bytesInBuffer = m_buffer.used - m_bufferHead;
+		if(bytesInBuffer >= bytes){
+			// Bytes exist in buffer, read them
+			memcpy(ptr,m_buffer.data,bytes);
+			m_bufferHead += bytes;
 			return true;
-
-		if (m_fileSize < m_bufferReadHead + bytes) {
-			m_error = EndOfFile;
-			return false;
 		}
 		
-		memcpy(var,buffer.data+m_bufferReadHead,bytes);
-		m_readHead += bytes;
-		m_bufferReadHead += bytes;
-		return false;
-	}
-	bool FileReader::read(std::string& var) {
-		if(!binaryForm)
-			return readLine(var);
-		uint8 length;
-		bool yes =read(&length);
-		if (!yes)
-			return false;
-
-		if (length == 0u)
-			return true;
-
-		if (buffer.used < m_bufferReadHead + length) {
+		uint64 bytesInFile = m_fileSize - m_fileHead;
+		if(bytesInBuffer+bytesInFile < bytes || !m_file){
 			m_error = EndOfFile;
-			return false;
-		}
-
-		var.resize(length);
-
-		memcpy(buffer.data+m_bufferReadHead,var.data(),length);
-		m_bufferReadHead += length;
-		m_readHead += length;
-		return true;
-	}
-	bool FileReader::readLine(std::string& line) {
-		line.clear();
-		while(true) {
-			if (buffer.used<=m_bufferReadHead) {
-				return line.size()!=0;
-			}
-			if (buffer.data[m_bufferReadHead] == '\n') {
-				return true;
-			}
-			if(buffer.data[m_bufferReadHead]!='\r')
-				line += buffer.data[m_bufferReadHead];
-			m_bufferReadHead++;
-		}
-	}
-	bool FileReader::readNumbers(char* var, uint32 intSize, uint32 count) {
-		if (var == nullptr)
-			return false;
-		if (count == 0 || intSize == 0) {
-			return true;
-		}
-		if (binaryForm) {
-			return read(var, intSize * count);
+			return false; // not enough bytes in buffer and file
 		}
 		
-		std::string line;
-		std::vector<std::string> numbers;
-		while (numbers.size() < count) {
-			// requires buffer
-			bool yes = readLine(line);
-			
-			if(!yes) {
-				m_error = EndOfFile;
+		memcpy(ptr,m_buffer.data,bytesInBuffer);
+		char* outPtr = (char*)ptr+bytesInBuffer;
+		m_bufferHead = 0;
+		
+		uint64 bytesLeft = bytes-bytesInBuffer;
+		while(true){
+			uint64 readBytes = FileRead(m_file,m_buffer.data,BYTES_PER_READ);
+			if(readBytes==-1){
+				// there should be bytes left, we checked m_fileSize, something else is going on
+				m_error = DataWasLost;
+				Assert(("FileReader : DataWasLost",false));
 				return false;
 			}
-			if (line[0] == '#')
-				continue;
-			if (line.back() == '\r')
-				line.erase(line.end() - 1);
-
-			// one two three
-			const std::string delim = " ";
-			int lastAt = 0;
-			while (true) {
-				int at = line.find(delim, lastAt);
-				if (at == -1) {
-					break;
-				}
-				std::string push = line.substr(lastAt, at - lastAt);
-				numbers.push_back(push);
-				lastAt = at + 1;
-			}
-			if (lastAt != line.size() || lastAt == 0)
-				numbers.push_back(line.substr(lastAt));
-			//readNumbers = SplitString(line, " "); // could use this instead but that would mean this header requires Utilities.h.
-		}
-
-		uint32 index = 0;
-		for (auto& num : numbers) {
-			if (num.find('.') == -1) {
-				// not decimal
-				if (intSize == sizeof(int8)) {
-					try {
-						((int8*)var)[index] = std::stoi(num);
-					} catch (std::out_of_range e) {
-						((int8*)var)[index] = std::stoull(num);
-					}
-				}else if (intSize == sizeof(int16)) {
-					try {
-						((int16*)var)[index] = std::stoi(num);
-					} catch (std::out_of_range e) {
-						((int16*)var)[index] = std::stoull(num);
-					}
-				}else  if (intSize == sizeof(int32)) {
-					try {
-						((int32*)var)[index] = std::stoi(num);
-					} catch (std::out_of_range e) {
-						((int32*)var)[index] = std::stoull(num);
-					}
-				}else if (intSize == sizeof(int64)) {
-					try {
-						((int64*)var)[index] = std::stoi(num);
-					} catch (std::out_of_range e) {
-						((int64*)var)[index] = std::stoull(num);
-					}
-				}
+			m_fileHead += readBytes;
+			m_buffer.used = readBytes;
+			
+			if(readBytes>=bytesLeft){
+				// we done
+				memcpy(outPtr,m_buffer.data,bytesLeft);
+				m_bufferHead += bytesLeft;
+				return true;
+			} else if(readBytes==BYTES_PER_READ){
+				// cool but we need more	
+				memcpy(outPtr,m_buffer.data,BYTES_PER_READ);
+				outPtr+=BYTES_PER_READ;
 			} else {
-				if (intSize == sizeof(float)) {
-					((float*)var)[index++] = std::stof(num);
-				} else if (intSize == sizeof(double)) {
-					((double*)var)[index++] = std::stof(num);
-				}
+				// no more ):
+				m_error = DataWasLost;
+				return false;
 			}
 		}
-		return true;
+		return false;
 	}
-	void FileReader::readAll(std::string& var) {
-		// works the same for both forms
-		var.clear();
-		uint64 bytes = m_fileSize - m_readHead;
-		var.resize(bytes);
 		
-		memcpy(var.data(),buffer.data,bytes);
-	}
-	std::vector<std::string> FileReader::readLines(bool includeNewLine) {
-		std::vector<std::string> lines;
-		std::string line;
-		while (true) {
-			bool yes = readLine(line);
-			if (!yes) break;
-			if(includeNewLine)
-				line += "\n";
-			lines.push_back(line);
+	uint64 FileReader::readLine(std::string& line) {
+		line.clear();
+		while(true) {
+			int bytesLeft = m_buffer.used-m_bufferHead;
+			Assert(bytesLeft>=0)
+			
+			if(bytesLeft==0){
+				uint64 readBytes = 0;
+				if(m_file)
+					readBytes = FileRead(m_file,m_buffer.data,BYTES_PER_READ);
+					
+				if(readBytes==-1){
+					// Todo: Use a different error when m_file == 0?
+					m_error = EndOfFile;
+					break;
+				}	
+				m_fileHead += readBytes;
+				m_buffer.used = readBytes;
+				m_bufferHead = 0;
+				if(readBytes==0){
+					m_error = EndOfFile;
+					break; // no more bytes to read, end of line
+				}
+			}
+			
+			if(m_buffer.data[m_bufferHead]=='\n'){
+				m_bufferHead++;
+				break;
+			}
+			if(m_buffer.data[m_bufferHead]=='\r'){
+				m_bufferHead++;
+				continue;
+			}
+			
+			line += m_buffer.data[m_bufferHead++];
 		}
-		return lines;
+		return line.length();
 	}
+	uint64 FileReader::readNumbers(char* ptr, uint64 count, uint typeSize, bool isFloat) {
+		Assert(ptr)
+		if (binaryForm) {
+			return read(ptr, typeSize * count);
+		}
+		
+		int numberCount=0;
+		std::string number;
+		while(numberCount!=count){
+			int bytesLeft = m_buffer.used-m_bufferHead;
+			Assert(bytesLeft>=0)
+			
+			bool lastNumber=false;
+			bool endNumber=false;
+			if(bytesLeft==0){
+				uint64 readBytes = 0;
+				if(m_file)
+					readBytes = FileRead(m_file,m_buffer.data,BYTES_PER_READ);
+					
+				if(readBytes==-1){
+					// Todo: Use a different error when m_file == 0?
+					m_error = EndOfFile;
+					return false;
+				}	
+				m_buffer.used = readBytes;
+				m_bufferHead=0;
+				m_fileHead += readBytes;
+				if(readBytes==0){
+					lastNumber=true;
+					endNumber=true;
+					m_error = EndOfFile;
+				}
+			}
+			if(!lastNumber){
+				char chr = m_buffer.data[m_bufferHead];
+				m_bufferHead++;
+				if(chr=='\r'){ // just skip
+					continue;
+				}
+				if(chr=='\n' || chr==' '){
+					endNumber=true;
+				}else{
+					number+=chr;
+					continue;
+				}
+			}
+			
+			if(endNumber&&!number.empty()){
+				numberCount++;
+				double num = atof(number.c_str());
+			
+				if(isFloat){
+					if(typeSize==sizeof(float)){*((float*)ptr) = num;ptr += typeSize;}
+					else if(typeSize==sizeof(double)){*((double*)ptr) = num;ptr += typeSize;}
+				}else{
+					if(typeSize==sizeof(int8)){*((int8*)ptr) = num;ptr += typeSize;}
+					else if(typeSize==sizeof(int16)){*((int16*)ptr) = num;ptr += typeSize;}
+					else if(typeSize==sizeof(int32)){*((int32*)ptr) = num;ptr += typeSize;}
+					else if(typeSize==sizeof(int64)){*((int64*)ptr) = num;ptr += typeSize;}
+				}
+				
+				number.clear();
+			}
+			if(lastNumber)
+				break;
+		}
+		return numberCount;
+	}
+	#define GEN_READ_TYPE(TYPE,FLOATY)\
+	bool FileReader::read_##TYPE(TYPE* ptr, uint64 count){\
+		return count==readNumbers((char*)ptr,count,sizeof(TYPE),FLOATY);}\
+		
+	GEN_READ_TYPE(int16,false)
+	GEN_READ_TYPE(int,false)
+	GEN_READ_TYPE(int64,false)
+	GEN_READ_TYPE(float,true)
+	GEN_READ_TYPE(double,true)
 }

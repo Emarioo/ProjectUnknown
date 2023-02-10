@@ -54,7 +54,7 @@ namespace engone {
 		return;
 		if (!m_rigidBody)
 			return;
-		if ((m_flags & ONLY_TRIGGER) == yes)
+		if ((m_flags & ONLY_TRIGGER) && yes)
 			return;
 			
 		if (yes) m_flags |= ONLY_TRIGGER;

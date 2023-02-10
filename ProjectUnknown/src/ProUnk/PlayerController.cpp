@@ -17,7 +17,7 @@ namespace prounk {
 	void PlayerController::setPlayerObject(engone::UUID player) {
 		m_playerId = player;
 
-		//setFlight(true);
+		// setFlight(true);
 	}
 	//void PlayerController::setPlayerObject(engone::EngineObject* player) {
 	//	m_player = player;

@@ -799,6 +799,6 @@ namespace engone {
 	}
 	CommonRenderer::~CommonRenderer() {
 		if (s_activeRenderer == this)
-			s_activeRenderer == nullptr;
+			s_activeRenderer = nullptr;
 	}
 }

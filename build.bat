@@ -1,70 +1,72 @@
-@ECHO OFF
-@setlocal enabledelayedexpansion
-SET vcvars="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+@echo OFF
 
-call %vcvars%
+call gen_engone.bat
+call gen_prounk.bat
 
-ECHO -----   Find Files    ------
-SET files=
+gcc main.c -o app.exe
 
-@REM Aquire files
-for /r %%i in (*.cpp) do (
-    SET file=%%i
+@REM @ECHO OFF
+@REM @setlocal enabledelayedexpansion
+
+@REM @REM Setup MSVC cl environment
+@REM SET vcvars="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+@REM call %vcvars%
+
+@REM @REM -----   Variables   -------
+@REM SET defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER
+@REM SET includes=/FI Engone/pch.h
+@REM SET includedirs=/IEngone/include /Ilibs/GLFW/include /Ilibs/GLEW/include /Ilibs/reactphysics3d/include /IProjectUnknown/include 
+
+@REM @REM -----   Find Files    ------
+@REM SET cppfiles=
+@REM SET objfiles=
+@REM @REM Aquire files
+@REM for /r %%i in (*.cpp) do (
+@REM     SET file=%%i
     
-    @REM ECHO !file!
-    
-    @REM Blacklist files
-    if "x!file:old=!"=="x!file!" if "x!file:vendor=!"=="x!file!" if not "x!file:cpp=!"=="x!file!" if not "x!file:Engone=!"=="x!file!" (
-        call :ADD
-    )
-)
+@REM     @REM Blacklist/Whitelist files
+@REM     if "x!file:old=!"=="x!file!" if "x!file:vendor=!"=="x!file!" if "x!file:FileModule=!"=="x!file!" if not "x!file:ProUnk=!"=="x!file!" (
+@REM     @REM if "x!file:old=!"=="x!file!" if "x!file:vendor=!"=="x!file!" if "x!file:FileModule=!"=="x!file!" if not "x!file:Engone=!"=="x!file!" (
+        
+@REM         call :sub !file!
+@REM         SET cppfiles=!cppfiles! !file!
+@REM     )
+@REM )
 
-goto END
-:ADD
-SET files=!files! !file!
-@REM ECHO !file!
-exit /b
+@REM goto SKIPPED
+@REM :sub
 
-:END
+@REM SET objfile=bin/garb/%~nx1.obj
+@REM SET objfile=!objfile:.cpp=!
 
-@REM ECHO !files!
+@REM @REM XCOPY is used to detect file changes. findstr is used to detect whether XCOPY did detect changes or not. cl compiles the file
+@REM ECHO F | XCOPY "!file!" "!objfile!" /D /q /L /Y /i | findstr /B /C:"1 " && cl /c /std:c++17 /TP /EHsc /MTd %includes% !file! %defines% %includedirs% /Fo!objfile!
 
-SET includes=/IEngone/include /Ilibs/GLFW/include /Ilibs/GLEW/include /Ilibs/reactphysics3d/include
-@REM /IProjectUnknown/include 
-SET libs=reactphysics3d.lib glew64s.lib glfw364.lib
-SET libdirs=/link /LIBPATH:../ReactPhysics/build/Debug /link /LIBPATH:libs/GLFW/lib /link /LIBPATH:libs/GLEW/lib
+@REM SET objfiles=!objfiles! !objfile!
 
-cl /std:c++17 /TP /FI Engone/pch.h !files! %includes% /Fobin/garb/ %libdirs% %libs% /Fe:bin/engone.exe
+@REM exit /b
+@REM :SKIPPED
 
-@REM cd test
+@REM @REM -- links {"Ws2_32.lib","gdi32.lib","user32.lib","shell32.lib","opengl32.lib","winmm.lib","glew64s","glfw364.lib","reactphysics3d.lib"
+@REM @REM SET libs=reactphysics3d.lib glew64s.lib glfw364.lib
 
-@REM @REM Compiles with RP3D successfully
-@REM cl /std:c++17 phys.cpp /MTd /Ilibs/reactphysics3d/include /link /libpath:../../ReactPhysics/build/Debug reactphysics3d.lib
+@REM @REM SET libs=Ws2_32.lib gdi32.lib user32.lib shell32.lib opengl32.lib winmm.lib glew64s.lib glfw364.lib reactphysics3d.lib
+@REM @REM SET libdirs=/LIBPATH:../ReactPhysics/build/Debug /LIBPATH:libs/GLFW/lib /LIBPATH:libs/GLEW/lib
+@REM @REM lib !objfiles! /OUT:bin/Engone.lib
 
-@REM @REM Compiles with some random lib
-@REM cl /c /std:c++17 mylib.cpp /Fo:cl_mylib.obj
-@REM lib cl_mylib.obj /OUT:cl_mylib.lib
-@REM cl /std:c++17 main.cpp cl_mylib.lib /Fe:cl_main.exe
+@REM @REM .obj needs to be cleaned if you change includes or defines. Not libs though. .lib is only linked during creation of Engone.lib or .exe
+@REM @REM echo y | del bin\garb\*
 
-@REM @REM Also compiles with random lib
-@REM gcc -c -std=c++17 mylib.cpp -o gcc_mylib.o
-@REM ar rcs gcc_mylib.lib gcc_mylib.o
-@REM gcc -std=c++17 main.cpp -L. -lgcc_mylib -o gcc_main.exe
+@REM @REM You seem to need
 
-@REM ECHO ---  CL  ---
-@REM cl_main
-@REM ECHO ---  GCC  ---
-@REM gcc_main
+@REM SET libs=Engone.lib Ws2_32.lib gdi32.lib user32.lib shell32.lib opengl32.lib winmm.lib glew64s.lib glfw364.lib reactphysics3d.lib
+@REM SET libdirs=/LIBPATH:bin /LIBPATH:../ReactPhysics/build/Debug /LIBPATH:libs/GLFW/lib /LIBPATH:libs/GLEW/lib
+@REM link !objfiles! %libdirs% %libs% /OUT:bin/ProjectUnknown.exe
 
-@REM @REM Doesn't work
-@REM cl /std:c++17 main.cpp /MTd gcc_mylib.lib /Fe:cl_main.exe
+@REM @REM cl /std:c++17 /TP /EHsc /MTd /FI Engone/pch.h /Fe:bin/engone.exe !files! %defines% %includes% /Fobin/garb/ /link %libdirs% %libs%
+@REM @REM /EHsc something with exceptions. compiler complained.
 
-@REM @REM Doesn't work
-@REM gcc -std=c++17 main.cpp -L. -lcl_mylib -o gcc_main.exe
-@REM ECHO Combining them does not work
+@REM @REM Todo: Precompiled Headers
+@REM @REM Todo: Per file object compilation with the resulting objects being linked into a .lib
 
-@REM del *.obj *.o
-
-@REM cd ..
-
-endlocal
+@REM endlocal

@@ -19,16 +19,17 @@ endif
 # #############################################
 
 RESCOMP = windres
-DEFINES += -DWIN32 -DENGONE_PHYSICS -DENGONE_OPENGL
+PCH = include/ProUnk/pch.h
+PCH_PLACEHOLDER = $(OBJDIR)/$(notdir $(PCH))
+GCH = $(PCH_PLACEHOLDER).gch
+DEFINES += -DENGONE_PHYSICS -DENGONE_OPENGL -DGLEW_STATIC
 INCLUDES += -Iinclude -I../Engone/include -I../libs/GLFW/include -I../libs/GLEW/include -I../libs/reactphysics3d/include
 FORCE_INCLUDE += -include ProUnk/pch.h -include Engone/ModuleDefs.h
 ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++17 -g
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c++17
 ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-LIBS += -lreactphysics3d
-LDDEPS +=
-ALL_LDFLAGS += $(LDFLAGS) -L../../ReactPhysics/build/Debug -L/usr/lib64 -m64
+ALL_LDFLAGS += $(LDFLAGS) -L../bin/Engone/Debug -L../bin/Debug -L/usr/lib64 -m64
 LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
 define PREBUILDCMDS
 endef
@@ -41,11 +42,15 @@ ifeq ($(config),debug)
 TARGETDIR = ../bin/ProjectUnknown/Debug
 TARGET = $(TARGETDIR)/ProjectUnknown.exe
 OBJDIR = ../bin/intermediates/ProjectUnknown/Debug
+LIBS += ../bin/Engone/Debug/Engone.lib ../bin/Debug/glew.lib ../bin/Debug/glfw3.lib ../bin/Debug/rp3d.lib -lWs2_32 -lgdi32 -luser32 -lshell32 -lopengl32 -lwinmm
+LDDEPS += ../bin/Engone/Debug/Engone.lib ../bin/Debug/glew.lib ../bin/Debug/glfw3.lib ../bin/Debug/rp3d.lib
 
 else ifeq ($(config),release)
 TARGETDIR = ../bin/ProjectUnknown/Release
 TARGET = $(TARGETDIR)/ProjectUnknown.exe
 OBJDIR = ../bin/intermediates/ProjectUnknown/Release
+LIBS += ../bin/Engone/Release/Engone.lib ../bin/Release/glew.lib ../bin/Release/glfw3.lib ../bin/Release/rp3d.lib -lWs2_32 -lgdi32 -luser32 -lshell32 -lopengl32 -lwinmm
+LDDEPS += ../bin/Engone/Release/Engone.lib ../bin/Release/glew.lib ../bin/Release/glfw3.lib ../bin/Release/rp3d.lib
 
 endif
 
@@ -59,8 +64,82 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/test.o
-OBJECTS += $(OBJDIR)/test.o
+GENERATED += $(OBJDIR)/BasicObjects.o
+GENERATED += $(OBJDIR)/CheatPanel.o
+GENERATED += $(OBJDIR)/Combat.o
+GENERATED += $(OBJDIR)/CombatData.o
+GENERATED += $(OBJDIR)/ComplexDataRegistry.o
+GENERATED += $(OBJDIR)/CraftingPanel.o
+GENERATED += $(OBJDIR)/DataHandlerTest.o
+GENERATED += $(OBJDIR)/DebugInfo.o
+GENERATED += $(OBJDIR)/Dimension.o
+GENERATED += $(OBJDIR)/Dungeon.o
+GENERATED += $(OBJDIR)/GameApp.o
+GENERATED += $(OBJDIR)/GameStatistics.o
+GENERATED += $(OBJDIR)/InformativeTips.o
+GENERATED += $(OBJDIR)/IntroScene.o
+GENERATED += $(OBJDIR)/InvUtility.o
+GENERATED += $(OBJDIR)/InventoryPanel.o
+GENERATED += $(OBJDIR)/InventoryRegistry.o
+GENERATED += $(OBJDIR)/ItemTypeRegistry.o
+GENERATED += $(OBJDIR)/Keybindings.o
+GENERATED += $(OBJDIR)/Magic.o
+GENERATED += $(OBJDIR)/MasterInventoryPanel.o
+GENERATED += $(OBJDIR)/MasterRegistry.o
+GENERATED += $(OBJDIR)/ModelRegistry.o
+GENERATED += $(OBJDIR)/NetProtocols.o
+GENERATED += $(OBJDIR)/ObjectInfoRegistry.o
+GENERATED += $(OBJDIR)/PanelHandler.o
+GENERATED += $(OBJDIR)/PlayerBarPanel.o
+GENERATED += $(OBJDIR)/PlayerController.o
+GENERATED += $(OBJDIR)/RecipeRegistry.o
+GENERATED += $(OBJDIR)/Session.o
+GENERATED += $(OBJDIR)/SessionPanel.o
+GENERATED += $(OBJDIR)/Shaders.o
+GENERATED += $(OBJDIR)/Skills.o
+GENERATED += $(OBJDIR)/Tags.o
+GENERATED += $(OBJDIR)/UITest.o
+GENERATED += $(OBJDIR)/VisualEffect.o
+GENERATED += $(OBJDIR)/main.o
+GENERATED += $(OBJDIR)/pch.o
+OBJECTS += $(OBJDIR)/BasicObjects.o
+OBJECTS += $(OBJDIR)/CheatPanel.o
+OBJECTS += $(OBJDIR)/Combat.o
+OBJECTS += $(OBJDIR)/CombatData.o
+OBJECTS += $(OBJDIR)/ComplexDataRegistry.o
+OBJECTS += $(OBJDIR)/CraftingPanel.o
+OBJECTS += $(OBJDIR)/DataHandlerTest.o
+OBJECTS += $(OBJDIR)/DebugInfo.o
+OBJECTS += $(OBJDIR)/Dimension.o
+OBJECTS += $(OBJDIR)/Dungeon.o
+OBJECTS += $(OBJDIR)/GameApp.o
+OBJECTS += $(OBJDIR)/GameStatistics.o
+OBJECTS += $(OBJDIR)/InformativeTips.o
+OBJECTS += $(OBJDIR)/IntroScene.o
+OBJECTS += $(OBJDIR)/InvUtility.o
+OBJECTS += $(OBJDIR)/InventoryPanel.o
+OBJECTS += $(OBJDIR)/InventoryRegistry.o
+OBJECTS += $(OBJDIR)/ItemTypeRegistry.o
+OBJECTS += $(OBJDIR)/Keybindings.o
+OBJECTS += $(OBJDIR)/Magic.o
+OBJECTS += $(OBJDIR)/MasterInventoryPanel.o
+OBJECTS += $(OBJDIR)/MasterRegistry.o
+OBJECTS += $(OBJDIR)/ModelRegistry.o
+OBJECTS += $(OBJDIR)/NetProtocols.o
+OBJECTS += $(OBJDIR)/ObjectInfoRegistry.o
+OBJECTS += $(OBJDIR)/PanelHandler.o
+OBJECTS += $(OBJDIR)/PlayerBarPanel.o
+OBJECTS += $(OBJDIR)/PlayerController.o
+OBJECTS += $(OBJDIR)/RecipeRegistry.o
+OBJECTS += $(OBJDIR)/Session.o
+OBJECTS += $(OBJDIR)/SessionPanel.o
+OBJECTS += $(OBJDIR)/Shaders.o
+OBJECTS += $(OBJDIR)/Skills.o
+OBJECTS += $(OBJDIR)/Tags.o
+OBJECTS += $(OBJDIR)/UITest.o
+OBJECTS += $(OBJDIR)/VisualEffect.o
+OBJECTS += $(OBJDIR)/main.o
+OBJECTS += $(OBJDIR)/pch.o
 
 # Rules
 # #############################################
@@ -124,9 +203,120 @@ endif
 # File Rules
 # #############################################
 
-$(OBJDIR)/test.o: src/ProUnk/test.cpp
+$(OBJDIR)/Combat.o: src/ProUnk/Combat/Combat.cpp
 	@echo "$(notdir $<)"
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CombatData.o: src/ProUnk/Combat/CombatData.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Skills.o: src/ProUnk/Combat/Skills.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/VisualEffect.o: src/ProUnk/Effects/VisualEffect.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/GameApp.o: src/ProUnk/GameApp.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Keybindings.o: src/ProUnk/Keybindings.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Magic.o: src/ProUnk/Magic.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/NetProtocols.o: src/ProUnk/Network/NetProtocols.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/BasicObjects.o: src/ProUnk/Objects/BasicObjects.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Tags.o: src/ProUnk/Objects/Tags.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/GameStatistics.o: src/ProUnk/Other/GameStatistics.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/InformativeTips.o: src/ProUnk/Other/InformativeTips.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PlayerController.o: src/ProUnk/PlayerController.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/ComplexDataRegistry.o: src/ProUnk/Registries/ComplexDataRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/InventoryRegistry.o: src/ProUnk/Registries/InventoryRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/ItemTypeRegistry.o: src/ProUnk/Registries/ItemTypeRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/MasterRegistry.o: src/ProUnk/Registries/MasterRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/ModelRegistry.o: src/ProUnk/Registries/ModelRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/ObjectInfoRegistry.o: src/ProUnk/Registries/ObjectInfoRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/RecipeRegistry.o: src/ProUnk/Registries/RecipeRegistry.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Shaders.o: src/ProUnk/Shaders.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/DataHandlerTest.o: src/ProUnk/Test/DataHandlerTest.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CheatPanel.o: src/ProUnk/UI/CheatPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/CraftingPanel.o: src/ProUnk/UI/CraftingPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/DebugInfo.o: src/ProUnk/UI/DebugInfo.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/IntroScene.o: src/ProUnk/UI/IntroScene.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/InvUtility.o: src/ProUnk/UI/InvUtility.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/InventoryPanel.o: src/ProUnk/UI/InventoryPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/MasterInventoryPanel.o: src/ProUnk/UI/MasterInventoryPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PanelHandler.o: src/ProUnk/UI/PanelHandler.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/PlayerBarPanel.o: src/ProUnk/UI/PlayerBarPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/SessionPanel.o: src/ProUnk/UI/SessionPanel.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/UITest.o: src/ProUnk/UI/UITest.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Dimension.o: src/ProUnk/World/Dimension.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Dungeon.o: src/ProUnk/World/Dungeon.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Session.o: src/ProUnk/World/Session.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/main.o: src/ProUnk/main.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/pch.o: src/ProUnk/pch.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
 -include $(OBJECTS:%.o=%.d)
 ifneq (,$(PCH))

@@ -9,7 +9,8 @@ const char* test2dGLSL = {
 #include "Engone/Tests/BasicRendering.h"
 
 #include "Engone/Core/ExecutionControl.h"
-#include "Engone/Utilities/Thread.h"
+// #include "Engone/Utilities/Thread.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 
 // #ifdef WIN32
 // extern "C" {
@@ -119,48 +120,89 @@ namespace engone {
 			log::out << "No tracked memory leak\n";
 		}
 	}
+	uint32 RunWindow(void* arg){
+		Window* win = (Window*)arg;
+		Application* app = win->getParent();
+		while (app->isMultiThreaded()) {
+			win->getExecTimer().step();
+			LoopInfo info;
+			info.app = app;
+			info.window = win;
+			info.timeStep = win->getExecTimer().aimedDelta;
+
+			//while (win->getExecTimer().accumulate()) {
+			win->getControl().execute(info, ExecutionControl::RENDER);
+
+			// In case execute takes 0 seconds the thread should sleep for a little bit
+			// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+			engone::Sleep(1/120.f);
+		}
+		return (uint32)0;
+	}
+	uint32 RunApplication(void* arg){
+		Application* app = (Application*)arg;
+		while (app->isMultiThreaded()) {
+			// keep looping as long as the app has threading active.
+			// Todo: isThreaded && isWindowActive
+			app->getExecTimer().step();
+			LoopInfo info;
+			info.app = app;
+			info.window = app->getWindow(0);
+			info.timeStep = app->getExecTimer().aimedDelta;
+
+			while (app->getExecTimer().accumulate()) {
+				app->getControl().execute(info, ExecutionControl::UPDATE);
+			}
+			// In case execute takes 0 seconds the thread should sleep for a little bit
+			// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+			engone::Sleep(1/120.f);
+		}
+		return 0;
+	}
 	void Engone::manageThreading() {
 		for (Application* app : m_applications) {
 			if (app->isMultiThreaded()) { // is supposed to be multithreaded
-				if (!app->updateThread.isRunning()) {
-					app->updateThread.init([&](void* arg) {
-						while (app->isMultiThreaded()) {
-							app->getExecTimer().step();
-							LoopInfo info;
-							info.app = app;
-							info.window = app->getWindow(0);
-							info.timeStep = app->getExecTimer().aimedDelta;
+				if (!app->updateThread.isActive()) {
+					app->updateThread.init(RunApplication,app);
+					// app->updateThread.init([&](void* arg) {
+					// 	while (app->isMultiThreaded()) {
+					// 		app->getExecTimer().step();
+					// 		LoopInfo info;
+					// 		info.app = app;
+					// 		info.window = app->getWindow(0);
+					// 		info.timeStep = app->getExecTimer().aimedDelta;
 
-							while (app->getExecTimer().accumulate()) {
-								app->getControl().execute(info, ExecutionControl::UPDATE);
-							}
-							// In case execute takes 0 seconds the thread should sleep for a little bit
-							// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-							engone::Sleep(1/120.f);
-						}
-						return 0;
-					}, nullptr);
+					// 		while (app->getExecTimer().accumulate()) {
+					// 			app->getControl().execute(info, ExecutionControl::UPDATE);
+					// 		}
+					// 		// In case execute takes 0 seconds the thread should sleep for a little bit
+					// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+					// 		engone::Sleep(1/120.f);
+					// 	}
+					// 	return 0;
+					// }, nullptr);
 				}
 
 				for (Window* win : app->getAttachedWindows()) {
-					if (!win->renderThread.isRunning()) {
-						win->renderThread.init([&](void* arg) {
-							while (app->isMultiThreaded()) {
-								win->getExecTimer().step();
-								LoopInfo info;
-								info.app = app;
-								info.window = win;
-								info.timeStep = win->getExecTimer().aimedDelta;
+					if (!win->renderThread.isActive()) {
+						win->renderThread.init(RunWindow,win);
+						// win->renderThread.init([&](void* arg) {
+						// 	while (app->isMultiThreaded()) {
+						// 		win->getExecTimer().step();
+						// 		LoopInfo info;
+						// 		info.app = app;
+						// 		info.window = win;
+						// 		info.timeStep = win->getExecTimer().aimedDelta;
 
-								//while (win->getExecTimer().accumulate()) {
-								win->getControl().execute(info, ExecutionControl::RENDER);
+						// 		//while (win->getExecTimer().accumulate()) {
+						// 		win->getControl().execute(info, ExecutionControl::RENDER);
 
-								// In case execute takes 0 seconds the thread should sleep for a little bit
-								// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-								engone::Sleep(1/120.f);
-							}
-							return 0;
-						}, nullptr);
+						// 		// In case execute takes 0 seconds the thread should sleep for a little bit
+						// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+						// 		engone::Sleep(1/120.f);
+						// 	}
+						// 	return (uint32)0;
+						// }, nullptr);
 					}
 				}
 			}
@@ -605,8 +647,9 @@ namespace engone {
 				}
 				//}
 				uint32_t remaining = vector.size();
+				uint32 batchsize = CommonRenderer::INSTANCE_BATCH;
 				while (remaining > 0) {
-					uint32_t batchAmount = std::min(remaining,CommonRenderer::INSTANCE_BATCH);
+					uint32_t batchAmount = std::min(remaining,batchsize);
 					
 					renderer->instanceBuffer.setData(batchAmount * sizeof(glm::mat4), (vector.data() + vector.size()-remaining));
 

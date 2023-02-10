@@ -84,7 +84,7 @@ namespace prounk {
 		// instead of cooldown have one frame were attack deals damage? bad if frame is skipped, it won't be skipped because of how
 		// the game loop works. delta is fixed. it may skip one or two frames though, depending on speed and stuff.
 		// You could ensure this doesn't happen? the attack chould store which objects you hit. and then
-		// don't deal damage to them. you can deal damage between an interval of frames.
+		// don't deal damage to th+em. you can deal damage between an interval of frames.
 		// CombatData requires vector.
 		// 
 		// let's not focus to much on cheating

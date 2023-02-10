@@ -1,8 +1,10 @@
 #pragma once
 
-#include "Engone/PlatformModule/PlatformModule.h"
+#include "Engone/PlatformModule/PlatformLayer.h"
 #include "Engone/Utilities/Alloc.h"
 #include "Engone/Error.h"
+
+#include <string>
 
 namespace engone {
 
@@ -13,56 +15,61 @@ namespace engone {
 	public:
 		FileReader(const std::string& path, bool binaryForm = false);
 		~FileReader();
+		// Resets everything and makes the class as good as new
 		void cleanup();
+		// Closes the platforms file handle. You can still read data if it is available in the buffer.
+		void close();
 
 		FileReader(const FileReader&) = delete;
 		FileReader& operator=(const FileReader&) = delete;
 
-		inline bool isOpen() const {return m_error == ErrorNone;}
+		inline bool isOpen() const {return m_error == NoError;}
 		inline bool operator!() const {return !isOpen();}
 		inline operator bool() const {return isOpen();}
 		inline uint32_t size() const {return m_fileSize;}
 
 		// Data in buffer can still be read if file is closed.
-		void close();
 
 		inline const std::string& getPath() const { return m_path; }
 		inline Error getError() const { return m_error; }
 
-		bool read(char* var, uint32 bytes);
-		bool readLine(std::string& line);
-		bool readNumbers(char* var, uint32 intSize, uint32 count);
-		/*
-		T has to be convertable to int or float. Can also be char short and most of them. Maybe not long or double
-		*/
-		template <typename T>
-		bool read(T* var, uint32 count = 1) {
-			return readNumbers((char*)var,sizeof(T),count);
-		}
-		template <typename T>
-		bool read(T& var) {
-			return read(&var, 1);
-		}
-		bool read(glm::vec3* var, uint32 count = 1) {
-			return read((float*)var, count * 3);
-		}
-		bool read(glm::mat4* var, uint32 count = 1) {
-			return read((float*)var, count * 16);
-		}
-		bool read(std::string& var);
-		void readAll(std::string& var);
-		// Does not include \n
-		std::vector<std::string> readLines(bool includeNewLine = false);
+		// Note: read functions that returns a bool and that being false has failed.
+		//		 (bool)a bool and fails if the  returns a of how many bytes/numbers/characters where read.
+		//		If it isn't equals to 
+
+		// General read types
+		// @return True if successful. getError() to see last error if false is returned.
+		bool read(void* ptr, uint64 bytes);
+		
+		// Used with non-binary form
+		// @return Characters read.
+		uint64 readLine(std::string& line);
+		// @return Numbers read. Probably EndOfLine error if it doesn't match count parameter.
+		uint64 readNumbers(char* ptr, uint64 count, uint typeSize, bool isFloat);
+		
+		// Specific read types
+		bool read_int16(int16* ptr, uint64 count=1);
+		bool read_int(int* ptr, uint64 count=1);
+		bool read_int64(int64* ptr, uint64 count=1);
+		bool read_float(float* ptr, uint64 count=1);
+		bool read_double(double* ptr, uint64 count=1);
+		
+		static const uint64 BYTES_PER_READ = 4096; // Todo: Increase/Decrease this?
 	private:
 		bool binaryForm = false;
 
 		std::string m_path;
-		APIFile m_file;
-		uint64 m_readHead=0;
-		uint64 m_bufferReadHead=0;
-		uint64 m_fileSize=0;
-		Error m_error = ErrorNone;
+		APIFile* m_file;
+		uint64 m_fileSize = 0;
+		uint64 m_fileHead = 0;
+		Error m_error = NoError;
 		
-		Memory<char> buffer{};
+		// m_error should be set where it occurs to get the most detailed error.
+		// readNumbers calls readLine which returns false if something bad happened.
+		// readNumbers should NOT set error because it's not sure what happened.
+		// The code in readLine should set the error because it knows what happened.
+		
+		uint64 m_bufferHead=0;
+		Memory<char> m_buffer{};
 	};
 }

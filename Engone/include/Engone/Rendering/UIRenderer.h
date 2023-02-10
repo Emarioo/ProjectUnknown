@@ -122,7 +122,7 @@ namespace engone {
 
 		static const int MAX_BOX_BATCH = 100;
 		static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
-		static const uint32_t INSTANCE_BATCH = 1000;
+		static const uint32 INSTANCE_BATCH = 1000;
 	private:
 		ItemVector uiObjects{};
 		std::vector<std::string> uiStrings;
