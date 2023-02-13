@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/Utilities/Tracker.h"
+// #include "Engone/Utilities/Tracker.h"
 #include "Engone/Logger.h"
 #include "Engone/Error.h"
 
@@ -93,7 +93,7 @@ namespace engone {
 		// gets root from path
 		static std::string CreateRoot(const std::string& path);
 
-		static TrackerId GetTrackerId(AssetType type);
+		// static TrackerId GetTrackerId(AssetType type);
 
 	protected:
 		AssetStorage* m_storage = nullptr;

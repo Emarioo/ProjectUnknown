@@ -18,33 +18,34 @@
 /* 
 	This file contains definitions for all assets.
 
+	Todo: Error handling is broken. Try and catch should be removed.
 */
 
 namespace engone {
-	TrackerId TextureAsset::trackerId = "TextureAsset";
-	TrackerId FontAsset::trackerId = "FontAsset";
-	TrackerId MaterialAsset::trackerId = "MaterialAsset";
-	TrackerId AnimationAsset::trackerId = "AnimationAsset";
-	TrackerId MeshAsset::trackerId = "MeshAsset";
-	TrackerId ColliderAsset::trackerId = "ColliderAsset";
-	TrackerId ArmatureAsset::trackerId = "ArmatureAsset";
-	TrackerId ModelAsset::trackerId = "ModelAsset";
-	TrackerId ShaderAsset::trackerId = "ShaderAsset";
+	// TrackerId TextureAsset::trackerId = "TextureAsset";
+	// TrackerId FontAsset::trackerId = "FontAsset";
+	// TrackerId MaterialAsset::trackerId = "MaterialAsset";
+	// TrackerId AnimationAsset::trackerId = "AnimationAsset";
+	// TrackerId MeshAsset::trackerId = "MeshAsset";
+	// TrackerId ColliderAsset::trackerId = "ColliderAsset";
+	// TrackerId ArmatureAsset::trackerId = "ArmatureAsset";
+	// TrackerId ModelAsset::trackerId = "ModelAsset";
+	// TrackerId ShaderAsset::trackerId = "ShaderAsset";
 	
-	TrackerId Asset::GetTrackerId(AssetType type) {
-		switch (type) {
-		case AssetTexture: return TextureAsset::trackerId;
-		case AssetFont: return FontAsset::trackerId;
-		case AssetShader: return ShaderAsset::trackerId;
-		case AssetMaterial: return MaterialAsset::trackerId;
-		case AssetMesh: return MeshAsset::trackerId;
-		case AssetAnimation: return AnimationAsset::trackerId;
-		case AssetArmature: return ArmatureAsset::trackerId;
-		case AssetCollider: return ColliderAsset::trackerId;
-		case AssetModel: return ModelAsset::trackerId;
-		}
-		return "";
-	}
+	// TrackerId Asset::GetTrackerId(AssetType type) {
+	// 	switch (type) {
+	// 	case AssetTexture: return TextureAsset::trackerId;
+	// 	case AssetFont: return FontAsset::trackerId;
+	// 	case AssetShader: return ShaderAsset::trackerId;
+	// 	case AssetMaterial: return MaterialAsset::trackerId;
+	// 	case AssetMesh: return MeshAsset::trackerId;
+	// 	case AssetAnimation: return AnimationAsset::trackerId;
+	// 	case AssetArmature: return ArmatureAsset::trackerId;
+	// 	case AssetCollider: return ColliderAsset::trackerId;
+	// 	case AssetModel: return ModelAsset::trackerId;
+	// 	}
+	// 	return "";
+	// }
 
 	const char* GetFormat(AssetType type) {
 		switch (type) {
@@ -107,27 +108,28 @@ namespace engone {
 	void FontAsset::cleanup() {
 		texture.cleanup();
 	}
+
 	Asset::LoadFlags FontAsset::load(LoadFlags flags) {
 		LoadFlags out = 0;
 		if ((flags & LoadIO) && !m_error&&!m_path.empty()) {
 			FileReader file(m_path + ".txt", false);
 			if (!file.isOpen()) {
-				m_error = ErrorMissingFile;
+				m_error = FileNotFound;
 				m_state = Failed;
 			} else {
 				try {
-					file.readAll(&widthValues);
+					file.readAll(widthValues);
 				} catch (Error err) {
 					m_error = err;
 					m_state = Failed;
 				}
 				png = PNG::ReadFile((m_path + ".png").c_str());
 				if (!png) {
-					m_error = ErrorMissingFile;
+					m_error = FileNotFound;
 					m_state = Failed;
 				} else {
 					png->setFlags(FlipOnLoad, true);
-					if (m_error == ErrorNone)
+					if (m_error == NoError)
 						out = LoadData;
 				}
 			}
@@ -239,7 +241,7 @@ namespace engone {
 		if ((flags & LoadIO) && !m_error&&!m_path.empty()) {
 			rawImage = RawImage::ReadFromPNG(m_path);
 			if (!rawImage) {
-				m_error = ErrorMissingFile;
+				m_error = FileNotFound;
 				m_state = Failed;
 			} else {
 				out = LoadGraphic;
@@ -266,7 +268,7 @@ namespace engone {
 			log::out << log::RED<< "MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)\n";
 			if (!diffuse_map->getStorage()) {
 				ALLOC_DELETE(TextureAsset,diffuse_map);
-				GetTracker().untrack(diffuse_map);
+				// GetTracker().untrack(diffuse_map);
 			} else {
 				// texture belongs to storage, storage will delete texture
 				// bad things happen if asset already is deleted.
@@ -302,7 +304,7 @@ namespace engone {
 					} else {
 						diffuse_map = ALLOC_NEW(TextureAsset)();
 						diffuse_map->loadPath(root + diffuse_mapName, LoadAll);
-						GetTracker().track(diffuse_map);
+						// GetTracker().track(diffuse_map);
 					}
 				}
 
@@ -551,7 +553,7 @@ namespace engone {
 
 							for (uint32_t k = 0; k < keys; ++k) {
 								PolationType polation;
-								file.read(&polation); // 1 byte
+								file.read((uint8*)&polation); // 1 byte
 
 								uint16_t frame;
 								file.read(&frame);
@@ -578,7 +580,7 @@ namespace engone {
 		for (int i = 0; i < materials.size(); i++) {
 			MaterialAsset* mat = materials[i];
 			if (!mat->getStorage()) {
-				GetTracker().untrack(mat);
+				// GetTracker().untrack(mat);
 				ALLOC_DELETE(MaterialAsset, mat);
 			} else {
 				// material belong to storage
@@ -620,7 +622,7 @@ namespace engone {
 			FileReader file(m_path);
 			try {
 				uint8_t materialCount;
-				file.read(&meshType);
+				file.read((uint8*)&meshType);
 				file.read(&pointCount);
 				file.read(&colorCount);
 				file.read(&materialCount);
@@ -637,7 +639,7 @@ namespace engone {
 					} else {
 						asset = ALLOC_NEW(MaterialAsset)();
 						asset->loadPath(root + materialName,LoadAll);
-						GetTracker().track(asset);
+						// GetTracker().track(asset);
 					}
 					if (asset)
 						materials.push_back(asset);
@@ -658,7 +660,7 @@ namespace engone {
 						}
 					} else {
 						asset = ALLOC_NEW(MaterialAsset)();
-						GetTracker().track(asset);
+						// GetTracker().track(asset);
 					}
 					materials.push_back(asset);
 				}
@@ -689,7 +691,7 @@ namespace engone {
 				weightValues = (float*)alloc::malloc(weightValuesSize);
 
 				if (meshType == MeshType::Boned) {
-					char index[3];
+					uint8 index[3];
 					float floats[3];
 					for (uint32_t i = 0; i < weightCount; ++i) {
 						file.read(index, 3);
@@ -931,7 +933,8 @@ namespace engone {
 					for (uint32_t j = 0; j < 3; ++j) {
 						if (triangles[i * triangleStride + j * triangleStride / 3] * 3u + 2u >= pointNumbers) {
 							//std::cout << "Corruption at '" << i <<" "<<j<<" " << (i * triangleStride) << " " << (j * triangleStride / 3) << " " << triangles[i * triangleStride + j * triangleStride / 3] << "' : Triangle Index\n";
-							throw ErrorCorruptedFile;
+							Assert(("Corrupt file, error stuff not present, doing assert instead",false));
+							// throw ErrorCorruptedFile;
 						}
 					}
 					glm::vec3 p0(points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 2]);
@@ -1010,7 +1013,7 @@ namespace engone {
 					for (uint32_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride] * 3 + j > pointNumbers) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
-							throw ErrorCorruptedFile;
+							Assert(false);
 						}
 						vertexOut[i * vStride + j] = points[uniqueVertex[i * uvStride] * 3 + j];
 					}
@@ -1018,7 +1021,7 @@ namespace engone {
 					for (uint32_t j = 0; j < 3; ++j) {
 						if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
-							throw ErrorCorruptedFile;
+							Assert(false);
 						}
 						vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
 					}
@@ -1027,7 +1030,7 @@ namespace engone {
 						if (uniqueVertex[i * uvStride + 2] * 3 + j > colorNumbers) {
 							//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
 							//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
-							throw ErrorCorruptedFile;
+							Assert(false);
 						} else
 							vertexOut[i * vStride + 3 + 3 + j] = (float)colors[uniqueVertex[i * uvStride + 2] * 3 + j];
 					}
@@ -1036,7 +1039,7 @@ namespace engone {
 						for (uint32_t j = 0; j < 3; ++j) {
 							if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
 								//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
-								throw ErrorCorruptedFile;
+								Assert(false);
 							}
 							vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)weightIndices[uniqueVertex[i * uvStride + 3] * 3 + j];
 						}
@@ -1044,7 +1047,7 @@ namespace engone {
 						for (uint32_t j = 0; j < 3; ++j) {
 							if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
 								//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
-								throw ErrorCorruptedFile;
+								Assert(false);
 							}
 							vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)weightValues[uniqueVertex[i * uvStride + 3] * 3 + j];
 						}
@@ -1114,7 +1117,7 @@ namespace engone {
 			//map.heights.shrink_to_fit();
 			FileReader file(m_path);
 			try {
-				file.read(&colliderType);
+				file.read((uint8*)&colliderType);
 
 				//log::out << (int)colliderType << " type\n";
 
@@ -1136,7 +1139,8 @@ namespace engone {
 					uint32_t count = map.gridColumns * map.gridRows;
 					if (count > 1000000) {
 						log::out << "Something may be corrupted\n"; // to prevent a corruption from allocating insane amounts of memory.
-						throw ErrorCorruptedFile;
+						// throw ErrorCorruptedFile;
+						Assert(false);
 					}
 					map.heights.resize(count);
 					file.read(map.heights.data(), count);
@@ -1222,7 +1226,7 @@ namespace engone {
 			for (int i = 0; i < animations.size(); i++) {
 				AnimationAsset* anim = animations[i];
 				if (!anim->getStorage()) {
-					GetTracker().untrack(anim);
+					// GetTracker().untrack(anim);
 					//delete anim;
 					ALLOC_DELETE(AnimationAsset, anim);
 				}
@@ -1303,7 +1307,7 @@ namespace engone {
 						} else {
 							instance.asset = ALLOC_NEW(MeshAsset)();
 							instance.asset->loadPath(root + name,LoadAll);
-							GetTracker().track((MeshAsset*)instance.asset);
+							// GetTracker().track((MeshAsset*)instance.asset);
 						}
 						break;
 					case 1:
@@ -1312,7 +1316,7 @@ namespace engone {
 						} else {
 							instance.asset = ALLOC_NEW(ArmatureAsset)();
 							instance.asset->loadPath(root + name, LoadAll);
-							GetTracker().track((ArmatureAsset*)instance.asset);
+							// GetTracker().track((ArmatureAsset*)instance.asset);
 						}
 						break;
 					case 2:
@@ -1321,7 +1325,7 @@ namespace engone {
 						} else {
 							instance.asset = ALLOC_NEW(ColliderAsset)();
 							instance.asset->loadPath(root + name, LoadAll);
-							GetTracker().track((ColliderAsset*)instance.asset);
+							// GetTracker().track((ColliderAsset*)instance.asset);
 						}
 						break;
 					}

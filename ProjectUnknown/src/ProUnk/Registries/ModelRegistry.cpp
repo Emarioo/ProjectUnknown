@@ -1,6 +1,6 @@
 #include "ProUnk/Registries/ModelRegistry.h"
 
-#include "Engone/Utilities/FileUtility.h"
+#include "Engone/FileModule/FileModule.h"
 
 #include "Engone/Window.h"
 
@@ -70,7 +70,7 @@ namespace prounk {
 		file.write(&size);
 		for (int i = 0; i < size;i++) {
 			Entry& entry = m_entries[i];
-			file.write(entry.name);
+			file.write(&entry.name);
 		}
 	}
 	void ModelRegistry::deserialize() {
@@ -83,7 +83,7 @@ namespace prounk {
 		file.read(&size);
 		for (int i = 0; i < size; i++) {
 			m_entries.push_back({});
-			file.read(m_entries.back().name);
+			file.read(&m_entries.back().name);
 		}
 	}
 

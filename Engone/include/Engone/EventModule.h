@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/Utilities/Tracker.h"
+// #include "Engone/Utilities/Tracker.h"
 
 namespace engone {
 	
@@ -46,7 +46,7 @@ namespace engone {
 		int priority = 0;
 		EventTypes eventTypes=EventNone;
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		bool m_ownedByWindow = false; // when true, window is responsible for deleting listener.
 

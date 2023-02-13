@@ -13,7 +13,7 @@ namespace engone {
 		void cleanup() override;
 		LoadFlags load(LoadFlags flag) override;
 
-		enum Type : uint8_t {
+		enum Type : uint8 {
 			SphereType = 0,
 			CubeType = 1,
 			CapsuleType = 2,
@@ -42,7 +42,7 @@ namespace engone {
 			} map;
 		};
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 }

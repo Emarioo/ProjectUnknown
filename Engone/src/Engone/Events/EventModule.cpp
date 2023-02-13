@@ -3,7 +3,7 @@
 #include "Engone/Window.h"
 
 namespace engone {
-	TrackerId Listener::trackerId="Listener";
+	// TrackerId Listener::trackerId="Listener";
 
 	static std::unordered_map<uint16_t, Keybinding> keybindings;
 

@@ -1,5 +1,5 @@
 
-#include "Engone/Utilities/HashMap.h"
+#include "Engone/Structures/HashMap.h"
 
 #include "Engone/Utilities/RandomUtility.h"
 
@@ -34,7 +34,7 @@ namespace engone {
 		int indexNext=0;
 		if (emptySpots.size() != 0) {
 			indexNext = emptySpots.pop();
-			Chain* chain = chainData.data + indexNext;
+			Chain* chain = (Chain*)chainData.data + indexNext;
 			*chain = Chain();
 		} else {
 			if (chainData.used == chainData.max) {
@@ -44,12 +44,12 @@ namespace engone {
 
 				// initialize data
 				for (int i = chainData.used; i < chainData.max; i++) {
-					Chain* temp = chainData.data + i;
+					Chain* temp = (Chain*)chainData.data + i;
 					*temp = Chain();
 				}
 			}
 			indexNext = chainData.used;
-			Chain* chain = chainData.data + indexNext;
+			Chain* chain = (Chain*)chainData.data + indexNext;
 			*chain = Chain();
 			chainData.used++;
 		}
@@ -64,14 +64,14 @@ namespace engone {
 			
 			// initialize data
 			for (int i = 0; i<keymap.max; i++) {
-				Chain* chain = keymap.data + i;
+				Chain* chain = (Chain*)keymap.data + i;
 				*chain = Chain();
 			}
 		}
 		
 		int index = hash(key);
 
-		Chain* chain = keymap.data + index;
+		Chain* chain = (Chain*)keymap.data + index;
 		while (true) {
 			if (!chain->used) {
 				chain->used = true;
@@ -90,7 +90,7 @@ namespace engone {
 					return false;
 
 				// move the chain to be replaced
-				Chain* newChain = chainData.data + indexNext;
+				Chain* newChain = (Chain*)chainData.data + indexNext;
 				*newChain = *chain;
 				
 				// replace old chain with new chain
@@ -109,7 +109,7 @@ namespace engone {
 					return false;
 
 				chain->indexNext = indexNext;
-				chain = chainData.data + indexNext;
+				chain = (Chain*)chainData.data + indexNext;
 				continue;
 				//if (emptySpots.used != 0) {
 				//	chain->indexNext = *(emptySpots.data+emptySpots.used-1);
@@ -135,7 +135,7 @@ namespace engone {
 				//}
 				//continue;
 			} else {
-				chain = chainData.data + chain->indexNext;
+				chain = (Chain*)chainData.data + chain->indexNext;
 				// linked list stuff with overflow data
 				continue;
 			}
@@ -151,7 +151,7 @@ namespace engone {
 
 		int index = hash(key);
 
-		Chain* chain = keymap.data + index;
+		Chain* chain = (Chain*)keymap.data + index;
 		while (true) {
 			if (chain->used) {
 				if (chain->key == key) {
@@ -161,7 +161,7 @@ namespace engone {
 				} else if (chain->indexNext == INVALID_INDEX) {
 					break; // failed
 				} else {
-					chain = chainData.data + chain->indexNext;
+					chain = (Chain*)chainData.data + chain->indexNext;
 					continue;
 				}
 			} else {
@@ -180,7 +180,7 @@ namespace engone {
 
 		int index = hash(key);
 
-		Chain* chain = keymap.data + index;
+		Chain* chain = (Chain*)keymap.data + index;
 		while (true) {
 			if (chain->used) {
 				if (chain->key == key) {
@@ -189,7 +189,7 @@ namespace engone {
 				} else if (chain->indexNext == INVALID_INDEX) {
 					break; // failed
 				} else {
-					chain = chainData.data + chain->indexNext;
+					chain = (Chain*)chainData.data + chain->indexNext;
 					continue;
 				}
 			} else {
@@ -206,7 +206,7 @@ namespace engone {
 
 		int index = hash(key);
 
-		Chain* firstChain = keymap.data + index;
+		Chain* firstChain = (Chain*)keymap.data + index;
 		Chain* chain = firstChain;
 		while (chain) {
 			if (!chain->used) 
@@ -223,7 +223,7 @@ namespace engone {
 						//return false;  // uncomment to force efficient use of memory
 					}
 
-					Chain* nextChain = chainData.data+chain->indexNext;
+					Chain* nextChain = (Chain*)chainData.data+chain->indexNext;
 					*chain = *nextChain;
 
 					*nextChain = Chain();
@@ -235,7 +235,7 @@ namespace engone {
 			if (chain->indexNext==INVALID_INDEX)
 				return false;
 
-			chain = chainData.data + chain->indexNext;
+			chain = (Chain*)chainData.data + chain->indexNext;
 		}
 		
 		return false;
@@ -306,8 +306,8 @@ namespace engone {
 
 		// each chain should have the same pairs
 		for (int i = 0; i < keymap.max; i++) {
-			Chain* chain = keymap.data + i;
-			Chain* chain2 = map.keymap.data + i;
+			Chain* chain = (Chain*)keymap.data + i;
+			Chain* chain2 = (Chain*)map.keymap.data + i;
 
 			while (true) {
 				if (chain->used != chain2->used)
@@ -328,8 +328,8 @@ namespace engone {
 				if (chain->indexNext != INVALID_INDEX &&
 					chain2->indexNext != INVALID_INDEX) {
 
-					chain = chainData.data + chain->indexNext;
-					chain2 = map.chainData.data + chain2->indexNext;
+					chain = (Chain*)chainData.data + chain->indexNext;
+					chain2 = (Chain*)map.chainData.data + chain2->indexNext;
 					continue;
 				}
 				// indexNext is different
@@ -391,7 +391,7 @@ namespace engone {
 		int depth = info.position / keymap.max;
 		
 		while (index<keymap.max) {
-			Chain* chain = keymap.data + index;
+			Chain* chain = (Chain*)keymap.data + index;
 			int nowDepth = 0;
 			while (chain) {
 				if (!chain->used) {
@@ -417,7 +417,7 @@ namespace engone {
 					break;
 				}
 				// go deeper into chain
-				chain = chainData.data + chain->indexNext;
+				chain = (Chain*)chainData.data + chain->indexNext;
 				nowDepth++;
 				continue;
 			}

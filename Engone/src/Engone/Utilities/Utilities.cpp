@@ -7,7 +7,7 @@
 #include <thread>
 
 namespace engone {
-	TrackerId ItemVector::trackerId = "ItemVector";
+	// TrackerId ItemVector::trackerId = "ItemVector";
 
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
@@ -134,7 +134,7 @@ namespace engone {
 		if (size == 0) {
 			if (m_data) {
 				alloc::free(m_data, m_maxSize);
-				GetTracker().subMemory<ItemVector>(m_maxSize);
+				// GetTracker().subMemory<ItemVector>(m_maxSize);
 				m_data = nullptr;
 				m_maxSize = 0;
 				m_writeIndex = 0;
@@ -147,7 +147,7 @@ namespace engone {
 					log::out << log::RED << "ItemVector failed allocation memory\n";
 					return false;
 				}
-				GetTracker().addMemory<ItemVector>(size);
+				// GetTracker().addMemory<ItemVector>(size);
 				m_data = newData;
 				m_maxSize = size;
 			} else {
@@ -156,8 +156,8 @@ namespace engone {
 					log::out << log::RED << "ItemVector failed reallocating memory\n";
 					return false;
 				}
-				GetTracker().subMemory<ItemVector>(m_maxSize);
-				GetTracker().addMemory<ItemVector>(size);
+				// GetTracker().subMemory<ItemVector>(m_maxSize);
+				// GetTracker().addMemory<ItemVector>(size);
 				m_data = newData;
 				m_maxSize = size;
 				if (m_writeIndex > m_maxSize)
@@ -245,7 +245,7 @@ namespace engone {
 		}
 	}
 	bool StartProgram(const std::string& path, char* commandLine) {
-		if (!FindFile(path)) {
+		if (!FileExist(path)) {
 			return false;
 		}
 

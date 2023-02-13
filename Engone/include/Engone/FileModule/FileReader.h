@@ -48,12 +48,25 @@ namespace engone {
 		uint64 readNumbers(char* ptr, uint64 count, uint typeSize, bool isFloat);
 		
 		// Specific read types
-		bool read_int16(int16* ptr, uint64 count=1);
-		bool read_int(int* ptr, uint64 count=1);
-		bool read_int64(int64* ptr, uint64 count=1);
-		bool read_float(float* ptr, uint64 count=1);
-		bool read_double(double* ptr, uint64 count=1);
+		// Note that char* will use void* and not these number functions
+		bool read(uint8* ptr, uint64 count=1);
+		bool read(int16* ptr, uint64 count=1);
+		bool read(uint16* ptr, uint64 count=1);
+		bool read(int32* ptr, uint64 count=1);
+		bool read(uint32* ptr, uint64 count=1);
+		bool read(int64* ptr, uint64 count=1);
+		bool read(uint64* ptr, uint64 count=1);
+		bool read(float* ptr, uint64 count=1);
+		bool read(double* ptr, uint64 count=1);
+		bool read(std::string* ptr, uint64 count=1);
+
+		bool read(glm::vec3* ptr, uint64 count=1);
+		bool read(glm::mat4* ptr, uint64 count=1);
+
+		bool readAll(std::string& lines);
 		
+		//Todo: glm mat4
+
 		static const uint64 BYTES_PER_READ = 4096; // Todo: Increase/Decrease this?
 	private:
 		bool binaryForm = false;
@@ -70,6 +83,6 @@ namespace engone {
 		// The code in readLine should set the error because it knows what happened.
 		
 		uint64 m_bufferHead=0;
-		Memory<char> m_buffer{};
+		Memory m_buffer{1};
 	};
 }

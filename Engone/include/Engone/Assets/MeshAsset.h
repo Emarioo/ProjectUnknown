@@ -14,7 +14,7 @@ namespace engone {
 		void cleanup() override;
 		LoadFlags load(LoadFlags flag) override;
 
-		enum class MeshType : char {
+		enum class MeshType : uint8 {
 			Normal = 0,
 			Boned
 		};
@@ -30,7 +30,7 @@ namespace engone {
 		glm::vec3 boundingPoint = { 0,0,0 }; // not average point
 		float boundingRadius = 0.f;
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		// This is a lot of data.
 		// you could probably get away by compressing some of this or possibly use a struct on heap which

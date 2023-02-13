@@ -12,75 +12,57 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="glfw\include\GLFW\glfw3.h">
+    <ClInclude Include="glfw-3.3.8\include\GLFW\glfw3.h">
       <Filter>include\GLFW</Filter>
     </ClInclude>
-    <ClInclude Include="glfw\include\GLFW\glfw3native.h">
+    <ClInclude Include="glfw-3.3.8\include\GLFW\glfw3native.h">
       <Filter>include\GLFW</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="glfw\src\context.c">
+    <ClCompile Include="glfw-3.3.8\src\context.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\egl_context.c">
+    <ClCompile Include="glfw-3.3.8\src\egl_context.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\init.c">
+    <ClCompile Include="glfw-3.3.8\src\init.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\input.c">
+    <ClCompile Include="glfw-3.3.8\src\input.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\monitor.c">
+    <ClCompile Include="glfw-3.3.8\src\monitor.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\null_init.c">
+    <ClCompile Include="glfw-3.3.8\src\osmesa_context.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\null_joystick.c">
+    <ClCompile Include="glfw-3.3.8\src\vulkan.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\null_monitor.c">
+    <ClCompile Include="glfw-3.3.8\src\wgl_context.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\null_window.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_init.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\osmesa_context.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_joystick.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\platform.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_monitor.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\vulkan.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_thread.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\wgl_context.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_time.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\win32_init.c">
+    <ClCompile Include="glfw-3.3.8\src\win32_window.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="glfw\src\win32_joystick.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\win32_module.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\win32_monitor.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\win32_thread.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\win32_time.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\win32_window.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="glfw\src\window.c">
+    <ClCompile Include="glfw-3.3.8\src\window.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

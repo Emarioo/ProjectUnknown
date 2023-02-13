@@ -25,7 +25,7 @@ namespace engone {
 			uint32_t index = m_values.used;
 			m_values.used++;
 
-			Value* ptr = m_values.data + index;
+			Value* ptr = (Value*)m_values.data + index;
 			new(ptr)Value(value);
 			//*ptr = value;
 
@@ -44,7 +44,7 @@ namespace engone {
 			m_values.used--;
 
 			success = true;
-			return *(m_values.data + m_values.used);
+			return *((Value*)m_values.data + m_values.used);
 		}
 		Value& peek(uint32_t index) {
 			bool temp;
@@ -56,7 +56,7 @@ namespace engone {
 				throw std::out_of_range("out of range");
 			}
 			success = true;
-			return *(m_values.data + index);
+			return *((Value*)m_values.data + index);
 		}
 
 		bool reserve(uint32_t count) {
@@ -76,7 +76,7 @@ namespace engone {
 		}
 
 	private:
-		Memory<Value> m_values;
+		Memory m_values{sizeof(Value)};
 	};
 
 	void EngoneStackTest();

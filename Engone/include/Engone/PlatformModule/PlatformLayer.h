@@ -47,16 +47,28 @@ namespace PL_NAMESPACE {
     // Note that the platform/os may not have the accuracy you need.
     void Sleep(double seconds);
 	
+	enum FileFlag : uint32{
+		FILE_NO_FLAG=0,
+		FILE_ONLY_READ=1,
+		FILE_CAN_CREATE=2,
+	};
+
 	// Returns 0 if function failed
     // canWrite = true -> WRITE and READ. False only READ.
-	APIFile* FileOpen(const std::string& path, uint64* outFileSize = nullptr, bool onlyRead=false);
+	APIFile* FileOpen(const std::string& path, uint64* outFileSize = nullptr, uint32 flags = FILE_NO_FLAG);
 	// Returns number of bytes read
 	// -1 means error with read
-	uint64 FileRead(APIFile* file, char* buffer, uint64 readBytes);
+	uint64 FileRead(APIFile* file, void* buffer, uint64 readBytes);
+	// @return Number of bytes written. -1 indicates an error
+	uint64 FileWrite(APIFile* file, void* buffer, uint64 writeBytes);
+	// @return True if successful, false if not
+	// position as -1 will move the head to end of file.
+	bool FileSetHead(APIFile* file, uint64 position);
 	void FileClose(APIFile* file);
     
     bool FileExist(const std::string& path);
     bool DirectoryExist(const std::string& path);
+	bool DirectoryCreate(const std::string& path);
     bool FileLastWriteSeconds(const std::string& path, double* seconds);
     
     // Todo: Remove the simple directory iterator. Skipping directories in the recursive directory iterator
@@ -85,6 +97,8 @@ namespace PL_NAMESPACE {
 	void RecursiveDirectoryIteratorSkip(RecursiveDirectoryIterator* iterator);
 	void RecursiveDirectoryIteratorDestroy(RecursiveDirectoryIterator* iterator);
     
+	void SetConsoleColor(uint16 color);
+
     typedef uint32 ThreadId;
 	class Thread {
 	public:

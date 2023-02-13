@@ -88,7 +88,7 @@ namespace engone {
 
 		double getRuntime();
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 
 		bool m_isThreaded=false;

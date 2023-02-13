@@ -33,7 +33,7 @@ namespace engone {
 		for (auto& map : m_assets) {
 			for (auto& pair : map.second) {
 				if (pair.second) {
-					GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
+					// GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
 					//GetTracker().untrack(, pair.second);
 					ALLOC_DELETE(Asset, pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
 				}
@@ -190,7 +190,7 @@ namespace engone {
 
 			//asset->load(Asset::LoadAll);
 			asset->m_flags = asset->load(Asset::LoadIO | Asset::LoadData);
-			if (asset->m_error != Error::ErrorNone) {
+			if (asset->m_error != Error::NoError) {
 				asset->m_flags = Asset::LoadNone;
 				log::out << log::RED << "Failed loading: " << asset->getPath() << "\n";
 			}
@@ -278,7 +278,7 @@ namespace engone {
 				if (flags & SYNC) {
 					//t->load(Asset::LoadAll);
 					t->m_flags = t->load(Asset::LoadIO | Asset::LoadData);
-					if (t->m_error != Error::ErrorNone) {
+					if (t->m_error != Error::NoError) {
 						t->m_flags = Asset::LoadNone;
 						log::out << log::RED << "Failed loading: " << t->getPath() << "\n";
 					}
@@ -386,7 +386,7 @@ namespace engone {
 			//   loading mesh twice with type LoadData for example.
 			Asset::LoadFlags flags = task.asset->load(m_processType);
 			task.asset->m_flags = flags;
-			if (task.asset->m_error != Error::ErrorNone) {
+			if (task.asset->m_error != Error::NoError) {
 				task.asset->m_flags = Asset::LoadNone;
 				log::out << log::RED<<"Failed loading: " << task.asset->getPath() << "\n";
 			}

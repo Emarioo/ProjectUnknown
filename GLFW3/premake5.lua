@@ -1,21 +1,22 @@
 project "glfw3"
     kind "StaticLib"
     language "C"
-    toolset "gcc"
+    -- toolset "gcc"
     symbols "On"
     staticruntime "on"
     
-    targetdir "../bin/%{cfg.buildcfg}"
-    objdir "../bin/intermediates/%{cfg.buildcfg}"
+    targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
+    objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
     
     defines {"GLFW_BUILD_WIN32","_GLFW_WIN32"}
 
-    files {"glfw/src/**.c","glfw/include/**.h"}
+    files {"glfw-3.3.8/src/**.c","glfw-3.3.8/include/**.h"}
 
     -- win32 is not removed
     removefiles{"**posix**","**cocoa**","**nsgl**","**glx**","**x11**","**xkb**","**wl**","**linux**"}
+    removefiles{"**null**"}
    
-    includedirs {"glfw/include"}
+    includedirs {"glfw-3.3.8/include"}
 
     links {"gdi32"}
 

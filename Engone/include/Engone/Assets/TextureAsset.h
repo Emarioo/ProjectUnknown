@@ -27,7 +27,7 @@ namespace engone {
 
 		Texture texture;
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		RawImage* rawImage = nullptr;
 		//unsigned int id = 0;

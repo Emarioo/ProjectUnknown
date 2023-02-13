@@ -71,7 +71,7 @@ namespace engone {
 		inline ExecutionTimer& getUpdateTimer() { return mainUpdateTimer; };
 		inline ExecutionTimer& getRenderTimer() { return mainRenderTimer; };
 		
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		//RuntimeStats m_runtimeStats;
 
@@ -96,7 +96,7 @@ namespace engone {
 
 		// Todo: instead of 3 vectors, use one vector<Tracker::TrackClass>
 		std::vector<uint16_t> m_appSizes{}; // used for tracker
-		std::vector<TrackerId> m_appIds{}; // used for tracker
+		// std::vector<TrackerId> m_appIds{}; // used for tracker
 
 		void update(LoopInfo& info);
 		// only renders objects at the moment

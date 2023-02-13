@@ -1,4 +1,4 @@
-#include "Engone/Utilities/FrameArray.h"
+#include "Engone/Structures/FrameArray.h"
 
 namespace engone {
 	void FrameArrayTest() {
@@ -13,7 +13,7 @@ namespace engone {
 		int id_a = arr.add({25,15,92});
 		int id_b = arr.add({29,617,92});
 		
-		arr.remove(id_a);
+		arr.remove(id_a);//
 
 		Apple* first = arr.get(0);
 

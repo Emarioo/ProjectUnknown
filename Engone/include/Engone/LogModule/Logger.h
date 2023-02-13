@@ -1,7 +1,5 @@
 #pragma once
 
-// #include "Engone/Utilities/Thread.h"
-// #include "Engone/Utilities/Locks.h"
 #include "Engone/LogModule/LogTypes.h"
 
 #include "Engone/PlatformModule/PlatformLayer.h"
@@ -33,7 +31,7 @@ namespace engone {
 		void setMasterColor(log::Color color);
 		// all threads write to this report
 		void setMasterReport(const std::string path);
-		// extra report, each thread
+		// extra report, each thread, set empty path for no report which is default.
 		void setReport(const std::string path);
 
 		// extra report which is individual for each thread
@@ -48,7 +46,6 @@ namespace engone {
 		Logger& operator<<(char* value); // treated as a string
 		Logger& operator<<(char value);
 		Logger& operator<<(const std::string& value);
-		//Logger& operator<<(std::string value);
 
 		Logger& operator<<(void* value);
 		Logger& operator<<(int64 value);
@@ -75,20 +72,20 @@ namespace engone {
 		Logger& operator<<(const rp3d::Quaternion& value);
 #endif
 
+		void print(char* str, int length);
+		
 		Logger& TIME();
 
 	private:
 		Mutex m_printMutex;
 		
-		void print(char* str, int length);
 		struct ThreadInfo {
-			log::Color masterColor = log::NO_COLOR;
 			log::Color color = log::SILVER;
 			log::Filter filter = log::FilterAll;
 
-			//std::string logReport;
+			std::string logReport;
 
-			Memory<char> lineBuffer{};
+			Memory lineBuffer{1};
 
 			// ensure free space
 			char* ensure(uint32 bytes);
@@ -96,19 +93,18 @@ namespace engone {
 			void use(uint32 bytes);
 		};
 		ThreadInfo& getThreadInfo();
-// 		 {
-// 			auto id = Thread::GetThisThreadId();
-// 			auto find = m_threadInfos.find(id);
-// 			if (find == m_threadInfos.end()) {
-// 				m_threadInfos[id] = {};
-// ;			}
-// 			return m_threadInfos[Thread::GetThisThreadId()];
-// 		}
+
+		log::Color m_masterColor = log::NO_COLOR;
+		std::string m_masterReportPath="master.txt";
+		bool m_useThreadReports = false;
+		bool m_enabledConsole = true;
+		bool m_enabledReports = true;
+
+		std::string m_rootDirectory = "logs";
+
+		std::unordered_map<std::string, APIFile*> m_logFiles;
 		
 		std::unordered_map<ThreadId, ThreadInfo> m_threadInfos;
-
-		void* m_consoleHandle = NULL; // used to change colors
-
 	};
 	namespace log {
 		extern Logger out;

@@ -2,9 +2,15 @@ workspace "ProjectUnknown"
     architecture "x64"
     configurations {"Debug","Release"}
     
+    platforms{"Windows","GCC"}
+
     -- vs2* because vs* would include vscode
     filter "action:vs2*"
         defines { "VISUAL_STUDIO" }
+        system "windows"
+    
+    filter "action:gmake2"
+        system "linux"
     
     -- targetdir "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
    
@@ -18,9 +24,9 @@ newaction {
     trigger     = "build",
     description = "Compile linecounter debug",
     execute     = function ()
-        os.execute("make GLFW3 CC=gcc")
-        os.execute("make glew CC=gcc")
-        os.execute("make rp3d")
+        -- os.execute("make GLFW3 CC=gcc")
+        -- os.execute("make glew CC=gcc")
+        -- os.execute("make rp3d")
         os.execute("make Engone")
         os.execute("make ProjectUnknown")
     end

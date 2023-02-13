@@ -1,12 +1,12 @@
 project "glew"
     kind "StaticLib"
     language "C"
-    toolset "gcc"
+    -- toolset "gcc"
     symbols "On"
     staticruntime "on"
     
-    targetdir "../bin/%{cfg.buildcfg}"
-    objdir "../bin/intermediates/%{cfg.buildcfg}"
+    targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
+    objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
     
     defines {"_WIN32","GLEW_STATIC","WIN32_LEAN_AND_MEAN"}
 

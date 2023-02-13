@@ -2,7 +2,7 @@
 #include "Engone/Application.h"
 
 namespace engone {
-	TrackerId Application::trackerId="Application";
+	// TrackerId Application::trackerId="Application";
 	void Application::stop() {
 		m_stopped = true;
 		for (int i = 0; i < m_windows.size(); i++) {
@@ -11,7 +11,7 @@ namespace engone {
 	}
 	void Application::cleanup() {
 		for (int i = 0; i < m_windows.size(); i++) {
-			GetTracker().untrack(m_windows[i]);
+			// GetTracker().untrack(m_windows[i]);
 			//delete m_windows[i];
 			ALLOC_DELETE(Window, m_windows[i]);
 		}
@@ -35,7 +35,7 @@ namespace engone {
 #endif
 	Window* Application::createWindow(WindowDetail detail) {
 		Window* win = ALLOC_NEW(Window)(this, detail);
-		GetTracker().track(win);
+		// GetTracker().track(win);
 		m_windows.push_back(win);
 		return win;
 	}

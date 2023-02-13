@@ -115,7 +115,7 @@ namespace engone {
 		double getFPS();
 		double getRealFPS();
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		Window(Application* application, WindowDetail detail);
 		// Deleting window will delete renderer's buffers. To do this this window becomes the active one. This means that you sohuldn't call delete on the window.

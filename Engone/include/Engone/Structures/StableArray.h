@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/Utilities/Stack.h"
+#include "Engone/Structures/Stack.h"
 
 namespace engone {
 	
@@ -42,7 +42,7 @@ namespace engone {
 				m_values.used++;
 			}
 			valueCount++;
-			Value* ptr = m_values.data + index;
+			Value* ptr = (Value*)m_values.data + index;
 			new(ptr)Value(value);
 			//*ptr = value;
 			return index;
@@ -58,7 +58,7 @@ namespace engone {
 					return nullptr;
 				}
 			}
-			return (m_values.data + index);
+			return ((Value*)m_values.data + index);
 		}
 		Value remove(uint32_t index) {
 			bool temp;
@@ -73,7 +73,7 @@ namespace engone {
 			valueCount--;
 			m_emptySpots.push(index);
 			success = true;
-			return *(m_values.data + index);
+			return *((Value*)m_values.data + index);
 		}
 
 		// this function does not allow emptySpots to be a Stack.
@@ -109,7 +109,7 @@ namespace engone {
 		}
 
 	private:
-		Memory<Value> m_values;
+		Memory m_values{sizeof(Value)};
 		Stack<uint32_t> m_emptySpots; // Empty spots in the middle. Free spots from the right is stored in m_values.used.
 		uint32_t valueCount=0;
 	};
