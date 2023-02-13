@@ -25,7 +25,7 @@ namespace engone {
 		}
 		void cleanup() {
 			for (int i = 0; i < m_frames.max;i++) {
-				Frame& frame = m_frames.data[i];
+				Frame& frame = *((Frame*)m_frames.data+i);
 				if (frame.memory.max != 0) {
 					for (int j = 0; j < m_valuesPerFrame; j++) {
 						bool yes = frame.getBool(j);
@@ -47,12 +47,12 @@ namespace engone {
 
 			//if(m_valuesPerFrame !=8)
 			//	log::out << log::Disable;
-
+			
 			//log::out << "FA : ADD "<<m_valuesPerFrame<<"\n";
 			// Find available frame
 			int frameIndex = -1;
 			for (int i = 0; i < m_frames.max; i++) {
-				Frame& frame = m_frames.data[i];
+				Frame& frame = *((Frame*)m_frames.data+i);
 				//log::out << "FA : " << frame.count << " != " << m_valuesPerFrame<< "\n";
 				if (frame.count != m_valuesPerFrame) {
 					frameIndex = i;
@@ -68,13 +68,16 @@ namespace engone {
 					//log::out >> log::Disable;
 					return -1;
 				}
-				memset(m_frames.data + initialMax, 0, (m_frames.max - initialMax) * sizeof(Frame));
+				// memset((Frame*)m_frames.data + initialMax, 0, (m_frames.max - initialMax) * sizeof(Frame));
 				frameIndex = initialMax;
+				for(int i=initialMax;i<m_frames.max;i++){
+					*((Frame*)m_frames.data + i) = {1}; // char
+				}
 				//log::out << "FA : Create frame " << frameIndex << "\n";
 			}
 			
 			// Insert value into frame
-			Frame& frame = m_frames.data[frameIndex];
+			Frame& frame = *((Frame*)m_frames.data+frameIndex);
 			if (frame.memory.max==0) {
 				bool yes = frame.memory.resize(m_valuesPerFrame+ m_valuesPerFrame * sizeof(Value));
 				//bool yes = frame.memory.resize(m_valuesPerFrame/8+ m_valuesPerFrame * sizeof(Value));
@@ -123,7 +126,7 @@ namespace engone {
 			if (frameIndex >= m_frames.max)
 				return nullptr;
 
-			Frame& frame = m_frames.data[frameIndex];
+			Frame& frame = *((Frame*)m_frames.data+frameIndex);
 
 			if (valueIndex >= frame.memory.max)
 				return nullptr;
@@ -142,7 +145,7 @@ namespace engone {
 			if (frameIndex >= m_frames.max)
 				return;
 
-			Frame& frame = m_frames.data[frameIndex];
+			Frame& frame = *((Frame*)m_frames.data+frameIndex);
 
 			if (frame.memory.max==0)
 				return;
@@ -164,7 +167,7 @@ namespace engone {
 		uint32 getMemoryUsage() {
 			uint32_t bytes = m_frames.max*sizeof(Frame);
 			for (int i = 0; i < m_frames.max; i++) {
-				bytes += m_frames.data[i].memory.max;
+				bytes += ((Frame*)m_frames.data+i)->memory.max;
 			}
 			return bytes;
 		}
@@ -182,7 +185,7 @@ namespace engone {
 				uint32 frameIndex = iterator.position / m_valuesPerFrame;
 				if (frameIndex >= m_frames.max)
 					break;
-				Frame& frame = m_frames.data[frameIndex];
+				Frame& frame = *((Frame*)m_frames.data+frameIndex);
 
 				uint32 valueIndex = iterator.position % m_valuesPerFrame;
 				if (valueIndex >= frame.memory.max)
@@ -207,11 +210,12 @@ namespace engone {
 		// 8*max / (1+8*C)
 	private:
 		struct Frame {
-			Memory<char> memory{};
+			// Memory<char> memory{};
+			Memory memory{1};
 			int count = 0;
 			Value* getValue(uint32 index, uint32 vpf) {
 				//return (Value*)(memory.data+ vpf/8+index*sizeof(Value));
-				return (Value*)(memory.data+ vpf+index*sizeof(Value));
+				return (Value*)((char*)memory.data+ vpf+index*sizeof(Value));
 			}
 			bool getBool(uint32 index) {
 				//uint32 i = index / 8;
@@ -219,7 +223,7 @@ namespace engone {
 				//char byte = memory.data[i];
 				//char bit = byte&(1<<j);
 
-				return memory.data[index];
+				return *((char*)memory.data+index);
 			}
 			void setBool(uint32 index, bool yes) {
 				//uint32 i = index / 8;
@@ -229,11 +233,12 @@ namespace engone {
 				//} else {
 				//	memory.data[i] = memory.data[i] & (~(1 << j));
 				//}
-				memory.data[index] = yes;
+				*((char*)memory.data+index) = yes;
 			}
 		};
 
-		Memory<Frame> m_frames{};
+		// Memory<Frame> m_frames{};
+		Memory m_frames{sizeof(Frame)};
 		int m_valueCount=0;
 		
 		uint32 m_valuesPerFrame=0;

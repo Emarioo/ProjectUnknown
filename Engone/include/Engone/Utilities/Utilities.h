@@ -2,9 +2,10 @@
 
 #include "Engone/Logger.h"
 #include "Engone/LoopInfo.h"
-#include "Engone/Utilities/Tracker.h"
+// #include "Engone/Utilities/Tracker.h"
 
-#include "Engone//Utilities/FileUtility.h"
+#include "Engone/FileModule/FileReader.h"
+#include "Engone/FileModule/FileWriter.h"
 #include "Engone//Utilities/TimeUtility.h"
 #include "Engone//Utilities/RandomUtility.h"
 #include "Engone//Utilities/ImageUtility.h"
@@ -74,7 +75,7 @@ namespace engone {
 		// will reset the class making it as good as new.
 		void cleanup();
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 		char* m_data = nullptr;
 		uint32_t m_maxSize = 0;

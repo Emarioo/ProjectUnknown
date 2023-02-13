@@ -1,4 +1,4 @@
-
+#pragma once
 // requires std::hash which is included in precompiled header
 
 #include "Engone/Logger.h"

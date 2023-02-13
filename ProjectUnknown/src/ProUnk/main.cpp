@@ -6,16 +6,14 @@
 
 #include "Engone/Logger.h"
 
-#include "ProUnk/Tests/AllTests.h"
+// #include "ProUnk/Tests/AllTests.h"
 
 #include "Engone/Utilities/Alloc.h"
 
-#include "Engone/Utilities/HashMap.h"
-
-#include "Engone/Utilities/Stack.h"
-#include "Engone/Utilities/StableArray.h"
-
-#include "Engone/Utilities/FrameArray.h"
+#include "Engone/Structures/HashMap.h"
+#include "Engone/Structures/Stack.h"
+#include "Engone/Structures/StableArray.h"
+#include "Engone/Structures/FrameArray.h"
 
 void runApp(int argc, char** argv) {
 	using namespace engone;
@@ -23,7 +21,6 @@ void runApp(int argc, char** argv) {
 
 	// FileReader reader("");
 
-	return;
 	//printf("Size: %d %d\n", sizeof(EngineObject),sizeof(std::mutex));
 
 	//char mem[sizeof(EngineObject)];
@@ -63,7 +60,7 @@ void runApp(int argc, char** argv) {
 		//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 		//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 		// 
-		ConvertArguments("--server --client", argc, argv);
+		 ConvertArguments("--server --client", argc, argv);
 	}
 	
 	bool writeLogReport = true;

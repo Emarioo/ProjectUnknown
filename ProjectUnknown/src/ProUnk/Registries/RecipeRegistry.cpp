@@ -76,9 +76,9 @@ namespace prounk {
 			return;
 		}
 		int count = m_simpleRecipes.size();
-		file.writeOne(count);
+		file.write(&count);
 		for (auto& recipe: m_simpleRecipes) {
-			file.write(recipe.name);
+			file.write(&recipe.name);
 			// doesn't need to store the inputs and outputs
 		}
 
@@ -93,10 +93,10 @@ namespace prounk {
 		}
 
 		int count;
-		file.readOne(count);
+		file.read(&count);
 		m_simpleRecipes.resize(count);
 		for (int i = 0; i < count; i++) {
-			file.read(m_simpleRecipes[i].name);
+			file.read(&m_simpleRecipes[i].name);
 		}
 
 		log::out << "RecipeRegistry loaded " << count << " recipes\n";

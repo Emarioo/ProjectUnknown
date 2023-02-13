@@ -9,8 +9,8 @@ project "rp3d"
     
     -- buildoptions {"-g"}
     
-    targetdir "../bin/%{cfg.buildcfg}"
-    objdir "../bin/intermediates/%{cfg.buildcfg}"
+    targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
+    objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
     
     files {"reactphysics3d/src/**.cpp","reactphysics3d/include/**.h"}
     -- removefiles{"**/test/**","**/testbed/**","**/helloworld/**"}

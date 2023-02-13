@@ -88,10 +88,10 @@ namespace prounk {
 			return;
 		}
 		int count = m_entries.size();
-		file.writeOne(count);
+		file.write(&count);
 		for (Entry& entry : m_entries) {
-			file.write(entry.name);
-			file.writeOne(entry.id);
+			file.write(&entry.name);
+			file.write(&entry.id);
 		}
 
 		IF_LEVEL(REGISTRY_LEVEL_INFO)
@@ -106,11 +106,11 @@ namespace prounk {
 			return;
 		}
 		int count;
-		file.readOne(count);
+		file.read(&count);
 		m_entries.resize(count);
 		for (int i = 0; i < count;i++) {
-			file.read(m_entries[i].name);
-			file.readOne(m_entries[i].id);
+			file.read(&m_entries[i].name);
+			file.read(&m_entries[i].id);
 			m_entries[i].registry = nullptr;
 		}
 		IF_LEVEL(REGISTRY_LEVEL_INFO)

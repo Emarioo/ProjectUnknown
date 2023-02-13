@@ -26,7 +26,7 @@ namespace engone {
 
 		std::vector<Bone> bones;
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 }

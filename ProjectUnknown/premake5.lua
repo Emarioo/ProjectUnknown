@@ -7,7 +7,7 @@ project "ProjectUnknown"
     symbols "On"
     toolset "gcc"
     
-    -- buildoptions {"-g"}
+    buildoptions {"-g"}
     
     targetdir "../bin/%{prj.name}/%{cfg.buildcfg}"
     objdir "../bin/intermediates/%{prj.name}/%{cfg.buildcfg}"
@@ -23,6 +23,7 @@ project "ProjectUnknown"
     
     --removefiles{"**/LoggingModule."}
     removefiles{"**/Old/**"}
+    removefiles{"**/_**"}
    
     includedirs {"include","../Engone/include","../libs/GLFW/include","../libs/GLEW/include","../libs/reactphysics3d/include"}
     

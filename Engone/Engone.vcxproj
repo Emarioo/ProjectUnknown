@@ -62,6 +62,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -85,6 +86,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -117,6 +119,9 @@
     <ClInclude Include="include\Engone\Engone.h" />
     <ClInclude Include="include\Engone\Error.h" />
     <ClInclude Include="include\Engone\EventModule.h" />
+    <ClInclude Include="include\Engone\FileModule\FileModule.h" />
+    <ClInclude Include="include\Engone\FileModule\FileReader.h" />
+    <ClInclude Include="include\Engone\FileModule\FileWriter.h" />
     <ClInclude Include="include\Engone\LogModule\LogTypes.h" />
     <ClInclude Include="include\Engone\LogModule\Logger.h" />
     <ClInclude Include="include\Engone\Logger.h" />
@@ -144,24 +149,20 @@
     <ClInclude Include="include\Engone\Sound\SoundSource.h" />
     <ClInclude Include="include\Engone\Sound\SoundStream.h" />
     <ClInclude Include="include\Engone\SoundModule.h" />
+    <ClInclude Include="include\Engone\Structures\Array.h" />
+    <ClInclude Include="include\Engone\Structures\FrameArray.h" />
+    <ClInclude Include="include\Engone\Structures\HashMap.h" />
+    <ClInclude Include="include\Engone\Structures\LinkedArray.h" />
+    <ClInclude Include="include\Engone\Structures\StableArray.h" />
+    <ClInclude Include="include\Engone\Structures\Stack.h" />
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
-    <ClInclude Include="include\Engone\Utilities\Array.h" />
-    <ClInclude Include="include\Engone\Utilities\EngoneInfo.h" />
-    <ClInclude Include="include\Engone\Utilities\FileUtility.h" />
-    <ClInclude Include="include\Engone\Utilities\FrameArray.h" />
-    <ClInclude Include="include\Engone\Utilities\GenEnum.h" />
-    <ClInclude Include="include\Engone\Utilities\HashMap.h" />
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h" />
-    <ClInclude Include="include\Engone\Utilities\LinkedArray.h" />
     <ClInclude Include="include\Engone\Utilities\LogLevels.h" />
     <ClInclude Include="include\Engone\Utilities\MemAllocator.h" />
     <ClInclude Include="include\Engone\Utilities\RandomUtility.h" />
     <ClInclude Include="include\Engone\Utilities\RuntimeStats.h" />
-    <ClInclude Include="include\Engone\Utilities\StableArray.h" />
-    <ClInclude Include="include\Engone\Utilities\Stack.h" />
     <ClInclude Include="include\Engone\Utilities\TimeUtility.h" />
-    <ClInclude Include="include\Engone\Utilities\Tracker.h" />
     <ClInclude Include="include\Engone\Utilities\Typedefs.h" />
     <ClInclude Include="include\Engone\Utilities\Utilities.h" />
     <ClInclude Include="include\Engone\Utilities\rp3d.h" />
@@ -195,6 +196,8 @@
     <ClCompile Include="src\Engone\Core\ExecutionControl.cpp" />
     <ClCompile Include="src\Engone\Core\Window.cpp" />
     <ClCompile Include="src\Engone\Events\EventModule.cpp" />
+    <ClCompile Include="src\Engone\FileModule\FileReader.cpp" />
+    <ClCompile Include="src\Engone\FileModule\FileWriter.cpp" />
     <ClCompile Include="src\Engone\IMPLS.cpp" />
     <ClCompile Include="src\Engone\LogModule\Logger.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
@@ -213,16 +216,17 @@
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
+    <ClCompile Include="src\Engone\Structures\FrameArray.cpp" />
+    <ClCompile Include="src\Engone\Structures\HashMap.cpp" />
+    <ClCompile Include="src\Engone\Structures\StableArray.cpp" />
+    <ClCompile Include="src\Engone\Structures\Stack.cpp" />
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
     <ClCompile Include="src\Engone\Utilities\Alloc.cpp" />
-    <ClCompile Include="src\Engone\Utilities\FileUtility.cpp" />
-    <ClCompile Include="src\Engone\Utilities\FrameArray.cpp" />
-    <ClCompile Include="src\Engone\Utilities\HashMap.cpp" />
+    <ClCompile Include="src\Engone\Utilities\Error.cpp" />
     <ClCompile Include="src\Engone\Utilities\ImageUtility.cpp" />
     <ClCompile Include="src\Engone\Utilities\LogLevels.cpp" />
-    <ClCompile Include="src\Engone\Utilities\StableArray.cpp" />
-    <ClCompile Include="src\Engone\Utilities\Stack.cpp" />
-    <ClCompile Include="src\Engone\Utilities\Tracker.cpp" />
+    <ClCompile Include="src\Engone\Utilities\RandomUtility.cpp" />
+    <ClCompile Include="src\Engone\Utilities\TimeUtility.cpp" />
     <ClCompile Include="src\Engone\Utilities\Utilities.cpp" />
     <ClCompile Include="src\Engone\Utilities\rp3d.cpp" />
     <ClCompile Include="src\Engone\pch.cpp">

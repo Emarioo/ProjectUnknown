@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/Utilities/Stack.h"
+#include "Engone/Structures/Stack.h"
 #include "Engone/Logger.h"
 
 namespace engone {
@@ -90,8 +90,8 @@ namespace engone {
 		};
 		
 		
-		Memory<Chain> keymap{};
-		Memory<Chain> chainData{};
+		Memory keymap{sizeof(Chain)};
+		Memory chainData{sizeof(Chain)};
 		Stack<int> emptySpots;
 		int keymapSize=20; // preferred size by the user
 		int size=0; // amount of insertions

@@ -18,7 +18,7 @@ const char* test2dGLSL = {
 // }
 // #endif
 namespace engone {
-	TrackerId Engone::trackerId = "Engone";
+	// TrackerId Engone::trackerId = "Engone";
 
 	static const char* guiShaderSource = {
 #include "Engone/Shaders/gui.glsl"
@@ -48,14 +48,13 @@ namespace engone {
 	}
 	void Engone::addApplication(Application* app) {
 		//T* app = new T(this);
-		GetTracker().track(app);
+		// GetTracker().track(app);
 		m_applications.push_back(app);
 		m_appSizes.push_back(sizeof(Application));
-		m_appIds.push_back(Application::trackerId);
+		// m_appIds.push_back(Application::trackerId);
 	}
 	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
-
 		if (m_applications.size() == 0) {
 			log::out << log::YELLOW<<"Engone::start : Returning because of zero apps\n";
 			return;
@@ -105,20 +104,20 @@ namespace engone {
 		// they may have allocated memory in global scope and never deleted it. But only if they used the tracker functions.
 		//GetTracker().clear();
 
-		GetTracker().printInfo();
+		// GetTracker().printInfo();
 		// The tracker may a little tricky to analyize correctly sometimes. Just don't get too fixated on it.
 
 		// this means that the Memory usage is somewhat high because of io_context (and glfw, and reactphysics)
 
 		DestroyNetworking();
 
-		uint32_t expectedMem = 0;
-		if (GetTracker().getMemory() > expectedMem) {
-			log::out << "Memory leak? " << GetTracker().getMemory() << " expected " << expectedMem << "\n";
-			GetTracker().printMemory();
-		} else {
-			log::out << "No tracked memory leak\n";
-		}
+		// uint32_t expectedMem = 0;
+		// if (GetTracker().getMemory() > expectedMem) {
+		// 	log::out << "Memory leak? " << GetTracker().getMemory() << " expected " << expectedMem << "\n";
+		// 	GetTracker().printMemory();
+		// } else {
+		// 	log::out << "No tracked memory leak\n";
+		// }
 	}
 	uint32 RunWindow(void* arg){
 		Window* win = (Window*)arg;
@@ -337,7 +336,7 @@ namespace engone {
 				Window* win = app->getAttachedWindows()[j];
 				if (win->isOpen()) continue;
 				
-				GetTracker().track(win);
+				// GetTracker().track(win);
 				ALLOC_DELETE(Window,win);
 				app->getAttachedWindows().erase(app->getAttachedWindows().begin() + j);
 				j--;
@@ -347,12 +346,12 @@ namespace engone {
 			if (app->isStopped()) {
 				// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 				// app should be safe to delete
-				GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
+				// GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
 				ALLOC_DELETE(Application, app);
 
 				m_applications.erase(m_applications.begin() + i);
 				m_appSizes.erase(m_appSizes.begin() + i);
-				m_appIds.erase(m_appIds.begin() + i);
+				// m_appIds.erase(m_appIds.begin() + i);
 				i--;
 			}
 		}

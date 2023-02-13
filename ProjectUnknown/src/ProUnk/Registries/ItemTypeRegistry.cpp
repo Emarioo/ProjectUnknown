@@ -1,6 +1,8 @@
 
 #include "ProUnk/Registries/ItemTypeRegistry.h"
 
+#include "Engone/FileModule/FileModule.h"
+
 namespace prounk {
 
 	void ItemTypeRegistry::serialize() {
@@ -10,12 +12,14 @@ namespace prounk {
 			log::out << log::RED << "ItemTypeRegistry file '" << file.getPath() << "' cannot be serialized\n";
 			return;
 		}
-		//file.writeOne(m_newType);
+		// file.writeOne(m_newType);
 		int count = m_itemTypes.size();
-		file.writeOne(count);
+		
+		// file.writeOne(count);
+		file.write(&count);
 		for (ItemTypeInfo& entry : m_itemTypes) {
-			file.writeOne(entry.itemType);
-			file.write(entry.name);
+			file.write(&entry.itemType);
+			file.write(&entry.name);
 		}
 
 		log::out << "ItemTypeRegistry serialized " << count << " entries\n";
@@ -29,12 +33,12 @@ namespace prounk {
 		}
 		//file.readOne(m_newType);
 		int count;
-		file.readOne(count);
+		file.read(&count);
 		m_itemTypes.resize(count);
 		for (int i = 0; i < count; i++) {
 			ItemTypeInfo& entry = m_itemTypes[i];
-			file.readOne(entry.itemType);
-			file.read(entry.name);
+			file.read(&entry.itemType);
+			file.read(&entry.name);
 		}
 		log::out << "ItemTypeRegistry loaded " << count << " entries\n";
 	}

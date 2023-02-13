@@ -20,7 +20,7 @@ namespace engone {
 			return 0;
 		}
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 
 	};

@@ -260,15 +260,40 @@ namespace PL_NAMESPACE {
 	void Sleep(double seconds){
         Win32Sleep((uint32)(seconds*1000));   
     }
-    APIFile* FileOpen(const std::string& path, uint64* outFileSize, bool onlyRead){
+    APIFile* FileOpen(const std::string& path, uint64* outFileSize, uint32 flags){
         DWORD access = GENERIC_READ|GENERIC_WRITE;
         DWORD sharing = 0;
-        if(onlyRead){
+        if(flags&FILE_ONLY_READ){
             access = GENERIC_READ;
          	sharing = FILE_SHARE_READ;
 		}
-        
-		HANDLE handle = CreateFileA(path.c_str(),access,sharing,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL, NULL);
+		DWORD creation = (flags&FILE_CAN_CREATE)?OPEN_ALWAYS:OPEN_EXISTING;
+        // printf("creation %u",creation);
+
+		if(creation&OPEN_ALWAYS){
+			std::string temp;
+			int i=0;
+			int at = path.find_first_of(':');
+			if(at!=-1){
+				i = at+1;
+				temp+=path.substr(0,i);
+			}
+			for(;i<path.length();i++){
+				char chr = path[i];
+				if(chr=='/'||chr=='\\'){
+					// printf("exist %s\n",temp.c_str());
+					if(!DirectoryExist(temp)){
+						// printf(" create\n");
+						bool success = DirectoryCreate(temp);
+						if(!success)
+							break;
+					}
+				}
+				temp+=chr;
+			}
+		}
+
+		HANDLE handle = CreateFileA(path.c_str(),access,sharing,NULL,creation,FILE_ATTRIBUTE_NORMAL, NULL);
 		
 		if(handle==INVALID_HANDLE_VALUE){
 			DWORD err = GetLastError();
@@ -293,7 +318,7 @@ namespace PL_NAMESPACE {
 		}
 		return TO_INTERNAL(handle);
 	}
-	uint64 FileRead(APIFile* file, char* buffer, uint64 readBytes){
+	uint64 FileRead(APIFile* file, void* buffer, uint64 readBytes){
 		Assert(readBytes!=(uint64)-1); // -1 indicates no bytes read
 		
 		DWORD bytesRead=0;
@@ -304,6 +329,31 @@ namespace PL_NAMESPACE {
 			return -1;
 		}
 		return bytesRead;
+	}
+	uint64 FileWrite(APIFile* file, void* buffer, uint64 writeBytes){
+		Assert(writeBytes!=(uint64)-1); // -1 indicates no bytes read
+		
+		DWORD bytesWritten=0;
+		DWORD success = WriteFile(TO_HANDLE(file),buffer,writeBytes,&bytesWritten,NULL);
+		if(!success){
+			DWORD err = GetLastError();
+			PL_PRINTF("[WinError %u] Error reading file handle '%lu'\n",err,file);
+			return -1;
+		}
+		return bytesWritten;
+	}
+	bool FileSetHead(APIFile* file, uint64 position){
+		DWORD success = 0;
+		if(position==-1){
+			success = SetFilePointerEx(file,{0},NULL,FILE_END);
+		}else{
+			success = SetFilePointerEx(file,*(LARGE_INTEGER*)&position,NULL,FILE_BEGIN);
+		}
+		if(success) return true;
+		
+		int err = GetLastError();
+		PL_PRINTF("[WinError %u] Error reading file handle '%lu'\n",err,file);
+		return false;
 	}
 	void FileClose(APIFile* file){
 		if(file)
@@ -318,10 +368,21 @@ namespace PL_NAMESPACE {
         }
         return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
     }
+	bool DirectoryCreate(const std::string& path){
+		DWORD success = CreateDirectoryA(path.c_str(),0);
+		if(!success){
+			DWORD err = GetLastError();
+			PL_PRINTF("[WinError %u] CreateDirectoryA '%s'\n",err,path.c_str());
+            return false;
+		}
+		return true;
+	}
     bool DirectoryExist(const std::string& path){
         DWORD attributes = GetFileAttributesA(path.c_str());   
         if(attributes == INVALID_FILE_ATTRIBUTES){
             DWORD err = GetLastError();
+			if(err==ERROR_FILE_NOT_FOUND)
+				return false;
             PL_PRINTF("[WinError %u] GetFileAttributesA '%s'\n",err,path.c_str());
             return false;
         }
@@ -423,7 +484,17 @@ namespace PL_NAMESPACE {
 	uint64 GetNumberAllocations(){
 		return s_numberAllocations;
 	}
-    
+	static HANDLE m_consoleHandle = NULL;
+    void SetConsoleColor(uint16 color){
+		if (m_consoleHandle == NULL) {
+			m_consoleHandle = GetStdHandle(-11);
+			if (m_consoleHandle == NULL)
+				return;
+		}
+		// Todo: don't set color if already set? difficult if you have a variable of last color and a different 
+		//		function sets color without changing the variable.
+		SetConsoleTextAttribute((HANDLE)m_consoleHandle, color);
+	}
     Semaphore::Semaphore(int initial, int max) {
 		m_initial = initial;
 		m_max = max;

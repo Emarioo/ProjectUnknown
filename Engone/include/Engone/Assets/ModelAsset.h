@@ -17,7 +17,7 @@ namespace engone {
 
 		Asset* asset;
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 	class ModelAsset : public Asset {
@@ -65,7 +65,7 @@ namespace engone {
 		// Asset has to be loaded for this to work
 		std::vector<glm::mat4> getArmatureTransforms(Animator* animator, glm::mat4& instanceMat, AssetInstance* instance, ArmatureAsset* asset, std::vector<glm::mat4>* boneMats = nullptr);
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 }

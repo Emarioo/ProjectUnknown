@@ -23,7 +23,7 @@ namespace engone {
 
 		void bind(Shader* shader, int index);
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 }

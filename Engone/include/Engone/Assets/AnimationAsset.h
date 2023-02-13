@@ -79,7 +79,7 @@ namespace engone {
 		uint16_t frameEnd = 0;
 		float defaultSpeed = 24;// frames per second. 24 is default from blender.
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	private:
 	};
 }

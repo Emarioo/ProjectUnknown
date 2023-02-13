@@ -3,26 +3,7 @@
 #include <vector>
 #include <string>
 
-// #include "Engone/Logger.h"
 namespace engone {
-	//bool FindFile(const std::string& path) {
-	//	struct stat buffer;
-	//	return (stat(path.c_str(), &buffer) == 0);
-	//}
-	//std::vector<std::string> GetFiles(const std::string& path) {
-	//	std::vector<std::string> list;
-	//	for (const auto& entry : std::filesystem::directory_iterator(path)) {
-	//		list.push_back(entry.path().generic_string());
-	//	}
-	//	return list;
-	//}
-	//// In seconds
-	//uint64_t GetFileLastModified(const std::string& path) {
-	//	if (std::filesystem::exists(path))
-	//		return std::chrono::duration_cast<std::chrono::seconds>(std::filesystem::last_write_time(path).time_since_epoch()).count();
-	//	//log::out << log::RED << "getTime - path not valid\n";
-	//	return 0;
-	//}
 	FileReader::FileReader(const std::string& path, bool binaryForm) : binaryForm(binaryForm) {
 		m_file = engone::FileOpen(path.c_str(),&m_fileSize,true);
 		if (!m_file) {
@@ -110,6 +91,7 @@ namespace engone {
 		
 	uint64 FileReader::readLine(std::string& line) {
 		line.clear();
+		bool isComment=false;
 		while(true) {
 			int bytesLeft = m_buffer.used-m_bufferHead;
 			Assert(bytesLeft>=0)
@@ -122,29 +104,57 @@ namespace engone {
 				if(readBytes==-1){
 					// Todo: Use a different error when m_file == 0?
 					m_error = EndOfFile;
-					break;
+					return line.length()!=0;
 				}	
 				m_fileHead += readBytes;
 				m_buffer.used = readBytes;
 				m_bufferHead = 0;
 				if(readBytes==0){
 					m_error = EndOfFile;
-					break; // no more bytes to read, end of line
+					return line.length()!=0; // no more bytes to read, end of line
 				}
 			}
+			char chr = *((char*)m_buffer.data+m_bufferHead);
 			
-			if(m_buffer.data[m_bufferHead]=='\n'){
+			if(line.empty()&&chr=='#')
+				isComment=true;
+			if(chr=='\n'){
 				m_bufferHead++;
-				break;
+				if(!isComment){
+					return true;
+				}
+				isComment=false;
+				continue;
 			}
-			if(m_buffer.data[m_bufferHead]=='\r'){
+			if(chr=='\r'){
 				m_bufferHead++;
 				continue;
 			}
-			
-			line += m_buffer.data[m_bufferHead++];
+			if(!isComment)
+				line += chr;
+			m_bufferHead++;
 		}
-		return line.length();
+	}
+	bool FileReader::readAll(std::string& lines){
+		lines.clear();
+		bool wasEmpty=false;
+		std::string temp;
+		while(true){
+			temp.clear();
+			bool yes = readLine(temp);
+			if(!yes)
+				break;
+			if(wasEmpty)
+				lines+="\n";
+			
+			wasEmpty=false;
+			if(!temp.empty()){
+				lines+=temp+"\n";
+			}else{
+				wasEmpty=true;
+			}
+		}
+		return lines.size()!=0;
 	}
 	uint64 FileReader::readNumbers(char* ptr, uint64 count, uint typeSize, bool isFloat) {
 		Assert(ptr)
@@ -154,6 +164,7 @@ namespace engone {
 		
 		int numberCount=0;
 		std::string number;
+		bool isComment=false;
 		while(numberCount!=count){
 			int bytesLeft = m_buffer.used-m_bufferHead;
 			Assert(bytesLeft>=0)
@@ -180,20 +191,25 @@ namespace engone {
 				}
 			}
 			if(!lastNumber){
-				char chr = m_buffer.data[m_bufferHead];
+				char chr = *((char*)m_buffer.data+m_bufferHead);
 				m_bufferHead++;
 				if(chr=='\r'){ // just skip
 					continue;
 				}
 				if(chr=='\n' || chr==' '){
 					endNumber=true;
+					if(isComment&&chr=='\n') {
+						number.clear();
+					}
 				}else{
 					number+=chr;
+					if(number[0]=='#')
+						isComment=true;
 					continue;
 				}
 			}
 			
-			if(endNumber&&!number.empty()){
+			if(endNumber&&!number.empty()&&!isComment){
 				numberCount++;
 				double num = atof(number.c_str());
 			
@@ -206,21 +222,52 @@ namespace engone {
 					else if(typeSize==sizeof(int32)){*((int32*)ptr) = num;ptr += typeSize;}
 					else if(typeSize==sizeof(int64)){*((int64*)ptr) = num;ptr += typeSize;}
 				}
-				
 				number.clear();
 			}
+			if(number.empty())
+				isComment=false;
 			if(lastNumber)
 				break;
 		}
 		return numberCount;
 	}
+	bool FileReader::read(std::string* ptr, uint64 count){
+		if(binaryForm){
+			uint16 length;
+			bool yes = read(&length);
+			if(!yes){
+				return false;
+			}
+			ptr->resize(length);
+			yes = read(ptr->data(),length);
+			if(!yes){
+				return false;
+			}
+		}else{
+			uint64 length = readLine(*ptr);
+			return length!=0;
+		}
+		return true;
+	}
+		
 	#define GEN_READ_TYPE(TYPE,FLOATY)\
-	bool FileReader::read_##TYPE(TYPE* ptr, uint64 count){\
+	bool FileReader::read(TYPE* ptr, uint64 count){\
 		return count==readNumbers((char*)ptr,count,sizeof(TYPE),FLOATY);}\
 		
+	GEN_READ_TYPE(uint8,false)
 	GEN_READ_TYPE(int16,false)
-	GEN_READ_TYPE(int,false)
+	GEN_READ_TYPE(uint16,false)
+	GEN_READ_TYPE(int32,false)
+	GEN_READ_TYPE(uint32,false)
 	GEN_READ_TYPE(int64,false)
+	GEN_READ_TYPE(uint64,false)
 	GEN_READ_TYPE(float,true)
 	GEN_READ_TYPE(double,true)
+
+	bool FileReader::read(glm::vec3* ptr, uint64 count){
+		return count==readNumbers((char*)ptr,count*3,sizeof(float),true);
+	}
+	bool FileReader::read(glm::mat4* ptr, uint64 count){
+		return count==readNumbers((char*)ptr,count*16,sizeof(float),true);
+	}
 }

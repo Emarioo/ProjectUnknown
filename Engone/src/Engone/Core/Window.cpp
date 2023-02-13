@@ -7,7 +7,7 @@
 #include "Engone/Engone.h"
 
 namespace engone {
-	TrackerId Window::trackerId="Window";
+	// TrackerId Window::trackerId="Window";
 	static bool glfwIsActive = false;
 	static double glfwFreezeTime = 0;
 	void InitializeGLFW() {
@@ -281,7 +281,7 @@ namespace engone {
 
 		for (Listener* l : m_listeners) {
 			if (l->m_ownedByWindow) {
-				GetTracker().untrack(l);
+				// GetTracker().untrack(l);
 				//delete l;
 				ALLOC_DELETE(Listener, l);
 			}

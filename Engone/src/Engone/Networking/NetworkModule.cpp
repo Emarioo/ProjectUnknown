@@ -27,10 +27,10 @@
 #define IF_LEVEL(level) if (HasLogLevel(NETWORK_LEVEL, level))
 
 namespace engone {
-#ifdef ENGONE_TRACKER
-	TrackerId Server::trackerId = "Server";
-	TrackerId Client::trackerId = "Client";
-#endif
+// #ifdef ENGONE_TRACKER
+// 	TrackerId Server::trackerId = "Server";
+// 	TrackerId Client::trackerId = "Client";
+// #endif
 
 	//namespace alloc {
 	//	void* malloc(uint64_t size) {
@@ -288,9 +288,9 @@ namespace engone {
 				writeThread();
 		}
 		UUID m_uuid = 0;
-#ifdef ENGONE_TRACKER
-		static TrackerId trackerId;
-#endif
+// #ifdef ENGONE_TRACKER
+// 		static TrackerId trackerId;
+// #endif
 	private:
 		friend class Client;
 		friend class Server;
@@ -354,9 +354,9 @@ namespace engone {
 
 		std::vector<std::shared_ptr<MessageBuffer>> m_outMessages;
 	};
-#ifdef ENGONE_TRACKER
-	TrackerId Connection::trackerId = "Connection";
-#endif
+// #ifdef ENGONE_TRACKER
+// 	// TrackerId Connection::trackerId = "Connection";
+// #endif
 	void Connection::readThread() {
 		if (m_socket == INVALID_SOCKET) return;
 		if (m_readThread) {

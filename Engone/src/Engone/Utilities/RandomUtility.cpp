@@ -5,7 +5,7 @@
 
 namespace engone {
 	static std::mt19937 randomGenerator;
-	static uint32_t randomSeed = 0;
+	static uint32 randomSeed = 0;
 	static bool seedonce = false;
 	static void initGenerator() {
 		if (!seedonce) {

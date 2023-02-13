@@ -24,18 +24,32 @@ namespace engone {
 		void free(void* ptr, uint64 size);
 		uint64 allocatedBytes();
 	}
-	// Does not have a destructor. You need to free the memory with resize(0)
-	template<class T>
 	struct Memory {
+		Memory(uint32 typeSize) : m_typeSize(typeSize) {}
+
 		uint64 max = 0;
 		uint64 used = 0; // may be useful to you.
-		T* data = nullptr;
+		void* data = nullptr;
 
 		// count is not in bytes.
-		bool resize(uint64 count) {
-			return ((Memory<char>*)this)->resize(sizeof(T), count);
-		}
 		// function is only defined for Memory<char>
-		bool resize(uint64 size, uint64 count);
+		bool resize(uint64 count);
+
+	private:
+		uint32 m_typeSize = 0;
 	};
+	// Does not have a destructor. You need to free the memory with resize(0)
+	// template<class T>
+	// struct Memory {
+	// 	uint64 max = 0;
+	// 	uint64 used = 0; // may be useful to you.
+	// 	T* data = nullptr;
+
+	// 	// count is not in bytes.
+	// 	bool resize(uint64 count) {
+	// 		return ((Memory<char>*)this)->resize(sizeof(T), count);
+	// 	}
+	// 	// function is only defined for Memory<char>
+	// 	bool resize(uint64 count, uint64 resize);
+	// };
 }

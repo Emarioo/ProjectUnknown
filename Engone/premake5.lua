@@ -4,18 +4,21 @@ project "Engone"
     cppdialect "C++17"
     symbols "On"
     staticruntime "on"
-    toolset "gcc"
     -- dependson {"rp3d","glew","glfw3"}
+    -- system "Windows"
+    -- system "Linux"
     
-    targetdir "../bin/%{prj.name}/%{cfg.buildcfg}"
-    objdir "../bin/intermediates/%{prj.name}/%{cfg.buildcfg}"
+    targetdir "../bin/%{prj.name}/%{cfg.system}-%{cfg.buildcfg}"
+    objdir "../bin/intermediates/%{prj.name}/%{cfg.system}-%{cfg.buildcfg}"
     
     defines {"ENGONE_PHYSICS","ENGONE_OPENGL","GLEW_STATIC","WIN32"}
     
     files {"src/**.cpp","include/**.h"}
     
+    buildoptions{"-g"}
+
     removefiles{"**/Old/**"}
-    removefiles{"**/FileModule/**"}
+    -- removefiles{"**/FileModule/**"}
     removefiles{"**/_**"}
     
     includedirs {"include","../libs/GLFW/include","../libs/GLEW/include","../libs/reactphysics3d/include"}

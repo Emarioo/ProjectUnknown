@@ -32,7 +32,7 @@ namespace engone {
 		static const int imgSize = 1024;
 		static const int charSize = imgSize / 16;// 64
 
-		static TrackerId trackerId;
+		// static TrackerId trackerId;
 	
 	private:
 		PNG* png = nullptr;
