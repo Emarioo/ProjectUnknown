@@ -1,5 +1,5 @@
 # ProjectUnknown
-A game made with C++, OpenGl, ReactPhysics3D and OpenAL. (OpenAL may be replaced)
+A game made with C++, OpenGl, ReactPhysics3D and OpenAL.
 
 This project will be split into two repositories.
 Engone and ProjectUnknown. ProjectUnknown is the code name for the game and will be private
