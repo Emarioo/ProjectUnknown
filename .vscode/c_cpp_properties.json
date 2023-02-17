@@ -4,10 +4,10 @@
             "name": "Win32",
             "intelliSenseMode": "${default}",
             "includePath": [
-                "${workspaceFolder}/Engone/include/**",
-                "${workspaceFolder}/ProjectUnknown/include/**",
-                "${workspaceFolder}/libs/GLFW/include/**",
-                "${workspaceFolder}/libs/GLEW/include/**",
+                "${workspaceFolder}/Engone/include",
+                "${workspaceFolder}/ProjectUnknown/include",
+                "${workspaceFolder}/libs/GLFW/include",
+                "${workspaceFolder}/libs/GLEW/include",
                 "${workspaceFolder}/libs/reactphysics3d/include"
             ],
             "defines": [

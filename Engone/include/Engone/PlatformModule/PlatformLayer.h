@@ -16,6 +16,9 @@
 
 #define PL_PRINT_ERRORS
 
+#define MegaBytes(x) (x*1024llu*1024llu)
+#define GigaBytes(x) (x*1024llu*1024llu*1024llu)
+
 namespace PL_NAMESPACE {
 	typedef void APIFile;
 	typedef void DirectoryIterator;
@@ -41,8 +44,9 @@ namespace PL_NAMESPACE {
 	// Current allocations
 	uint64 GetNumberAllocations();
 	
-	TimePoint StartTime();
-	double EndTime(TimePoint timePoint);
+	TimePoint MeasureSeconds();
+	// returns time in seconds
+	double StopMeasure(TimePoint timePoint);
     
     // Note that the platform/os may not have the accuracy you need.
     void Sleep(double seconds);
@@ -154,4 +158,69 @@ namespace PL_NAMESPACE {
 		ThreadId m_ownerThread = 0;
 		void* m_internalHandle = 0;
 	};
+	
+	// Starts an exe at path. Uses CreateProcess from windows.h
+	// commandLine cannot be constant (CreateProcessA in windows api says so)
+	bool StartProgram(const std::string& path, char* commandLine=NULL);
+
+	// Converts arguments from WinMain into simpler arguments. Not unicode.
+	// note that argc and argv are references and the outputs of this function.
+	// do not forget to call FreeArguments because this function allocates memory.
+	void ConvertArguments(int& argc, char**& argv);
+	// same as previous but arguments are converted from paramteter args.
+	// args is what would follow when you call the executable. Ex, mygame.exe --console --server
+	void ConvertArguments(const char* args, int& argc, char**& argv);
+	void FreeArguments(int argc, char** argv);
+	// calls AllocConsole and sets stdin and stdout
+	void CreateConsole();
+
+	// Monitor a directory or file where any changes to files will call the callback with certain path.
+	class FileMonitor {
+	public:
+		//-- flags
+		enum Flags : uint32 {
+			WATCH_SUBTREE = 1,
+		};
+		enum ChangeType : uint32 {
+			FILE_REMOVED = 1,
+			FILE_MODIFIED = 2, // includes added file
+		};
+
+		FileMonitor() = default;
+		~FileMonitor();
+		void cleanup();
+
+		// path can be file or directory
+		// calling this again will restart the tracking with new arguments.
+		// the argument in the callback is a relative path from root to the file that was changed.
+		// returns false if root path was invalid
+		bool check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
+
+		inline const std::string& getRoot() { return m_root; }
+
+		inline std::function<void(const std::string&, uint32)>& getCallback() { return m_callback; }
+
+	private:
+		bool m_running = false;
+		std::function<void(const std::string&, uint32)> m_callback;
+		std::string m_root; // path passed to check function
+		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
+		uint32 m_flags = 0;
+
+		void* m_changeHandle=NULL;
+		Mutex m_mutex;
+		Thread m_thread;
+		//HANDLE m_threadHandle = NULL; // used to cancel ReadDirectoryChangesW
+	
+		void* m_dirHandle = NULL;
+		void* m_buffer=nullptr;
+		uint32 m_bufferSize=0;
+	
+		friend uint32 RunMonitor(void* arg);
+	};
+	
+	// You set a threads name with it. Use -1 as threadId if you want to set the name for the current thread.
+	// This only works in visual studios debugger.
+	// An alternative is SetThreadDescription but it is not available in Windows 8.1 which I am using.
+	void SetThreadName(ThreadId threadId, const char* threadName);
 }

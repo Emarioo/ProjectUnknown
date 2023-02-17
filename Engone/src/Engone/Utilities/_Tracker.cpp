@@ -286,11 +286,11 @@ namespace engone {
 		if (size == 0) {
 			if (data) {
 #ifdef ENGONE_DEBUG_TRACKER
-				alloc::free(validations, sizeof(bool) * maxCount);
+				Free(validations, sizeof(bool) * maxCount);
 				GetTracker().subMemory(sizeof(bool)*maxCount);
 				validations = nullptr;
 #endif
-				alloc::free(data,sizeof(TrackNode)*maxCount);
+				Free(data,sizeof(TrackNode)*maxCount);
 				GetTracker().subMemory<TrackNode>(sizeof(TrackNode) * maxCount);
 				data = nullptr;
 				maxCount = 0;
@@ -299,17 +299,17 @@ namespace engone {
 			}
 		} else {
 			if (!data) {
-				TrackNode* newData = (TrackNode*)alloc::malloc(sizeof(TrackNode) * size);
+				TrackNode* newData = (TrackNode*)Allocate(sizeof(TrackNode) * size);
 				if (!newData) return false;
 				GetTracker().addMemory<TrackNode>(sizeof(TrackNode) * size);
 #ifdef ENGONE_DEBUG_TRACKER
-				validations = (bool*)alloc::malloc(sizeof(bool) * size);
+				validations = (bool*)Allocate(sizeof(bool) * size);
 				GetTracker().addMemory(sizeof(bool) * size);
 #endif
 				data = newData;
 				maxCount = size;
 			} else {
-				TrackNode* newData = (TrackNode*)alloc::realloc(data, maxCount * sizeof(TrackNode), sizeof(TrackNode) * size);
+				TrackNode* newData = (TrackNode*)Reallocate(data, maxCount * sizeof(TrackNode), sizeof(TrackNode) * size);
 				if (!newData) return false;
 				GetTracker().subMemory<TrackNode>(sizeof(TrackNode) * (maxCount));
 				GetTracker().addMemory<TrackNode>(sizeof(TrackNode) * (size));

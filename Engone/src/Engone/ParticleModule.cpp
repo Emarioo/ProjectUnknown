@@ -236,7 +236,7 @@ namespace engone {
 		m_refreshShaderInfo = true;
 		if (size == 0) {
 			if (m_data)
-				alloc::free(m_data,m_capacity);
+				Free(m_data,m_capacity);
 
 			m_shaderBuffer.cleanup();
 			int capacity = 0;
@@ -246,7 +246,7 @@ namespace engone {
 		}
 		else {
 			if (!m_data) {
-				void* newData = (void*)alloc::malloc(size);
+				void* newData = (void*)Allocate(size);
 				if (!newData) {
 					log::out << log::RED << "ParticleModule::resize - failed!\n";
 					return false;
@@ -258,7 +258,7 @@ namespace engone {
 				m_count = 0;
 			}
 			else {
-				void* newData = (void*)alloc::realloc(m_data, m_capacity, size);
+				void* newData = (void*)Reallocate(m_data, m_capacity, size);
 				if (!newData) {
 					log::out << log::RED << "ParticleModule::resize - failed!\n";
 					return false;

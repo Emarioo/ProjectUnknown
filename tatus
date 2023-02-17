@@ -1,0 +1,769 @@
+[33mcommit ff3d0e4f1878fb63617259fa58b6696032987b0d[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Feb 10 17:05:45 2023 +0100
+
+    Remake of the build system. Now using premake5.
+    Added GLFW3, GLEW and RP3D as projects to the workspace.
+    Started incorporating PlatformLayer to the codebase.
+    Rewrote FileReader.
+
+[33mcommit 073d4c8a91189353468892a81851ed6735ab498b[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Feb 8 04:31:11 2023 +0100
+
+    Changing the build system. Testing with msvc cl, gcc and premake
+
+[33mcommit 049d1a9df599c3b0725ea17d2fe6f2d6ddcc3a88[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Tue Feb 7 12:35:19 2023 +0100
+
+    Chicken
+
+[33mcommit 913e497f2e086a6a3ca78f258209fbb94f82bb9d[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Feb 6 12:40:11 2023 +0100
+
+    Started work on a platform module (platform layer). Also started rewriting Logger and FileReader/FileWriter.
+
+[33mcommit 622a2da30aefba2b6d374d4220f9cc40837d675b[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Feb 3 17:27:56 2023 +0100
+
+    Some quality fixes. Fixed a bug with FrameArray.
+
+[33mcommit 86d1ecba691819cdf0bd5b2b0e29fed385ec5b9b[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Feb 1 22:00:20 2023 +0100
+
+    Begun work on dungeons. Removed unused assets.
+
+[33mcommit f971c55d887f3c205ceca63b5602ec1838127db4[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Jan 30 00:26:32 2023 +0100
+
+    Reintroduced OpenAL (now static library). Added new arena. Fixed some bugs. Removed ASIO.
+
+[33mcommit e8b468ac4760a6a2682dabcdd013bf3829333ee8[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Jan 27 17:04:51 2023 +0100
+
+    Bug fixes... i'm in a hurry
+
+[33mcommit 31c1669cda8feed53977260b0360e66b6c33ba24[m
+Author: Emarioo <73406848+Emarioo@users.noreply.github.com>
+Date:   Mon Jan 23 00:48:30 2023 +0100
+
+    Some pointless updates to readme
+
+[33mcommit f1b06fceccd3619235b094186088417a61cadaba[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Jan 23 00:43:40 2023 +0100
+
+    Added Spear, Dagger and a new model for the Sword. New animations for the weapons. Finally a revamp for the launcher. Mostly visual but also some cleaner code behind it all.
+
+[33mcommit da81db569f92212c66391c771b18500deb0bb5fe[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Jan 20 16:51:50 2023 +0100
+
+    Bug fixes after previous commit. Improved Logic for Dummy.
+
+[33mcommit 772a00759271202d61ef97c24e1ee79280a5db6d[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Jan 20 00:04:53 2023 +0100
+
+    Added ProtoArena, SessionPanel, Profiler.
+    Improved ExecutionControl and non-multithreading.
+
+[33mcommit b6efb2cc562a1353073de038f1e69f5b19d4443f[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Jan 16 12:07:19 2023 +0100
+
+    Continuation on threads and multiplayer.
+
+[33mcommit 528d29c40b615603d251b7f078282f0ad662c67a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Jan 12 17:32:56 2023 +0100
+
+    Execution Control to manage Multithreading. Some work on multiplayer messages. NET_ADD_CREATURE...
+
+[33mcommit 9e948f93278139ce3a1abba87379f6e9a1442c84[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Jan 8 18:58:27 2023 +0100
+
+    Testing with requestAccess and releaseAccess for multithreading. Most of the code written will be removed and a new multithreaded system will be implemented.
+
+[33mcommit 19e9b11013b187bb9be8ee525f0e0962d7ef26ec[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Jan 2 21:22:34 2023 +0100
+
+    Added HashMap among other structures and Item/Inventory System. Some other changes to registries as well.
+    Introduced CheatPanel and did some improvements on other panels.
+
+[33mcommit a79a8a5a9cb7388e648d2c9b30d4ed53154d9731[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Dec 16 09:31:13 2022 +0100
+
+    Some redesign on Registries and changes to LogLevels.
+
+[33mcommit f3d2934047ab4ae106751d0e50baf3eea9ac52ca[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Dec 11 18:56:48 2022 +0100
+
+    Added CraftingPanel and some recipe stuff.
+
+[33mcommit 35cca0f7739a76907db451888c7bb1ee3e76d16d[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Dec 9 16:22:54 2022 +0100
+
+    Renamed DataHandler to DataRegistries and introduced ItemTypeRegistry.
+
+[33mcommit 30d6e7cdfbb343f650f15175def80cf509821b7f[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Dec 4 19:02:13 2022 +0100
+
+    Fixes to 2D model rendering and panel system.
+
+[33mcommit c6fbc8424c6f332571ea671d6dc5b05e63e54c17[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Dec 2 17:02:18 2022 +0100
+
+    Multiplayer bug fixes and work on inventory panel(item rendering etc).
+
+[33mcommit b8692235c0ac750bb58e0472935748270e8b2476[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Nov 18 15:17:01 2022 +0100
+
+    Some changes to incorporate entity handler, inventory handler into objects.
+
+[33mcommit 5922e4a92639499674c2c551cd11a05b445a8024[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Tue Nov 15 17:29:53 2022 +0100
+
+    Added ModelHandler to replace model pointers with ids which items can use.
+
+[33mcommit 83fb4676f0a325c6876e0568ed92b218e9cb9d9c[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Nov 13 21:19:41 2022 +0100
+
+    Started work on an inventory system. A Registry system intended for a way to store data, items and entities which would also support modding.
+
+[33mcommit f9ea087d9cc1682cf3c607f8cd282841a4117cd2[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Nov 11 15:34:40 2022 +0100
+
+    Made Server and Client more asynchonous with task queues for start and stop. More fixes to game combat and networking.
+
+[33mcommit c380d15956fe8bde1d0f945a196438a50e14b422[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Nov 4 00:06:57 2022 +0100
+
+    More improvements to multiplayer and combat.
+
+[33mcommit 02e9bad36f47f5e63c09903af240fd5dbe761ef8[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Oct 28 15:17:14 2022 +0200
+
+    Improvements to multiplayer.
+
+[33mcommit 90e34a8ef17dcd5390c06efc1353f773eaa2b703[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Oct 23 19:38:33 2022 +0200
+
+    Fixed issue with multiplayer in game. Improved the launcher with FileMonitor. Still requires more work though.
+
+[33mcommit a2d51be28734e0de299428cd24830d5104eb89a0[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Oct 21 15:27:19 2022 +0200
+
+    Added LogLevels to improve debug workflow, FileRefresher as an abstraction to Windows ChangeNotications.
+
+[33mcommit 4841b0d19731dd23872695ae898c20b58ae9fc72[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Sep 30 16:28:59 2022 +0200
+
+    Fixes to some functions not working as intended. (DrawString, game loop)
+
+[33mcommit b238de2bd63eac937fd1a5c6a17cea71d6b44932[m
+Merge: 84e5270 c25e268
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Sep 16 14:51:02 2022 +0200
+
+    Merge stuff
+
+[33mcommit 84e52709266f38b62625b7406656883a6be757da[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Sep 16 14:47:23 2022 +0200
+
+    Some changes made when working ScrapEditor
+
+[33mcommit c25e2681170cf72b070aacbe75cbd44b0c6806a8[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Sep 11 19:36:03 2022 +0200
+
+    Added color to line rendering.
+
+[33mcommit c7ac6fa6ddc735ab8e473dd3e1a59f0649a9b813[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Sep 9 15:54:40 2022 +0200
+
+    Improvements to Networking. Begun work on multiplayer for the game.
+
+[33mcommit 2b0e758679fd459cead4c0452112d3abe49d9ada[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 20 22:02:47 2022 +0200
+
+    Customized MSBUILD settings for projects. Introduced image classes(including conversion to ICO format). And also changes to Particle System.
+
+[33mcommit 0bcdad2eb836176cf6a3643d1474c4f3f38ecd04[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Aug 12 17:48:46 2022 +0200
+
+    Added a blur to particles. Added FocalPoints.
+
+[33mcommit 6e33c7bb12d7db2dc61211fea015e12de238f38e[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Aug 11 12:37:26 2022 +0200
+
+    Fixes to ModelExporter. Introduced a particle system.
+
+[33mcommit 2af4bf676c2c3331ab36b39a495d80a9963ee600[m
+Merge: 223bdbb 0c04f8a
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 6 00:52:14 2022 +0200
+
+    Updated the libs with rp3d
+
+[33mcommit 223bdbb3f015c5d1377b946303d86cd32ecdbae2[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 6 00:26:12 2022 +0200
+
+    Fixed issues with the launcher. Made temporary player movement and weapon holding.
+
+[33mcommit 0c04f8a08175090ab7f17a0d90c4ce8ba687175e[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 6 00:26:12 2022 +0200
+
+    Fixed issues with the launcher. Made temporary player movement and weapon holding.
+
+[33mcommit ee7711b4af402d0f4d279f11694b2118e7ecb221[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Jul 30 17:30:51 2022 +0200
+
+    Major update
+
+[33mcommit a38ab7b6b58cb61c4fc27ba78e87c224744648fd[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Jul 17 18:03:01 2022 +0200
+
+    Fairly large change to the engine. Temporary player movement in ProjectUnknown as well as ENGONE_NO_SOUND definitions to exclude sound when compiling engine. Also added Assets, Renderer and Engone class.
+
+[33mcommit 4dc77d9467cb12a984d36b01fcfc9d50e307011a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Jul 8 19:44:14 2022 +0200
+
+    Added ReactPhysics3D and tested it to see if it works, which it does. At this point , the engine needs to change in order to support ReactPhysics.
+
+[33mcommit 31dcd81bc8e23d1d2844faa291e05cbc6bf1b3d9[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Jul 1 16:26:51 2022 +0200
+
+    Window will now call onClose on the window's parent application.
+
+[33mcommit dd84252ffa1b0c0bce306df9281c2940c2cf45ce[m[33m ([m[1;31morigin/v8test[m[33m)[m
+Merge: 793aab8 36ee120
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Jun 2 12:20:58 2022 +0200
+
+    Merge branch 'v8test' of https://github.com/Emarioo/ProjectUnknown into v8test
+
+[33mcommit 793aab859576b701fc5a8c7f7365e54481e1f99b[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri May 20 16:02:54 2022 +0200
+
+    Renamed a lot of files from handler to module and started on scripting.
+
+[33mcommit 36ee12043e7ef5f6cb9ebcfa66cf79188ee3df2a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri May 20 16:02:54 2022 +0200
+
+    Renamed a lot of files from handler to module and started on scripting.
+
+[33mcommit 7129f940078f55adb6119ad3c71c9bb7da92d30a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri May 6 16:16:45 2022 +0200
+
+    Added FileWriter, event features and fixed the game loop
+
+[33mcommit 6849bc8fe5493d99273301da901316e5c49d7ba2[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri May 6 16:16:03 2022 +0200
+
+    Changed some assets stuff and the game loop
+
+[33mcommit e2c2f3fc9eb0b383dc2d9fb5c38370330c813886[m
+Merge: 14042a8 c695a34
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun May 1 18:39:53 2022 +0200
+
+    Merge with changes from UniSync work and work before when I worked with an issue with drawstring
+
+[33mcommit 14042a8fbef5a04d6af80cb57ca8ced4fb6e2dab[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun May 1 18:35:36 2022 +0200
+
+    Hum
+
+[33mcommit c695a340ac7eba6d14136a81892de7a27fdb84e5[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun May 1 18:28:33 2022 +0200
+
+    Fixed the client and server
+
+[33mcommit 9b7c7348aaf92e4a56958829a5288cb40497a6ba[m
+Merge: a0893c0 bf588eb
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Apr 27 00:21:03 2022 +0200
+
+    Merge branch 'master' of https://github.com/Emarioo/ProjectUnknown
+
+[33mcommit a0893c0c0774f622501a23ba80947b8ea2c53743[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Apr 27 00:17:32 2022 +0200
+
+    Added a destructor for FileReader, no more need to close it because it's done in the destructor.
+
+[33mcommit bf588ebd1b1a25f456a2657f9fb881775c0dc0b8[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Apr 25 22:43:04 2022 +0200
+
+    Some ui chagnes and testing, nothing major
+
+[33mcommit 95ca5d016f651f7f188cd6ac6142807f85545d57[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Apr 23 10:45:13 2022 +0200
+
+    Removed the buffer class, replaced by vertexbuffer...
+
+[33mcommit e8494530d47f7cb2020e39e090d929e98929b013[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Apr 14 14:33:40 2022 +0200
+
+    Added server and client code
+
+[33mcommit e749bb058386f38033be481b605c1b831154de62[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Mar 25 17:01:13 2022 +0100
+
+    Move uiPipeline to renderer header
+
+[33mcommit 1998fb8fb24bab8242a42cc3b668311c201e654a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Mar 17 03:08:45 2022 +0100
+
+    Fixes on uiPipeline, textured boxes mostly.
+
+[33mcommit 7978e1c933a3e03bc927c78945efba87ac72cce6[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Mar 11 17:02:07 2022 +0100
+
+    Added MeshRenderer and Collider components. Also introduced UIPipeline.
+
+[33mcommit 8d95f1133cbd518c244965446d2beb54a5e09cca[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Mar 6 16:43:59 2022 +0100
+
+    Instanced rendering pretty much done. System class added instead of virtual functions in entity.
+
+[33mcommit 78f1b984e89c4ca8dad372b57590e48e1857d6d5[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Mar 5 12:45:12 2022 +0100
+
+    Added VertexArray, VertexBuffer and IndexBuffer classes. With support for instanced rendering.
+
+[33mcommit f781d16078819871ef1bf5f65049e8cf0b12fe5e[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Feb 27 19:29:34 2022 +0100
+
+    Implementation of Entity component system. Not free from bugs.
+
+[33mcommit 600c6849ba9ef03477a3e900ec7ae5aec01416cc[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Feb 25 18:00:32 2022 +0100
+
+    Finished the simple box collision and added a tree model.
+
+[33mcommit 97ddf001e5d9d81c9a2ae8eb30f8e2c711784ee9[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Feb 14 18:56:16 2022 +0100
+
+    More work on physics and collision. Also cleansed some unused code in gamehandler.
+
+[33mcommit 106eeafcfb8ef1822c4e82dde0a6d5dddd39302c[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Feb 10 18:28:59 2022 +0100
+
+    Working on collision and physics
+
+[33mcommit 5e1f3d292e2dbb61b5b23cf0f58b0b8ebc11fdd4[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Jan 31 22:26:19 2022 +0100
+
+    Fixes on armature and animation. Now beginning on modules in the engine.
+
+[33mcommit 896cd5e81361d4c7321dd03320e31b6e7f74903a[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Dec 19 17:12:13 2021 +0100
+
+    Some work on the animation and armature system. And model structure from blender.
+
+[33mcommit 7efa512e9d4135ccf9256e0425626a45530b6577[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Nov 19 18:01:05 2021 +0100
+
+    More debug logging stuff
+
+[33mcommit e00c7f501c983b4ae45e174ff37907a96ee95322[m
+Merge: 13b0ea9 5e922dc
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Nov 8 14:18:28 2021 +0100
+
+    Mergeing stuff
+
+[33mcommit 13b0ea9821fba92240425e93dbc4ac00c5bc74b5[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Nov 8 14:15:52 2021 +0100
+
+    Eeeee
+
+[33mcommit 5e922dcf7db0f9990f370dea3462314dd02b7652[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Nov 6 11:15:01 2021 +0100
+
+    Added GLFW and Console as EventTypes. Still hasn't fixed the IsKeyDown to change console or glfw.
+
+[33mcommit a20157161d320c833795d846b1fa088fdbbe9fc1[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Nov 5 18:01:30 2021 +0100
+
+    Some work on the debugger and console handler.
+
+[33mcommit 38c4d9fb65e025d4b7294abbc35455f94a5ab98e[m
+Merge: 0beda48 39f6bd9
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Oct 31 22:12:59 2021 +0100
+
+    Merge with network code
+
+[33mcommit 0beda48c483e4177519a28ada316ed1159fb5ac7[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Oct 31 22:11:13 2021 +0100
+
+    Started working on the debug tool
+
+[33mcommit 39f6bd971340caac0587d198c541ff011f295faf[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Oct 31 19:25:16 2021 +0100
+
+    Started working on Networking.
+
+[33mcommit 3c6d97d142bb551103963a3d1ca520d8add12604[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Oct 30 23:58:23 2021 +0200
+
+    Temporary CreateConsole function in consoleHandler.
+
+[33mcommit 51c1f70b0e578eeee5afaad1f52373fd0fda33a9[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Oct 28 19:23:50 2021 +0200
+
+    Updated the functions of the asset manager. Also found a bug where glfwInit takes a long time.
+
+[33mcommit f679927082f6f16f388da8ed381f9e6413425114[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Oct 25 16:17:19 2021 +0200
+
+    AssetManager revamp. Fixed the general layout but some of the code from the previous system needs to be trasnfered as well as bug tested.
+
+[33mcommit 966d72476dc9fa011ac5e5a0396db641da1ce248[m
+Merge: 692a2f1 3df64ee
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Oct 22 19:23:34 2021 +0200
+
+    Huge change from remote
+
+[33mcommit 692a2f1de897b043a1d88bbb7dfd610debfd31a3[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Oct 22 19:18:55 2021 +0200
+
+    Some minor fixes to game and engine.
+
+[33mcommit 3df64ee3d260612c83fa1fc17621e70ca17e7f7b[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Oct 22 17:50:54 2021 +0200
+
+    Rework on the fundamentals of the ui system.
+
+[33mcommit 8e4498e73c70e2daf3e3193c96b18a2aee285e9e[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Oct 21 12:49:28 2021 +0200
+
+    Added the asio library and changed a lot of functions form engone as well as remade the ui system. There are a lot of errors and the whole IElement system needs to be changed to the Panel system.
+
+[33mcommit b8a4b457858f4c76ae8390b72230a525595bc41d[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Oct 14 17:26:45 2021 +0200
+
+    Just a general update I think?
+
+[33mcommit 0b4d485aace557d6bad02704f65f3e6e0277fa36[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Thu Sep 23 17:31:17 2021 +0200
+
+    A lot of changes. Renaming engine. This has cause an error which needs to be fixed.
+
+[33mcommit 8c133d29a4a3ec2183f4c3b394598c1e2abfb437[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Aug 18 02:17:52 2021 +0200
+
+    Some stuff?
+
+[33mcommit c0c7ccf18901f925e6cab33d65e125c497e247cb[m
+Merge: d7474ad 8c519b2
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 14 11:18:54 2021 +0200
+
+    Merge branch 'master' of https://github.com/Emarioo/ProjectUnkown
+
+[33mcommit d7474ad29b2486d29cbf6db1920eef59abbd2b6f[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Aug 14 11:18:23 2021 +0200
+
+    Quite a bit of rework. Renaming Engine to Engone. Adding blender files to git and some improvments on the animation system and the blender exporter.
+
+[33mcommit 8c519b2d8ce30f2592ce6e72c6101fb7911b9f48[m
+Author: Emarioo <73406848+Emarioo@users.noreply.github.com>
+Date:   Fri Aug 13 13:43:17 2021 +0200
+
+    Update README.md
+
+[33mcommit ad69175d2442cbc03d4f6a49cd4d0431289389b1[m
+Author: Emarioo <73406848+Emarioo@users.noreply.github.com>
+Date:   Fri Aug 13 05:40:51 2021 +0200
+
+    Update README.md
+
+[33mcommit 52714d131fb5b340a8653dad13045f4cc9fc52dc[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Fri Aug 6 11:21:24 2021 +0200
+
+    Work on Borderless Fullscreen and animatiuon.
+
+[33mcommit 66140518486dbf14715327210952a83701f28ed0[m
+Author: Emarioo <73406848+Emarioo@users.noreply.github.com>
+Date:   Sun Aug 1 18:57:43 2021 +0200
+
+    Update README.md
+
+[33mcommit cca6c41daa71b2f11418af2e6016774c24140bde[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Tue Jul 27 17:08:44 2021 +0200
+
+    Lot of stuff?
+
+[33mcommit a211686912377dbc9ef99b7eceeacf25355608b7[m
+Merge: 0c05742 c446382
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Jul 25 11:44:12 2021 +0200
+
+    Merge branch 'master' of https://github.com/Emarioo/ProjectUnkown
+
+[33mcommit 0c05742c84799a2188fff78d5e6dce33c0ebec11[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Jul 25 11:43:09 2021 +0200
+
+    Changes?
+
+[33mcommit c446382dff61db8b91aae4cbad55fac44ffc4166[m
+Author: Emarioo <73406848+Emarioo@users.noreply.github.com>
+Date:   Tue Jul 20 12:29:12 2021 +0200
+
+    Create README.md
+    
+    README file about how to setup the project.
+
+[33mcommit 25c420057af0424401ad4d0c5db22a3137fcbdee[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Sun Jul 11 01:32:38 2021 +0200
+
+    Something?
+
+[33mcommit 5e89d2a4a9401fd6c0ecbe746f739e0a28ccc7c8[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Mon Jul 5 18:58:47 2021 +0200
+
+    KeyBindings
+
+[33mcommit e2ed817bbe62db6363f1d6bec1bcf2f160ca80ab[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Mon Jul 5 16:01:04 2021 +0200
+
+    Crafting Items. And such
+
+[33mcommit 7f01ee3bf1a2b1f05d5a7e2f3cfab35fe87e907c[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Sat Jul 3 11:25:17 2021 +0200
+
+    Crafting Plan
+
+[33mcommit c8513d26a1ab9bf76de1f3215470172903292f8f[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Fri Jul 2 19:34:58 2021 +0200
+
+    Update Blender exporting code
+
+[33mcommit e809c2923946507d35f5374f02b760624c9e1459[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Tue Jun 29 15:59:14 2021 +0200
+
+    Project Name changed to ProjectUnkown from Reigai-Dimension
+
+[33mcommit 4c84b34dd18c491c7fd2fa9b301a740fa1f8f848[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Tue Jun 29 00:36:14 2021 +0200
+
+    First steps towards an inventory. Also a little bit of world generation (dungeons)
+
+[33mcommit 2e34caa1a6247bde1746d6d2684b490e014a100c[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Wed Jun 23 12:15:03 2021 +0200
+
+    UISystem changes, Infobar and inventory
+
+[33mcommit 6dffc71992b4558c5052d669f8ea0731241f7abf[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon May 24 13:33:09 2021 +0200
+
+    Item and Inventory 05/24
+
+[33mcommit 86128f0199a2bc9e426677f32f098cadd6577201[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Wed May 19 10:04:10 2021 +0200
+
+    ISystem implementation
+
+[33mcommit 6d7b95f1308218f66f120a31ba88dbef7674472d[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat May 8 15:57:52 2021 +0200
+
+    Inventory Changes 1
+
+[33mcommit 132890dd44305c48434c79414cbe203bcf9ef494[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed May 5 13:03:55 2021 +0200
+
+    Fixed issue where game crashes if sound file isn't found.
+
+[33mcommit 180ce4a094119fe84c240b47ae5bdeff1369cdaa[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed May 5 12:40:45 2021 +0200
+
+    Debug Command Options
+
+[33mcommit 16c7bf3ccc15ab7dc52a8223e69b0bcae8171d55[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Wed Apr 28 12:55:28 2021 +0200
+
+    MAJOR OVERHAUL NUMMBER 9999
+    (Basic Inventory, Collision rework, other glitches)
+
+[33mcommit 2dd62e5f4ce5415b1ab05f35a875ac06183af1e7[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Fri Jan 15 19:33:24 2021 +0100
+
+    Changes to a lot of systems
+
+[33mcommit 5138684c05334ab76e428511a9b07621a6c3a887[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Dec 20 17:16:55 2020 +0100
+
+    Minor Changes in FileManager
+
+[33mcommit f8bf14da48e6c7565c551a01b40e07b86e6bb1ab[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Sat Dec 19 13:03:02 2020 +0100
+
+    UI System Remake and a part of the renderering rework
+
+[33mcommit a52dc4c482aa99864adb44f397b04e7425122767[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sun Dec 6 17:38:48 2020 +0100
+
+    Taking care of errors and recreating the interface system (IElem, IButton, ISquare...)
+
+[33mcommit 8d55e19ebfa9c116d2a335cc2d91fe5ad4acfc8c[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Fri Dec 4 16:17:19 2020 +0100
+
+    A whole lot of Rework once again
+
+[33mcommit 0ce41040cdd910b393524a09401dd5015f45d54b[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Sun Nov 29 19:11:11 2020 +0100
+
+    Massive Overhaul
+    Render System m.m
+
+[33mcommit 99fa97255c3fb5be2a890ef5a02f9794527a8c21[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Tue Nov 17 00:47:37 2020 +0100
+
+    Organizing with Data (DataManager, CollData, MeshData, AnimData)
+
+[33mcommit 040a8902cf1b0a478ad92f5cd19d7beec21576b8[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Nov 16 15:48:19 2020 +0100
+
+    Overhaul again
+
+[33mcommit 22728d8a5dd7247cac75b2040570e823b256f2bc[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Mon Nov 16 12:28:49 2020 +0100
+
+    HUGE CHANGE
+
+[33mcommit 7eea469c6a0b27d80539989a38f9c92279e1a913[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Mon Nov 16 07:47:35 2020 +0100
+
+    Collision And Data changes. [AnimData,CollData,MeshData...]
+
+[33mcommit 894756bf2981661fd19b361999a69f07123cf0cf[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Sat Nov 14 01:13:03 2020 +0100
+
+    Fixed collision: Shortest was not calculated correctly
+
+[33mcommit 301a1491604f3209027f608f1323b8e523c1e92f[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Sat Nov 14 00:48:51 2020 +0100
+
+    Collision Fixes 1
+
+[33mcommit 314cae24e6cfe4eaa0cda99f30d2b379039e245c[m
+Author: Elias Olsson <dataolsson@gmail.com>
+Date:   Tue Nov 3 12:19:12 2020 +0100
+
+    Window size changes depending on monior size.
+    Changed some collision code
+
+[33mcommit 3aea8d1d29d34951528ac46b4d90f4370858f28a[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Mon Nov 2 23:52:45 2020 +0100
+
+    Add project files.
+
+[33mcommit 96a2d8c9395b0b44c3357468f17f41cdfd2e1e6c[m
+Author: BuildTools <unconfigured@null.spigotmc.org>
+Date:   Mon Nov 2 23:52:18 2020 +0100
+
+    Add .gitignore and .gitattributes.

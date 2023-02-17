@@ -2,23 +2,44 @@
 
 #include "ProUnk/GameApp.h"
 
-#include "Engone/Utilities/rp3d.h"
+// #include "Engone/Utilities/rp3d.h"
 
-#include "Engone/Logger.h"
+// #include "Engone/Logger.h"
 
 // #include "ProUnk/Tests/AllTests.h"
 
-#include "Engone/Utilities/Alloc.h"
+// #include "Engone/Utilities/Alloc.h"
 
-#include "Engone/Structures/HashMap.h"
-#include "Engone/Structures/Stack.h"
-#include "Engone/Structures/StableArray.h"
-#include "Engone/Structures/FrameArray.h"
+// #include "Engone/Structures/HashMap.h"
+// #include "Engone/Structures/Stack.h"
+// #include "Engone/Structures/StableArray.h"
+// #include "Engone/Structures/FrameArray.h"
+
+#include "Engone/PlatformModule/GameMemory.h"
 
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
+	
+	// log::out << "Broken?\n";
+	
+	GameMemoryTest();
+	
+	return;
+	// auto tp = MeasureSeconds();
+	
+	// char* ptr = (char*)Allocate(2e9);
+	
+	// auto sec = StopMeasure(tp);
+	// log::out << "Time: "<<sec<<" ptr: "<<ptr<<"\n";
+	// tp = MeasureSeconds();
+	
+	// ptr = (char*)Reallocate(ptr,2e9,2e9+4000);
+	
+	// sec = StopMeasure(tp);
+	// log::out << "Time2: "<<sec<<" ptr: "<<ptr<<"\n";
 
+	// return;
 	// FileReader reader("");
 
 	//printf("Size: %d %d\n", sizeof(EngineObject),sizeof(std::mutex));
@@ -60,7 +81,7 @@ void runApp(int argc, char** argv) {
 		//ConvertArguments("--server --client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 		//ConvertArguments("--client 127.0.0.1 1000 --client 127.0.0.1 1000", argc, argv);
 		// 
-		 ConvertArguments("--server --client", argc, argv);
+		 //ConvertArguments("--server --client", argc, argv);
 	}
 	
 	bool writeLogReport = true;
@@ -179,7 +200,7 @@ int main(int argc, char** argv) {
 	//DELETE(Apple, eh);
 
 	//eh->~Apple();
-	//alloc::free(eh, 8);
+	//Free(eh, 8);
 
 	//std::cin.get();
 	runApp(argc,argv);

@@ -4,18 +4,20 @@
 
 #include "ProUnk/Keybindings.h"
 
-#include "ProUnk/Magic/Focals.h"
+// #include "ProUnk/Magic/Focals.h"
+// #include "ProUnk/Magic/Magic.h"
 
 #include "Engone/Tests/BasicRendering.h"
 
 #include "ProUnk/Shaders/Shaders.h"
 
-#include "ProUnk/Magic/Magic.h"
+// #include "ProUnk/Combat/CombatData.h"
+#include "ProUnk/Objects/BasicObjects.h"
 
 #include "ProUnk/UI/UIMenus.h"
 
-#include "Engone/SoundModule.h"
-#include "Engone/Sound/SoundStream.h"
+// #include "Engone/SoundModule.h"
+// #include "Engone/Sound/SoundStream.h"
 
 namespace prounk {
 	int s_test1 = 0;
@@ -282,7 +284,7 @@ namespace prounk {
 
 		//Shader* shaderPart = new Shader(particleGLSL);
 		//particleGroup = new ParticleGroup<DefaultParticle>();
-		//particleGroup->init(m_window, shaderPart);
+		//particleGroup->�(m_window, shaderPart);
 		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
 		//engone->addParticleGroup(particleGroup);
 

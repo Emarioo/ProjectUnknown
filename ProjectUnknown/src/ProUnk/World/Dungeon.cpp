@@ -1,6 +1,8 @@
 #include "ProUnk/World/Dungeon.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
+
+#include "ProUnk/Objects/BasicObjects.h"
 
 namespace prounk {
 	void Dungeon::cleanup() {

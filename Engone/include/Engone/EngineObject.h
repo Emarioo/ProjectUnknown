@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Engone/Utilities/rp3d.h"
-#include "Engone/AssetModule.h"
+// #include "Engone/AssetModule.h"
+#include "Engone/Assets/ModelAsset.h"
 #include "Engone/Assets/Animator.h"
 #include "Engone/LoopInfo.h"
 #include "Engone/Utilities/RandomUtility.h"
@@ -81,7 +82,7 @@ namespace engone {
 
 		EngineWorld* m_world = nullptr; // world the object belongs to
 		uint32_t m_objectIndex = -1; // indicates where world stores it
-		Mutex m_mutex;
+		// Mutex m_mutex;
 
 		void* m_colliderData = nullptr;
 

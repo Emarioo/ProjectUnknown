@@ -5,6 +5,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/Objects/BasicObjects.h"
+
 namespace prounk {
 	const char* to_string(NetMessageType value) {
 		switch (value) {

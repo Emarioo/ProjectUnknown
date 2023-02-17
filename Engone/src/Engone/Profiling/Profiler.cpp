@@ -262,11 +262,11 @@ namespace engone {
 	}
 	Profiler::Graph::~Graph() {
 		if(points)
-			alloc::free(points,sizeof(float)*MAX_POINTS);
+			Free(points,sizeof(float)*MAX_POINTS);
 	}
 	void Profiler::Graph::plot(double time) {
 		if (!points) {
-			points = (float*)alloc::malloc(sizeof(float) * MAX_POINTS);
+			points = (float*)Allocate(sizeof(float) * MAX_POINTS);
 			for (int i = 0; i < MAX_POINTS; i++) {
 				points[i] = 0;
 			}

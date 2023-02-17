@@ -22,6 +22,9 @@
 */
 
 namespace engone {
+	// Todo: Change the error
+#define CHECK_ERR(x) if(!(x)) { m_error = PlatformError; m_state=Failed; return m_error; }
+
 	// TrackerId TextureAsset::trackerId = "TextureAsset";
 	// TrackerId FontAsset::trackerId = "FontAsset";
 	// TrackerId MaterialAsset::trackerId = "MaterialAsset";
@@ -675,20 +678,20 @@ namespace engone {
 				//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 				pointNumbers = 3 * pointCount;
 				pointSize = sizeof(float) * pointNumbers;
-				points = (float*)alloc::malloc(pointSize); // using malloc because i want to track allocations. I would use the new keyword otherwise.
+				points = (float*)Allocate(pointSize); // using malloc because i want to track allocations. I would use the new keyword otherwise.
 				file.read(points, pointNumbers);
 
 				colorNumbers = colorCount * 3;
 				colorSize = sizeof(float) * colorNumbers;
-				colors = (float*)alloc::malloc(colorSize);
+				colors = (float*)Allocate(colorSize);
 				file.read(colors, colorNumbers);
 
 				// Weight
 				weightNumbers = weightCount * 3;
 				weightIndicesSize = sizeof(int) * weightNumbers;
-				weightIndices = (int*)alloc::malloc(weightIndicesSize);
+				weightIndices = (int*)Allocate(weightIndicesSize);
 				weightValuesSize = sizeof(float) * weightNumbers;
-				weightValues = (float*)alloc::malloc(weightValuesSize);
+				weightValues = (float*)Allocate(weightValuesSize);
 
 				if (meshType == MeshType::Boned) {
 					uint8 index[3];
@@ -712,7 +715,7 @@ namespace engone {
 
 				triangleNumbers = triangleCount * triangleStride;
 				trianglesSize = sizeof(uint16_t) * triangleNumbers;
-				triangles = (uint16_t*)alloc::malloc(trianglesSize);
+				triangles = (uint16_t*)Allocate(trianglesSize);
 				file.read(triangles, triangleNumbers);
 				//std::cout << "head: "<<file.readHead << "\n";
 				//file.file.read(reinterpret_cast<char*>(tris), trisS*2);
@@ -761,7 +764,7 @@ namespace engone {
 				//}
 				//std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
 				//triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-				//triangleOut = (uint32_t*)alloc::malloc(triangleOutSize);
+				//triangleOut = (uint32_t*)Allocate(triangleOutSize);
 				//uint32_t uvStride = 1 + (tStride) / 3;
 				//for (uint32_t i = 0; i < triangleCount; ++i) {
 				//	for (uint32_t t = 0; t < 3; ++t) {
@@ -807,7 +810,7 @@ namespace engone {
 				//if (meshType == MeshType::Boned)
 				//	vStride += 6;
 				//vertexOutSize = sizeof(float) * (uniqueVertex.size() / uvStride) * vStride;
-				//vertexOut = (float*)alloc::malloc(vertexOutSize);
+				//vertexOut = (float*)Allocate(vertexOutSize);
 				//for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 				//	// Position
 				//	for (uint32_t j = 0; j < 3; ++j) {
@@ -885,11 +888,11 @@ namespace engone {
 				m_error = err;
 				m_state = Failed;
 				out = 0;
-				alloc::free(points, pointSize);
-				alloc::free(colors, colorSize);
-				alloc::free(weightIndices, weightIndicesSize);
-				alloc::free(weightValues, weightValuesSize);
-				alloc::free(triangles, trianglesSize);
+				Free(points, pointSize);
+				Free(colors, colorSize);
+				Free(weightIndices, weightIndicesSize);
+				Free(weightValues, weightValuesSize);
+				Free(triangles, trianglesSize);
 				points = nullptr;
 				colors = nullptr;
 				weightIndices = nullptr;
@@ -967,7 +970,7 @@ namespace engone {
 				std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
 
 				triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-				triangleOut = (uint32_t*)alloc::malloc(triangleOutSize);
+				triangleOut = (uint32_t*)Allocate(triangleOutSize);
 
 				uint32_t uvStride = 1 + (triangleStride) / 3;
 				for (uint32_t i = 0; i < triangleCount; ++i) {
@@ -1006,7 +1009,7 @@ namespace engone {
 					vStride += 6;
 
 				vertexOutSize = sizeof(float) * (uniqueVertex.size() / uvStride) * vStride;
-				vertexOut = (float*)alloc::malloc(vertexOutSize);
+				vertexOut = (float*)Allocate(vertexOutSize);
 
 				for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 					// Position
@@ -1060,17 +1063,17 @@ namespace engone {
 				out = 0;
 				//m_state = Failed;
 				//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
-				alloc::free(vertexOut, vertexOutSize);
-				alloc::free(triangleOut, triangleOutSize);
+				Free(vertexOut, vertexOutSize);
+				Free(triangleOut, triangleOutSize);
 				vertexOut = nullptr;
 				triangleOut = nullptr;
 			}
 			// Cleanup - not the stuff needed for OpenGL
-			alloc::free(points, pointSize);
-			alloc::free(colors, colorSize);
-			alloc::free(weightIndices, weightIndicesSize);
-			alloc::free(weightValues, weightValuesSize);
-			alloc::free(triangles, trianglesSize);
+			Free(points, pointSize);
+			Free(colors, colorSize);
+			Free(weightIndices, weightIndicesSize);
+			Free(weightValues, weightValuesSize);
+			Free(triangles, trianglesSize);
 			points = nullptr;
 			colors = nullptr;
 			weightIndices = nullptr;
@@ -1097,8 +1100,8 @@ namespace engone {
 			}
 			// do some error checking if buffers failed?
 
-			alloc::free(vertexOut, vertexOutSize);
-			alloc::free(triangleOut, triangleOutSize);
+			Free(vertexOut, vertexOutSize);
+			Free(triangleOut, triangleOutSize);
 			vertexOut = nullptr;
 			triangleOut = nullptr;
 			m_state = Loaded;

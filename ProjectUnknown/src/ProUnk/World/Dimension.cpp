@@ -1,14 +1,18 @@
 #include "ProUnk/World/Dimension.h"
 
 #include "ProUnk/World/Session.h"
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
+
+#include "ProUnk/Objects/BasicObjects.h"
+
+#include "Engone/Application.h"
 
 namespace prounk {
 	Dimension::Dimension(Session* session) : m_parent(session) {
-		m_world = session->getParent()->createWorld();
+		m_world = ((engone::Application*)session->getParent())->createWorld();
 		m_world->setUserData(this);
-
-		dungeon.init(this, { 20,0,0 }, {-20,0,0});
+		glm::vec3 dungeonPosition = {73,-8,0};
+		dungeon.init(this, dungeonPosition+glm::vec3{ 20,0,0 }, dungeonPosition + glm::vec3{-20,0,0});
 	}
 	engone::EngineWorld* Dimension::getWorld() {
 		return m_world;
@@ -204,7 +208,7 @@ namespace prounk {
 			//	spawnDelay = 1;
 
 			int allocBytes = spawnLocations.size() * sizeof(int);
-			int* locationCount = (int*)alloc::malloc(allocBytes);
+			int* locationCount = (int*)Allocate(allocBytes);
 			ZeroMemory(locationCount,allocBytes);
 
 			int spawn = spawnCount;
@@ -224,7 +228,7 @@ namespace prounk {
 					getParent()->netMoveObject(obj);
 				}
 			}
-			alloc::free(locationCount,allocBytes);
+			Free(locationCount,allocBytes);
 
 			spawnCount += 1;
 		}

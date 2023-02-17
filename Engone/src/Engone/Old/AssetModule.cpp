@@ -458,13 +458,13 @@ namespace engone {
 			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
 			uint32_t uPointCount = 3 * pointCount;
 			uint32_t uPointSize = sizeof(float)*uPointCount;
-			float* uPoint = (float*)alloc::malloc(uPointSize);
+			float* uPoint = (float*)Allocate(uPointSize);
 			file.read(uPoint, uPointCount);
 
 			uint32_t uTextureCount = textureCount * 3;
 			uint32_t uTextureSize = sizeof(float)*uTextureCount;
 			
-			float* uTexture = (float*)alloc::malloc(uTextureSize);
+			float* uTexture = (float*)Allocate(uTextureSize);
 
 			file.read(uTexture, uTextureCount);
 
@@ -472,10 +472,10 @@ namespace engone {
 			uint32_t uWeightS = weightCount * 3;
 
 			int uWeightISize = sizeof(int) * uWeightS;
-			int* uWeightI = (int*)alloc::malloc(uWeightISize);
+			int* uWeightI = (int*)Allocate(uWeightISize);
 
 			int uWeightFSize = sizeof(float) * uWeightS;
-			float* uWeightF = (float*)alloc::malloc(uWeightFSize);
+			float* uWeightF = (float*)Allocate(uWeightFSize);
 
 			if (meshType==MeshType::Boned) {
 				char index[3];
@@ -499,7 +499,7 @@ namespace engone {
 			uint32_t trisS = triangleCount * tStride;
 
 			int trisSize = sizeof(uint16_t) * trisS;
-			uint16_t* tris = (uint16_t*)alloc::malloc(trisSize);
+			uint16_t* tris = (uint16_t*)Allocate(trisSize);
 			//std::cout << "head: "<<file.readHead << "\n";
 
 			//file.file.read(reinterpret_cast<char*>(tris), trisS*2);
@@ -555,7 +555,7 @@ namespace engone {
 			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
 
 			int triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-			uint32_t* triangleOut = (uint32_t*)alloc::malloc(triangleOutSize);
+			uint32_t* triangleOut = (uint32_t*)Allocate(triangleOutSize);
 
 			uint32_t uvStride = 1 + (tStride) / 3;
 			for (uint32_t i = 0; i < triangleCount; ++i) {
@@ -605,7 +605,7 @@ namespace engone {
 				vStride += 6;
 
 			int vertexOutSize = sizeof(float)*(uniqueVertex.size() / uvStride) * vStride;
-			float* vertexOut = (float*)alloc::malloc(vertexOutSize);
+			float* vertexOut = (float*)Allocate(vertexOutSize);
 
 			for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
 				// Position
@@ -701,13 +701,13 @@ namespace engone {
 			//delete[] vertexOut;
 			//delete[] triangleOut;
 
-			alloc::free(uPoint, uPointSize);
-			alloc::free(uTexture, uTextureSize);
-			alloc::free(uWeightI, uWeightISize);
-			alloc::free(uWeightF, uWeightFSize);
-			alloc::free(tris, trisSize);
-			alloc::free(vertexOut, vertexOutSize);
-			alloc::free(triangleOut, triangleOutSize);
+			Free(uPoint, uPointSize);
+			Free(uTexture, uTextureSize);
+			Free(uWeightI, uWeightISize);
+			Free(uWeightF, uWeightFSize);
+			Free(tris, trisSize);
+			Free(vertexOut, vertexOutSize);
+			Free(triangleOut, triangleOutSize);
 		}
 		catch (FileError err) {/*
 			if (err == MissingData) {

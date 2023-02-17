@@ -106,19 +106,19 @@ namespace engone {
 	}
 	MessageBuffer::~MessageBuffer() {
 		if (m_data && !noDelete) {
-			alloc::free(m_data, m_dataSize);
+			Free(m_data, m_dataSize);
 			GetTracker().subMemory(trackerId,m_dataSize);
 		}
 	}
 	bool MessageBuffer::resize(uint32_t size) {
 		char* data;
 		if (!m_data) {
-			data = (char*)alloc::malloc(size+sizeof(uint32_t));
+			data = (char*)Allocate(size+sizeof(uint32_t));
 			GetTracker().addMemory(trackerId, size + sizeof(uint32_t));
 			if (data)
 				*((uint32_t*)data) = 0;
 		} else {
-			data = (char*)alloc::realloc(m_data, m_dataSize, size + sizeof(uint32_t));
+			data = (char*)Reallocate(m_data, m_dataSize, size + sizeof(uint32_t));
 			GetTracker().subMemory(trackerId, m_dataSize);
 			GetTracker().addMemory(trackerId, size + sizeof(uint32_t));
 		}

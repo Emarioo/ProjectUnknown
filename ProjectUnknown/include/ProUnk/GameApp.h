@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Engone/Engone.h"
-#include "Objects/BasicObjects.h"
+// #include "Objects/BasicObjects.h"
 
 #include "Engone/ParticleModule.h"
 
-#include "ProUnk/Combat/CombatData.h"
+// #include "ProUnk/Combat/CombatData.h"
 
 #include "ProUnk/PlayerController.h"
-#include "ProUnk/Registries/InventoryRegistry.h"
+// #include "ProUnk/Registries/InventoryRegistry.h"
 
 #include "ProUnk/UI/MasterInventoryPanel.h"
 #include "ProUnk/UI/InventoryPanel.h"
@@ -21,7 +21,7 @@
 
 #include "ProUnk/Effects/VisualEffects.h"
 
-#include "Engone/Sound/SoundStream.h"
+// #include "Engone/Sound/SoundStream.h"
 
 namespace prounk {
 
@@ -33,7 +33,7 @@ namespace prounk {
 	struct CombatParticleInfo {
 		int aliveCount;
 	};
-	// flags, port, ip
+	// flags, address
 	struct GameAppInfo {
 		int flags=0;
 		std::string address;

@@ -72,7 +72,8 @@
         "regex": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "internal.h": "c"
     },
     "cmake.configureOnOpen": false
 }

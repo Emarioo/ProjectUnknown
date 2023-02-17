@@ -19,7 +19,7 @@ namespace engone {
 
 		char* imgData = img->m_data + sizeof(BITMAPINFOHEADER);
 
-		out->m_data = (char*)alloc::malloc(img->header()->biSizeImage);
+		out->m_data = (char*)Allocate(img->header()->biSizeImage);
 		if (!img->m_data) {
 			log::out << log::RED << "BMP::toRawImage - failed allocation\n";
 			return {};
@@ -48,7 +48,7 @@ namespace engone {
 		uint32_t andMaskSize = img->width * img->height / 8;
 		//uint32_t andMaskSize = 0;
 		uint32_t total = sizeof(BITMAPINFOHEADER) + img->m_size + andMaskSize;
-		char* newData = (char*)alloc::malloc(total);
+		char* newData = (char*)Allocate(total);
 		if (!newData) {
 			log::out << log::RED << "BMP image failed allocating memory\n";
 			return nullptr;
@@ -143,7 +143,7 @@ namespace engone {
 
 		uint32_t size = img->entry(0)->imageSize;
 
-		char* newData = (char*)alloc::malloc(size);
+		char* newData = (char*)Allocate(size);
 		if (!newData) {
 			log::out << log::RED << "BMP image failed allocating memory\n";
 			return nullptr;
@@ -169,7 +169,7 @@ namespace engone {
 		uint32_t size = file.tellg();
 		file.seekg(0, file.beg);
 
-		char* newData = (char*)alloc::malloc(size);
+		char* newData = (char*)Allocate(size);
 		if (!newData) {
 			log::out << log::RED << "Image::ReadFile - failed allocating memory\n";
 			return nullptr;
@@ -207,7 +207,7 @@ namespace engone {
 	void Image::cleanup() {
 		if (m_data) {
 			if (m_flags & OwnerSelf) {
-				alloc::free(m_data, m_size);
+				Free(m_data, m_size);
 			}
 			else if (m_flags & OwnerStbi) {
 				stbi_image_free(m_data);
@@ -305,7 +305,7 @@ namespace engone {
 	}
 	ICO* ICO::CreateEmpty(uint32_t imageCount, uint32_t size) {
 		uint32_t total = sizeof(ICONDIR) + imageCount * sizeof(ICONDIRENTRY) + size;
-		char* newData = (char*)alloc::malloc(total);
+		char* newData = (char*)Allocate(total);
 		if (!newData) {
 			log::out << log::RED << "ICO::CreateEmpty - image failed allocating memory\n";
 			return {};

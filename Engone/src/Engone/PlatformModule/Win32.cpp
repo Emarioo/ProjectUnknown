@@ -231,7 +231,7 @@ namespace PL_NAMESPACE {
 		s_rdiInfos.erase(iterator);
 	}
 
-	TimePoint StartTime(){
+	TimePoint MeasureSeconds(){
 		uint64 tp;
 		BOOL success = QueryPerformanceCounter((LARGE_INTEGER*)&tp);
 		// if(!success){
@@ -242,7 +242,7 @@ namespace PL_NAMESPACE {
 	}
 	static bool once = false;
 	static uint64 frequency;
-	double EndTime(TimePoint startPoint){
+	double StopMeasure(TimePoint startPoint){
 		if(!once){
 			BOOL success = QueryPerformanceFrequency((LARGE_INTEGER*)&frequency);
 			// if(!success){
@@ -426,7 +426,8 @@ namespace PL_NAMESPACE {
 	static uint64 s_numberAllocations=0;
 	void* Allocate(uint64 bytes){
 		if(bytes==0) return nullptr;
-		void* ptr = malloc(bytes);
+		void* ptr = HeapAlloc(GetProcessHeap(),0,bytes);
+		// void* ptr = malloc(bytes);
 		if(!ptr) return nullptr;
 		
 		// s_allocStatsMutex.lock();
@@ -449,7 +450,8 @@ namespace PL_NAMESPACE {
                 if(oldBytes==0){
                     PL_PRINTF("Reallocate : oldBytes is zero while the ptr isn't!?\n");   
                 }
-                void* newPtr = realloc(ptr,newBytes);
+                void* newPtr = HeapReAlloc(GetProcessHeap(),0,ptr,newBytes);
+                // void* newPtr = realloc(ptr,newBytes);
                 if(!newPtr)
                     return nullptr;
                 
@@ -465,7 +467,8 @@ namespace PL_NAMESPACE {
     }
 	void Free(void* ptr, uint64 bytes){
 		if(!ptr) return;
-		free(ptr);
+		// free(ptr);
+		HeapFree(GetProcessHeap(),0,ptr);
 		
 		// s_allocStatsMutex.lock();
 		s_allocatedBytes-=bytes;
@@ -642,5 +645,416 @@ namespace PL_NAMESPACE {
 	ThreadId Thread::GetThisThreadId() {
 		return GetCurrentThreadId();
 	}
+		void ConvertArguments(int& argc, char**& argv) {
+		LPWSTR wstr = GetCommandLineW();
+
+		wchar_t** wargv = CommandLineToArgvW(wstr, &argc);
+
+		if (wargv == NULL) {
+			int err = GetLastError();
+			printf("ConvertArguments : WinError %d!\n",err);
+		} else {
+			// argv will become a pointer to contigous memory which contain arguments.
+			int totalSize = argc * sizeof(char*);
+			int index = totalSize;
+			for (int i = 0; i < argc; i++) {
+				int length = wcslen(wargv[i]);
+				//printf("len: %d\n", length);
+				totalSize += length + 1;
+			}
+			//printf("size: %d index: %d\n", totalSize,index);
+			argv = (char**)Allocate(totalSize);
+			char* argData = (char*)argv + index;
+			if (!argv) {
+				printf("ConvertArguments : Allocation failed!\n");
+			} else {
+				index = 0;
+				for (int i = 0; i < argc; i++) {
+					int length = wcslen(wargv[i]);
+
+					argv[i] = argData + index;
+
+					for (int j = 0; j < length; j++) {
+						argData[index] = wargv[i][j];
+						index++;
+					}
+					argData[index++] = 0;
+				}
+			}
+		}
+		LocalFree(wargv);
+	}
+	void ConvertArguments(const char* args, int& argc, char**& argv) {
+		if (args == nullptr) {
+			printf("ConvertArguments : Args was null\n");
+		} else {
+			argc = 0;
+			// argv will become a pointer to contigous memory which contain arguments.
+			int dataSize = 0;
+			int argsLength = strlen(args);
+			int argLength = 0;
+			for (int i = 0; i < argsLength + 1; i++) {
+				char chr = args[i];
+				if (chr == 0 || chr == ' ') {
+					if (argLength != 0) {
+						dataSize++; // null terminated character
+						argc++;
+					}
+					argLength = 0;
+					if (chr == 0)
+						break;
+				} else {
+					argLength++;
+					dataSize++;
+				}
+			}
+			int index = argc * sizeof(char*);
+			int totalSize = index + dataSize;
+			//printf("size: %d index: %d\n", totalSize,index);
+			argv = (char**)Allocate(totalSize);
+			char* argData = (char*)argv + index;
+			if (!argv) {
+				printf("ConverArguments : Allocation failed!\n");
+			} else {
+				int strIndex = 0; // index of char*
+				for (int i = 0; i < argsLength + 1; i++) {
+					char chr = args[i];
+
+					if (chr == 0 || chr == ' ') {
+						if (argLength != 0) {
+							argData[i] = 0;
+							dataSize++; // null terminated character
+						}
+						argLength = 0;
+						if (chr == 0)
+							break;
+					} else {
+						if (argLength == 0) {
+							argv[strIndex] = argData + i;
+							strIndex++;
+						}
+						argData[i] = chr;
+						argLength++;
+					}
+				}
+			}
+		}
+	}
+	void FreeArguments(int argc, char** argv) {
+		int totalSize = argc * sizeof(char*);
+		int index = totalSize;
+		for (int i = 0; i < argc; i++) {
+			int length = strlen(argv[i]);
+			//printf("len: %d\n", length);
+			totalSize += length + 1;
+		}
+		Free(argv, totalSize);
+	}
+	void CreateConsole() {
+		bool b = AllocConsole();
+		if (b) {
+			freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+			freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+		}
+	}
+	bool StartProgram(const std::string& path, char* commandLine) {
+		if (!FileExist(path)) {
+			return false;
+		}
+
+		// additional information
+		STARTUPINFOA si;
+		PROCESS_INFORMATION pi;
+
+		// set the size of the structures
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		ZeroMemory(&pi, sizeof(pi));
+
+		int slashIndex = path.find_last_of("\\");
+
+		std::string workingDir = path.substr(0, slashIndex);
+
+		//#ifdef NDEBUG
+		//		std::wstring exeFile = convert(path);
+		//		std::wstring workDir = convert(workingDir);
+		//#else
+		const std::string& exeFile = path;
+		std::string& workDir = workingDir;
+		//#endif
+		CreateProcessA(exeFile.c_str(),   // the path
+			commandLine,        // Command line
+			NULL,           // Process handle not inheritable
+			NULL,           // Thread handle not inheritable
+			FALSE,          // Set handle inheritance to FALSE
+			0,              // No creation flags
+			NULL,           // Use parent's environment block
+			workDir.c_str(),   // starting directory 
+			&si,            // Pointer to STARTUPINFO structure
+			&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+		);
+
+		// Close process and thread handles. 
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+		return true;
+	}
+	FileMonitor::~FileMonitor() { cleanup(); }
+	void FileMonitor::cleanup() {
+		m_mutex.lock();
+		m_running = false;
+		if (m_thread.joinable()) {
+			HANDLE handle = m_thread.m_internalHandle;
+			int err = CancelSynchronousIo(handle);
+			if (err == 0) {
+				err = GetLastError();
+				// ERROR_NOT_FOUND
+				if (err != ERROR_NOT_FOUND)
+				printf("FileMontitor : FIX LOGGING!\n");
+					// log::out << log::RED << "FileMonitor::cleanup - err " << err << "\n";
+			}
+		}
+		if (m_changeHandle != NULL) {
+			FindCloseChangeNotification(m_changeHandle);
+			m_changeHandle = NULL;
+		}
+		if (m_dirHandle != NULL) {
+			CloseHandle(m_dirHandle);
+			m_dirHandle = NULL;
+		}
+		m_mutex.unlock();
+
+		if (m_thread.joinable())
+			m_thread.join();
+		//m_threadHandle = NULL;
+		if (m_buffer) {
+			Free(m_buffer, m_bufferSize);
+			m_buffer = nullptr;
+		}
+		// m_running is set to false in thread
+	}
+	uint32 RunMonitor(void* arg){
+		static const uint32 INITIAL_SIZE = 5 * (sizeof(FILE_NOTIFY_INFORMATION) + 500);
+	
+		FileMonitor* self = (FileMonitor*)arg;
+		SetThreadName(GetCurrentThreadId(), "FileMonitor");
+		//m_threadHandle = GetCurrentThread();
+		std::string temp;
+		DWORD waitStatus;
+		while (true) {
+			waitStatus = WaitForSingleObject(self->m_changeHandle, INFINITE);
+
+			if (!self->m_running)
+				break;
+			if (waitStatus == WAIT_OBJECT_0) {
+				//log::out << "FileMonitor::check - catched " << m_root << "\n";
+			
+				if (!self->m_buffer) {
+					self->m_buffer = (FILE_NOTIFY_INFORMATION*)Allocate(INITIAL_SIZE);
+					if (!self->m_buffer) {
+						self->m_bufferSize = 0;
+						printf("FileMontitor : FIX LOGGING!\n");
+						// log::out << log::RED << "FileMonitor::check - buffer allocation failed\n";
+						break;
+					}
+					self->m_bufferSize = INITIAL_SIZE;
+				}
+
+				DWORD bytes = 0;
+				BOOL success = ReadDirectoryChangesW(self->m_dirHandle, self->m_buffer, self->m_bufferSize, self->m_flags & FileMonitor::WATCH_SUBTREE, FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME, &bytes, NULL, NULL);
+				//log::out << "ReadDir change\n";
+				if (bytes == 0) {
+					// try to read changes again but with bigger buffer? while loop?
+					//log::out << log::RED << "FileMonitor::check - buffer to small or big\n";
+					// this could also mean that we cancelled the read.
+				}
+				if (success == 0) {
+					int err = GetLastError();
+
+					// ERROR_INVALID_HANDLE
+					// ERROR_INVALID_PARAMETER
+					// ERROR_INVALID_FUNCTION
+					// ERROR_OPERATION_ABORTED
+
+					if (err != ERROR_OPERATION_ABORTED)
+						// this could also mean that we cancelled the read.
+						printf("FileMontitor : FIX LOGGING!\n");
+						// log::out << log::RED << "FileMonitor::check - ReadDirectoryChanges win error " << err << " (path: " << self->m_root << ")\n";
+					break;
+				} else {
+					int offset = 0;
+					while (true) {
+						FILE_NOTIFY_INFORMATION& info = *(FILE_NOTIFY_INFORMATION*)((char*)self->m_buffer + offset);
+						int length = info.FileNameLength / sizeof(WCHAR);
+						if (length < MAX_PATH + 1) {
+							temp.resize(length);
+							for (int i = 0; i < length; i++) {
+								temp.data()[i] = (char)*(info.FileName + i);
+							}
+						}
+
+						if (self->m_dirPath == self->m_root || temp == self->m_root) {
+							//log::out << "FileMonitor::check - call callback " << temp << "\n";
+							FileMonitor::ChangeType type = (FileMonitor::ChangeType)0;
+							if (info.Action == FILE_ACTION_MODIFIED || info.Action == FILE_ACTION_ADDED) type = FileMonitor::FILE_MODIFIED;
+							if (info.Action == FILE_ACTION_REMOVED) type = FileMonitor::FILE_REMOVED;
+							if (type == 0) {
+								printf("FileMontitor : FIX LOGGING!\n");
+								// log::out << log::YELLOW << "FileMonitor - type was 0 (info.Action=" << (int)info.Action << ")\n";
+								//DebugBreak();
+							}
+							self->m_callback(temp, type);
+						}
+
+						if (info.NextEntryOffset == 0)
+							break;
+						offset += info.NextEntryOffset;
+					}
+				}
+
+				self->m_mutex.lock();
+				bool yes = FindNextChangeNotification(self->m_changeHandle);
+				self->m_mutex.unlock();
+
+				if (!yes) {
+					// handle could have been closed
+					break;
+				}
+			} else {
+				// not sure why we are here but it isn't good so stop.
+				break;
+			}
+		}
+		self->m_mutex.lock();
+		self->m_running = false;
+
+		if (self->m_changeHandle) {
+			FindCloseChangeNotification(self->m_changeHandle);
+			self->m_changeHandle = NULL;
+		}
+
+		if (self->m_dirHandle) {
+			CloseHandle(self->m_dirHandle);
+			self->m_dirHandle = NULL;
+		}
+		self->m_root.clear();
+		self->m_mutex.unlock();
+		//log::out << "FileMonitor - finished thread\n";
+		return 0;
+	}
+	// Todo: handle is checked against NULL, it should be checked against INVALID_HANDLE_VALUE
+	bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
+		if (!std::filesystem::exists(path))
+			return false;
+		//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
+
+		m_mutex.lock();
+
+		// Just a heads up for you. This functions is not beautiful.
+
+		if (m_root == path) { // no reason to check the same right?
+			m_mutex.unlock();
+			return true;
+		}
+		//if (m_threadHandle) {
+		//	CancelSynchronousIo(m_threadHandle);
+		//}
+		if (m_changeHandle != NULL) {
+			FindCloseChangeNotification(m_changeHandle);
+			m_changeHandle = NULL;
+		}
+		if (m_dirHandle) {
+			CloseHandle(m_dirHandle);
+			m_dirHandle = NULL;
+		}
+
+		if (!m_running) {
+			if (m_thread.isActive()) // Todo: What if
+				m_thread.join();
+			//m_threadHandle = NULL;
+
+			m_root = path;
+			m_callback = callback;
+			m_flags = flags;
+
+			int attributes = GetFileAttributesA(m_root.c_str());
+			if (attributes == INVALID_FILE_ATTRIBUTES) {
+
+			} else if (attributes & FILE_ATTRIBUTE_DIRECTORY) {
+				m_dirPath = m_root;
+			} else {
+				int index = m_root.find_last_of('\\');
+				if (index == -1) {
+					m_dirPath = ".\\";
+				} else {
+					m_dirPath = m_root.substr(0, index);
+				}
+			}
+			m_changeHandle = FindFirstChangeNotificationA(m_dirPath.c_str(), flags & WATCH_SUBTREE,
+				FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME);
+			if (m_changeHandle == INVALID_HANDLE_VALUE || m_changeHandle == NULL) {
+				m_changeHandle = NULL;
+				DWORD err = GetLastError();
+				printf("FileMontitor : FIX LOGGING!\n");
+				// log::out << log::RED << "FileMonitor::check - invalid handle (err: " << (int)err << "): " << m_dirPath << "\n";
+				m_mutex.unlock();
+				return false;
+			}
+
+			//FILE_FLAG_OVERLAPPED
+			m_dirHandle = CreateFileA(m_dirPath.c_str(), FILE_LIST_DIRECTORY,
+				FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+				OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+			if (m_dirHandle == NULL || m_dirHandle == INVALID_HANDLE_VALUE) {
+				m_dirHandle = NULL;
+				DWORD err = GetLastError();
+				printf("FileMontitor : FIX LOGGING!\n");
+				// log::out << log::RED << "FileMonitor::check - dirHandle failed(" << (int)err << "): " << m_dirPath << "\n";
+				if (m_changeHandle != NULL) {
+					FindCloseChangeNotification(m_changeHandle);
+					m_changeHandle = NULL;
+				}
+				m_mutex.unlock();
+				return false;
+			}
+			m_running = true;
+
+			//log::out << "FileMonitor : Checking " << m_root << "\n";
+			m_thread.init(RunMonitor,this);
+		}
+		m_mutex.unlock();
+		return true;
+	}
+#ifdef VISUAL_STUDIO
+	// Code below comes from https://learn.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code?view=vs-2022
+	const DWORD MS_VC_EXCEPTION = 0x406D1388;
+#pragma pack(push,8)
+	typedef struct tagTHREADNAME_INFO
+	{
+		DWORD dwType; // Must be 0x1000.
+		LPCSTR szName; // Pointer to name (in user addr space).
+		DWORD dwThreadID; // Thread ID (-1=caller thread).
+		DWORD dwFlags; // Reserved for future use, must be zero.
+	} THREADNAME_INFO;
+#pragma pack(pop)
+	void SetThreadName(DWORD dwThreadID, const char* threadName) {
+		THREADNAME_INFO info;
+		info.dwType = 0x1000;
+		info.szName = threadName;
+		info.dwThreadID = dwThreadID;
+		info.dwFlags = 0;
+#pragma warning(push)
+#pragma warning(disable: 6320 6322)
+		__try {
+			RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+		} __except (EXCEPTION_EXECUTE_HANDLER) {
+		}
+#pragma warning(pop)
+	}
+#else
+	void SetThreadName(ThreadId threadId, const char* threadName) {
+		// Empty
+	}
+#endif
 }
 #endif

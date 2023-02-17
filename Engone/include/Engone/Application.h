@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engone/Window.h"
-#include "Engone/AssetModule.h"
+// #include "Engone/AssetModule.h"
 #include "Engone/LoopInfo.h"
 #include "Engone/World/EngineWorld.h"
 

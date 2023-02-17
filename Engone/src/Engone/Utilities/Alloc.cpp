@@ -26,7 +26,7 @@ namespace engone {
 		void* realloc(void* ptr, uint64 oldSize, uint64 newSize) {
 			return Reallocate(ptr,oldSize,newSize);
 			// if (newSize == 0) {
-			// 	alloc::free(ptr, oldSize);
+			// 	Free(ptr, oldSize);
 			// 	return nullptr;
 			// }
 			// void* newPtr = std::realloc(ptr, newSize);
@@ -83,19 +83,19 @@ namespace engone {
 	// bool Memory<char>::resize(uint64 count, uint64 size) {
 	// 	if (count == 0) {
 	// 		if (data)
-	// 			alloc::free(data, max * size);
+	// 			Free(data, max * size);
 	// 		data = nullptr;
 	// 		max = 0;
 	// 		used = 0;
 	// 	}
 	// 	if (!data) {
-	// 		data = (char*)alloc::malloc(count * size);
+	// 		data = (char*)Allocate(count * size);
 	// 		if (data) {
 	// 			max = count;
 	// 			used = 0;
 	// 		}
 	// 	} else {
-	// 		char* newData = (char*)alloc::realloc(data, max * size, count * size);
+	// 		char* newData = (char*)Reallocate(data, max * size, count * size);
 	// 		if (newData) {
 	// 			data = newData;
 	// 			max = count;

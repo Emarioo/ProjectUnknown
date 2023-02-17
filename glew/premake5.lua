@@ -1,7 +1,8 @@
 project "glew"
     kind "StaticLib"
     language "C"
-    -- toolset "gcc"
+    -- language "C++" -- this may prevent cc not recognized
+    
     symbols "On"
     staticruntime "on"
     

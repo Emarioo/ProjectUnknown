@@ -21,7 +21,7 @@ namespace prounk {
 		focalPoint0.bind(shad,0);
 		//FocalPoint focalPoint1(ForceTypeAttractive, player->getPosition(),-2,0,3);
 		//focalPoint1.bind(shad,1);
-		printf("helo");
+		// printf("helo");
 		if (!IsKeyDown(GLFW_KEY_F)) {
 			//FocalPoint focalPoint2(ForceTypeField, player->getPosition(),ToGlmVec3(player->rigidBody->getLinearVelocity()), 1, 2, 4);
 			//focalPoint2.bind(shad, 0);

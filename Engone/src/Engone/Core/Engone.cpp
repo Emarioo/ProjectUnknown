@@ -8,6 +8,8 @@ const char* test2dGLSL = {
 };
 #include "Engone/Tests/BasicRendering.h"
 
+#include "Engone/Networking/NetworkModule.h"
+
 #include "Engone/Core/ExecutionControl.h"
 // #include "Engone/Utilities/Thread.h"
 #include "Engone/PlatformModule/PlatformLayer.h"

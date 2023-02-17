@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engone/EngineObject.h"
-#include "Engone/Networking/NetworkModule.h"
+// #include "Engone/Networking/NetworkModule.h"
 #include "Engone/ParticleModule.h"
 
 #include "Engone/Structures/FrameArray.h"
@@ -98,7 +98,6 @@ namespace engone {
 
 	private:
 #ifdef ENGONE_PHYSICS
-		// DepthMutex m_physicsMutex;
 		Mutex m_physicsMutex;
 		rp3d::PhysicsWorld* m_physicsWorld = nullptr;
 #endif

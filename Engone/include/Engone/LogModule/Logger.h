@@ -36,6 +36,8 @@ namespace engone {
 
 		// extra report which is individual for each thread
 		void useThreadReports(bool yes);
+		
+		void flush();
 
 		// Returns master color if it is set otherwise normal color.
 		log::Color getColor();

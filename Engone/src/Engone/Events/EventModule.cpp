@@ -137,7 +137,7 @@ namespace engone {
 		int numKeys = (int)(size / (sizeof(keyset)));
 
 		int setsSize = sizeof(keyset) * numKeys;
-		keyset* sets = (keyset*)alloc::malloc(setsSize);
+		keyset* sets = (keyset*)Allocate(setsSize);
 
 		file.read(reinterpret_cast<char*>(&sets[0]), sizeof(keyset) * numKeys);
 
@@ -147,7 +147,7 @@ namespace engone {
 		}
 
 		// Cleanup
-		alloc::free(sets, sizeof(keyset)* numKeys);
+		Free(sets, sizeof(keyset)* numKeys);
 		file.close();
 
 		return numKeys;
@@ -166,7 +166,7 @@ namespace engone {
 			int keys[3];
 		};
 		int setsSize = sizeof(keyset)* numKeys;
-		keyset* sets = (keyset*)alloc::malloc(setsSize);
+		keyset* sets = (keyset*)Allocate(setsSize);
 
 		int i = 0;
 		for (auto& pair : keybindings) {
@@ -180,7 +180,7 @@ namespace engone {
 		file.write(reinterpret_cast<const char*>(&sets[0]), sizeof(keyset) * numKeys);
 
 		// Cleanup
-		alloc::free(sets, setsSize);
+		Free(sets, setsSize);
 		file.close();
 		return true;
 	}

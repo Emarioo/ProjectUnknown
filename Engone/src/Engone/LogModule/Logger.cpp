@@ -37,6 +37,8 @@ namespace engone {
 		str[7] = '0' + temp;
 	}
 	void Logger::cleanup() {
+		flush();
+		
 		for (auto& [k, v] : m_threadInfos) {
 			v.lineBuffer.resize(0);
 		}
@@ -85,6 +87,13 @@ namespace engone {
 			m_threadInfos[id] = {};
 		}
 		return m_threadInfos[Thread::GetThisThreadId()];
+	}
+	void Logger::flush(){
+		auto& info = getThreadInfo();
+		if(info.lineBuffer.used==0)
+			return;
+		print((char*)info.lineBuffer.data, info.lineBuffer.used);
+		info.lineBuffer.used = 0; // flush buffer
 	}
 	void Logger::print(char* str, int len) {
 		auto& info = getThreadInfo();
@@ -196,8 +205,9 @@ namespace engone {
 			printf("[Logger] : Failed insuring %u bytes\n", len); \
 		}
 		if (value[len - 1] == '\n') {
-			print((char*)info.lineBuffer.data, info.lineBuffer.used);
-			info.lineBuffer.used = 0; // flush buffer
+			flush();
+			// print((char*)info.lineBuffer.data, info.lineBuffer.used);
+			// info.lineBuffer.used = 0; // flush buffer
 		}
 		return *this;
 	}

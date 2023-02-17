@@ -84,6 +84,7 @@ GENERATED += $(OBJDIR)/Application.o
 GENERATED += $(OBJDIR)/Asset.o
 GENERATED += $(OBJDIR)/AssetModule.o
 GENERATED += $(OBJDIR)/BasicRendering.o
+GENERATED += $(OBJDIR)/BinaryTree.o
 GENERATED += $(OBJDIR)/Buffer.o
 GENERATED += $(OBJDIR)/CommonRenderer.o
 GENERATED += $(OBJDIR)/EngineObject.o
@@ -96,6 +97,7 @@ GENERATED += $(OBJDIR)/FileReader.o
 GENERATED += $(OBJDIR)/FileWriter.o
 GENERATED += $(OBJDIR)/FrameArray.o
 GENERATED += $(OBJDIR)/FrameBuffer.o
+GENERATED += $(OBJDIR)/GameMemory.o
 GENERATED += $(OBJDIR)/HashMap.o
 GENERATED += $(OBJDIR)/IMPLS.o
 GENERATED += $(OBJDIR)/ImageUtility.o
@@ -130,6 +132,7 @@ OBJECTS += $(OBJDIR)/Application.o
 OBJECTS += $(OBJDIR)/Asset.o
 OBJECTS += $(OBJDIR)/AssetModule.o
 OBJECTS += $(OBJDIR)/BasicRendering.o
+OBJECTS += $(OBJDIR)/BinaryTree.o
 OBJECTS += $(OBJDIR)/Buffer.o
 OBJECTS += $(OBJDIR)/CommonRenderer.o
 OBJECTS += $(OBJDIR)/EngineObject.o
@@ -142,6 +145,7 @@ OBJECTS += $(OBJDIR)/FileReader.o
 OBJECTS += $(OBJDIR)/FileWriter.o
 OBJECTS += $(OBJDIR)/FrameArray.o
 OBJECTS += $(OBJDIR)/FrameBuffer.o
+OBJECTS += $(OBJDIR)/GameMemory.o
 OBJECTS += $(OBJDIR)/HashMap.o
 OBJECTS += $(OBJDIR)/IMPLS.o
 OBJECTS += $(OBJDIR)/ImageUtility.o
@@ -281,6 +285,9 @@ $(OBJDIR)/NetworkModule.o: src/Engone/Networking/NetworkModule.cpp
 $(OBJDIR)/ParticleModule.o: src/Engone/ParticleModule.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/GameMemory.o: src/Engone/PlatformModule/GameMemory.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Linux.o: src/Engone/PlatformModule/Linux.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -321,6 +328,9 @@ $(OBJDIR)/SoundSource.o: src/Engone/Sound/SoundSource.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/SoundStream.o: src/Engone/Sound/SoundStream.cpp
+	@echo "$(notdir $<)"
+	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/BinaryTree.o: src/Engone/Structures/BinaryTree.cpp
 	@echo "$(notdir $<)"
 	$(SILENT) $(CXX) -include $(PCH_PLACEHOLDER) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/FrameArray.o: src/Engone/Structures/FrameArray.cpp

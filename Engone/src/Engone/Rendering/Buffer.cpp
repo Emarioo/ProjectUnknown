@@ -411,6 +411,8 @@ namespace engone {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			unbind();
@@ -705,7 +707,7 @@ namespace engone {
 			int msgSize; // null terminate is included
 			glGetShaderiv(id, GL_INFO_LOG_LENGTH, &msgSize);
 
-			char* msg = (char*)alloc::malloc(msgSize);// a bit extra for when memory is moved to fit in actual error line
+			char* msg = (char*)Allocate(msgSize);// a bit extra for when memory is moved to fit in actual error line
 			memset(msg, 0, msgSize);
 
 			int length=0;
@@ -742,7 +744,7 @@ namespace engone {
 
 			glDeleteShader(id);
 
-			alloc::free(msg, msgSize);
+			Free(msg, msgSize);
 
 			return 0;
 		}

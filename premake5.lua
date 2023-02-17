@@ -27,7 +27,7 @@ newaction {
         -- os.execute("make GLFW3 CC=gcc")
         -- os.execute("make glew CC=gcc")
         -- os.execute("make rp3d")
-        os.execute("make Engone")
+        -- os.execute("make Engone")
         os.execute("make ProjectUnknown")
     end
 }

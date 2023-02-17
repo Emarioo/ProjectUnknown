@@ -4,6 +4,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/Objects/BasicObjects.h"
+
 namespace prounk {
 
 	void VisualEffects::CreateTextParticle(glm::vec3 position, float scale, const std::string& text) {

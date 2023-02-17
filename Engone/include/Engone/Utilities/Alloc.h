@@ -9,21 +9,23 @@
 // #include <cstdlib>
 #include <stdlib.h>
 
-#define ALLOC_NEW(CLASS) new((CLASS*)engone::alloc::malloc(sizeof(CLASS))) CLASS
-#define ALLOC_DELETE(CLASS,VAR) {VAR->~CLASS();engone::alloc::free(VAR,sizeof(CLASS));}
+#include "Engone/PlatformLayer.h"
+
+#define ALLOC_NEW(CLASS) new((CLASS*)engone::Allocate(sizeof(CLASS))) CLASS
+#define ALLOC_DELETE(CLASS,VAR) {VAR->~CLASS();engone::Free(VAR,sizeof(CLASS));}
 
 namespace engone {
 	
 	// Todo: MemoryAllocator for game state memory
 	
-	namespace alloc {
-		void* malloc(uint64 size);
-		// oldSize is used for tracking. you usually keep it somewhere.
-		void* realloc(void* ptr, uint64 oldSize, uint64 newSize);
-		// size is used for tracking. you usually keep it somewhere.
-		void free(void* ptr, uint64 size);
-		uint64 allocatedBytes();
-	}
+	// namespace alloc {
+	// 	void* malloc(uint64 size);
+	// 	// oldSize is used for tracking. you usually keep it somewhere.
+	// 	void* realloc(void* ptr, uint64 oldSize, uint64 newSize);
+	// 	// size is used for tracking. you usually keep it somewhere.
+	// 	void free(void* ptr, uint64 size);
+	// 	uint64 allocatedBytes();
+	// }
 	struct Memory {
 		Memory(uint32 typeSize) : m_typeSize(typeSize) {}
 

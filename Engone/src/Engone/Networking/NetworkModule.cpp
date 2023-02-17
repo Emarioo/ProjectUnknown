@@ -121,7 +121,7 @@ namespace engone {
 		char* data;
 		if (size == 0) {
 			if (m_data) {
-				alloc::free(m_data, m_dataSize);
+				Free(m_data, m_dataSize);
 				//log::out << "Del MsgBuffer " << m_dataSize << "\n";
 				//GetTracker().subMemory(trackerId,m_dataSize);
 				m_data = nullptr;
@@ -131,11 +131,11 @@ namespace engone {
 			return true;
 		} else {
 			if (!m_data) {
-				data = (char*)alloc::malloc(size + sizeof(uint32_t));
+				data = (char*)Allocate(size + sizeof(uint32_t));
 				if (data)
 					*((uint32_t*)data) = 0;
 			} else {
-				data = (char*)alloc::realloc(m_data, m_dataSize, size + sizeof(uint32_t));
+				data = (char*)Reallocate(m_data, m_dataSize, size + sizeof(uint32_t));
 			}
 			if (data) {
 				m_data = data;

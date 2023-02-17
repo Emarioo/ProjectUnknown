@@ -1,7 +1,7 @@
 Warning:
 - The .exe is for Windows.
 - Windows and your web browser will most likely warn you about the
-  game being a virus. It is not. But there may be bugs like memory leaks.
+  game being a virus. It is not. But there may be bugs like the game crashing without assets.
 
 Note:
 - F3 to bring up FPS. Up/Down arrow to zoom in/out. Left/Right arrows to move

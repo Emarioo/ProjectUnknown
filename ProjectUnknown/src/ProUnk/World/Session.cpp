@@ -2,6 +2,8 @@
 
 #include "ProUnk/GameApp.h"
 
+#include "ProUnk/Objects/BasicObjects.h"
+
 namespace prounk {
 	const char* Session::DEFAULT_PORT = "43567";
 	const char* Session::DEFAULT_IP = "127.0.0.1";

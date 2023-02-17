@@ -4,6 +4,8 @@
 
 #include "ProUnk/UI/InvUtility.h"
 
+#include "ProUnk/Objects/BasicObjects.h"
+
 namespace prounk {
 
 	void PlayerBarPanel::render(engone::LoopInfo& info) {

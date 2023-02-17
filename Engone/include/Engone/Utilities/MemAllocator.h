@@ -2,6 +2,8 @@
 
 #include "Engone/Utilities/Alloc.h"
 
+#include "Engone/PlatformModule/PlatformLayer.h"
+
 namespace engone {
 	// General allocator methods for all types
 	// Also has some allocations stats. Some stats may not be 100% accurate if you use the methods in wierd ways.
@@ -42,7 +44,7 @@ namespace engone {
 		// See Allocator's allocate
 		virtual char* allocate(uint32_t size) override {
 			if (size == 0) return nullptr;
-			char* ptr = (char*)alloc::malloc(size);
+			char* ptr = (char*)Allocate(size);
 			if (ptr) {
 				realAllocation += size;
 				dreamAllocation += size;
@@ -60,7 +62,7 @@ namespace engone {
 				deallocate(ptr, oldSize);
 				return nullptr;
 			}
-			char* newPtr = (char*)alloc::realloc(ptr, oldSize, newSize);
+			char* newPtr = (char*)Reallocate(ptr, oldSize, newSize);
 			if (newPtr) {
 				realAllocation -= oldSize;
 				realAllocation += newSize;
@@ -77,7 +79,7 @@ namespace engone {
 			if (!ptr || size == 0) return;
 			realAllocation -= size;
 			dreamAllocation -= size;
-			alloc::free(ptr,size);
+			Free(ptr,size);
 		}
 		template<class T>
 		inline void deallocate(T* ptr) { deallocate(ptr, sizeof(T)); };
@@ -184,7 +186,7 @@ namespace engone {
 		bool resize(int size, bool nullify = false) {
 			if (m_allocation) {
 				if (nullify || size == 0) {
-					alloc::free(m_data,size);
+					Free(m_data,size);
 					m_data = nullptr;
 					m_size = 0;
 					realAllocation = 0;
@@ -192,14 +194,14 @@ namespace engone {
 					if (size == 0) return true; // returns true because the intention was successful.
 				}
 				if (!m_data) {
-					m_data = (char*)alloc::malloc(size);
+					m_data = (char*)Allocate(size);
 					if (!m_data) return false;
 					m_size = size;
 					realAllocation = size;
 					m_write = 0;
 					return true;
 				} else if (m_canResize) {
-					char* data = (char*)alloc::realloc(m_data, m_size, size);
+					char* data = (char*)Reallocate(m_data, m_size, size);
 					if (!data) return false;
 					m_data = data;
 					m_size = size;
@@ -260,19 +262,19 @@ namespace engone {
 		}
 		bool resize(uint32_t size) {
 			if (size == 0) {
-				alloc::free(m_data, size);
+				Free(m_data, size);
 				m_data = nullptr;
 				m_size = 0;
 				m_maxSize = 0;
 			}
 			if (!m_data) {
-				char* data = (char*)alloc::malloc(size);
+				char* data = (char*)Allocate(size);
 				if (!data) return false;
 				m_data = data;
 				m_maxSize = size;
 				m_size = 0;
 			} else {
-				char* data = (char*)alloc::realloc(m_data, m_size, size);
+				char* data = (char*)Reallocate(m_data, m_size, size);
 				if (!data) return false;
 				m_data = data;
 				m_maxSize = size;

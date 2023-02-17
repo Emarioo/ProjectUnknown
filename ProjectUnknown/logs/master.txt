@@ -1,29 +1,30 @@
-[22:48:33] [Thread 13720] Client : Connect
-[22:48:33] [Thread 956] Server : Connect
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TRIGGER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TRIGGER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_PLAYER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TRIGGER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TRIGGER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_PLAYER
-[22:48:33] [Thread 20328] netAddGeneral OBJECT_TERRAIN
-[22:48:33] [Thread 20328] Client: NET_ADD_TRIGGER
-[22:48:33] [Thread 20328] Client: NET_ADD_TRIGGER
-[22:48:33] [Thread 20328] Client: NET_ADD_TERRAIN
-[22:48:33] [Thread 20328] Client: NET_ADD_TERRAIN
-[22:48:33] [Thread 20328] Client: NET_ADD_CREATURE
-[22:48:33] [Thread 20328] Client: NET_ADD_TERRAIN
-[22:48:33] [Thread 20328] Server: NET_ADD_TRIGGER
-[22:48:33] [Thread 20328] Server: NET_ADD_TRIGGER
-[22:48:33] [Thread 20328] Server: NET_ADD_TERRAIN
-[22:48:33] [Thread 20328] Server: NET_ADD_TERRAIN
-[22:48:33] [Thread 20328] Server: NET_ADD_CREATURE
-[22:48:33] [Thread 20328] Server: NET_ADD_TERRAIN
+[16:18:37] [Thread 11900]  | 0 ### 8
+[16:18:39] [Thread 11900]  | 9 ### 42
+[16:18:40] [Thread 11900]  | 43 ### 74
+[16:18:43] [Thread 11900]  | 75 --- 499
+[16:18:58] [Thread 11900]   | 96 ### 109
+[16:16:05] [Thread 14740]  | 110 ### 123
+[16:16:08] [Thread 14740]  | 124 ### 141
+[16:16:09] [Thread 14740]  | 142 ### 143
+[16:16:10] [Thread 14740]  | 144 ### 157
+[16:16:12] [Thread 14740]  | 158 ### 180
+[16:16:16] [Thread 14740]  | 181 --- 499
+anup - not implemented
+[22:18:33] [Thread 7576] AnimationAsset::cleanup - not implemented
+[22:18:33] [Thread 7576] GameApp : CLEANUP NOT IMPLEMENTED
+[22:18:33] [Thread 7576] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[22:18:33] [Thread 7576] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[22:18:33] [Thread 7576] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+:37] [Thread 3856] Client: NET_ADD_TERRAIN
+[21:43:37] [Thread 3856] Client: NET_ADD_CREATURE
+[21:43:37] [Thread 3856] Client: NET_ADD_TERRAIN
+[21:43:38] [Thread 3856] Server: NET_ADD_TRIGGER
+[21:43:38] [Thread 3856] Server: NET_ADD_TRIGGER
+[21:43:38] [Thread 3856] Server: NET_ADD_TERRAIN
+[21:43:38] [Thread 3856] Server: NET_ADD_TERRAIN
+[21:43:38] [Thread 3856] Server: NET_ADD_CREATURE
+[21:43:38] [Thread 3856] Server: NET_ADD_TERRAIN
+2:48:33] [Thread 20328] Server: NET_ADD_TERRAIN
 9:04] [Thread 8592] Session - no data for client!
 [19:49:04] [Thread 8592] Session - no data for client!
 [19:49:04] [Thread 8592] Session - no data for client!
