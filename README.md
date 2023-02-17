@@ -1,13 +1,14 @@
 # ProjectUnknown
 A game made with C++, OpenGL, GLEW, GLFW3, ReactPhysics3D and OpenAL.
 
-This project will be split into two repositories.
-Engone and ProjectUnknown. ProjectUnknown is the code name for the game and will be private
-once it has more content. Engone will be public.
+This project is very unorganized at the moment. This is due to some changes I am making to
+the build system. The changes should allow the game to run on Windows and Linux.
 
-The project is not very organized at the moment. The source files for GLFW3, GLEW and RP3D 
-are directly included in the project which isn't necessary. Changes to the build system are
-being done so that the project can be compiled on Linux and not just Windows.
+## Building
+There will be instructions on how to compile and run the game. But there aren't
+because of the changes.
+
+## Other notes
+The source files for GLFW3, GLEW and RP3D are directly included in the project which isn't necessary. 
 Premake is used to generate project files (gmake, vs2022).
 Visual studio code and Visual studio is used when working on the project.
-Things are messy because I am trying to find a neat way of doing things.
