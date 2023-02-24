@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="UsefulLib.js"></script>
+        <script>
+            class Block{
+                constructor(start,size){
+                    this.start=start;
+                    this.size=size;
+                }
+            }
+            class State{
+                constructor(path){
+                    this.freeBlocks=[];
+                    this.usedBlocks=[];
+                    
+                    let data = document.createElement("script");
+                    data.src = path;
+                    document.head.appendChild(data);
+                    data.onload = () => {
+                        let list = eval(path.split("/")[1].split(".")[0]);
+                        for (let i = 0; i < list[0].length/2; i++) {
+                            this.freeBlocks.push(new Block(list[0][2 * i], list[0][2 * i + 1]));
+                        }
+                        for (let i = 0; i < list[1].length/2; i++) {
+                            this.usedBlocks.push(new Block(list[1][2 * i], list[1][2 * i + 1]));
+                        }
+                    }
+                }
+                render(x, y, scale, height){
+                    let dist = 0;
+                    // console.log(this.freeBlocks.length,this.usedBlocks.length);
+                    // console.log(this.freeBlocks);
+                    if(this.freeBlocks.length!=0){
+                        let b = this.freeBlocks[this.freeBlocks.length-1];
+                        dist = b.start+b.size;
+                    }
+                    if(this.usedBlocks.length!=0){
+                        let b = this.usedBlocks[this.usedBlocks.length - 1];
+                        // console.log(b);
+                        let newDist = b.start+ b.size;
+                        if(newDist>dist)
+                            dist = newDist;
+                    }
+                    // console.log(dist);
+                    FillColor("777");
+                    FillRect(x, y, dist * scale, height);
+                        
+                        
+                    FillColor("aaa");
+                    for(let i=0;i<this.freeBlocks.length;i++){
+                        let block = this.freeBlocks[i];
+                        FillRect(x+block.start*scale,y,block.size*scale-1,height);
+                    }
+                    FillColor("aaf");
+                    for (let i = 0; i < this.usedBlocks.length; i++) {
+                        let block = this.usedBlocks[i];
+                        FillRect(x + block.start * scale, y, block.size * scale-1, height);
+                    }
+                }
+            }
+            
+            var states = [];
+            
+            let stateCount=101;
+            for(let i=0;i<stateCount;i++){
+                states.push(new State("states/state"+i+".js"));
+            }
+            
+            // Todo: auto refresh stateX.js with intervals. Create script, load data, delete script, repeat. do it for 5 scripts or so
+            //      to give some breathing room.
+            
+            let currentState=0;
+            
+            function Loop(timestep){
+                let sw=ScreenWidth(),sh=ScreenHeight();
+                
+                let height = 40;
+                let gap = 4;
+                let scale = 4;
+                for(let i=0;i<states.length;i++){
+                    states[i].render(0,i*(height+gap),scale,height);
+                }
+                
+                let textSize = 20;
+                if(currentState>=0&&currentState<states.length){
+                    FillText(-90, -height*2, "State "+currentState, textSize);
+                    states[currentState].render(0,-height*2.5,scale,height);
+                }
+                
+                for(let i=0;i<200;i++){
+                    let spot = i*10;
+                    FillText(spot*scale,0,spot+"", textSize);
+                }
+                
+                // FillColor("99f");
+                // FillRect(0,0,sw,sh);
+                
+                let zoom = GetWheel();
+                let zoomSpeed = 1.07;
+                if(zoom>0)
+                    GetCamera().zoom*= zoomSpeed;
+                else if(zoom<0)
+                    GetCamera().zoom/= zoomSpeed;
+                    
+                let speed = 15;
+                if(IsKeyDown("shiftleft"))
+                    speed*=2.3;
+                
+                if(IsKeyDown("w"))
+                    GetCamera().y-=speed / GetCamera().zoom;
+                if (IsKeyDown("a"))
+                    GetCamera().x -= speed / GetCamera().zoom;
+                if (IsKeyDown("s"))
+                    GetCamera().y += speed / GetCamera().zoom;
+                if (IsKeyDown("d"))
+                    GetCamera().x += speed / GetCamera().zoom;
+                
+                if (IsKeyPressed("arrowleft"))
+                    currentState = Max(0,currentState-1);
+                if(IsKeyPressed("arrowright"))
+                    currentState = Min(states.length,currentState+1);
+                    
+                // console.log(GetCamera());
+            }
+            StartLoop(Loop,60);
+        </script>
+    </head>
+</html>

@@ -4,62 +4,28 @@
 
 namespace engone {
 
-	// An added value will have the same index until it is removed.
-	// remove will cause a position in the array to be empty.
-	// If a value is added then that position will probably be filled by the new value.
-	template<typename Value>
 	class Array {
 	public:
-		Array() = default;
+		Array(uint32 typeSize, uint32 allocType) : m_values(typeSize,allocType) {}
 		// calls cleanup
-		~Array() {
-			cleanup();
-		}
+		~Array() { cleanup(); }
 		// frees allocations
-		void cleanup() {
-			m_values.resize(0);
-		}
-		uint32_t size() {
-			return m_values.used;
-		}
+		void cleanup();
+
+		uint32 size();
+		void* data();
+
 		// Item is added to the back.
 		// Returns false if allocation failed
-		bool add(const Value& value) {
+		bool add(const void* value, void** outPtr=nullptr);
 
-			if (m_values.used == m_values.max) {
-				bool yes = m_values.resize(m_values.max * 2 + 4);
-				if (!yes) return false;
-			}
+		bool insert(uint32 index, const void* value);
 
-			Value* ptr = m_values.data + m_value.used;
-			new(ptr)Value(value);
-			return true;
-		}
-		bool insert(const Value& value) {
-
-		}
 		// nullptr if unused/invalid index
-		Value* get(uint32_t index) {
-			if (index >= m_values.used) {
-				return nullptr;
-			}
-			if (!m_values.data)
-				return nullptr;
-			return (m_values.data + m_values.used);
-		}
-		void remove(uint32_t index) {
-			if (!m_values.data)
-				return;
+		void* get(uint32 index);
+		void remove(uint32 index);
 
-			if (index >= m_values.used){
-				return;
-			}
-			
-			//m_values;
-			//m_values.
-
-			m_values.used--;
-		}
+		bool copy(Array* out);
 
 		// this function does not allow emptySpots to be a Stack.
 		// emptySpots needs to be an Array where you can pop middle elements.
@@ -89,13 +55,18 @@ namespace engone {
 		// Allocate memory in advance.
 		// Method can trim values if less than size
 		// count is not in bytes!
-		bool reserve(uint32_t count) {
+		bool reserve(uint32 count) {
 			return m_values.resize(count);
 		}
-
+		bool resize(uint32 count) {
+			if (!m_values.resize(count))
+				return false;
+			m_values.used = count;
+			return true;
+		}
 	private:
-		Memory<Value> m_values;
+		Memory m_values;
 	};
 
-	void EngoneStableArrayTest();
+	void TestEngoneArray();
 }

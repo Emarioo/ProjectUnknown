@@ -168,9 +168,6 @@
     <ClInclude Include="include\Engone\Core\ExecutionControl.h">
       <Filter>include\Engone\Core</Filter>
     </ClInclude>
-    <ClInclude Include="include\Engone\Core\TaskHandler.h">
-      <Filter>include\Engone\Core</Filter>
-    </ClInclude>
     <ClInclude Include="include\Engone\EngineObject.h">
       <Filter>include\Engone</Filter>
     </ClInclude>
@@ -228,6 +225,12 @@
     <ClInclude Include="include\Engone\ParticleModule.h">
       <Filter>include\Engone</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\PlatformLayer.h">
+      <Filter>include\Engone</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\PlatformModule\GameMemory.h">
+      <Filter>include\Engone\PlatformModule</Filter>
+    </ClInclude>
     <ClInclude Include="include\Engone\PlatformModule\PlatformLayer.h">
       <Filter>include\Engone\PlatformModule</Filter>
     </ClInclude>
@@ -276,6 +279,9 @@
     <ClInclude Include="include\Engone\Structures\Array.h">
       <Filter>include\Engone\Structures</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\Structures\BinaryTree.h">
+      <Filter>include\Engone\Structures</Filter>
+    </ClInclude>
     <ClInclude Include="include\Engone\Structures\FrameArray.h">
       <Filter>include\Engone\Structures</Filter>
     </ClInclude>
@@ -289,6 +295,9 @@
       <Filter>include\Engone\Structures</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Structures\Stack.h">
+      <Filter>include\Engone\Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engone\Structures\String.h">
       <Filter>include\Engone\Structures</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\Tests\BasicRendering.h">
@@ -428,6 +437,9 @@
     <ClCompile Include="src\Engone\ParticleModule.cpp">
       <Filter>src\Engone</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engone\PlatformModule\GameMemory.cpp">
+      <Filter>src\Engone\PlatformModule</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engone\PlatformModule\Linux.cpp">
       <Filter>src\Engone\PlatformModule</Filter>
     </ClCompile>
@@ -470,6 +482,12 @@
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp">
       <Filter>src\Engone\Sound</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engone\Structures\Array.cpp">
+      <Filter>src\Engone\Structures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Structures\BinaryTree.cpp">
+      <Filter>src\Engone\Structures</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engone\Structures\FrameArray.cpp">
       <Filter>src\Engone\Structures</Filter>
     </ClCompile>
@@ -480,6 +498,9 @@
       <Filter>src\Engone\Structures</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Structures\Stack.cpp">
+      <Filter>src\Engone\Structures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\Structures\String.cpp">
       <Filter>src\Engone\Structures</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp">

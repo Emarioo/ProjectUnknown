@@ -1,16 +1,20 @@
 workspace "ProjectUnknown"
     architecture "x64"
-    configurations {"Debug","Release"}
+    -- configurations {"Debug","Release"}
+    -- configurations {"Debug-MSVC","Debug-GCC"}
+    -- configurations {"Debug-MSVC"}
     
-    platforms{"Windows","GCC"}
+    -- platforms{"Windows","GCC"}
 
     -- vs2* because vs* would include vscode
     filter "action:vs2*"
         defines { "VISUAL_STUDIO" }
-        system "windows"
+        configurations {"Debug-MSVC"}
+        -- system "windows"
     
     filter "action:gmake2"
-        system "linux"
+        configurations {"Debug-GCC"}
+        -- system "linux"
     
     -- targetdir "bin/%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
    

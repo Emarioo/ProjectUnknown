@@ -5,7 +5,9 @@
 
 namespace engone {
 
-	HashMap::HashMap(int keymapSize) : keymapSize(keymapSize) {
+	HashMap::HashMap(uint32 typeSize, uint32 allocType, uint32 keymapSize) : 
+		m_typeSize(typeSize), m_allocType(allocType), m_keymapSize(keymapSize), 
+		m_keymap(sizeof(Chain)+typeSize,allocType), m_chainData(sizeof(Chain)+typeSize,allocType), m_emptySpots(sizeof(uint32),allocType) {
 
 	}
 	HashMap::~HashMap() {
@@ -16,89 +18,108 @@ namespace engone {
 		m_preventDeconstructor = true;
 	}
 	void HashMap::cleanup() {
-		keymap.resize(0);
-		chainData.resize(0);
-		emptySpots.cleanup();
-		size = 0;
+		m_keymap.resize(0);
+		m_chainData.resize(0);
+		m_emptySpots.cleanup();
+		m_size = 0;
 		m_preventDeconstructor = false;
 	}
-	int HashMap::getMemoryUsage() {
-		return keymap.max*sizeof(Chain) + chainData.max*sizeof(Chain);
+	uint32 HashMap::getMemoryUsage() {
+		return m_keymap.max*m_keymap.getTypeSize() + m_chainData.max * m_chainData.getTypeSize()+m_emptySpots.size()*sizeof(uint32);
 	}
-	int HashMap::hash(Key key) {
+	uint32 HashMap::hash(uint32 key) {
 		// will crash if keymap.max is 0.
-		int index = key % keymap.max; // yes, you should laugh
+		uint32 index = key % m_keymap.max; // yes, you should laugh
 		return index;
 	}
-	int HashMap::createChain() {
-		int indexNext=0;
-		if (emptySpots.size() != 0) {
-			indexNext = emptySpots.pop();
-			Chain* chain = (Chain*)chainData.data + indexNext;
+	uint32 HashMap::createChain() {
+		uint32 indexNext=0;
+		if (m_emptySpots.size() != 0) {
+			m_emptySpots.pop(&indexNext);
+			Chain* chain = getDChain(indexNext);
 			*chain = Chain();
 		} else {
-			if (chainData.used == chainData.max) {
-				bool yes = chainData.resize((chainData.max) * 2 + 4);
+			if (m_chainData.used == m_chainData.max) {
+				bool yes = m_chainData.resize((m_chainData.max) * 2 + 4);
 				if (!yes)
 					return -1; // failed allocating
 
 				// initialize data
-				for (int i = chainData.used; i < chainData.max; i++) {
-					Chain* temp = (Chain*)chainData.data + i;
+				for (int i = m_chainData.used; i < m_chainData.max; i++) {
+					Chain* temp = getDChain(i);
 					*temp = Chain();
 				}
 			}
-			indexNext = chainData.used;
-			Chain* chain = (Chain*)chainData.data + indexNext;
+			indexNext = m_chainData.used;
+			Chain* chain = getDChain(indexNext);
 			*chain = Chain();
-			chainData.used++;
+			m_chainData.used++;
 		}
 		return indexNext;
 	}
-	bool HashMap::insert(Key key, Value value) {
+	bool HashMap::insert(uint32 key, void* value) {
 		// Check for enough memory
-		if (!keymap.data) {
-			bool yes = keymap.resize(keymapSize);
+		if (!m_keymap.data) {
+			bool yes = m_keymap.resize(m_keymapSize);
 			if (!yes)
 				return false; // return if failed resize
 			
 			// initialize data
-			for (int i = 0; i<keymap.max; i++) {
-				Chain* chain = (Chain*)keymap.data + i;
+			for (int i = 0; i< m_keymap.max; i++) {
+				Chain* chain = getKChain(i);
 				*chain = Chain();
 			}
 		}
 		
 		int index = hash(key);
 
-		Chain* chain = (Chain*)keymap.data + index;
+		Chain* chain = getKChain(index);
 		while (true) {
+			printf("Loop %u %u %u\n", chain->key, *(uint32*)chain->value, chain->indexNext);
 			if (!chain->used) {
 				chain->used = true;
 				chain->key = key;
-				chain->value = value;
+				//chain->value = value;
+				if(value)
+					memcpy(chain->value,value,m_typeSize);
+				else
+					memset(chain->value, 0, m_typeSize);
 				chain->indexNext = INVALID_INDEX;
-				size++;
+				printf("v1 %u %u\n", chain->key ,*(uint32*)chain->value);
+				m_size++;
 				return true;
 			} else if (chain->key == key) {
-				chain->value = value;
+				if(value)
+					memcpy(chain->value, value, m_typeSize);
+				else
+					memset(chain->value, 0, m_typeSize);
+				printf("v2 %u %u\n", chain->key, *(uint32*)chain->value);
+				//chain->value = value;
 				return true;
 			} else if(key<chain->key) { // this ensures that chains are sorted by the key variable
 				// create chain for later use
 				int indexNext = createChain();
-				if (index == -1)
+				if (indexNext == -1)
 					return false;
 
 				// move the chain to be replaced
-				Chain* newChain = (Chain*)chainData.data + indexNext;
-				*newChain = *chain;
-				
+				Chain* newChain = getDChain(indexNext);
+				//*newChain = *chain;
+				memcpy(newChain, chain, m_chainData.getTypeSize());
+				printf("v3 %u %u\n", newChain->key, *(uint32*)newChain->value);
+
 				// replace old chain with new chain
 				chain->used = true;
 				chain->key = key;
-				chain->value = value;
+				//chain->value = value;
+				if(value)
+					memcpy(chain->value, value, m_typeSize);
+				else
+					memset(chain->value, 0, m_typeSize);
+					
 				chain->indexNext = indexNext;
-				size++;
+				m_size++;
+				printf("v4 %u %u\n", chain->key, *(uint32*)chain->value);
 
 				return true;
 				// chain could be keymap so chain needs to be replaced by new pair.
@@ -109,7 +130,7 @@ namespace engone {
 					return false;
 
 				chain->indexNext = indexNext;
-				chain = (Chain*)chainData.data + indexNext;
+				chain = getDChain(indexNext);
 				continue;
 				//if (emptySpots.used != 0) {
 				//	chain->indexNext = *(emptySpots.data+emptySpots.used-1);
@@ -135,78 +156,56 @@ namespace engone {
 				//}
 				//continue;
 			} else {
-				chain = (Chain*)chainData.data + chain->indexNext;
+				chain = getDChain(chain->indexNext);
 				// linked list stuff with overflow data
 				continue;
 			}
 		}
 		return false;
 	}
-	HashMap::Value HashMap::get(Key key, bool* found) {
-		if (keymap.max == 0) {
-			if(found)
-				*found = false;
+	HashMap::Chain* HashMap::getDChain(uint32 index) {
+		return (Chain*)((char*)m_chainData.data + index * m_chainData.getTypeSize());
+	}
+	HashMap::Chain* HashMap::getKChain(uint32 index) {
+		return (Chain*)((char*)m_keymap.data + index * m_keymap.getTypeSize());
+	}
+	void HashMap::printMemory() {
+		//for (int i = 0; i < m_keymap.max;i++) {
+			//Chain* chain = (Chain*)((char)m_keymap.data + i*m_keymap.getTypeSize());
+		//}
+	}
+	void* HashMap::get(uint32 key) {
+		if (m_keymap.max == 0) {
 			return 0;
 		}
 
 		int index = hash(key);
 
-		Chain* chain = (Chain*)keymap.data + index;
+		Chain* chain = getKChain(index);
 		while (true) {
 			if (chain->used) {
 				if (chain->key == key) {
-					if (found)
-						*found = true;
 					return chain->value;
 				} else if (chain->indexNext == INVALID_INDEX) {
 					break; // failed
 				} else {
-					chain = (Chain*)chainData.data + chain->indexNext;
+					chain = getDChain(chain->indexNext);
 					continue;
 				}
 			} else {
 				break; // failed
 			}
 		}
-		// failed
-		if (found)
-			*found = false;
 		return 0;
 	}
-	bool HashMap::get(Key key, Value& outValue) {
-		if (keymap.max == 0) {
+	bool HashMap::erase(uint32 key) {
+		if (m_keymap.max == 0) {
 			return false;
 		}
 
 		int index = hash(key);
 
-		Chain* chain = (Chain*)keymap.data + index;
-		while (true) {
-			if (chain->used) {
-				if (chain->key == key) {
-					outValue = chain->value;
-					return true;
-				} else if (chain->indexNext == INVALID_INDEX) {
-					break; // failed
-				} else {
-					chain = (Chain*)chainData.data + chain->indexNext;
-					continue;
-				}
-			} else {
-				break; // failed
-			}
-		}
-		// failed
-		return false;
-	}
-	bool HashMap::erase(Key key) {
-		if (keymap.max == 0) {
-			return false;
-		}
-
-		int index = hash(key);
-
-		Chain* firstChain = (Chain*)keymap.data + index;
+		Chain* firstChain = getKChain(index);
 		Chain* chain = firstChain;
 		while (chain) {
 			if (!chain->used) 
@@ -216,31 +215,32 @@ namespace engone {
 				if (chain->indexNext == INVALID_INDEX) {
 					*chain = Chain();
 				} else {
-					int indexNext = chain->indexNext;
+					uint32 indexNext = chain->indexNext;
 
-					bool yes = emptySpots.push(indexNext);
+					bool yes = m_emptySpots.push(&indexNext);
 					if (!yes) {
 						//return false;  // uncomment to force efficient use of memory
 					}
 
-					Chain* nextChain = (Chain*)chainData.data+chain->indexNext;
+					Chain* nextChain = getDChain(chain->indexNext);
 					*chain = *nextChain;
 
 					*nextChain = Chain();
 				}
-				size--;
+				m_size--;
 				return true;
 			}
 			
 			if (chain->indexNext==INVALID_INDEX)
 				return false;
 
-			chain = (Chain*)chainData.data + chain->indexNext;
+			chain = getDChain(chain->indexNext);
 		}
 		
 		return false;
 	}
 	//HashMap::Value& HashMap::operator[](int key) {
+	// USE getDChain! 
 	//	// check key map
 	//	if (!keymap.data) {
 	//		bool yes = keymap.resize(keymapSize);
@@ -291,23 +291,24 @@ namespace engone {
 	//	}
 	//	assert(false, "HashMap operator[] bad spot");
 	//}
-	int HashMap::getSize() {
-		return size;
-	}
 	bool HashMap::sameAs(HashMap& map) {
 		if (map.getSize() != getSize())
 			return false;
 
 		// what happens if they have differntly sized maps?
-		if (keymap.max != map.keymap.max) {
-			log::out << log::RED << "HashMap::sameAs : Difference in keymap.max. Missing implementation!\n";
+		if (m_keymap.max != map.m_keymap.max) {
+			log::out << log::RED << "HashMap::sameAs : Difference in keymap.max. Implement this?\n";
+			return false;
+		}
+		if (m_typeSize != m_typeSize) {
+			log::out << log::RED << "HashMap::sameAs : Difference in typeSize.\n";
 			return false;
 		}
 
 		// each chain should have the same pairs
-		for (int i = 0; i < keymap.max; i++) {
-			Chain* chain = (Chain*)keymap.data + i;
-			Chain* chain2 = (Chain*)map.keymap.data + i;
+		for (int i = 0; i < m_keymap.max; i++) {
+			Chain* chain = getKChain(i);
+			Chain* chain2 = (Chain*)map.getKChain(i);
 
 			while (true) {
 				if (chain->used != chain2->used)
@@ -316,8 +317,10 @@ namespace engone {
 				if (chain->used) {
 					if (chain->key != chain2->key)
 						return false;
-					if (chain->value != chain2->value)
-						return false;
+					for (int i = 0;i< m_typeSize;i++) {
+						if (((char*)chain->value)[i] != ((char*)chain2->value)[i])
+							return false;
+					}
 				} else {
 					break; // neither chain is used we break
 				}
@@ -328,8 +331,8 @@ namespace engone {
 				if (chain->indexNext != INVALID_INDEX &&
 					chain2->indexNext != INVALID_INDEX) {
 
-					chain = (Chain*)chainData.data + chain->indexNext;
-					chain2 = (Chain*)map.chainData.data + chain2->indexNext;
+					chain = getDChain(chain->indexNext);
+					chain2 = (Chain*)map.getDChain(chain2->indexNext);
 					continue;
 				}
 				// indexNext is different
@@ -342,32 +345,32 @@ namespace engone {
 	bool HashMap::copy(HashMap& outMap) {
 		outMap.cleanup();
 
-		bool yes = outMap.keymap.resize(keymap.max);
+		bool yes = outMap.m_keymap.resize(m_keymap.max);
 		if (!yes) {
 			cleanup();
 			return false;
 		}
 		
-		yes = outMap.chainData.resize(chainData.max);
+		yes = outMap.m_chainData.resize(m_chainData.max);
 		if (!yes) {
 			cleanup();
 			return false;
 		}
 
-		yes = outMap.emptySpots.copy(emptySpots);
+		yes = outMap.m_emptySpots.copy(m_emptySpots);
 		if (!yes) {
 			cleanup();
 			return false;
 		}
 		
-		outMap.keymap.used = keymap.used; // not used by keymap
-		outMap.chainData.used = chainData.used; // not used by keymap
+		outMap.m_keymap.used = m_keymap.used; // not used by keymap
+		outMap.m_chainData.used = m_chainData.used; // not used by keymap
 		
-		memcpy(outMap.keymap.data, keymap.data, keymap.max*sizeof(Chain));
-		memcpy(outMap.chainData.data, chainData.data, chainData.max*sizeof(Chain));
+		memcpy(outMap.m_keymap.data, m_keymap.data, m_keymap.max*m_keymap.getTypeSize());
+		memcpy(outMap.m_chainData.data, m_chainData.data, m_chainData.max * m_keymap.getTypeSize());
 
-		outMap.keymapSize = keymapSize;
-		outMap.size = size;
+		outMap.m_keymapSize = m_keymapSize;
+		outMap.m_size = m_size;
 
 		// should not be copied because of unclear behaviour
 		// outMap.preventDeconstructor = preventDeconstructor;
@@ -375,7 +378,7 @@ namespace engone {
 		return true;
 	}
 	void HashMap::IterationInfo::print() {
-		printf("Key: %d Value: %d ( Index: %d Depth: %d )\n", key, value, index, depth);
+		printf("Key: %d Value: %d ( Index: %d Depth: %d )\n", key, *(uint32*)value, index, depth);
 
 	}
 	void HashMap::print() {
@@ -384,14 +387,14 @@ namespace engone {
 			info.print();
 	}
 	bool HashMap::iterate(IterationInfo& info) {
-		if (keymap.max == 0)
+		if (m_keymap.max == 0)
 			return false;
 
-		int index = info.position % keymap.max;
-		int depth = info.position / keymap.max;
+		int index = info.position % m_keymap.max;
+		int depth = info.position / m_keymap.max;
 		
-		while (index<keymap.max) {
-			Chain* chain = (Chain*)keymap.data + index;
+		while (index< m_keymap.max) {
+			Chain* chain = getKChain(index);
 			int nowDepth = 0;
 			while (chain) {
 				if (!chain->used) {
@@ -407,7 +410,7 @@ namespace engone {
 					info.index = index;
 					info.depth = depth;
 					depth++; // increase for next time
-					info.position = index + depth * keymap.max;
+					info.position = index + depth * m_keymap.max;
 					return true;
 				}
 				if (chain->indexNext == INVALID_INDEX) {
@@ -417,7 +420,7 @@ namespace engone {
 					break;
 				}
 				// go deeper into chain
-				chain = (Chain*)chainData.data + chain->indexNext;
+				chain = getDChain(chain->indexNext);
 				nowDepth++;
 				continue;
 			}
@@ -426,8 +429,8 @@ namespace engone {
 	}
 
 	void HashMapTestCase() {
-		HashMap map(20);
-		HashMap map2(20);
+		HashMap map(sizeof(uint32),ALLOC_TYPE_HEAP, 20);
+		HashMap map2(sizeof(uint32), ALLOC_TYPE_HEAP, 20);
 
 		//map.insert(0, 15);
 		//map.insert(100, 24);
@@ -441,13 +444,15 @@ namespace engone {
 		//map.erase(26);
 		//val = map.get(26);
 
-		map.insert(40, 256);
-		map.insert(0, 925);
-		map.insert(20, 920);
+#define MAP_INSERT(M,K,V) tmp=V;M.insert(K,&tmp);
 
-		map2.insert(0, 925);
-		map2.insert(40, 256);
-		map2.insert(20, 920);
+		uint32 tmp;
+		MAP_INSERT(map,40,256);
+		MAP_INSERT(map,0,925);
+		MAP_INSERT(map,20,920);
+		MAP_INSERT(map2,0,925);
+		MAP_INSERT(map2,40,256);
+		MAP_INSERT(map2,20,920);
 
 		//map[25] = 24;
 		//map[92] = 92;
@@ -523,7 +528,7 @@ namespace engone {
 		//		able to run the other tests without relying on it.
 
 
-		printf("MemoryUsage: %d\n", map.getMemoryUsage());
+		printf("MemoryUsage: %d, %d\n", map.getMemoryUsage(), map2.getMemoryUsage());
 
 		//printf("%d\n",sizeof(HashMap::Chain));
 

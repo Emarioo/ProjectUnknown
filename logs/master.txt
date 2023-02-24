@@ -1,0 +1,995 @@
+[20:12:45] [Thread 6652] Run GameMemoryTest
+[20:12:45] [Thread 6652] Attempt 2 alloc 4
+[20:12:45] [Thread 6652] Attempt 3 free
+[20:12:45] [Thread 6652] Attempt 4 alloc 49
+[20:12:45] [Thread 6652] Attempt 5 alloc 18
+[20:12:45] [Thread 6652] Attempt 6 alloc 36
+[20:12:45] [Thread 6652] Attempt 7 realloc 17
+[20:12:45] [Thread 6652] Attempt 8 realloc 55
+[20:12:45] [Thread 6652] Attempt 9 alloc 59
+[20:12:45] [Thread 6652] Attempt 10 realloc 45
+[20:12:45] [Thread 6652] Attempt 11 alloc 14
+[20:12:45] [Thread 6652] Attempt 12 free
+[20:12:45] [Thread 6652] Attempt 13 realloc 18
+[20:12:45] [Thread 6652] Attempt 14 alloc 52
+[20:12:45] [Thread 6652] Attempt 15 realloc 12
+[20:12:45] [Thread 6652] Attempt 16 realloc 51
+[20:12:45] [Thread 6652] Attempt 17 alloc 23
+[20:12:45] [Thread 6652] Attempt 18 realloc 3
+[20:12:45] [Thread 6652] Attempt 19 realloc 48
+[20:12:45] [Thread 6652] Attempt 20 alloc 33
+[20:12:45] [Thread 6652] Attempt 21 alloc 44
+[20:12:45] [Thread 6652] Attempt 22 realloc 54
+[20:12:45] [Thread 6652] Attempt 23 alloc 39
+[20:12:45] [Thread 6652] Attempt 24 realloc 57
+[20:12:45] [Thread 6652] Attempt 25 realloc 22
+[20:12:45] [Thread 6652] Attempt 26 realloc 33
+[20:12:45] [Thread 6652] Attempt 27 free
+[20:12:45] [Thread 6652] Attempt 28 realloc 0
+[20:12:45] [Thread 6652] Attempt 29 free
+[20:12:45] [Thread 6652] Attempt 30 alloc 31
+[20:12:45] [Thread 6652] Attempt 31 alloc 18
+[20:12:45] [Thread 6652] Attempt 32 alloc 8
+[20:12:45] [Thread 6652] Attempt 33 alloc 42
+[20:12:45] [Thread 6652] Attempt 34 alloc 52
+[20:12:45] [Thread 6652] Attempt 35 alloc 65
+[20:12:45] [Thread 6652] Attempt 36 realloc 2
+[20:12:45] [Thread 6652] Attempt 37 alloc 30
+[20:12:45] [Thread 6652] Attempt 38 alloc 76
+[20:12:45] [Thread 6652] Attempt 39 realloc 53
+[20:12:45] [Thread 6652] Attempt 40 realloc 38
+[20:12:45] [Thread 6652] Attempt 41 realloc 1
+[20:12:45] [Thread 6652] Attempt 42 realloc 60
+[20:12:45] [Thread 6652] Attempt 43 alloc 31
+[20:12:45] [Thread 6652] Attempt 44 alloc 42
+[20:12:45] [Thread 6652] Attempt 45 realloc 76
+[20:12:45] [Thread 6652] Attempt 46 alloc 60
+[20:12:45] [Thread 6652] Attempt 47 realloc 64
+[20:12:45] [Thread 6652] Attempt 48 free
+[20:12:45] [Thread 6652] Attempt 49 free
+[20:12:45] [Thread 6652] Attempt 50 realloc 21
+[20:12:45] [Thread 6652] Attempt 51 realloc 11
+[20:12:45] [Thread 6652] Attempt 52 realloc 36
+[20:12:45] [Thread 6652] Attempt 53 realloc 15
+[20:12:45] [Thread 6652] Attempt 54 realloc 21
+[20:12:45] [Thread 6652] Attempt 55 alloc 23
+[20:12:45] [Thread 6652] Attempt 56 alloc 20
+[20:12:45] [Thread 6652] Attempt 57 alloc 0
+[20:12:45] [Thread 6652] Attempt 58 alloc 7
+[20:12:45] [Thread 6652] Attempt 59 free
+[20:12:45] [Thread 6652] Attempt 60 realloc 11
+[20:12:45] [Thread 6652] Attempt 61 realloc 55
+[20:12:45] [Thread 6652] Attempt 62 free
+[20:12:45] [Thread 6652] Attempt 63 alloc 69
+[20:12:45] [Thread 6652] Attempt 64 realloc 53
+[20:12:45] [Thread 6652] Attempt 65 free
+[20:12:45] [Thread 6652] Attempt 66 alloc 4
+[20:12:45] [Thread 6652] Attempt 67 alloc 29
+[20:12:45] [Thread 6652] Attempt 68 alloc 53
+[20:12:45] [Thread 6652] Attempt 69 alloc 43
+[20:12:45] [Thread 6652] Attempt 70 alloc 57
+[20:12:45] [Thread 6652] Attempt 71 free
+[20:12:45] [Thread 6652] Attempt 72 alloc 60
+[20:12:45] [Thread 6652] Attempt 73 realloc 60
+[20:12:45] [Thread 6652] Attempt 74 realloc 40
+[20:12:45] [Thread 6652] Attempt 75 alloc 19
+[20:12:45] [Thread 6652] Attempt 76 free
+[20:12:45] [Thread 6652] Attempt 77 realloc 9
+[20:12:45] [Thread 6652] Attempt 78 free
+[20:12:45] [Thread 6652] Attempt 79 alloc 54
+[20:12:45] [Thread 6652] Attempt 80 realloc 62
+[20:12:45] [Thread 6652] Attempt 81 free
+[20:12:45] [Thread 6652] Attempt 82 alloc 27
+[20:12:45] [Thread 6652] Attempt 83 realloc 54
+[20:12:45] [Thread 6652] Attempt 84 alloc 17
+[20:12:45] [Thread 6652] Attempt 85 realloc 4
+[20:12:45] [Thread 6652] Attempt 86 alloc 10
+[20:12:45] [Thread 6652] Attempt 87 alloc 26
+[20:12:45] [Thread 6652] Attempt 88 alloc 54
+[20:12:45] [Thread 6652] Attempt 89 alloc 21
+[20:12:45] [Thread 6652] Attempt 90 alloc 55
+[20:12:45] [Thread 6652] Attempt 91 alloc 54
+[20:12:45] [Thread 6652] Attempt 92 alloc 63
+[20:12:45] [Thread 6652] Attempt 93 alloc 8
+[20:12:45] [Thread 6652] Attempt 94 free
+[20:12:45] [Thread 6652] Attempt 95 realloc 11
+[20:12:45] [Thread 6652] Attempt 96 realloc 58
+[20:12:45] [Thread 6652] Attempt 97 alloc 78
+[20:12:45] [Thread 6652] Attempt 98 realloc 8
+[20:12:45] [Thread 6652] Attempt 99 alloc 8
+[20:12:45] [Thread 6652] Attempt 100 free
+[20:12:45] [Thread 6652] Attempt 101 realloc 52
+[20:12:45] [Thread 6652] Attempt 102 free
+[20:12:45] [Thread 6652] Attempt 103 alloc 10
+[20:12:45] [Thread 6652] Attempt 104 alloc 76
+[20:12:45] [Thread 6652] Attempt 105 realloc 72
+[20:12:45] [Thread 6652] Attempt 106 realloc 47
+[20:12:45] [Thread 6652] Attempt 107 realloc 37
+[20:12:45] [Thread 6652] Attempt 108 realloc 64
+[20:12:45] [Thread 6652] Attempt 109 realloc 56
+[20:12:45] [Thread 6652] Attempt 110 alloc 63
+[20:12:45] [Thread 6652] Attempt 111 free
+[20:12:45] [Thread 6652] Attempt 112 alloc 67
+[20:12:45] [Thread 6652] Attempt 113 free
+[20:12:45] [Thread 6652] Attempt 114 realloc 69
+[20:12:45] [Thread 6652] Attempt 115 realloc 73
+[20:12:45] [Thread 6652] Attempt 116 alloc 35
+[20:12:45] [Thread 6652] Attempt 117 alloc 47
+[20:12:45] [Thread 6652] Attempt 118 alloc 58
+[20:12:45] [Thread 6652] Attempt 119 realloc 17
+[20:12:45] [Thread 6652] Attempt 120 realloc 3
+[20:12:45] [Thread 6652] Attempt 121 realloc 32
+[20:12:45] [Thread 6652] Attempt 122 alloc 58
+[20:12:45] [Thread 6652] Attempt 123 realloc 34
+[20:12:45] [Thread 6652] Attempt 124 alloc 71
+[20:12:45] [Thread 6652] Attempt 125 realloc 13
+[20:12:45] [Thread 6652] Attempt 126 realloc 49
+[20:12:45] [Thread 6652] Attempt 127 alloc 14
+[20:12:45] [Thread 6652] Attempt 128 realloc 13
+[20:12:45] [Thread 6652] Attempt 129 free
+[20:12:45] [Thread 6652] Attempt 130 alloc 56
+[20:12:45] [Thread 6652] Attempt 131 alloc 79
+[20:12:45] [Thread 6652] Attempt 132 realloc 57
+[20:12:45] [Thread 6652] Attempt 133 realloc 41
+[20:12:45] [Thread 6652] Attempt 134 free
+[20:12:45] [Thread 6652] Attempt 135 alloc 67
+[20:12:45] [Thread 6652] Attempt 136 alloc 11
+[20:12:45] [Thread 6652] Attempt 137 alloc 64
+[20:12:45] [Thread 6652] Attempt 138 realloc 6
+[20:12:45] [Thread 6652] Attempt 139 free
+[20:12:45] [Thread 6652] Attempt 140 realloc 48
+[20:12:45] [Thread 6652] Attempt 141 realloc 40
+[20:12:45] [Thread 6652] Attempt 142 free
+[20:12:45] [Thread 6652] Attempt 143 alloc 55
+[20:12:45] [Thread 6652] Attempt 144 realloc 44
+[20:12:45] [Thread 6652] Attempt 145 realloc 66
+[20:12:45] [Thread 6652] Attempt 146 free
+[20:12:45] [Thread 6652] Attempt 147 realloc 60
+[20:12:45] [Thread 6652] Attempt 148 realloc 51
+[20:12:45] [Thread 6652] Attempt 149 alloc 28
+[20:12:45] [Thread 6652] Attempt 150 free
+[20:12:45] [Thread 6652] Attempt 151 alloc 17
+[20:12:45] [Thread 6652] Attempt 152 alloc 15
+[20:12:45] [Thread 6652] Attempt 153 alloc 38
+[20:12:45] [Thread 6652] Attempt 154 free
+[20:12:45] [Thread 6652] Attempt 155 realloc 15
+[20:12:45] [Thread 6652] Attempt 156 free
+[20:12:45] [Thread 6652] Attempt 157 alloc 42
+[20:12:45] [Thread 6652] Attempt 158 alloc 72
+[20:12:45] [Thread 6652] Attempt 159 free
+[20:12:45] [Thread 6652] Attempt 160 alloc 19
+[20:12:45] [Thread 6652] Attempt 161 realloc 70
+[20:12:45] [Thread 6652] Attempt 162 free
+[20:12:45] [Thread 6652] Attempt 163 alloc 0
+[20:12:45] [Thread 6652] Attempt 164 realloc 58
+[20:12:45] [Thread 6652] Attempt 165 realloc 47
+[20:12:45] [Thread 6652] Attempt 166 free
+[20:12:45] [Thread 6652] Attempt 167 free
+[20:12:45] [Thread 6652] Attempt 168 realloc 56
+[20:12:45] [Thread 6652] Attempt 169 alloc 11
+[20:12:45] [Thread 6652] Attempt 170 alloc 22
+[20:12:45] [Thread 6652] Attempt 171 realloc 69
+[20:12:45] [Thread 6652] Attempt 172 free
+[20:12:45] [Thread 6652] Attempt 173 free
+[20:12:45] [Thread 6652] Attempt 174 realloc 55
+[20:12:45] [Thread 6652] Attempt 175 realloc 40
+[20:12:45] [Thread 6652] Attempt 176 realloc 38
+[20:12:45] [Thread 6652] Attempt 177 free
+[20:12:45] [Thread 6652] Attempt 178 realloc 55
+[20:12:45] [Thread 6652] Attempt 179 realloc 25
+[20:12:45] [Thread 6652] Attempt 180 free
+[20:12:45] [Thread 6652] Attempt 181 realloc 52
+[20:12:45] [Thread 6652] Attempt 182 alloc 14
+[20:12:45] [Thread 6652] Attempt 183 free
+[20:12:45] [Thread 6652] Attempt 184 alloc 69
+[20:12:45] [Thread 6652] Attempt 185 alloc 19
+[20:12:45] [Thread 6652] Attempt 186 free
+[20:12:45] [Thread 6652] Attempt 187 alloc 20
+[20:12:45] [Thread 6652] Attempt 188 realloc 27
+[20:12:45] [Thread 6652] Attempt 189 alloc 47
+[20:12:45] [Thread 6652] Attempt 190 realloc 3
+[20:12:45] [Thread 6652] Attempt 191 alloc 42
+[20:12:45] [Thread 6652] Attempt 192 realloc 43
+[20:12:45] [Thread 6652] Attempt 193 alloc 33
+[20:12:45] [Thread 6652] Attempt 194 free
+[20:12:45] [Thread 6652] Attempt 195 realloc 42
+[20:12:45] [Thread 6652] Attempt 196 alloc 30
+[20:12:45] [Thread 6652] Attempt 197 alloc 26
+[20:12:45] [Thread 6652] Attempt 198 free
+[20:12:45] [Thread 6652] Attempt 199 realloc 75
+[20:12:45] [Thread 6652] Attempt 200 alloc 78
+[20:12:45] [Thread 6652] Attempt 201 alloc 64
+[20:12:45] [Thread 6652] Attempt 202 free
+[20:12:45] [Thread 6652] Attempt 203 realloc 24
+[20:12:45] [Thread 6652] Attempt 204 alloc 21
+[20:12:45] [Thread 6652] Attempt 205 free
+[20:12:45] [Thread 6652] Attempt 206 alloc 36
+[20:12:45] [Thread 6652] Attempt 207 alloc 75
+[20:12:45] [Thread 6652] Attempt 208 alloc 75
+[20:12:45] [Thread 6652] Attempt 209 alloc 44
+[20:12:45] [Thread 6652] Attempt 210 alloc 21
+[20:12:45] [Thread 6652] Attempt 211 free
+[20:12:45] [Thread 6652] Attempt 212 realloc 20
+[20:12:45] [Thread 6652] Attempt 213 realloc 32
+[20:12:45] [Thread 6652] Attempt 214 realloc 38
+[20:12:45] [Thread 6652] Attempt 215 realloc 56
+[20:12:45] [Thread 6652] Attempt 216 alloc 78
+[20:12:45] [Thread 6652] Attempt 217 free
+[20:12:45] [Thread 6652] Attempt 218 alloc 48
+[20:12:45] [Thread 6652] Attempt 219 realloc 21
+[20:12:45] [Thread 6652] Attempt 220 realloc 54
+[20:12:45] [Thread 6652] Attempt 221 free
+[20:12:45] [Thread 6652] Attempt 222 alloc 11
+[20:12:45] [Thread 6652] Attempt 223 alloc 33
+[20:12:45] [Thread 6652] Attempt 224 alloc 30
+[20:12:45] [Thread 6652] Attempt 225 realloc 0
+[20:12:45] [Thread 6652] Attempt 226 realloc 21
+[20:12:45] [Thread 6652] Attempt 227 alloc 34
+[20:12:45] [Thread 6652] Attempt 228 realloc 37
+[20:12:45] [Thread 6652] Attempt 229 alloc 68
+[20:12:45] [Thread 6652] Attempt 230 alloc 47
+[20:12:45] [Thread 6652] Attempt 231 alloc 40
+[20:12:45] [Thread 6652] Attempt 232 alloc 79
+[20:12:45] [Thread 6652] Attempt 233 realloc 63
+[20:12:45] [Thread 6652] Attempt 234 alloc 78
+[20:12:45] [Thread 6652] Attempt 235 alloc 32
+[20:12:45] [Thread 6652] Attempt 236 alloc 52
+[20:12:45] [Thread 6652] Attempt 237 alloc 69
+[20:12:45] [Thread 6652] Attempt 238 realloc 77
+[20:12:45] [Thread 6652] Attempt 239 free
+[20:12:45] [Thread 6652] Attempt 240 realloc 43
+[20:12:45] [Thread 6652] Attempt 241 realloc 78
+[20:12:45] [Thread 6652] Attempt 242 realloc 51
+[20:12:45] [Thread 6652] Attempt 243 free
+[20:12:45] [Thread 6652] Attempt 244 alloc 53
+[20:12:46] [Thread 6652] Attempt 245 alloc 30
+[20:12:46] [Thread 6652] Attempt 246 alloc 60
+[20:12:46] [Thread 6652] Attempt 247 realloc 79
+[20:12:46] [Thread 6652] Attempt 248 alloc 4
+[20:12:46] [Thread 6652] Attempt 249 alloc 43
+[20:12:46] [Thread 6652] Attempt 250 free
+[20:12:46] [Thread 6652] Attempt 251 alloc 54
+[20:12:46] [Thread 6652] Attempt 252 alloc 59
+[20:12:46] [Thread 6652] Attempt 253 realloc 59
+[20:12:46] [Thread 6652] Attempt 254 alloc 12
+[20:12:46] [Thread 6652] Attempt 255 free
+[20:12:46] [Thread 6652] Attempt 256 alloc 71
+[20:12:46] [Thread 6652] Attempt 257 free
+[20:12:46] [Thread 6652] Attempt 258 realloc 33
+[20:12:46] [Thread 6652] Attempt 259 alloc 30
+[20:12:46] [Thread 6652] Attempt 260 realloc 56
+[20:12:46] [Thread 6652] Attempt 261 alloc 8
+[20:12:46] [Thread 6652] Attempt 262 realloc 14
+[20:12:46] [Thread 6652] Attempt 263 realloc 70
+[20:12:46] [Thread 6652] Attempt 264 free
+[20:12:46] [Thread 6652] Attempt 265 free
+[20:12:46] [Thread 6652] Attempt 266 realloc 21
+[20:12:46] [Thread 6652] Attempt 267 alloc 2
+[20:12:46] [Thread 6652] Attempt 268 alloc 48
+[20:12:46] [Thread 6652] Attempt 269 alloc 30
+[20:12:46] [Thread 6652] Attempt 270 realloc 54
+[20:12:46] [Thread 6652] Attempt 271 free
+[20:12:46] [Thread 6652] Attempt 272 alloc 28
+[20:12:46] [Thread 6652] Attempt 273 realloc 58
+[20:12:46] [Thread 6652] Attempt 274 realloc 63
+[20:12:46] [Thread 6652] Attempt 275 realloc 62
+[20:12:46] [Thread 6652] Attempt 276 realloc 40
+[20:12:46] [Thread 6652] Attempt 277 realloc 3
+[20:12:46] [Thread 6652] Attempt 278 realloc 20
+[20:12:46] [Thread 6652] Attempt 279 alloc 24
+[20:12:46] [Thread 6652] Attempt 280 free
+[20:12:46] [Thread 6652] Attempt 281 realloc 28
+[20:12:46] [Thread 6652] Attempt 282 realloc 37
+[20:12:46] [Thread 6652] Attempt 283 alloc 65
+[20:12:46] [Thread 6652] Attempt 284 realloc 23
+[20:12:46] [Thread 6652] Attempt 285 realloc 13
+[20:12:46] [Thread 6652] Attempt 286 realloc 24
+[20:12:46] [Thread 6652] Attempt 287 realloc 4
+[20:12:46] [Thread 6652] Attempt 288 alloc 13
+[20:12:46] [Thread 6652] Attempt 289 realloc 18
+[20:12:46] [Thread 6652] Attempt 290 free
+[20:12:46] [Thread 6652] Attempt 291 free
+[20:12:46] [Thread 6652] Attempt 292 realloc 2
+[20:12:46] [Thread 6652] Attempt 293 alloc 18
+[20:12:46] [Thread 6652] Attempt 294 realloc 16
+[20:12:46] [Thread 6652] Attempt 295 alloc 6
+[20:12:46] [Thread 6652] Attempt 296 realloc 25
+[20:12:46] [Thread 6652] Attempt 297 alloc 25
+[20:12:46] [Thread 6652] Attempt 298 realloc 71
+[20:12:46] [Thread 6652] Attempt 299 free
+[20:12:46] [Thread 6652] Attempt 300 realloc 76
+[20:12:46] [Thread 6652] Fails 3, States 76
+:03] [Thread 5232] Fails 2, States 76
+ad 12744] Attempt 309 realloc 106
+[14:00:40] [Thread 12744] Attempt 310 alloc 28
+[14:00:40] [Thread 12744] Attempt 311 alloc 91
+[14:00:40] [Thread 12744] Attempt 312 free
+[14:00:40] [Thread 12744] Attempt 313 realloc 46
+[14:00:40] [Thread 12744] Attempt 314 free
+[14:00:40] [Thread 12744] Attempt 315 alloc 93
+[14:00:40] [Thread 12744] Attempt 316 realloc 33
+[14:00:40] [Thread 12744] Attempt 317 alloc 108
+[14:00:40] [Thread 12744] Attempt 318 free
+[14:00:40] [Thread 12744] Attempt 319 realloc 52
+[14:00:40] [Thread 12744] Attempt 320 alloc 88
+[14:00:40] [Thread 12744] Attempt 321 alloc 79
+[14:00:40] [Thread 12744] Attempt 322 realloc 81
+[14:00:40] [Thread 12744] Attempt 323 alloc 47
+[14:00:40] [Thread 12744] Attempt 324 alloc 25
+[14:00:40] [Thread 12744] Attempt 325 alloc 64
+[14:00:40] [Thread 12744] Attempt 326 alloc 17
+[14:00:40] [Thread 12744] Attempt 327 alloc 25
+[14:00:40] [Thread 12744] Attempt 328 alloc 41
+[14:00:40] [Thread 12744] Attempt 329 realloc 108
+[14:00:40] [Thread 12744] Attempt 330 realloc 103
+[14:00:40] [Thread 12744] Attempt 331 realloc 97
+[14:00:40] [Thread 12744] Attempt 332 alloc 96
+[14:00:40] [Thread 12744] Attempt 333 realloc 97
+[14:00:40] [Thread 12744] Attempt 334 realloc 72
+[14:00:40] [Thread 12744] Attempt 335 free
+[14:00:40] [Thread 12744] Attempt 336 free
+[14:00:40] [Thread 12744] Attempt 337 realloc 89
+[14:00:40] [Thread 12744] Attempt 338 free
+[14:00:40] [Thread 12744] Attempt 339 free
+[14:00:40] [Thread 12744] Attempt 340 free
+[14:00:40] [Thread 12744] Attempt 341 realloc 69
+[14:00:40] [Thread 12744] Attempt 342 alloc 31
+[14:00:40] [Thread 12744] Attempt 343 alloc 32
+[14:00:40] [Thread 12744] Attempt 344 realloc 78
+[14:00:40] [Thread 12744] Attempt 345 realloc 73
+[14:00:40] [Thread 12744] Attempt 346 realloc 62
+[14:00:40] [Thread 12744] Attempt 347 alloc 60
+[14:00:40] [Thread 12744] Attempt 348 alloc 83
+[14:00:40] [Thread 12744] Attempt 349 free
+[14:00:40] [Thread 12744] Attempt 350 alloc 99
+[14:00:40] [Thread 12744] Attempt 351 realloc 95
+[14:00:40] [Thread 12744] Attempt 352 realloc 46
+[14:00:40] [Thread 12744] Attempt 353 alloc 73
+[14:00:40] [Thread 12744] Attempt 354 realloc 75
+[14:00:40] [Thread 12744] Attempt 355 realloc 84
+[14:00:40] [Thread 12744] Attempt 356 free
+[14:00:40] [Thread 12744] Attempt 357 realloc 103
+[14:00:40] [Thread 12744] Attempt 358 alloc 26
+[14:00:40] [Thread 12744] Attempt 359 free
+[14:00:40] [Thread 12744] Attempt 360 free
+[14:00:40] [Thread 12744] Attempt 361 alloc 78
+[14:00:40] [Thread 12744] Attempt 362 free
+[14:00:40] [Thread 12744] Attempt 363 realloc 33
+[14:00:40] [Thread 12744] Attempt 364 alloc 96
+[14:00:40] [Thread 12744] Attempt 365 realloc 93
+[14:00:40] [Thread 12744] Attempt 366 realloc 18
+[14:00:40] [Thread 12744] Attempt 367 alloc 88
+[14:00:40] [Thread 12744] Attempt 368 alloc 94
+[14:00:40] [Thread 12744] Attempt 369 alloc 67
+[14:00:40] [Thread 12744] Attempt 370 realloc 53
+[14:00:40] [Thread 12744] Attempt 371 realloc 12
+[14:00:40] [Thread 12744] Attempt 372 alloc 103
+[14:00:40] [Thread 12744] Attempt 373 alloc 68
+[14:00:40] [Thread 12744] Attempt 374 realloc 80
+[14:00:40] [Thread 12744] Attempt 375 alloc 28
+[14:00:40] [Thread 12744] Attempt 376 alloc 94
+[14:00:40] [Thread 12744] Attempt 377 free
+[14:00:40] [Thread 12744] Attempt 378 alloc 72
+[14:00:40] [Thread 12744] Attempt 379 realloc 19
+[14:00:40] [Thread 12744] Attempt 380 alloc 23
+[14:00:40] [Thread 12744] Attempt 381 free
+[14:00:40] [Thread 12744] Attempt 382 realloc 76
+[14:00:40] [Thread 12744] Attempt 383 free
+[14:00:40] [Thread 12744] Attempt 384 realloc 39
+[14:00:40] [Thread 12744] Attempt 385 free
+[14:00:40] [Thread 12744] Attempt 386 realloc 57
+[14:00:40] [Thread 12744] Attempt 387 alloc 43
+[14:00:40] [Thread 12744] Attempt 388 alloc 15
+[14:00:40] [Thread 12744] Attempt 389 realloc 98
+[14:00:40] [Thread 12744] Attempt 390 free
+[14:00:40] [Thread 12744] Attempt 391 free
+[14:00:40] [Thread 12744] Attempt 392 alloc 55
+[14:00:40] [Thread 12744] Attempt 393 alloc 26
+[14:00:40] [Thread 12744] Attempt 394 free
+[14:00:40] [Thread 12744] Attempt 395 realloc 37
+[14:00:40] [Thread 12744] Attempt 396 free
+[14:00:40] [Thread 12744] Attempt 397 alloc 18
+[14:00:40] [Thread 12744] Attempt 398 alloc 27
+[14:00:40] [Thread 12744] Attempt 399 realloc 75
+[14:00:40] [Thread 12744] Attempt 400 alloc 15
+[14:00:40] [Thread 12744] Attempt 401 realloc 58
+[14:00:40] [Thread 12744] Attempt 402 alloc 16
+[14:00:40] [Thread 12744] Attempt 403 alloc 94
+[14:00:40] [Thread 12744] Attempt 404 alloc 108
+[14:00:40] [Thread 12744] Attempt 405 realloc 84
+[14:00:40] [Thread 12744] Attempt 406 realloc 40
+[14:00:40] [Thread 12744] Attempt 407 alloc 35
+[14:00:40] [Thread 12744] Attempt 408 realloc 87
+[14:00:40] [Thread 12744] Attempt 409 realloc 47
+[14:00:40] [Thread 12744] Attempt 410 realloc 80
+[14:00:40] [Thread 12744] Attempt 411 realloc 64
+[14:00:40] [Thread 12744] Attempt 412 free
+[14:00:40] [Thread 12744] Attempt 413 realloc 12
+[14:00:40] [Thread 12744] Attempt 414 alloc 24
+[14:00:40] [Thread 12744] Attempt 415 realloc 53
+[14:00:40] [Thread 12744] Attempt 416 realloc 54
+[14:00:40] [Thread 12744] Attempt 417 realloc 87
+[14:00:40] [Thread 12744] Attempt 418 realloc 81
+[14:00:40] [Thread 12744] Attempt 419 alloc 52
+[14:00:40] [Thread 12744] Attempt 420 free
+[14:00:40] [Thread 12744] Attempt 421 free
+[14:00:40] [Thread 12744] Attempt 422 alloc 21
+[14:00:40] [Thread 12744] Attempt 423 realloc 97
+[14:00:40] [Thread 12744] Attempt 424 realloc 40
+[14:00:40] [Thread 12744] Attempt 425 alloc 44
+[14:00:40] [Thread 12744] Attempt 426 realloc 97
+[14:00:40] [Thread 12744] Attempt 427 realloc 58
+[14:00:40] [Thread 12744] Attempt 428 realloc 91
+[14:00:40] [Thread 12744] Attempt 429 realloc 14
+[14:00:40] [Thread 12744] Attempt 430 realloc 90
+[14:00:40] [Thread 12744] Attempt 431 realloc 68
+[14:00:40] [Thread 12744] Attempt 432 alloc 83
+[14:00:40] [Thread 12744] Attempt 433 realloc 55
+[14:00:40] [Thread 12744] Attempt 434 realloc 60
+[14:00:40] [Thread 12744] Attempt 435 alloc 24
+[14:00:40] [Thread 12744] Attempt 436 free
+[14:00:40] [Thread 12744] Attempt 437 alloc 13
+[14:00:40] [Thread 12744] Attempt 438 realloc 86
+[14:00:40] [Thread 12744] Attempt 439 realloc 90
+[14:00:40] [Thread 12744] Attempt 440 free
+[14:00:40] [Thread 12744] Attempt 441 free
+[14:00:40] [Thread 12744] Attempt 442 free
+[14:00:40] [Thread 12744] Attempt 443 realloc 87
+[14:00:40] [Thread 12744] Attempt 444 realloc 84
+[14:00:40] [Thread 12744] Attempt 445 realloc 44
+[14:00:40] [Thread 12744] Attempt 446 realloc 36
+[14:00:40] [Thread 12744] Attempt 447 realloc 104
+[14:00:40] [Thread 12744] Attempt 448 alloc 13
+[14:00:40] [Thread 12744] Attempt 449 alloc 48
+[14:00:40] [Thread 12744] Attempt 450 realloc 55
+[14:00:40] [Thread 12744] Attempt 451 free
+[14:00:40] [Thread 12744] Attempt 452 alloc 59
+[14:00:40] [Thread 12744] Attempt 453 realloc 17
+[14:00:40] [Thread 12744] Attempt 454 realloc 42
+[14:00:40] [Thread 12744] Attempt 455 realloc 41
+[14:00:40] [Thread 12744] Attempt 456 free
+[14:00:40] [Thread 12744] Attempt 457 free
+[14:00:40] [Thread 12744] Attempt 458 free
+[14:00:40] [Thread 12744] Attempt 459 free
+[14:00:40] [Thread 12744] Attempt 460 alloc 34
+[14:00:40] [Thread 12744] Attempt 461 alloc 10
+[14:00:40] [Thread 12744] Attempt 462 realloc 95
+[14:00:40] [Thread 12744] Attempt 463 realloc 99
+[14:00:40] [Thread 12744] Attempt 464 alloc 86
+[14:00:40] [Thread 12744] Attempt 465 alloc 49
+[14:00:40] [Thread 12744] Attempt 466 realloc 60
+[14:00:40] [Thread 12744] Attempt 467 realloc 16
+[14:00:40] [Thread 12744] Attempt 468 realloc 76
+[14:00:40] [Thread 12744] Attempt 469 realloc 30
+[14:00:40] [Thread 12744] Attempt 470 realloc 92
+[14:00:40] [Thread 12744] Attempt 471 free
+[14:00:40] [Thread 12744] Attempt 472 free
+[14:00:40] [Thread 12744] Attempt 473 realloc 24
+[14:00:40] [Thread 12744] Attempt 474 realloc 83
+[14:00:40] [Thread 12744] Attempt 475 realloc 99
+[14:00:40] [Thread 12744] Attempt 476 alloc 35
+[14:00:40] [Thread 12744] Attempt 477 alloc 79
+[14:00:40] [Thread 12744] Attempt 478 alloc 38
+[14:00:40] [Thread 12744] Attempt 479 realloc 89
+[14:00:40] [Thread 12744] Attempt 480 realloc 92
+[14:00:40] [Thread 12744] Attempt 481 realloc 49
+[14:00:40] [Thread 12744] Attempt 482 realloc 90
+[14:00:40] [Thread 12744] Attempt 483 realloc 17
+[14:00:40] [Thread 12744] Attempt 484 alloc 39
+[14:00:40] [Thread 12744] Attempt 485 realloc 74
+[14:00:40] [Thread 12744] Attempt 486 free
+[14:00:40] [Thread 12744] Attempt 487 free
+[14:00:40] [Thread 12744] Attempt 488 alloc 62
+[14:00:40] [Thread 12744] Attempt 489 realloc 40
+[14:00:40] [Thread 12744] Attempt 490 alloc 10
+[14:00:40] [Thread 12744] Attempt 491 free
+[14:00:40] [Thread 12744] Attempt 492 alloc 75
+[14:00:40] [Thread 12744] Attempt 493 alloc 30
+[14:00:40] [Thread 12744] Attempt 494 alloc 16
+[14:00:40] [Thread 12744] Attempt 495 alloc 19
+[14:00:40] [Thread 12744] Attempt 496 realloc 44
+[14:00:40] [Thread 12744] Attempt 497 free
+[14:00:40] [Thread 12744] Attempt 498 alloc 63
+[14:00:40] [Thread 12744] Attempt 499 free
+[14:00:40] [Thread 12744] Attempt 500 free
+[14:00:40] [Thread 12744] Attempt 501 free
+[14:00:40] [Thread 12744] Attempt 502 realloc 26
+[14:00:40] [Thread 12744] Attempt 503 alloc 87
+[14:00:40] [Thread 12744] Attempt 504 free
+[14:00:40] [Thread 12744] Attempt 505 free
+[14:00:40] [Thread 12744] Attempt 506 alloc 106
+[14:00:40] [Thread 12744] Attempt 507 alloc 107
+[14:00:40] [Thread 12744] Attempt 508 free
+[14:00:40] [Thread 12744] Attempt 509 realloc 33
+[14:00:40] [Thread 12744] Attempt 510 alloc 30
+[14:00:40] [Thread 12744] Attempt 511 realloc 32
+[14:00:40] [Thread 12744] Attempt 512 realloc 87
+[14:00:40] [Thread 12744] Attempt 513 realloc 58
+[14:00:40] [Thread 12744] Attempt 514 realloc 45
+[14:00:40] [Thread 12744] Attempt 515 realloc 35
+[14:00:40] [Thread 12744] Attempt 516 realloc 56
+[14:00:40] [Thread 12744] Attempt 517 alloc 77
+[14:00:40] [Thread 12744] Attempt 518 realloc 37
+[14:00:40] [Thread 12744] Attempt 519 alloc 31
+[14:00:40] [Thread 12744] Attempt 520 realloc 32
+[14:00:40] [Thread 12744] Attempt 521 alloc 97
+[14:00:40] [Thread 12744] Attempt 522 alloc 86
+[14:00:40] [Thread 12744] Attempt 523 alloc 29
+[14:00:40] [Thread 12744] Attempt 524 alloc 86
+[14:00:40] [Thread 12744] Attempt 525 realloc 23
+[14:00:40] [Thread 12744] Attempt 526 free
+[14:00:40] [Thread 12744] Attempt 527 free
+[14:00:40] [Thread 12744] Attempt 528 realloc 31
+[14:00:40] [Thread 12744] Attempt 529 realloc 92
+[14:00:40] [Thread 12744] Attempt 530 realloc 20
+[14:00:40] [Thread 12744] Attempt 531 alloc 18
+[14:00:40] [Thread 12744] Attempt 532 alloc 43
+[14:00:40] [Thread 12744] Attempt 533 realloc 17
+[14:00:40] [Thread 12744] Attempt 534 realloc 31
+[14:00:40] [Thread 12744] Attempt 535 realloc 73
+[14:00:40] [Thread 12744] Attempt 536 realloc 96
+[14:00:40] [Thread 12744] Attempt 537 alloc 81
+[14:00:40] [Thread 12744] Attempt 538 alloc 40
+[14:00:40] [Thread 12744] Attempt 539 realloc 66
+[14:00:40] [Thread 12744] Attempt 540 alloc 84
+[14:00:40] [Thread 12744] Attempt 541 realloc 33
+[14:00:40] [Thread 12744] Attempt 542 alloc 42
+[14:00:40] [Thread 12744] Attempt 543 alloc 42
+[14:00:40] [Thread 12744] Attempt 544 free
+[14:00:40] [Thread 12744] Attempt 545 realloc 99
+[14:00:40] [Thread 12744] Attempt 546 alloc 13
+[14:00:40] [Thread 12744] Attempt 547 realloc 77
+[14:00:40] [Thread 12744] Attempt 548 free
+[14:00:40] [Thread 12744] Attempt 549 alloc 37
+[14:00:40] [Thread 12744] Attempt 550 alloc 84
+[14:00:40] [Thread 12744] Attempt 551 alloc 80
+[14:00:40] [Thread 12744] Attempt 552 alloc 33
+[14:00:40] [Thread 12744] Attempt 553 realloc 28
+[14:00:40] [Thread 12744] Attempt 554 alloc 97
+[14:00:40] [Thread 12744] Attempt 555 alloc 14
+[14:00:40] [Thread 12744] Attempt 556 realloc 45
+[14:00:40] [Thread 12744] Attempt 557 realloc 60
+[14:00:40] [Thread 12744] Attempt 558 alloc 57
+[14:00:40] [Thread 12744] Attempt 559 free
+[14:00:40] [Thread 12744] Attempt 560 realloc 99
+[14:00:40] [Thread 12744] Attempt 561 alloc 24
+[14:00:40] [Thread 12744] Attempt 562 alloc 50
+[14:00:40] [Thread 12744] Attempt 563 realloc 58
+[14:00:40] [Thread 12744] Attempt 564 realloc 54
+[14:00:40] [Thread 12744] Attempt 565 alloc 47
+[14:00:40] [Thread 12744] Attempt 566 realloc 96
+[14:00:40] [Thread 12744] Attempt 567 alloc 90
+[14:00:40] [Thread 12744] Attempt 568 free
+[14:00:40] [Thread 12744] Attempt 569 free
+[14:00:40] [Thread 12744] Attempt 570 realloc 80
+[14:00:40] [Thread 12744] Attempt 571 free
+[14:00:40] [Thread 12744] Attempt 572 alloc 59
+[14:00:40] [Thread 12744] Attempt 573 realloc 93
+[14:00:40] [Thread 12744] Attempt 574 free
+[14:00:40] [Thread 12744] Attempt 575 realloc 81
+[14:00:40] [Thread 12744] Attempt 576 alloc 20
+[14:00:40] [Thread 12744] Attempt 577 alloc 27
+[14:00:40] [Thread 12744] Attempt 578 free
+[14:00:40] [Thread 12744] Attempt 579 free
+[14:00:40] [Thread 12744] Attempt 580 alloc 97
+[14:00:40] [Thread 12744] Attempt 581 free
+[14:00:40] [Thread 12744] Attempt 582 alloc 75
+[14:00:40] [Thread 12744] Attempt 583 alloc 56
+[14:00:40] [Thread 12744] Attempt 584 alloc 40
+[14:00:40] [Thread 12744] Attempt 585 alloc 107
+[14:00:40] [Thread 12744] Attempt 586 free
+[14:00:40] [Thread 12744] Attempt 587 free
+[14:00:40] [Thread 12744] Attempt 588 alloc 37
+[14:00:40] [Thread 12744] Attempt 589 alloc 84
+[14:00:40] [Thread 12744] Attempt 590 free
+[14:00:40] [Thread 12744] Attempt 591 realloc 60
+[14:00:40] [Thread 12744] Attempt 592 realloc 90
+[14:00:40] [Thread 12744] Attempt 593 alloc 69
+[14:00:40] [Thread 12744] Attempt 594 realloc 36
+[14:00:41] [Thread 12744] Attempt 595 alloc 94
+[14:00:41] [Thread 12744] Attempt 596 realloc 65
+[14:00:41] [Thread 12744] Attempt 597 realloc 84
+[14:00:41] [Thread 12744] Attempt 598 free
+[14:00:41] [Thread 12744] Attempt 599 free
+[14:00:41] [Thread 12744] Attempt 600 free
+[14:00:41] [Thread 12744] Attempt 601 realloc 87
+[14:00:41] [Thread 12744] Attempt 602 realloc 71
+[14:00:41] [Thread 12744] Attempt 603 alloc 101
+[14:00:41] [Thread 12744] Attempt 604 realloc 46
+[14:00:41] [Thread 12744] Attempt 605 realloc 89
+[14:00:41] [Thread 12744] Attempt 606 realloc 98
+[14:00:41] [Thread 12744] Attempt 607 alloc 38
+[14:00:41] [Thread 12744] Attempt 608 free
+[14:00:41] [Thread 12744] Attempt 609 alloc 56
+[14:00:41] [Thread 12744] Attempt 610 realloc 17
+[14:00:41] [Thread 12744] Attempt 611 realloc 101
+[14:00:41] [Thread 12744] Attempt 612 realloc 30
+[14:00:41] [Thread 12744] Attempt 613 realloc 36
+[14:00:41] [Thread 12744] Attempt 614 alloc 32
+[14:00:41] [Thread 12744] Attempt 615 free
+[14:00:41] [Thread 12744] Attempt 616 alloc 19
+[14:00:41] [Thread 12744] Attempt 617 alloc 106
+[14:00:41] [Thread 12744] Attempt 618 realloc 34
+[14:00:41] [Thread 12744] Attempt 619 realloc 14
+[14:00:41] [Thread 12744] Attempt 620 realloc 10
+[14:00:41] [Thread 12744] Attempt 621 realloc 68
+[14:00:41] [Thread 12744] Attempt 622 free
+[14:00:41] [Thread 12744] Attempt 623 alloc 42
+[14:00:41] [Thread 12744] Attempt 624 realloc 70
+[14:00:41] [Thread 12744] Attempt 625 realloc 56
+[14:00:41] [Thread 12744] Attempt 626 realloc 82
+[14:00:41] [Thread 12744] Attempt 627 alloc 86
+[14:00:41] [Thread 12744] Attempt 628 realloc 82
+[14:00:41] [Thread 12744] Attempt 629 realloc 13
+[14:00:41] [Thread 12744] Attempt 630 realloc 25
+[14:00:41] [Thread 12744] Attempt 631 free
+[14:00:41] [Thread 12744] Attempt 632 realloc 106
+[14:00:41] [Thread 12744] Attempt 633 free
+[14:00:41] [Thread 12744] Attempt 634 alloc 35
+[14:00:41] [Thread 12744] Attempt 635 realloc 88
+[14:00:41] [Thread 12744] Attempt 636 realloc 42
+[14:00:41] [Thread 12744] Attempt 637 free
+[14:00:41] [Thread 12744] Attempt 638 realloc 106
+[14:00:41] [Thread 12744] Attempt 639 free
+[14:00:41] [Thread 12744] Attempt 640 realloc 84
+[14:00:41] [Thread 12744] Attempt 641 alloc 97
+[14:00:41] [Thread 12744] Attempt 642 realloc 45
+[14:00:41] [Thread 12744] Attempt 643 free
+[14:00:41] [Thread 12744] Attempt 644 realloc 52
+[14:00:41] [Thread 12744] Attempt 645 alloc 85
+[14:00:41] [Thread 12744] Attempt 646 realloc 78
+[14:00:41] [Thread 12744] Attempt 647 alloc 93
+[14:00:41] [Thread 12744] Attempt 648 alloc 46
+[14:00:41] [Thread 12744] Attempt 649 alloc 59
+[14:00:41] [Thread 12744] Attempt 650 realloc 52
+[14:00:41] [Thread 12744] Attempt 651 alloc 82
+[14:00:41] [Thread 12744] Attempt 652 alloc 36
+[14:00:41] [Thread 12744] Attempt 653 alloc 89
+[14:00:41] [Thread 12744] Attempt 654 realloc 100
+[14:00:41] [Thread 12744] Attempt 655 free
+[14:00:41] [Thread 12744] Attempt 656 alloc 96
+[14:00:41] [Thread 12744] Attempt 657 alloc 13
+[14:00:41] [Thread 12744] Attempt 658 alloc 56
+[14:00:41] [Thread 12744] Attempt 659 alloc 15
+[14:00:41] [Thread 12744] Attempt 660 realloc 63
+[14:00:41] [Thread 12744] Attempt 661 realloc 32
+[14:00:41] [Thread 12744] Attempt 662 alloc 107
+[14:00:41] [Thread 12744] Attempt 663 realloc 68
+[14:00:41] [Thread 12744] Attempt 664 realloc 75
+[14:00:41] [Thread 12744] Attempt 665 alloc 75
+[14:00:41] [Thread 12744] Attempt 666 free
+[14:00:41] [Thread 12744] Attempt 667 alloc 61
+[14:00:41] [Thread 12744] Attempt 668 free
+[14:00:41] [Thread 12744] Attempt 669 free
+[14:00:41] [Thread 12744] Attempt 670 realloc 58
+[14:00:41] [Thread 12744] Attempt 671 free
+[14:00:41] [Thread 12744] Attempt 672 alloc 98
+[14:00:41] [Thread 12744] Attempt 673 realloc 41
+[14:00:41] [Thread 12744] Attempt 674 realloc 47
+[14:00:41] [Thread 12744] Attempt 675 alloc 15
+[14:00:41] [Thread 12744] Attempt 676 alloc 70
+[14:00:41] [Thread 12744] Attempt 677 alloc 94
+[14:00:41] [Thread 12744] Attempt 678 alloc 15
+[14:00:41] [Thread 12744] Attempt 679 realloc 70
+[14:00:41] [Thread 12744] Attempt 680 alloc 44
+[14:00:41] [Thread 12744] Attempt 681 alloc 61
+[14:00:41] [Thread 12744] Attempt 682 realloc 97
+[14:00:41] [Thread 12744] Attempt 683 realloc 62
+[14:00:41] [Thread 12744] Attempt 684 realloc 53
+[14:00:41] [Thread 12744] Attempt 685 realloc 14
+[14:00:41] [Thread 12744] Attempt 686 realloc 78
+[14:00:41] [Thread 12744] Attempt 687 realloc 64
+[14:00:41] [Thread 12744] Attempt 688 free
+[14:00:41] [Thread 12744] Attempt 689 alloc 23
+[14:00:41] [Thread 12744] Attempt 690 alloc 105
+[14:00:41] [Thread 12744] Attempt 691 realloc 22
+[14:00:41] [Thread 12744] Attempt 692 alloc 41
+[14:00:41] [Thread 12744] Attempt 693 realloc 75
+[14:00:41] [Thread 12744] Attempt 694 alloc 92
+[14:00:41] [Thread 12744] Attempt 695 alloc 20
+[14:00:41] [Thread 12744] Attempt 696 realloc 11
+[14:00:41] [Thread 12744] Attempt 697 free
+[14:00:41] [Thread 12744] Attempt 698 realloc 71
+[14:00:41] [Thread 12744] Attempt 699 alloc 11
+[14:00:41] [Thread 12744] Attempt 700 free
+[14:00:41] [Thread 12744] Attempt 701 alloc 60
+[14:00:41] [Thread 12744] Attempt 702 alloc 104
+[14:00:41] [Thread 12744] Attempt 703 alloc 37
+[14:00:41] [Thread 12744] Attempt 704 alloc 105
+[14:00:41] [Thread 12744] Attempt 705 alloc 12
+[14:00:41] [Thread 12744] Attempt 706 free
+[14:00:41] [Thread 12744] Attempt 707 alloc 33
+[14:00:41] [Thread 12744] Attempt 708 realloc 93
+[14:00:41] [Thread 12744] Attempt 709 realloc 82
+[14:00:41] [Thread 12744] Attempt 710 alloc 95
+[14:00:41] [Thread 12744] Attempt 711 free
+[14:00:41] [Thread 12744] Attempt 712 realloc 20
+[14:00:41] [Thread 12744] Attempt 713 alloc 44
+[14:00:41] [Thread 12744] Attempt 714 alloc 69
+[14:00:41] [Thread 12744] Attempt 715 alloc 56
+[14:00:41] [Thread 12744] Attempt 716 realloc 83
+[14:00:41] [Thread 12744] Attempt 717 alloc 20
+[14:00:41] [Thread 12744] Attempt 718 alloc 19
+[14:00:41] [Thread 12744] Attempt 719 alloc 23
+[14:00:41] [Thread 12744] Attempt 720 alloc 72
+[14:00:41] [Thread 12744] Attempt 721 realloc 102
+[14:00:41] [Thread 12744] Attempt 722 realloc 105
+[14:00:41] [Thread 12744] Attempt 723 realloc 24
+[14:00:41] [Thread 12744] Attempt 724 free
+[14:00:41] [Thread 12744] Attempt 725 alloc 107
+[14:00:41] [Thread 12744] Attempt 726 free
+[14:00:41] [Thread 12744] Attempt 727 realloc 66
+[14:00:41] [Thread 12744] Attempt 728 alloc 60
+[14:00:41] [Thread 12744] Attempt 729 realloc 48
+[14:00:41] [Thread 12744] Attempt 730 realloc 100
+[14:00:41] [Thread 12744] Attempt 731 realloc 109
+[14:00:41] [Thread 12744] Attempt 732 alloc 55
+[14:00:41] [Thread 12744] Attempt 733 realloc 62
+[14:00:41] [Thread 12744] Attempt 734 realloc 92
+[14:00:41] [Thread 12744] Attempt 735 alloc 57
+[14:00:41] [Thread 12744] Attempt 736 alloc 40
+[14:00:41] [Thread 12744] Attempt 737 free
+[14:00:41] [Thread 12744] Attempt 738 realloc 34
+[14:00:41] [Thread 12744] Attempt 739 alloc 42
+[14:00:41] [Thread 12744] Attempt 740 realloc 74
+[14:00:41] [Thread 12744] Attempt 741 alloc 87
+[14:00:41] [Thread 12744] Attempt 742 free
+[14:00:41] [Thread 12744] Attempt 743 alloc 86
+[14:00:41] [Thread 12744] Attempt 744 alloc 58
+[14:00:41] [Thread 12744] Attempt 745 free
+[14:00:41] [Thread 12744] Attempt 746 alloc 85
+[14:00:41] [Thread 12744] Attempt 747 realloc 52
+[14:00:41] [Thread 12744] Attempt 748 realloc 70
+[14:00:41] [Thread 12744] Attempt 749 alloc 71
+[14:00:41] [Thread 12744] Attempt 750 realloc 99
+[14:00:41] [Thread 12744] Attempt 751 free
+[14:00:41] [Thread 12744] Attempt 752 realloc 39
+[14:00:41] [Thread 12744] Attempt 753 alloc 46
+[14:00:41] [Thread 12744] Attempt 754 realloc 107
+[14:00:41] [Thread 12744] Attempt 755 alloc 105
+[14:00:41] [Thread 12744] Attempt 756 realloc 63
+[14:00:41] [Thread 12744] Attempt 757 realloc 106
+[14:00:41] [Thread 12744] Attempt 758 realloc 47
+[14:00:41] [Thread 12744] Attempt 759 alloc 86
+[14:00:41] [Thread 12744] Attempt 760 realloc 10
+[14:00:41] [Thread 12744] Attempt 761 alloc 104
+[14:00:41] [Thread 12744] Attempt 762 realloc 23
+[14:00:41] [Thread 12744] Attempt 763 realloc 13
+[14:00:41] [Thread 12744] Attempt 764 realloc 54
+[14:00:41] [Thread 12744] Attempt 765 realloc 38
+[14:00:41] [Thread 12744] Attempt 766 alloc 32
+[14:00:41] [Thread 12744] Attempt 767 realloc 22
+[14:00:41] [Thread 12744] Attempt 768 alloc 51
+[14:00:41] [Thread 12744] Attempt 769 alloc 25
+[14:00:41] [Thread 12744] Attempt 770 free
+[14:00:41] [Thread 12744] Attempt 771 alloc 43
+[14:00:41] [Thread 12744] Attempt 772 alloc 10
+[14:00:41] [Thread 12744] Attempt 773 realloc 71
+[14:00:41] [Thread 12744] Attempt 774 alloc 100
+[14:00:41] [Thread 12744] Attempt 775 alloc 11
+[14:00:41] [Thread 12744] Attempt 776 alloc 69
+[14:00:41] [Thread 12744] Attempt 777 realloc 77
+[14:00:41] [Thread 12744] Attempt 778 free
+[14:00:41] [Thread 12744] Attempt 779 free
+[14:00:41] [Thread 12744] Attempt 780 realloc 53
+[14:00:41] [Thread 12744] Attempt 781 free
+[14:00:41] [Thread 12744] Attempt 782 realloc 43
+[14:00:41] [Thread 12744] Attempt 783 free
+[14:00:41] [Thread 12744] Attempt 784 realloc 60
+[14:00:41] [Thread 12744] Attempt 785 realloc 50
+[14:00:41] [Thread 12744] Attempt 786 realloc 107
+[14:00:41] [Thread 12744] Attempt 787 alloc 78
+[14:00:41] [Thread 12744] Attempt 788 realloc 65
+[14:00:41] [Thread 12744] Attempt 789 realloc 27
+[14:00:41] [Thread 12744] Attempt 790 realloc 45
+[14:00:41] [Thread 12744] Attempt 791 realloc 51
+[14:00:41] [Thread 12744] Attempt 792 free
+[14:00:41] [Thread 12744] Attempt 793 alloc 108
+[14:00:41] [Thread 12744] Attempt 794 free
+[14:00:41] [Thread 12744] Attempt 795 alloc 102
+[14:00:41] [Thread 12744] Attempt 796 realloc 59
+[14:00:41] [Thread 12744] Attempt 797 alloc 90
+[14:00:41] [Thread 12744] Attempt 798 free
+[14:00:41] [Thread 12744] Attempt 799 alloc 83
+[14:00:41] [Thread 12744] Attempt 800 realloc 63
+[14:00:41] [Thread 12744] Attempt 801 alloc 52
+[14:00:41] [Thread 12744] Attempt 802 free
+[14:00:41] [Thread 12744] Attempt 803 free
+[14:00:41] [Thread 12744] Attempt 804 realloc 35
+[14:00:41] [Thread 12744] Attempt 805 alloc 74
+[14:00:41] [Thread 12744] Attempt 806 realloc 94
+[14:00:41] [Thread 12744] Attempt 807 free
+[14:00:41] [Thread 12744] Attempt 808 alloc 49
+[14:00:41] [Thread 12744] Attempt 809 realloc 84
+[14:00:41] [Thread 12744] Attempt 810 alloc 43
+[14:00:41] [Thread 12744] Attempt 811 alloc 75
+[14:00:41] [Thread 12744] Attempt 812 alloc 22
+[14:00:41] [Thread 12744] Attempt 813 realloc 67
+[14:00:41] [Thread 12744] Attempt 814 free
+[14:00:41] [Thread 12744] Attempt 815 realloc 99
+[14:00:41] [Thread 12744] Attempt 816 alloc 28
+[14:00:41] [Thread 12744] Attempt 817 realloc 97
+[14:00:41] [Thread 12744] Attempt 818 free
+[14:00:41] [Thread 12744] Attempt 819 free
+[14:00:41] [Thread 12744] Attempt 820 alloc 48
+[14:00:41] [Thread 12744] Attempt 821 alloc 84
+[14:00:41] [Thread 12744] Attempt 822 realloc 19
+[14:00:41] [Thread 12744] Attempt 823 alloc 59
+[14:00:41] [Thread 12744] Attempt 824 free
+[14:00:41] [Thread 12744] Attempt 825 alloc 94
+[14:00:41] [Thread 12744] Attempt 826 alloc 19
+[14:00:41] [Thread 12744] Attempt 827 free
+[14:00:41] [Thread 12744] Attempt 828 alloc 57
+[14:00:41] [Thread 12744] Attempt 829 alloc 45
+[14:00:41] [Thread 12744] Attempt 830 realloc 50
+[14:00:41] [Thread 12744] Attempt 831 alloc 46
+[14:00:41] [Thread 12744] Attempt 832 alloc 12
+[14:00:41] [Thread 12744] Attempt 833 free
+[14:00:41] [Thread 12744] Attempt 834 realloc 15
+[14:00:41] [Thread 12744] Attempt 835 free
+[14:00:41] [Thread 12744] Attempt 836 free
+[14:00:41] [Thread 12744] Attempt 837 realloc 92
+[14:00:41] [Thread 12744] Attempt 838 free
+[14:00:41] [Thread 12744] Attempt 839 alloc 18
+[14:00:41] [Thread 12744] Attempt 840 realloc 94
+[14:00:41] [Thread 12744] Attempt 841 alloc 86
+[14:00:41] [Thread 12744] Attempt 842 realloc 98
+[14:00:41] [Thread 12744] Attempt 843 free
+[14:00:41] [Thread 12744] Attempt 844 alloc 93
+[14:00:41] [Thread 12744] Attempt 845 free
+[14:00:41] [Thread 12744] Attempt 846 alloc 70
+[14:00:41] [Thread 12744] Attempt 847 free
+[14:00:41] [Thread 12744] Attempt 848 alloc 73
+[14:00:41] [Thread 12744] Attempt 849 alloc 93
+[14:00:41] [Thread 12744] Attempt 850 alloc 84
+[14:00:41] [Thread 12744] Attempt 851 alloc 19
+[14:00:41] [Thread 12744] Attempt 852 free
+[14:00:41] [Thread 12744] Attempt 853 alloc 40
+[14:00:41] [Thread 12744] Attempt 854 realloc 24
+[14:00:41] [Thread 12744] Attempt 855 alloc 16
+[14:00:41] [Thread 12744] Attempt 856 free
+[14:00:41] [Thread 12744] Attempt 857 alloc 108
+[14:00:41] [Thread 12744] Attempt 858 free
+[14:00:41] [Thread 12744] Attempt 859 free
+[14:00:41] [Thread 12744] Attempt 860 alloc 96
+[14:00:41] [Thread 12744] Attempt 861 alloc 72
+[14:00:41] [Thread 12744] Attempt 862 realloc 104
+[14:00:41] [Thread 12744] Attempt 863 free
+[14:00:41] [Thread 12744] Attempt 864 alloc 20
+[14:00:41] [Thread 12744] Attempt 865 alloc 71
+[14:00:41] [Thread 12744] Attempt 866 realloc 86
+[14:00:41] [Thread 12744] Attempt 867 free
+[14:00:41] [Thread 12744] Attempt 868 free
+[14:00:41] [Thread 12744] Attempt 869 realloc 55
+[14:00:41] [Thread 12744] Attempt 870 alloc 68
+[14:00:41] [Thread 12744] Attempt 871 realloc 81
+[14:00:41] [Thread 12744] Attempt 872 alloc 67
+[14:00:41] [Thread 12744] Attempt 873 realloc 105
+[14:00:41] [Thread 12744] Attempt 874 realloc 81
+[14:00:41] [Thread 12744] Attempt 875 realloc 33
+[14:00:41] [Thread 12744] Attempt 876 alloc 89
+[14:00:41] [Thread 12744] Attempt 877 alloc 104
+[14:00:41] [Thread 12744] Attempt 878 alloc 25
+[14:00:41] [Thread 12744] Attempt 879 alloc 95
+[14:00:41] [Thread 12744] Attempt 880 realloc 84
+[14:00:41] [Thread 12744] Attempt 881 realloc 80
+[14:00:41] [Thread 12744] Attempt 882 realloc 81
+[14:00:41] [Thread 12744] Attempt 883 free
+[14:00:41] [Thread 12744] Attempt 884 realloc 103
+[14:00:41] [Thread 12744] Attempt 885 realloc 74
+[14:00:41] [Thread 12744] Attempt 886 free
+[14:00:41] [Thread 12744] Attempt 887 alloc 11
+[14:00:41] [Thread 12744] Attempt 888 realloc 93
+[14:00:41] [Thread 12744] Attempt 889 realloc 17
+[14:00:41] [Thread 12744] Attempt 890 alloc 83
+[14:00:41] [Thread 12744] Attempt 891 realloc 49
+[14:00:41] [Thread 12744] Attempt 892 alloc 52
+[14:00:41] [Thread 12744] Attempt 893 free
+[14:00:41] [Thread 12744] Attempt 894 alloc 100
+[14:00:41] [Thread 12744] Attempt 895 realloc 38
+[14:00:41] [Thread 12744] Attempt 896 realloc 30
+[14:00:41] [Thread 12744] Attempt 897 free
+[14:00:41] [Thread 12744] Attempt 898 free
+[14:00:41] [Thread 12744] Attempt 899 realloc 61
+[14:00:41] [Thread 12744] Attempt 900 alloc 57
+[14:00:41] [Thread 12744] Attempt 901 alloc 27
+[14:00:41] [Thread 12744] Attempt 902 realloc 86
+[14:00:41] [Thread 12744] Attempt 903 realloc 48
+[14:00:41] [Thread 12744] Attempt 904 free
+[14:00:41] [Thread 12744] Attempt 905 realloc 89
+[14:00:41] [Thread 12744] Attempt 906 alloc 49
+[14:00:41] [Thread 12744] Attempt 907 free
+[14:00:41] [Thread 12744] Attempt 908 free
+[14:00:41] [Thread 12744] Attempt 909 alloc 73
+[14:00:41] [Thread 12744] Attempt 910 realloc 14
+[14:00:41] [Thread 12744] Attempt 911 realloc 41
+[14:00:41] [Thread 12744] Attempt 912 realloc 84
+[14:00:41] [Thread 12744] Attempt 913 realloc 102
+[14:00:41] [Thread 12744] Attempt 914 alloc 16
+[14:00:41] [Thread 12744] Attempt 915 alloc 19
+[14:00:41] [Thread 12744] Attempt 916 realloc 95
+[14:00:41] [Thread 12744] Attempt 917 realloc 70
+[14:00:41] [Thread 12744] Attempt 918 realloc 73
+[14:00:41] [Thread 12744] Attempt 919 alloc 55
+[14:00:41] [Thread 12744] Attempt 920 free
+[14:00:41] [Thread 12744] Attempt 921 alloc 39
+[14:00:41] [Thread 12744] Attempt 922 alloc 90
+[14:00:41] [Thread 12744] Attempt 923 realloc 95
+[14:00:41] [Thread 12744] Attempt 924 alloc 47
+[14:00:41] [Thread 12744] Attempt 925 alloc 65
+[14:00:41] [Thread 12744] Attempt 926 realloc 63
+[14:00:41] [Thread 12744] Attempt 927 alloc 40
+[14:00:41] [Thread 12744] Attempt 928 alloc 82
+[14:00:41] [Thread 12744] Attempt 929 alloc 50
+[14:00:41] [Thread 12744] Attempt 930 realloc 13
+[14:00:41] [Thread 12744] Attempt 931 realloc 61
+[14:00:41] [Thread 12744] Attempt 932 realloc 78
+[14:00:41] [Thread 12744] Attempt 933 realloc 20
+[14:00:41] [Thread 12744] Attempt 934 free
+[14:00:41] [Thread 12744] Attempt 935 alloc 15
+[14:00:41] [Thread 12744] Attempt 936 alloc 92
+[14:00:41] [Thread 12744] Attempt 937 free
+[14:00:41] [Thread 12744] Attempt 938 free
+[14:00:41] [Thread 12744] Attempt 939 realloc 97
+[14:00:41] [Thread 12744] Attempt 940 realloc 54
+[14:00:41] [Thread 12744] Attempt 941 free
+[14:00:41] [Thread 12744] Attempt 942 realloc 107
+[14:00:41] [Thread 12744] Attempt 943 alloc 64
+[14:00:41] [Thread 12744] Attempt 944 free
+[14:00:41] [Thread 12744] Attempt 945 realloc 20
+[14:00:41] [Thread 12744] Attempt 946 realloc 98
+[14:00:41] [Thread 12744] Attempt 947 realloc 99
+[14:00:41] [Thread 12744] Attempt 948 free
+[14:00:41] [Thread 12744] Attempt 949 realloc 24
+[14:00:41] [Thread 12744] Attempt 950 alloc 67
+[14:00:41] [Thread 12744] Attempt 951 realloc 15
+[14:00:41] [Thread 12744] Attempt 952 alloc 16
+[14:00:41] [Thread 12744] Attempt 953 realloc 16
+[14:00:41] [Thread 12744] Attempt 954 free
+[14:00:41] [Thread 12744] Attempt 955 realloc 109
+[14:00:41] [Thread 12744] Attempt 956 alloc 59
+[14:00:41] [Thread 12744] Attempt 957 realloc 96
+[14:00:41] [Thread 12744] Attempt 958 free
+[14:00:41] [Thread 12744] Attempt 959 free
+[14:00:41] [Thread 12744] Attempt 960 realloc 87
+[14:00:41] [Thread 12744] Attempt 961 alloc 101
+[14:00:41] [Thread 12744] Attempt 962 realloc 91
+[14:00:41] [Thread 12744] Attempt 963 realloc 53
+[14:00:41] [Thread 12744] Attempt 964 alloc 45
+[14:00:41] [Thread 12744] Attempt 965 free
+[14:00:41] [Thread 12744] Attempt 966 realloc 48
+[14:00:41] [Thread 12744] Attempt 967 free
+[14:00:41] [Thread 12744] Attempt 968 free
+[14:00:41] [Thread 12744] Attempt 969 alloc 48
+[14:00:41] [Thread 12744] Attempt 970 realloc 59
+[14:00:41] [Thread 12744] Attempt 971 free
+[14:00:41] [Thread 12744] Attempt 972 realloc 85
+[14:00:41] [Thread 12744] Attempt 973 realloc 37
+[14:00:41] [Thread 12744] Attempt 974 alloc 22
+[14:00:41] [Thread 12744] Attempt 975 realloc 54
+[14:00:41] [Thread 12744] Attempt 976 realloc 26
+[14:00:41] [Thread 12744] Attempt 977 alloc 11
+[14:00:41] [Thread 12744] Attempt 978 realloc 10
+[14:00:41] [Thread 12744] Attempt 979 realloc 90
+[14:00:41] [Thread 12744] Attempt 980 realloc 47
+[14:00:41] [Thread 12744] Attempt 981 realloc 42
+[14:00:41] [Thread 12744] Attempt 982 realloc 22
+[14:00:41] [Thread 12744] Attempt 983 alloc 93
+[14:00:41] [Thread 12744] Attempt 984 realloc 98
+[14:00:41] [Thread 12744] Attempt 985 realloc 42
+[14:00:41] [Thread 12744] Attempt 986 realloc 59
+[14:00:41] [Thread 12744] Attempt 987 realloc 19
+[14:00:41] [Thread 12744] Attempt 988 realloc 75
+[14:00:41] [Thread 12744] Attempt 989 realloc 11
+[14:00:41] [Thread 12744] Attempt 990 alloc 85
+[14:00:41] [Thread 12744] Attempt 991 alloc 74
+[14:00:41] [Thread 12744] Attempt 992 alloc 66
+[14:00:41] [Thread 12744] Attempt 993 realloc 87
+[14:00:41] [Thread 12744] Attempt 994 alloc 104
+[14:00:41] [Thread 12744] Attempt 995 realloc 100
+[14:00:41] [Thread 12744] Attempt 996 alloc 29
+[14:00:41] [Thread 12744] Attempt 997 alloc 71
+[14:00:41] [Thread 12744] Attempt 998 alloc 108
+[14:00:41] [Thread 12744] Attempt 999 free
+[14:00:41] [Thread 12744] Attempt 1000 realloc 31
+[14:00:41] [Thread 12744] Fails 168, States 98

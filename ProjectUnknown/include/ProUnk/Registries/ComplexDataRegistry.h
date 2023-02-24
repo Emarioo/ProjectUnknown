@@ -3,6 +3,7 @@
 #include "ProUnk/Registries/MasterRegistry.h"
 #include "Engone/Structures/HashMap.h"
 #include "Engone/Structures/StableArray.h"
+#include "Engone/Structures/Array.h"
 
 namespace prounk {
 	struct ComplexPropertyType {
@@ -12,7 +13,7 @@ namespace prounk {
 	};
 	class ComplexData {
 	public:
-		ComplexData();
+		ComplexData() : m_properties(sizeof(Entry),ALLOC_TYPE_HEAP) {}
 
 		bool set(uint32_t propertyDataIndex, float value);
 		bool set(ComplexPropertyType* complexProperty, float value);
@@ -26,7 +27,7 @@ namespace prounk {
 		//float& operator[](int propertyDataIndex);
 
 		// Returns nullpt when allocation fails.
-		ComplexData* copy();
+		bool copy(ComplexData* complexData);
 
 		uint32_t getDataIndex();
 
@@ -35,7 +36,7 @@ namespace prounk {
 			uint32_t prop;
 			float value;
 		};
-		std::vector<Entry>& getList();
+		engone::Array& getList();
 
 	private:
 		uint32_t m_dataIndex=0;
@@ -43,7 +44,8 @@ namespace prounk {
 		// uint32_t is raw data. Could be int, float or 4 chars.
 		//engone::HashMap m_map{}; // for uint32_t, works for floats too with some magic
 
-		std::vector<Entry> m_properties;
+		//std::vector<Entry> m_properties;
+		engone::Array m_properties;
 
 		friend class ComplexDataRegistry;
 	};

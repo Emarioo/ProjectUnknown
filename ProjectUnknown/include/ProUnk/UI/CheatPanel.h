@@ -4,6 +4,8 @@
 
 #include "ProUnk/Registries/InventoryRegistry.h"
 
+#include "Engone/Structures/Array.h"
+
 namespace prounk {
 
 	class GameApp;
@@ -16,7 +18,8 @@ namespace prounk {
 
 	private:
 
-		std::vector<Item> availableItems;
+		//std::vector<Item> availableItems;
+		engone::Array availableItems{sizeof(Item),ALLOC_TYPE_HEAP};
 
 		float maxAnimTime = 0.24f; // seconds
 		float animTime = 0;

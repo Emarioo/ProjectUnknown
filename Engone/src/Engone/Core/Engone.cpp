@@ -34,7 +34,10 @@ namespace engone {
 
 #define INSTANCE_LIMIT 1000u
 
-	Engone::Engone() {}
+	Engone::Engone() {
+		// Todo: check failure?
+		GetGameMemory(); // Used to initialize memory
+	}
 	Engone::~Engone() {
 		for (int i = 0; i < m_applications.size(); i++) {
 			//delete m_applications[i];
@@ -54,6 +57,13 @@ namespace engone {
 		m_applications.push_back(app);
 		m_appSizes.push_back(sizeof(Application));
 		// m_appIds.push_back(Application::trackerId);
+	}
+
+	void Engone::saveGameMemory(const std::string& path) {
+		GetGameMemory().save(path);
+	}
+	void Engone::loadGameMemory(const std::string& path) {
+		GetGameMemory().load(path);
 	}
 	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
@@ -410,9 +420,9 @@ namespace engone {
 		//GL_CHECK()
 		//EnableBlend(); <- done in particle render
 		for (int i = 0; i < info.app->m_worlds.size(); i++) {
-			std::vector<ParticleGroupT*>& groups = info.app->m_worlds[i]->getParticleGroups();
+			Array& groups = info.app->m_worlds[i]->getParticleGroups();
 			for (int i = 0; i < groups.size(); i++) {
-				groups[i]->render(info);
+				((ParticleGroupT*)groups.get(i))->render(info);
 			}
 		}
 		//EnableDepth();
@@ -638,8 +648,9 @@ namespace engone {
 			//log::out << "WOW\n";
 			bindLights(shader, { 0,0,0 });
 			shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
-			for (auto& [asset, vector] : normalObjects) {
-
+			for (auto& pair : normalObjects) {
+				auto& asset = pair.first;
+				auto& vector = pair.second;
 				//log::out << "render " << asset->getLoadName()<< "\n";
 
 				//if (asset->meshType == MeshAsset::MeshType::Normal) {

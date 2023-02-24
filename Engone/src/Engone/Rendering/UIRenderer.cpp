@@ -322,8 +322,8 @@ namespace engone {
 
 			if (floatIndex == MAX_BOX_BATCH || boundTextures.size() >= 7 || (type == 0 && floatIndex != 0) || ((type == 'S' || type == 'M') && lastShader != 'P' && lastShader != 0)) {
 
-				for (auto [texture, index] : boundTextures) {
-					texture->bind(index);
+				for (auto& pair : boundTextures) {
+					pair.first->bind(pair.second);
 				}
 
 				if (floatIndex != MAX_BOX_BATCH)
@@ -398,7 +398,9 @@ namespace engone {
 
 					//bindLights(shader, { 0,0,0 });
 					shader->setMat4("uTransform", glm::mat4(0)); // zero in mat4 means we do instanced rendering. uTransform should be ignored
-					for (auto& [asset, vector] : normalObjects) {
+					for (auto& pair : normalObjects) {
+						auto& asset = pair.first;
+						auto& vector = pair.second;
 						for (uint32_t j = 0; j < asset->materials.size(); ++j) {// Maximum of 4 materials
 							asset->materials[j]->bind(shader, j);
 						}

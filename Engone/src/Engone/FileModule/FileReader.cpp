@@ -239,7 +239,7 @@ namespace engone {
 				return false;
 			}
 			ptr->resize(length);
-			yes = read(ptr->data(),length);
+			yes = read(&(*ptr)[0], length);
 			if(!yes){
 				return false;
 			}

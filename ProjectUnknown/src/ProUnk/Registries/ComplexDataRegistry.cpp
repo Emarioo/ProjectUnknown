@@ -4,32 +4,30 @@
 
 namespace prounk {
 
-	ComplexData::ComplexData()
-		//: m_map(20)
-	{
-
-	}
 	uint32_t ComplexData::getDataIndex() {
 		return m_dataIndex;
 	}
 	bool ComplexData::set(uint32_t propertyDataIndex, float value) {
 		for (int i = 0; i < m_properties.size(); i++) {
-			if (m_properties[i].prop == propertyDataIndex) {
-				m_properties[i].value = value;
+			Entry* entry = (Entry*)m_properties.get(i);
+			if (entry->prop == propertyDataIndex) {
+				entry->value = value;
 				return true;
-			} else if (m_properties[i].prop > propertyDataIndex) {
+			} else if (entry->prop > propertyDataIndex) {
 				// not found we do some rearranging
 				Entry e;
 				e.prop = propertyDataIndex;
 				e.value = value;
-				m_properties.insert(m_properties.begin() + i, e);
+
+				m_properties.insert(i, &e);
 				return true;
 			}
 		}
 		Entry e;
 		e.prop = propertyDataIndex;
 		e.value = value;
-		m_properties.push_back(e);
+		m_properties.add(&e);
+		//m_properties.push_back(e);
 		return true;
 		//return m_map.insert(propertyDataIndex, *(engone::HashMap::Value*)&value);
 	}
@@ -38,8 +36,9 @@ namespace prounk {
 	}
 	float ComplexData::get(uint32_t propertyDataIndex) {
 		for (int i = 0; i < m_properties.size(); i++) {
-			if (m_properties[i].prop == propertyDataIndex) {
-				return m_properties[i].value;
+			Entry* entry = (Entry*)m_properties.get(i);
+			if (entry->prop == propertyDataIndex) {
+				return entry->value;
 			}
 		}
 		return 0;
@@ -55,8 +54,9 @@ namespace prounk {
 
 		int index = 0;
 		for (int i = 0; i < m_properties.size();i++) {
-			if (data->m_properties[i].prop != m_properties[i].prop ||
-				data->m_properties[i].value != m_properties[i].value)
+			Entry* entry = (Entry*)m_properties.get(i);
+			if (entry->prop != entry->prop ||
+				entry->value != entry->value)
 				return false;
 		}
 		return true;
@@ -66,20 +66,20 @@ namespace prounk {
 	//engone::HashMap& ComplexData::getMap() {
 	//	return m_map;
 	//}
-	std::vector<ComplexData::Entry>& ComplexData::getList() {
+	engone::Array& ComplexData::getList() {
 		return m_properties;
 	}
-	ComplexData* ComplexData::copy() {
-		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+	bool ComplexData::copy(ComplexData* complexData) {
+		if (!complexData)
+			return false;
+
+		m_properties.copy(&complexData->m_properties);
+		// dataIndex is unique and should not be copied
+		 
+		//newData->m_properties.resize(m_properties.size());
+		//memcpy(newData->m_properties.data(), m_properties.data(), m_properties.size() * sizeof(Entry));
 		
-		ComplexData* newData = session->complexDataRegistry.registerData();
-		if (!newData)
-			return nullptr;
-		
-		newData->m_properties.resize(m_properties.size());
-		memcpy(newData->m_properties.data(), m_properties.data(), m_properties.size() * sizeof(Entry));
-		
-		return newData;
+		return true;
 
 		//Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
 		//engone::HashMap temp;

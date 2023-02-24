@@ -10,13 +10,15 @@ namespace engone {
 	// Todo: More testing to ensure that this class is flawless. There may still be issues.
 	class HashMap {
 	public:
-		typedef int Key;
-		typedef int Value;
+		//typedef int Key;
+		//typedef int Value;
 		static const int INVALID_INDEX = -1;
 
 		struct IterationInfo {
-			Key key;
-			Value value;
+			uint32 key;
+			void* value;
+			//Key key;
+			//Value value;
 			int index;
 			int depth;
 			
@@ -34,7 +36,7 @@ namespace engone {
 		// multiplied by 1.5.
 		// keymapSize is just a variable that is set within the class. Nothing else is done in
 		// the constructor.
-		HashMap(int keymapSize=50);
+		HashMap(uint32 typeSize, uint32 allocType, uint32 keymapSize=50);
 		~HashMap();
 		// frees memory and makes the hash map as good as new.
 		// even preventDeconstructor
@@ -43,16 +45,13 @@ namespace engone {
 
 		void preventDeconstructor();
 
-		bool insert(Key key, Value value);
+		bool insert(uint32 key, void* value);
 		
 		// found is a pointer to a bool which if true indicates the value being found.
 		// false means not found.
-		Value get(Key key, bool* found = nullptr);
+		void* get(uint32 key);
 		
-		// An alternative function
-		bool get(Key key, Value& outValue);
-
-		bool erase(Key key);
+		bool erase(uint32 key);
 
 		// Primarly works as get. If value isn't found then a value will be created which can
 		// then be change with the returned reference.
@@ -66,11 +65,11 @@ namespace engone {
 		// Equals operator for sameAs?
 
 		// returns the amount of inserted things
-		int getSize();
+		uint32 getSize() { return m_size; }
 
 		bool sameAs(HashMap& map);
 
-		int getMemoryUsage();
+		uint32 getMemoryUsage();
 
 		// outMap will be cleaned and then all data of this map will
 		// be copied to outMap. (new allocations will be done making the maps independent)
@@ -79,30 +78,42 @@ namespace engone {
 
 		void print();
 
+		void printMemory();
+
+
+		// Compress may be a better name
+		static uint32 Hash(const std::string& str);
+		static uint32 Hash(void* ptr, uint32 bytes);
+
 	private:
 		// size of this struct is 11 (12 with sizeof(chain)). It used to be 13 (16 with sizeof(Chain)).
 		// indexNext is short and next to used to achive the 12 byte size instead of 16.
 		struct Chain {
-			bool used=false;
+			uint32 key;
 			short indexNext = INVALID_INDEX; // for overflow and linked list
-			Key key;
-			Value value;
+			bool used=false;
+			//uint32 value;
+			char value[];
 		};
+		Chain* getDChain(uint32 index);
+		Chain* getKChain(uint32 index);
 		
-		
-		Memory keymap{sizeof(Chain)};
-		Memory chainData{sizeof(Chain)};
-		Stack<int> emptySpots;
-		int keymapSize=20; // preferred size by the user
-		int size=0; // amount of insertions
+		Memory m_keymap;
+		Memory m_chainData;
+		Stack m_emptySpots;
+		uint32 m_keymapSize; // preferred size by the user
+		uint32 m_size=0; // amount of insertions
 		bool m_preventDeconstructor = false;
 
-		int hash(Key key);
+		uint32 m_typeSize;
+		uint32 m_allocType;
+
+		uint32 hash(uint32 key);
 
 		// the created chain is reset to default values from Chain()
 		// the function returns indexNext
 		// -1 is returned if something failed. usually allocation failure.
-		int createChain();
+		uint32 createChain();
 
 		friend void HashMapTestCase();
 	};

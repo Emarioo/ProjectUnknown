@@ -4,6 +4,8 @@
 #include "Engone/Application.h"
 #include "Engone/Window.h"
 
+#include "Engone/PlatformModule/GameMemory.h"
+
 // #include "Engone/SoundModule.h"
 // #include "Engone/Utilities/Utilities.h"
 // #include "Engone/Utilities/MemAllocator.h"
@@ -71,6 +73,9 @@ namespace engone {
 		inline ExecutionTimer& getUpdateTimer() { return mainUpdateTimer; };
 		inline ExecutionTimer& getRenderTimer() { return mainRenderTimer; };
 		
+		void saveGameMemory(const std::string& path);
+		void loadGameMemory(const std::string& path);
+
 		// static TrackerId trackerId;
 	private:
 		//RuntimeStats m_runtimeStats;
@@ -91,6 +96,8 @@ namespace engone {
 		ExecutionTimer mainRenderTimer;
 
 		LoopInfo currentLoopInfo;
+
+		//GameMemory gameMemory;
 
 		std::vector<Application*> m_applications{};
 

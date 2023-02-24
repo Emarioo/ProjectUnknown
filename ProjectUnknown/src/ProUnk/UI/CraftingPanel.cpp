@@ -39,7 +39,7 @@ namespace prounk {
 
 
 			DrawSlot(pixelX, pixelY, slotSize);
-			DrawItem(pixelX,pixelY,slotSize,slot.item);
+			DrawItem(pixelX,pixelY,slotSize,&slot.item);
 		}
 
 		if (clickedIndex != -1) {

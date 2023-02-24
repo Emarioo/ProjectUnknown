@@ -5,19 +5,16 @@
 
 #include "Engone/Utilities/rp3d.h"
 
+#include "Engone/PlatformModule/PlatformLayer.h"
+
 namespace engone{
     class GameMemory;
     class CustomAllocator : public rp3d::MemoryAllocator {
     public:
-        CustomAllocator(GameMemory* memory) : gameMemory(memory) { }    
-        void* allocate(size_t size) override {
-            return nullptr;
-            // gameMemory->allocate(size);
-        }
-        void release(void* pointer, size_t size) override {
-            
-        }
-        GameMemory* gameMemory=nullptr;
+        CustomAllocator() { }    
+        ~CustomAllocator() override {}
+        void* allocate(size_t size) override;
+        void release(void* pointer, size_t size) override;
     };
     // typedef uint64 GameMemoryID;
     class GameMemory {
@@ -26,13 +23,13 @@ namespace engone{
         ~GameMemory(){cleanup();}
         void cleanup();
         
-        bool init();
-        bool save();
-        bool load(); // this will invalidate any pointers
+        bool init(void* baseAddress, uint64 bytes, bool noPhysics);
+        bool save(const std::string& path);
+        bool load(const std::string& path);
 
-        void* allocate(uint64 bytes);
+        void* allocate(uint64 bytes, bool heap=false);
         void* reallocate(void* ptr, uint64 bytes);
-        void free(void* ptr);
+        void free(void* ptr, bool heap=false);
         
         // Static functions will use the active game memory. (thread based)
         // void makeActive();
@@ -40,9 +37,27 @@ namespace engone{
         // void* Reallocate(void* ptr, iuint64nt bytes);
         // void Free(void* ptr);
 
+        rp3d::PhysicsCommon* getCommon();
 
+        uint64 getUsedMemory();
+
+        void getPointers(std::vector<void*>& ptrs);
+        struct Block {
+            uint64 start;
+            uint64 size;
+        };
+        std::vector<Block>& getFreeBlocks();
+        std::vector<Block>& getUsedBlocks();
+
+        void* getBaseAdress();
+        uint64 getMaxMemory();
+
+        void print();
+
+    private:
         rp3d::PhysicsCommon* common=nullptr;
         CustomAllocator* allocator=nullptr;
+        Mutex mutex;
 
         // GameMemoryID allocate(int bytes);
         // GameMemoryID reallocate(GameMemoryID, int bytes);
@@ -66,18 +81,15 @@ namespace engone{
         // Memory stuff
         void* baseAllocation=nullptr;
         uint64 maxSize=0;
+        uint64 usedMemory=0;
         
-        struct Block {
-            uint64 start;
-            uint64 size;
-        };
         std::vector<Block> freeBlocks;
         std::vector<Block> usedBlocks;
         
         void insertFreeBlock(Block block);
         void insertUsedBlock(Block block);
         
-        void print();
     };
+    GameMemory& GetGameMemory();
     void GameMemoryTest();
 }

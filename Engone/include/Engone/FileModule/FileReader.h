@@ -83,6 +83,6 @@ namespace engone {
 		// The code in readLine should set the error because it knows what happened.
 		
 		uint64 m_bufferHead=0;
-		Memory m_buffer{1};
+		Memory m_buffer{ 1,ALLOC_TYPE_HEAP };
 	};
 }

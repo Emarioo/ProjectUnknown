@@ -31,6 +31,7 @@ namespace prounk {
 			log::out << log::RED << "GameApp::dealCombat - one of the object's id are 0\n";
 			return;
 		}
+
 		// Todo: will crash if no dimension. not good but i want to get this stuff done
 		//Dimension* dim = m_session->getDimensions()[0];
 
@@ -72,12 +73,12 @@ namespace prounk {
 			atk = atkData->singleDamage;
 		}
 		
-		if (defData->health == 0)
+		if (defData->getHealth() == 0)
 			return;
 
-		defData->health -= atk;
-		if (defData->health < 0)
-			defData->health = 0;
+		defData->setHealth(defData->getHealth() - atk);
+		if (defData->getHealth() < 0)
+			defData->setHealth(0);
 		// send updated health.
 		// what if someone else also updates health? then do addition or subtraction on health.
 		// how about hit cooldown? can other players deal damage two you at the same time?
@@ -166,13 +167,13 @@ namespace prounk {
 			
 			//if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactStart) {
 			if (IsObject(obj1,OBJECT_CREATURE)) {
-				auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj1->getObjectInfo());
-				oinfo.onGround=true;
+				auto oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj1->getObjectInfo());
+				oinfo->onGround=true;
 				//log::out << "start1 " << oinfo.onGround << "\n";
 			}
 			if (IsObject(obj2,OBJECT_CREATURE)) {
-				auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj2->getObjectInfo());
-				oinfo.onGround=true;
+				auto oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj2->getObjectInfo());
+				oinfo->onGround=true;
 				//log::out << "start2 " << oinfo.onGround << "\n";
 			}
 			//} else if (pair.getEventType() == rp3d::CollisionCallback::ContactPair::EventType::ContactExit) {
@@ -243,14 +244,14 @@ namespace prounk {
 			if (pair.getEventType() != rp3d::OverlapCallback::OverlapPair::EventType::OverlapExit) {
 				if (obj1->getObjectType() != obj2->getObjectType()) {
 					if (IsObject(obj1, OBJECT_TRIGGER)) {
-						auto& oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj1->getObjectInfo());
-						if(!oinfo.hit(obj2->getUUID()))
-							oinfo.collisions.push_back(obj2->getUUID());
+						auto oinfo = ((Dimension*)obj1->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj1->getObjectInfo());
+						if(!oinfo->hit(obj2->getUUID()))
+							oinfo->collisions.push_back(obj2->getUUID());
 					}
 					if (IsObject(obj2, OBJECT_TRIGGER)) {
-						auto& oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj2->getObjectInfo());
-						if (!oinfo.hit(obj1->getUUID()))
-							oinfo.collisions.push_back(obj1->getUUID());
+						auto oinfo = ((Dimension*)obj2->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj2->getObjectInfo());
+						if (!oinfo->hit(obj1->getUUID()))
+							oinfo->collisions.push_back(obj1->getUUID());
 					}
 				}
 			}
@@ -365,10 +366,10 @@ namespace prounk {
 		player->setPosition({ 3*(GetRandom()-0.5),3 * (GetRandom() - 0.5),3 * (GetRandom() - 0.5)});
 		firstDim->getWorld()->releaseAccess(player->getUUID());
 
-		auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
-		playerInfo.inventoryDataIndex = m_session->inventoryRegistry.createInventory();
+		auto playerInfo = m_session->objectInfoRegistry.getCreatureInfo(player->getObjectInfo());
+		playerInfo->inventoryDataIndex = m_session->inventoryRegistry.createInventory();
 
-		Inventory* inv = m_session->inventoryRegistry.getInventory(playerInfo.inventoryDataIndex);
+		Inventory* inv = m_session->inventoryRegistry.getInventory(playerInfo->inventoryDataIndex);
 		inv->resizeSlots(16, nullptr);
 
 		registerItems();
@@ -395,12 +396,12 @@ namespace prounk {
 			firstDim->getWorld()->releaseAccess(terrain->getUUID());
 		//}
 
-		auto[ip,port] = SplitAddress(info.address);
+		auto address = SplitAddress(info.address);
 
 		if (info.flags & START_SERVER) {
-			m_session->getServer().start(port);
+			m_session->getServer().start(address.port);
 		} else if (info.flags & START_CLIENT) {
-			m_session->getClient().start(ip,port);
+			m_session->getClient().start(address.ip, address.port);
 		}
 
 		//-- Other
@@ -485,9 +486,9 @@ namespace prounk {
 
 		EngineObject* plr = playerController.requestPlayer();
 		if (plr) {
-			auto& playerInfo = m_session->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+			auto playerInfo = m_session->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
 			playerController.releasePlayer(plr);
-			inventoryPanel->setInventory(playerInfo.inventoryDataIndex);
+			inventoryPanel->setInventory(playerInfo->inventoryDataIndex);
 		}
 
 		masterInventoryPanel = ALLOC_NEW(MasterInventoryPanel)(this);
@@ -559,6 +560,13 @@ namespace prounk {
 		playerController.update(info);
 
 		m_session->update(info);
+
+		if (IsKeyPressed(GLFW_KEY_I)) {
+			getEngine()->saveGameMemory("gameMemory.dat");
+		}
+		if (IsKeyPressed(GLFW_KEY_U)) {
+			getEngine()->loadGameMemory("gameMemory.dat");
+		}
 	}
 	
 	void GameApp::render(engone::LoopInfo& info) {

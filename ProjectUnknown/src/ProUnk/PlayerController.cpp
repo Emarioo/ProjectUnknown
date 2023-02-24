@@ -65,10 +65,10 @@ namespace prounk {
 		EngineObject* heldObject = requestHeldObject();
 
 		if (inv->getSlotSize() != 0) {
-			auto& item = inv->getItem(0);
-			if (lastItemType != item.getType()) {
+			auto item = inv->getItem(0);
+			if (lastItemType != item->getType()) {
 				if (heldObject) {
-					if (item.getType() == 0) {
+					if (item->getType() == 0) {
 						// remove held object
 						app->getActiveSession()->netDeleteObject(heldObject);
 						DeleteObject((Dimension*)heldObject->getWorld()->getUserData(), heldObject);
@@ -77,7 +77,7 @@ namespace prounk {
 					} else {
 						if (!IsDead(plr)) {
 							// reuse held object
-							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item->getModelId());
 							heldObject->setModel(model);
 							heldObject->setOnlyTrigger(true);
 							app->getActiveSession()->netEditTrigger(heldObject, true);
@@ -85,11 +85,11 @@ namespace prounk {
 						}
 					}
 				} else {
-					if (item.getType() != 0) {
+					if (item->getType() != 0) {
 
 						if (!IsDead(plr)) {
 							// create new object
-							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item.getModelId());
+							ModelAsset* model = app->getActiveSession()->modelRegistry.getModel(item->getModelId());
 							heldObject = CreateWeapon((Dimension*)plr->getWorld()->getUserData(), model->getLoadName());
 							heldObjectId = heldObject->getUUID();
 							heldObject->setOnlyTrigger(true);
@@ -102,7 +102,7 @@ namespace prounk {
 					}
 					// damage in combat data is set when doing a skill
 				}
-				lastItemType = item.getType();
+				lastItemType = item->getType();
 			} else {
 				// do nothing if types are the same
 			}
@@ -259,13 +259,13 @@ namespace prounk {
 		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
 		EngineWorld* world = dim->getWorld();
 		
-		auto& itemInfo = app->getActiveSession()->objectInfoRegistry.getItemInfo(object->getObjectInfo());
-		if (!itemInfo.item.getType())
+		auto itemInfo = app->getActiveSession()->objectInfoRegistry.getItemInfo(object->getObjectInfo());
+		if (!itemInfo->item.getType())
 			return false;
 
 		Inventory* inv = getInventory();
 
-		bool transferred = inv->transferItem(itemInfo.item);
+		bool transferred = inv->transferItem(&itemInfo->item);
 		//int slot = inv->findAvailableSlot(itemInfo.item);
 		//if (slot >= 0)
 		//	itemInfo.item.copy(inv->getItem(slot));
@@ -284,9 +284,9 @@ namespace prounk {
 		using namespace engone;
 		EngineObject* plr = requestPlayer();
 		if (!plr) return nullptr;
-		auto& playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+		auto playerInfo = app->getActiveSession()->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
 		releasePlayer(plr);
-		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo.inventoryDataIndex);
+		Inventory* inv = app->getActiveSession()->inventoryRegistry.getInventory(playerInfo->inventoryDataIndex);
 		return inv;
 	}
 	void PlayerController::dropItem(int slotIndex, int count) {
@@ -297,8 +297,8 @@ namespace prounk {
 		if (inv->getSlotSize() <=slotIndex)
 			return;
 
-		Item& item = inv->getItem(slotIndex);
-		if (item.getType() == 0)
+		Item* item = inv->getItem(slotIndex);
+		if (item->getType() == 0)
 			return;
 	
 		auto& dims = app->getActiveSession()->getDimensions();
@@ -313,7 +313,7 @@ namespace prounk {
 		//	object = CreateItem(dim, copyItem);
 		//} else {
 		Item copyItem;
-		item.transfer(copyItem,count);
+		item->transfer(copyItem,count);
 		object = CreateItem(dim, copyItem);
 		
 		// held object is deleted automatically later if item is zero
@@ -347,13 +347,13 @@ namespace prounk {
 		Dimension* dim = dims[0]; // Todo: the dimension should be the one the player is in.
 		auto heldObject = requestHeldObject();
 		for (int i = 0; i < inv->getSlotSize();i++) {
-			Item& item = inv->getItem(i);
+			Item* item = inv->getItem(i);
 
-			if (item.getType() == 0)
+			if (item->getType() == 0)
 				continue;
 
-			auto object = CreateItem(dim, item);
-			item = Item(); // clear slot
+			auto object = CreateItem(dim, *item);
+			*item = Item(); // clear slot
 
 			if (i == 0) {
 				// use held object's position when it drops.
@@ -414,13 +414,13 @@ namespace prounk {
 				// Set damage of weapon
 				weaponCombat->damageType = CombatData::SINGLE_DAMAGE;
 				Inventory* inv = getInventory();
-				Item& firstItem = inv->getItem(0);
+				Item* firstItem = inv->getItem(0);
 				
 				auto spear = app->getActiveSession()->itemTypeRegistry.getType("spear");
 				auto sword = app->getActiveSession()->itemTypeRegistry.getType("sword");
 				auto dagger = app->getActiveSession()->itemTypeRegistry.getType("dagger");
 
-				ComplexData* complexData = firstItem.getComplexData();
+				ComplexData* complexData = firstItem->getComplexData();
 				//ComplexData* complexData = app->getActiveSession()->complexDataRegistry.getData(firstItem.getComplexData());
 				if (complexData) { // cannot attack without data
 					ComplexPropertyType* atkProperty = app->getActiveSession()->complexDataRegistry.getProperty("atk");
@@ -430,13 +430,13 @@ namespace prounk {
 
 					weaponCombat->skillType = SKILL_SLASH; // irrelevant
 					weaponCombat->attack();
-					if (firstItem.getType()==sword->itemType) {
+					if (firstItem->getType()==sword->itemType) {
 						plr->getAnimator()->enable("Player", "PlayerSwordSlash", { false,1,1,0 });
 						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSwordSlash", false, 1, 1, 0);
-					}else if (firstItem.getType() == dagger->itemType) {
+					}else if (firstItem->getType() == dagger->itemType) {
 						plr->getAnimator()->enable("Player", "PlayerDaggerThrust", { false,1,1,0 });
 						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerDaggerThrust", false, 1, 1, 0);
-					} else if (firstItem.getType() == spear->itemType) {
+					} else if (firstItem->getType() == spear->itemType) {
 						plr->getAnimator()->enable("Player", "PlayerSpearThrust", { false,1,1,0 });
 						app->getActiveSession()->netAnimateObject(plr, "Player", "PlayerSpearThrust", false, 1, 1, 0);
 					}
@@ -472,11 +472,14 @@ namespace prounk {
 		EngineObject* obj = getSeenObject();
 		if (obj) {
 			if (obj->getObjectType() == OBJECT_ITEM) {
-				ObjectItemInfo& info = app->getActiveSession()->objectInfoRegistry.getItemInfo(obj->getObjectInfo());
-				hoveredItem = info.item.getDisplayName();
+				auto oinfo = app->getActiveSession()->objectInfoRegistry.getItemInfo(obj->getObjectInfo());
+				if (!oinfo) {
+					log::out << log::RED << "PlayerController::Input : hovered item has null info\n";
+				} else {
+					hoveredItem = oinfo->item.getDisplayName();
+				}
 			}
 		}
-		 
 		//if (IsKeyPressed(GLFW_KEY_E)) {
 		if (IsKeyDown(GLFW_KEY_E)) {
 			pickupItem(obj);
@@ -501,17 +504,17 @@ namespace prounk {
 				plr->getRigidBody()->setTransform({}); // reset position too
 				plr->getWorld()->unlockPhysics();
 
-				playerCombat->health = playerCombat->getMaxHealth();
-				app->getActiveSession()->netEditHealth(plr, playerCombat->health);
+				playerCombat->setHealth(playerCombat->getMaxHealth());
+				app->getActiveSession()->netEditHealth(plr, playerCombat->getHealth());
 			}
 		}
 		if (IsKeyPressed(GLFW_KEY_K)) {
-			playerCombat->health = 0; // kill player
-			app->getActiveSession()->netEditHealth(plr, playerCombat->health);
+			playerCombat->setHealth(0); // kill player
+			app->getActiveSession()->netEditHealth(plr, playerCombat->getHealth());
 		}
 		if (IsKeyPressed(GLFW_KEY_L)) {
-			playerCombat->health = playerCombat->getMaxHealth();
-			app->getActiveSession()->netEditHealth(plr, playerCombat->health);
+			playerCombat->setHealth(playerCombat->getMaxHealth());
+			app->getActiveSession()->netEditHealth(plr, playerCombat->getHealth());
 		}
 		performSkills(info);
 		releasePlayer(plr);
@@ -620,7 +623,7 @@ namespace prounk {
 
 		// death logic
 		CombatData* combatData = GetCombatData(plr);
-		if (combatData->health == 0 && deathTime == 0) {
+		if (combatData->getHealth() == 0 && deathTime == 0) {
 			//log::out << "Kill player\n";
 			// kill player
 			deathTime = 5; // respawn time
@@ -661,12 +664,12 @@ namespace prounk {
 				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
 				plr->getRigidBody()->setTransform({}); // reset position
 				plr->getWorld()->unlockPhysics();
-				combatData->health = combatData->getMaxHealth();
-				app->getActiveSession()->netEditHealth(plr, combatData->health);
+				combatData->setHealth(combatData->getMaxHealth());
+				app->getActiveSession()->netEditHealth(plr, combatData->getHealth());
 			}
 		}
 		// Death camera
-		if (combatData->health == 0) {
+		if (combatData->getHealth() == 0) {
 			glm::vec3 pos = plr->getPosition();
 			CommonRenderer* renderer = GET_COMMON_RENDERER();
 			if (!renderer) {
@@ -709,11 +712,11 @@ namespace prounk {
 				}
 			} else {
 				if (IsKeybindingDown(KeyJump)) {
-					auto& oinfo = GetSession(plr)->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
-					if (oinfo.onGround) {
+					auto oinfo = GetSession(plr)->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+					if (oinfo->onGround) {
 						if (jumpTime == 0) {
 							moveDir.y += jumpForce;
-							oinfo.onGround = false;
+							oinfo->onGround = false;
 							jumpTime = jumpDelay;
 						}
 					}

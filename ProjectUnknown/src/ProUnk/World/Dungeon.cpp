@@ -58,8 +58,8 @@ namespace prounk {
 			//Session* session = ((Dimension*)trigger0->getWorld()->getUserData())->getParent();
 			//auto& oinfo = session->objectInfoRegistry.getTriggerInfo(trigger0->getObjectInfo());
 			//log::out << "info "<<trigger0->getObjectInfo() << "\n";
-			auto& oinfo = GetTriggerInfo(trigger0);
-			for (auto& u : oinfo.collisions) { // Todo: Bug in multiplayer if you add to many swords
+			auto oinfo = GetTriggerInfo(trigger0);
+			for (auto& u : oinfo->collisions) { // Todo: Bug in multiplayer if you add to many swords
 				auto obj = m_dimension->getWorld()->requestAccess(u);
 				if (obj) {
 					//if (obj->getObjectType() == OBJECT_PLAYER) {
@@ -76,8 +76,8 @@ namespace prounk {
 			}
 		}
 		if (trigger1) {
-			auto& oinfo = GetTriggerInfo(trigger1);
-			for (auto& u : oinfo.collisions) {
+			auto oinfo = GetTriggerInfo(trigger1);
+			for (auto& u : oinfo->collisions) {
 				auto obj = m_dimension->getWorld()->requestAccess(u);
 				if (obj) {
 					if (IsObject(obj,OBJECT_CREATURE)) {

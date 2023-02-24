@@ -14,20 +14,32 @@ namespace prounk {
 		ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
 		ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
 
-		availableItems.push_back(Item(sword, 1));
-		ComplexData* data = availableItems.back().getComplexData();
-		data->set(atk,25.f);
-		data->set(knock,0.2f);
+		Item tmp = { sword,1 };
+		Item* item = 0;
+		availableItems.add(&tmp,(void**)&item);
+		//availableItems.push_back(Item(sword, 1));
+		//ComplexData* data = availableItems.back().getComplexData();
+		item->getComplexData()->set(atk,25.f);
+		item->getComplexData()->set(knock,0.2f);
 
-		availableItems.push_back(Item(dagger, 1));
-		data = availableItems.back().getComplexData();
-		data->set(atk, 15);
-		data->set(knock, 0.1f);
+		Item* ditem = 0;
+		tmp = { dagger,1 };
+		availableItems.add(&tmp, (void**)&ditem);
+		//availableItems.push_back(Item(dagger, 1));
+		//data = availableItems.back().getComplexData();
+		item->getComplexData()->set(atk, 15);
+		item->getComplexData()->set(knock, 0.1f);
 
-		availableItems.push_back(Item(spear, 1));
-		data = availableItems.back().getComplexData();
-		data->set(atk, 40.f);
-		data->set(knock, 0.3f);
+		Item* sitem = 0;
+		tmp = { spear,1 };
+		availableItems.add(&tmp, (void**)&sitem);
+
+		Item* ehm = (Item*)availableItems.get(0);
+
+		//availableItems.push_back(Item(spear, 1));
+		//data = availableItems.back().getComplexData();
+		item->getComplexData()->set(atk, 40.f);
+		item->getComplexData()->set(knock, 0.3f);
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
@@ -63,19 +75,24 @@ namespace prounk {
 		}
 
 		for (int i = 0; i < availableItems.size(); i++) {
-			Item& item = availableItems[i];
-			if (item.getType() == 0) {
-				availableItems.erase(availableItems.begin() + i);
+			Item* item = (Item*)availableItems.get(i);
+			//if (item) {
+			//	log::out << "item "<<item->getDisplayName()<<"\n";
+			//}
+			if (item->getType() == 0) {
+				item->~Item();
+				availableItems.remove(i);
+				//availableItems.erase(availableItems.begin() + i);
 				i--;
 				continue;
 			}
 
 			if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-				item.setCount(100);
+				item->setCount(100);
 			} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-				item.setCount(10);
+				item->setCount(10);
 			} else {
-				item.setCount(1);
+				item->setCount(1);
 			}
 
 			float pixelX = area.x+i * itemSize;
@@ -92,7 +109,7 @@ namespace prounk {
 				if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 					uint32_t slot = inv->findAvailableSlot(item);
 					if (slot != -1) {
-						bool yes = item.copy(inv->getItem(slot));
+						bool yes = item->copy(*inv->getItem(slot));
 						if (yes) {
 							itemSlot = i;
 							animTime = maxAnimTime;
@@ -106,13 +123,13 @@ namespace prounk {
 			float pixelX = area.x + hoveredItem*itemSize;
 			float pixelY = area.y;
 
-			Item& item = availableItems[hoveredItem];
+			Item* item = (Item*)availableItems.get(hoveredItem);
 			if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-				item.setCount(100);
+				item->setCount(100);
 			} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-				item.setCount(10);
+				item->setCount(10);
 			} else {
-				item.setCount(1);
+				item->setCount(1);
 			}
 			DrawItemToolTip(pixelX, pixelY, itemSize, item);
 		}

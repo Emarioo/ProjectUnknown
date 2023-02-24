@@ -39,12 +39,13 @@ namespace engone {
 	void Logger::cleanup() {
 		flush();
 		
-		for (auto& [k, v] : m_threadInfos) {
-			v.lineBuffer.resize(0);
+		for (auto& pair : m_threadInfos) {
+			
+			pair.second.lineBuffer.resize(0);
 		}
 		m_threadInfos.clear();
-		for(auto& [k,v] : m_logFiles){
-			FileClose(v);
+		for(auto& pair : m_logFiles){
+			FileClose(pair.second);
 		}
 		m_logFiles.clear();
 	}

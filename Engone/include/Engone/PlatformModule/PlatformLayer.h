@@ -55,6 +55,7 @@ namespace PL_NAMESPACE {
 		FILE_NO_FLAG=0,
 		FILE_ONLY_READ=1,
 		FILE_CAN_CREATE=2,
+		FILE_WILL_CREATE=4,
 	};
 
 	// Returns 0 if function failed
@@ -64,7 +65,7 @@ namespace PL_NAMESPACE {
 	// -1 means error with read
 	uint64 FileRead(APIFile* file, void* buffer, uint64 readBytes);
 	// @return Number of bytes written. -1 indicates an error
-	uint64 FileWrite(APIFile* file, void* buffer, uint64 writeBytes);
+	uint64 FileWrite(APIFile* file, const void* buffer, uint64 writeBytes);
 	// @return True if successful, false if not
 	// position as -1 will move the head to end of file.
 	bool FileSetHead(APIFile* file, uint64 position);

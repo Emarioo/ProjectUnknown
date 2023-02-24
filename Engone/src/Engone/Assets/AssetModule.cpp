@@ -412,11 +412,14 @@ namespace engone {
 	}
 	void AssetProcessor::queue(AssetTask task) {
 		//ENGONE_DEBUG(log::out << "Queue Task: " << task.asset->getPath() << " " << (Asset::LoadFlag)task.asset->m_flags << "\n", ASSET_LEVEL, 1)
-		std::lock_guard lk(m_waitMutex);
+		//std::lock_guard lk(m_waitMutex);
+		m_waitMutex.lock();
+		// Todo: Do mutex
 		m_queueMutex.lock();
 		m_queue.push_back(task);
 		m_queueMutex.unlock();
 		m_wait.notify_one();
+		m_waitMutex.unlock();
 	}
 	int AssetProcessor::numQueuedTasks() {
 		m_queueMutex.lock();

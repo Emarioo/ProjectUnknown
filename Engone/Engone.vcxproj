@@ -1,20 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug Windows|x64">
-      <Configuration>Debug Windows</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug GCC|x64">
-      <Configuration>Debug GCC</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release Windows|x64">
-      <Configuration>Release Windows</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release GCC|x64">
-      <Configuration>Release GCC</Configuration>
+    <ProjectConfiguration Include="Debug-MSVC|x64">
+      <Configuration>Debug-MSVC</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -25,25 +13,7 @@
     <RootNamespace>Engone</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Windows|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GCC|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Windows|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GCC|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-MSVC|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
@@ -52,44 +22,17 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug Windows|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug GCC|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release Windows|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release GCC|x64'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug-MSVC|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Windows|x64'">
-    <OutDir>..\bin\Engone\windows-Debug\</OutDir>
-    <IntDir>..\bin\intermediates\Engone\windows-Debug\Windows\</IntDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-MSVC|x64'">
+    <OutDir>..\bin\Engone\windows-Debug-MSVC\</OutDir>
+    <IntDir>..\bin\intermediates\Engone\windows-Debug-MSVC\</IntDir>
     <TargetName>Engone</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug GCC|x64'">
-    <OutDir>..\bin\Engone\windows-Debug\</OutDir>
-    <IntDir>..\bin\intermediates\Engone\windows-Debug\GCC\</IntDir>
-    <TargetName>Engone</TargetName>
-    <TargetExt>.lib</TargetExt>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Windows|x64'">
-    <OutDir>..\bin\Engone\windows-Release\</OutDir>
-    <IntDir>..\bin\intermediates\Engone\windows-Release\Windows\</IntDir>
-    <TargetName>Engone</TargetName>
-    <TargetExt>.lib</TargetExt>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release GCC|x64'">
-    <OutDir>..\bin\Engone\windows-Release\</OutDir>
-    <IntDir>..\bin\intermediates\Engone\windows-Release\GCC\</IntDir>
-    <TargetName>Engone</TargetName>
-    <TargetExt>.lib</TargetExt>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Windows|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-MSVC|x64'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
@@ -101,79 +44,6 @@
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <ExternalWarningLevel>Level3</ExternalWarningLevel>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\bin\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug GCC|x64'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VISUAL_STUDIO;ENGONE_PHYSICS;ENGONE_OPENGL;GLEW_STATIC;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;..\libs\GLFW\include;..\libs\GLEW\include;..\libs\reactphysics3d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>Engone\pch.h;Engone\ModuleDefs.h</ForcedIncludeFiles>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <ExternalWarningLevel>Level3</ExternalWarningLevel>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\bin\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Windows|x64'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VISUAL_STUDIO;ENGONE_PHYSICS;ENGONE_OPENGL;GLEW_STATIC;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;..\libs\GLFW\include;..\libs\GLEW\include;..\libs\reactphysics3d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>Engone\pch.h;Engone\ModuleDefs.h</ForcedIncludeFiles>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <ExternalWarningLevel>Level3</ExternalWarningLevel>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>Ws2_32.lib;gdi32.lib;user32.lib;shell32.lib;opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\bin\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release GCC|x64'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Engone/pch.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VISUAL_STUDIO;ENGONE_PHYSICS;ENGONE_OPENGL;GLEW_STATIC;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>include;..\libs\GLFW\include;..\libs\GLEW\include;..\libs\reactphysics3d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ForcedIncludeFiles>Engone\pch.h;Engone\ModuleDefs.h</ForcedIncludeFiles>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
@@ -200,7 +70,6 @@
     <ClInclude Include="include\Engone\Assets\ShaderAsset.h" />
     <ClInclude Include="include\Engone\Assets\TextureAsset.h" />
     <ClInclude Include="include\Engone\Core\ExecutionControl.h" />
-    <ClInclude Include="include\Engone\Core\TaskHandler.h" />
     <ClInclude Include="include\Engone\EngineObject.h" />
     <ClInclude Include="include\Engone\Engone.h" />
     <ClInclude Include="include\Engone\Error.h" />
@@ -220,6 +89,8 @@
     <ClInclude Include="include\Engone\Networking\Sender.h" />
     <ClInclude Include="include\Engone\Networking\Server.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\PlatformLayer.h" />
+    <ClInclude Include="include\Engone\PlatformModule\GameMemory.h" />
     <ClInclude Include="include\Engone\PlatformModule\PlatformLayer.h" />
     <ClInclude Include="include\Engone\Profiling\Profiler.h" />
     <ClInclude Include="include\Engone\Profiling\ScopeTimer.h" />
@@ -236,11 +107,13 @@
     <ClInclude Include="include\Engone\Sound\SoundStream.h" />
     <ClInclude Include="include\Engone\SoundModule.h" />
     <ClInclude Include="include\Engone\Structures\Array.h" />
+    <ClInclude Include="include\Engone\Structures\BinaryTree.h" />
     <ClInclude Include="include\Engone\Structures\FrameArray.h" />
     <ClInclude Include="include\Engone\Structures\HashMap.h" />
     <ClInclude Include="include\Engone\Structures\LinkedArray.h" />
     <ClInclude Include="include\Engone\Structures\StableArray.h" />
     <ClInclude Include="include\Engone\Structures\Stack.h" />
+    <ClInclude Include="include\Engone\Structures\String.h" />
     <ClInclude Include="include\Engone\Tests\BasicRendering.h" />
     <ClInclude Include="include\Engone\Utilities\Alloc.h" />
     <ClInclude Include="include\Engone\Utilities\ImageUtility.h" />
@@ -288,6 +161,7 @@
     <ClCompile Include="src\Engone\LogModule\Logger.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\ParticleModule.cpp" />
+    <ClCompile Include="src\Engone\PlatformModule\GameMemory.cpp" />
     <ClCompile Include="src\Engone\PlatformModule\Linux.cpp" />
     <ClCompile Include="src\Engone\PlatformModule\Win32.cpp" />
     <ClCompile Include="src\Engone\Profiling\Profiler.cpp" />
@@ -302,10 +176,13 @@
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
+    <ClCompile Include="src\Engone\Structures\Array.cpp" />
+    <ClCompile Include="src\Engone\Structures\BinaryTree.cpp" />
     <ClCompile Include="src\Engone\Structures\FrameArray.cpp" />
     <ClCompile Include="src\Engone\Structures\HashMap.cpp" />
     <ClCompile Include="src\Engone\Structures\StableArray.cpp" />
     <ClCompile Include="src\Engone\Structures\Stack.cpp" />
+    <ClCompile Include="src\Engone\Structures\String.cpp" />
     <ClCompile Include="src\Engone\Tests\BasicRendering.cpp" />
     <ClCompile Include="src\Engone\Utilities\Alloc.cpp" />
     <ClCompile Include="src\Engone\Utilities\Error.cpp" />

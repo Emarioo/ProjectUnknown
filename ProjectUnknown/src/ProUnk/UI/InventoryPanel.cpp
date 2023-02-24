@@ -100,7 +100,7 @@ namespace prounk {
 			// should also remove slots if necessary
 			int hoveredSlot = -1;
 			for (int i = 0; i < inv->getSlotSize(); i++) {
-				Item& item = inv->getItem(i);
+				Item* item = inv->getItem(i);
 				
 				int pixelSize = slotSize - 8;
 
@@ -118,17 +118,17 @@ namespace prounk {
 					Item& heldItem = m_app->masterInventoryPanel->getItem();
 					if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
 						if (heldItem.getType() == 0) {
-							item.transfer(heldItem);
+							item->transfer(heldItem);
 						} else {
-							bool yes = heldItem.transfer(item);
+							bool yes = heldItem.transfer(*item);
 							if (!yes) {
-								heldItem.swap(item);
+								heldItem.swap(*item);
 							}
 						}
 					}
 					if (IsKeyPressed(GLFW_MOUSE_BUTTON_2)) {
 						if (heldItem.getType() == 0) {
-							item.transfer(heldItem, item.getCount() / 2);
+							item->transfer(heldItem, item->getCount() / 2);
 						} else {
 							int transferAmount = 1;
 							if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
@@ -139,13 +139,13 @@ namespace prounk {
 							}
 							if (transferAmount > heldItem.getCount())
 								transferAmount = heldItem.getCount();
-							heldItem.transfer(item, transferAmount);
+							heldItem.transfer(*item, transferAmount);
 						}
 					}
 				}
 
 				DrawSlot(pixelX, pixelY, slotSize);
-				if(item.getType())
+				if(item->getType())
 					DrawItem(pixelX, pixelY, slotSize, item);
 			}
 			if (hoveredSlot != -1) {
@@ -158,7 +158,7 @@ namespace prounk {
 				pixelX += slotX;
 				pixelY += slotY;
 				
-				Item& item = inv->getItem(hoveredSlot);
+				Item* item = inv->getItem(hoveredSlot);
 				//log::out << item.getType()<<"\n";
 				DrawItemToolTip(pixelX, pixelY, slotSize, item);
 			}

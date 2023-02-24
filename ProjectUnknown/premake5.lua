@@ -2,10 +2,10 @@ project "ProjectUnknown"
     kind "ConsoleApp"
     -- kind "WindowedApp"
     language "C++"
-    cppdialect "C++17"
+    cppdialect "C++11"
     staticruntime "on"
     symbols "On"
-    toolset "gcc"
+    -- toolset "gcc"
     
     buildoptions {"-g"}
     

@@ -87,7 +87,7 @@ namespace engone {
 
 			std::string logReport;
 
-			Memory lineBuffer{1};
+			Memory lineBuffer{1,ALLOC_TYPE_HEAP};
 
 			// ensure free space
 			char* ensure(uint32 bytes);

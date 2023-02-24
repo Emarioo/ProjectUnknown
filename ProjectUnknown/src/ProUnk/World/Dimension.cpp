@@ -33,7 +33,7 @@ namespace prounk {
 		}
 		//log::out << "Pos " << obj->getPosition() << "\n";
 		//-- Is Dummy dead?
-		if (combatData->health == 0) {
+		if (combatData->getHealth() == 0) {
 
 			DropInventory(obj); // does this happen for dummy on client and server because that may lead to double items.
 			// maybe respawn dummy?
@@ -46,25 +46,25 @@ namespace prounk {
 		combatData->attack(); // attacks every tick.
 
 		//-- Last damaged
-		if (combatData->health != combatData->lastHealth) {
+		if (combatData->getHealth() != combatData->lastHealth) {
 			combatData->lastDamagedSeconds = 0;
-			combatData->lastHealth = combatData->health;
+			combatData->lastHealth = combatData->getHealth();
 		} else {
 			combatData->lastDamagedSeconds += info.timeStep;
 		}
 
 		//-- Auto heal
 		if (combatData->lastDamagedSeconds > 5) {
-			if (combatData->health < combatData->getMaxHealth()) {
-				combatData->health += 20 * info.timeStep;
-				if (combatData->health > combatData->getMaxHealth())
-					combatData->health = combatData->getMaxHealth();
-				combatData->lastHealth = combatData->health;
-				getParent()->netEditHealth(obj, combatData->health);
+			if (combatData->getHealth() < combatData->getMaxHealth()) {
+				combatData->setHealth(combatData->getHealth() + 20 * info.timeStep);
+				if (combatData->getHealth() > combatData->getMaxHealth())
+					combatData->setHealth(combatData->getMaxHealth());
+				combatData->lastHealth = combatData->getHealth();
+				getParent()->netEditHealth(obj, combatData->getHealth());
 			}
 		}
 		
-		if (combatData->health < combatData->getMaxHealth() * 0.35) {
+		if (combatData->getHealth() < combatData->getMaxHealth() * 0.35) {
 			// flee
 			combatData->target = 0;
 
@@ -76,7 +76,7 @@ namespace prounk {
 			while (obj2 = iterator.next()) {
 				if (obj2->getObjectType() == OBJECT_PLAYER) {
 					CombatData* combatData = GetCombatData(obj2);
-					if (combatData->health != 0) { // player isn't dead
+					if (combatData->getHealth() != 0) { // player isn't dead
 						float leng = glm::length(obj->getPosition() - obj2->getPosition());
 						if (leng < minDist || !plr) {
 							plr = obj2;
@@ -118,7 +118,7 @@ namespace prounk {
 				EngineObject* plr = getWorld()->requestAccess(combatData->target);
 				if (plr) {
 					CombatData* targetData = GetCombatData(plr);
-					if (targetData->health == 0) {
+					if (targetData->getHealth() == 0) {
 						combatData->target = 0;
 					}
 					getWorld()->releaseAccess(combatData->target);
@@ -138,13 +138,13 @@ namespace prounk {
 				while (obj2 = iterator.next()) {
 					if (obj2->getObjectType() == OBJECT_PLAYER) {
 						CombatData* combatData = GetCombatData(obj2);
-						if (combatData->health != 0) { // player isn't dead
+						if (combatData->getHealth() != 0) { // player isn't dead
 							float score=0;
 							if(findClosest)
 								score += glm::length(obj->getPosition() - obj2->getPosition());
 								//score += closestScore * glm::length(obj->getPosition() - obj2->getPosition());
 							else
-								score += combatData->health;
+								score += combatData->getHealth();
 								//score += (1- closestScore) * combatData->health*combatData->health/100;
 							if (score < bestScore || !plr) {
 								plr = obj2;
@@ -266,8 +266,8 @@ namespace prounk {
 				if (obj->getObjectType() == OBJECT_PLAYER) {
 					if (obj->getFlags() & Session::OBJECT_NETMOVE) { // this client is responsible for the player
 						Session* session = getParent();
-						auto& oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
-						oinfo.combatData.health = 0;
+						auto oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
+						oinfo->combatData.setHealth(0);
 						session->netEditHealth(obj, 0);
 
 						//Session* session = getParent();
@@ -321,8 +321,8 @@ namespace prounk {
 		//iterator->restart();
 		while (obj = iterator.next()) {
 			if (obj->getObjectType() == OBJECT_TRIGGER) {
-				auto& oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj->getObjectInfo());
-				oinfo.collisions.clear();
+				auto oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(obj->getObjectInfo());
+				oinfo->collisions.clear();
 				continue;
 			}
 			
@@ -339,8 +339,8 @@ namespace prounk {
 			//}
 
 			if (obj->getObjectType() & OBJECT_CREATURE) {
-				auto& oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
-				oinfo.onGround = false;
+				auto oinfo = ((Dimension*)obj->getWorld()->getUserData())->getParent()->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
+				oinfo->onGround = false;
 				//log::out << "start2 " << oinfo.onGround << "\n";
 			}
 		}
