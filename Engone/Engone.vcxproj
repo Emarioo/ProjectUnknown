@@ -200,7 +200,6 @@
     <ClInclude Include="include\Engone\Assets\ShaderAsset.h" />
     <ClInclude Include="include\Engone\Assets\TextureAsset.h" />
     <ClInclude Include="include\Engone\Core\ExecutionControl.h" />
-    <ClInclude Include="include\Engone\Core\TaskHandler.h" />
     <ClInclude Include="include\Engone\EngineObject.h" />
     <ClInclude Include="include\Engone\Engone.h" />
     <ClInclude Include="include\Engone\Error.h" />
@@ -220,6 +219,8 @@
     <ClInclude Include="include\Engone\Networking\Sender.h" />
     <ClInclude Include="include\Engone\Networking\Server.h" />
     <ClInclude Include="include\Engone\ParticleModule.h" />
+    <ClInclude Include="include\Engone\PlatformLayer.h" />
+    <ClInclude Include="include\Engone\PlatformModule\GameMemory.h" />
     <ClInclude Include="include\Engone\PlatformModule\PlatformLayer.h" />
     <ClInclude Include="include\Engone\Profiling\Profiler.h" />
     <ClInclude Include="include\Engone\Profiling\ScopeTimer.h" />
@@ -236,6 +237,7 @@
     <ClInclude Include="include\Engone\Sound\SoundStream.h" />
     <ClInclude Include="include\Engone\SoundModule.h" />
     <ClInclude Include="include\Engone\Structures\Array.h" />
+    <ClInclude Include="include\Engone\Structures\BinaryTree.h" />
     <ClInclude Include="include\Engone\Structures\FrameArray.h" />
     <ClInclude Include="include\Engone\Structures\HashMap.h" />
     <ClInclude Include="include\Engone\Structures\LinkedArray.h" />
@@ -288,6 +290,7 @@
     <ClCompile Include="src\Engone\LogModule\Logger.cpp" />
     <ClCompile Include="src\Engone\Networking\NetworkModule.cpp" />
     <ClCompile Include="src\Engone\ParticleModule.cpp" />
+    <ClCompile Include="src\Engone\PlatformModule\GameMemory.cpp" />
     <ClCompile Include="src\Engone\PlatformModule\Linux.cpp" />
     <ClCompile Include="src\Engone\PlatformModule\Win32.cpp" />
     <ClCompile Include="src\Engone\Profiling\Profiler.cpp" />
@@ -302,6 +305,7 @@
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundStream.cpp" />
+    <ClCompile Include="src\Engone\Structures\BinaryTree.cpp" />
     <ClCompile Include="src\Engone\Structures\FrameArray.cpp" />
     <ClCompile Include="src\Engone\Structures\HashMap.cpp" />
     <ClCompile Include="src\Engone\Structures\StableArray.cpp" />

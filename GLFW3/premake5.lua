@@ -13,15 +13,15 @@ project "glfw3"
     
     defines {"GLFW_BUILD_WIN32","_GLFW_WIN32","_WIN32"}
 
-    -- files {"glfw-3.3.8/src/**.c","glfw-3.3.8/include/**.h"}
-    files {"__glfw/src/**.c","__glfw/include/**.h"}
+    files {"glfw-3.3.8/src/**.c","glfw-3.3.8/include/**.h"}
+    -- files {"__glfw/src/**.c","__glfw/include/**.h"}
 
     -- win32 is not removed
     removefiles{"**posix**","**cocoa**","**nsgl**","**glx**","**x11**","**xkb**","**wl**","**linux**"}
     removefiles{"**null**"}
    
-    includedirs {"__glfw/include"}
-    -- includedirs {"glfw-3.3.8/include"}
+    -- includedirs {"__glfw/include"}
+    includedirs {"glfw-3.3.8/include"}
 
     links {"gdi32"}
 

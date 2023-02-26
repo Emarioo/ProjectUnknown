@@ -103,6 +103,13 @@ namespace PL_NAMESPACE {
     
 	void SetConsoleColor(uint16 color);
 
+	struct PlatformError{
+		uint32 errorType;
+		std::string message; // fixed size?
+	};
+	bool PollError(PlatformError* out);
+	void TestPlatformErrors();
+
     typedef uint32 ThreadId;
 	class Thread {
 	public:

@@ -1,0 +1,57 @@
+[13:16:16] [Thread 19220] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[13:16:16] [Thread 19220] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[13:16:16] [Thread 19220] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[13:16:16] [Thread 19220] AnimationAsset::cleanup - not implemented
+[13:16:16] [Thread 19220] AnimationAsset::cleanup - not implemented
+[13:16:16] [Thread 19220] AnimationAsset::cleanup - not implemented
+[13:16:16] [Thread 19220] GameApp : CLEANUP NOT IMPLEMENTED
+[13:16:16] [Thread 19220] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[13:16:16] [Thread 19220] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[13:16:16] [Thread 19220] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 23, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 3, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 4, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 5, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 6, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 7, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 8, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 9, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 10, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 11, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 12, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 13, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 14, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 15, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 16, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 17, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 18, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 19, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 20, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 21, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 22, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 1, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 2, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 24, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 25, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 26, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 27, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 28, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 29, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 30, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 31, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 32, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 33, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 34, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 35, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 36, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 37, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 38, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 39, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 40, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 41, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 42, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 43, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 44, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 45, did you forget to free memory?
+[13:16:17] [Thread 19220] EngineObject::cleanup - Object Info is 46, did you forget to free memory?

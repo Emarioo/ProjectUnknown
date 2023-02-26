@@ -23,7 +23,9 @@ void runApp(int argc, char** argv) {
 	
 	// log::out << "Broken?\n";
 	
-	GameMemoryTest();
+	// GameMemoryTest();
+
+	TestPlatformErrors();
 	
 	return;
 	// auto tp = MeasureSeconds();
