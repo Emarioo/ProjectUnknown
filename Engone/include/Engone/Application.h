@@ -69,8 +69,8 @@ namespace engone {
 
 #ifdef ENGONE_PHYSICS
 		rp3d::PhysicsCommon* getPhysicsCommon();
-		void lockCommon() { m_commonMutex.lock(); }
-		void unlockCommon() { m_commonMutex.unlock(); }
+		//void lockCommon() { m_commonMutex.lock(); }
+		//void unlockCommon() { m_commonMutex.unlock(); }
 #endif
 
 		ExecutionControl& getControl() { return updateControl; }
@@ -107,9 +107,9 @@ namespace engone {
 		Profiler m_profiler{};
 
 #ifdef ENGONE_PHYSICS
-		Mutex m_commonMutex;
+		//Mutex m_commonMutex;
 		// DepthMutex m_commonMutex;
-		rp3d::PhysicsCommon* m_physicsCommon = nullptr;
+		//rp3d::PhysicsCommon* m_physicsCommon = nullptr;
 #endif
 		friend class Engone;
 		friend class Window;

@@ -5,7 +5,7 @@ project "rp3d"
     staticruntime "on"
     symbols "On"
     
-    toolset "gcc"
+    -- toolset "gcc"
     
     -- buildoptions {"-g"}
     

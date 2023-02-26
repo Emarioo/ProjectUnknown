@@ -115,9 +115,9 @@ namespace prounk {
 		int index = 1;
 		while (obj = iterator.next()) {
 			if (obj->getObjectType() & OBJECT_CREATURE) {
-				auto& oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
+				auto oinfo = session->objectInfoRegistry.getCreatureInfo(obj->getObjectInfo());
 				
-				if (!oinfo.displayName.empty()) {
+				if (!oinfo->displayName.empty()) {
 					glm::vec3 modelPos = obj->getInterpolatedMat4(info.interpolation)[3];
 					glm::vec3 pos3 = modelPos + glm::vec3(0, obj->getModel()->boundingPoint.y + obj->getModel()->boundingRadius, 0);
 					//obj->getModel()->boundingPoint
@@ -129,7 +129,7 @@ namespace prounk {
 					ui::Color col = { 1 };
 					if (pos.z > 0) {
 						float h = th / pos.z;
-						float w = consolas->getWidth(oinfo.displayName, h);
+						float w = consolas->getWidth(oinfo->displayName, h);
 
 						float x = GetWidth() * (0.5 + pos.x / pos.z / 2) - w / 2;
 						float y = GetHeight() * (0.5 - pos.y / pos.z / 2) - h / 2;
@@ -143,7 +143,7 @@ namespace prounk {
 						shader->setInt("uColorMode", 0);
 						renderer->drawQuad(info);
 
-						float healthP = oinfo.combatData.health/oinfo.combatData.getMaxHealth();
+						float healthP = oinfo->combatData.getHealth() / oinfo->combatData.getMaxHealth();
 
 						shader->setVec4("uColor", { 1.f,0,0,0.5 });
 						shader->setVec2("uPos", { x - paddingHealth, y - paddingHealth });
@@ -158,7 +158,7 @@ namespace prounk {
 						shader->setVec2("uPos", { x, y });
 						shader->setVec4("uColor", col.toVec4());
 
-						renderer->drawString(consolas, oinfo.displayName, h, -1);
+						renderer->drawString(consolas, oinfo->displayName, h, -1);
 					}
 				}
 			}

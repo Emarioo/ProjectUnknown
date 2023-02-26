@@ -5,6 +5,8 @@
 #include "Engone/ParticleModule.h"
 
 #include "Engone/Structures/FrameArray.h"
+#include "Engone/Structures/Array.h"
+#include "Engone/Structures/HashMap.h"
 
 namespace engone {
 
@@ -26,7 +28,8 @@ namespace engone {
 		void finish();
 
 	private:
-		FrameArray<EngineObject>::Iterator m_iterator;
+		FrameArray::Iterator m_iterator;
+		//FrameArray<EngineObject>::Iterator m_iterator;
 		EngineWorld* m_world = nullptr;
 
 		friend class EngineWorld;
@@ -74,9 +77,11 @@ namespace engone {
 
 		void addParticleGroup(ParticleGroupT* group);
 
-		inline std::vector<ParticleGroupT*>& getParticleGroups() { return m_particleGroups; };
+		inline Array& getParticleGroups() { return m_particleGroups; };
 
 		void update(LoopInfo& info);
+
+		EngineObject* getObject(UUID uuid);
 
 #ifdef ENGONE_PHYSICS
 		// does a raycast and returns an array with hit objects.
@@ -111,22 +116,27 @@ namespace engone {
 		//std::vector<EngineObjectIterator*> m_iterators;
 
 		// you may want to make an entity component system or something
-		std::vector<ParticleGroupT*> m_particleGroups;
+		//std::vector<ParticleGroupT*> m_particleGroups;
+
+		Array m_particleGroups{sizeof(ParticleGroupT*),ALLOC_TYPE_GAME_MEMORY};
 
 		Mutex m_objectsMutex;
-		FrameArray<EngineObject> m_objects = { 8 }; // number stands for how many objects in one frame
+		FrameArray m_objects = { sizeof(EngineObject),32,ALLOC_TYPE_GAME_MEMORY }; // number stands for how many objects in one frame
+		//FrameArray<EngineObject> m_objects = { 8 }; // number stands for how many objects in one frame
 		//FrameArray<EngineObject> m_objects = { 64 }; // number stands for how many objects in one frame
 		
 		//std::vector<EngineObject*> m_objects;
 
-		struct ObjectDetail {
-			EngineObject* object = nullptr;
-			int waitingThreads = 0;
-			bool pendingDelete = false;
-			int lockingDepth=0;
-		};
-		Mutex m_objectMapMutex;
-		std::unordered_map<UUID, ObjectDetail> m_objectMap;
+		//struct ObjectDetail {
+		//	EngineObject* object = nullptr;
+		//	int waitingThreads = 0;
+		//	bool pendingDelete = false;
+		//	int lockingDepth=0;
+		//};
+		//Mutex m_objectMapMutex;
+		//std::unordered_map<UUID, ObjectDetail> m_objectMap;
+
+		//HashMap m_objectMap{sizeof(ObjectDetail),ALLOC_TYPE_GAME_MEMORY,50};
 
 		Application* m_app=nullptr;
 

@@ -4,10 +4,10 @@
 
 namespace prounk {
 
-	void DrawItem(float x, float y, float size, Item item) {
+	void DrawItem(float x, float y, float size, Item* item) {
 		using namespace engone;
 
-		if (!item.getType())
+		if (!item->getType())
 			return;
 
 		auto win = engone::GetActiveWindow();
@@ -17,7 +17,7 @@ namespace prounk {
 			log::out << log::RED<<"InvUtility DrawItem missing session\n";
 			return;
 		}
-		ModelId id = item.getModelId();
+		ModelId id = item->getModelId();
 		engone::ModelAsset* asset = session->modelRegistry.getModel(id);
 		if (!asset) {
 			return;
@@ -53,7 +53,7 @@ namespace prounk {
 
 		const ui::Color counterColor = { 1.f };
 		//ui::TextBox counter = {"|",0,0,size*0.5,consolas,counterColor};
-		ui::TextBox counter = {std::to_string(item.getCount()),0,0,size*0.5f,consolas,counterColor};
+		ui::TextBox counter = {std::to_string(item->getCount()),0,0,size*0.5f,consolas,counterColor};
 		float wid = counter.getWidth();
 		float some = 1.1f;
 		counter.x = pixelX + size*some-wid*some;
@@ -153,10 +153,10 @@ namespace prounk {
 			ui::Draw(descText);
 		}
 	}
-	void DrawItemToolTip(float x, float y, float itemSize, Item& item) {
+	void DrawItemToolTip(float x, float y, float itemSize, Item* item) {
 		using namespace engone;
 
-		if (item.getType() == 0)
+		if (item->getType() == 0)
 			return;
 
 		Window* win = engone::GetActiveWindow();
@@ -173,12 +173,12 @@ namespace prounk {
 		GameApp* app = (GameApp*)win->getParent();
 		Session* session = app->getActiveSession();
 
-		const ItemTypeInfo* typeInfo = session->itemTypeRegistry.getType(item.getType());
+		const ItemTypeInfo* typeInfo = session->itemTypeRegistry.getType(item->getType());
 		if (!typeInfo)
 			return;
 
 		char str[50];
-		snprintf(str, sizeof(str), "%s (%dx)", item.getDisplayName().c_str(), item.getCount());
+		snprintf(str, sizeof(str), "%s (%dx)", item->getDisplayName().c_str(), item->getCount());
 		
 		ui::TextBox standardInfo = { str,0,0,20,consolas,standardColor };
 
@@ -187,13 +187,15 @@ namespace prounk {
 		std::vector<ui::TextBox> propTexts;
 		float propHeight = 0;
 		
-		auto complexData = item.getComplexData();
+		auto complexData = item->getComplexData();
 		//auto complexData = session->complexDataRegistry.getData(item.getComplexData());
 		if (complexData) {
 			auto& list = complexData->getList();
 			for (int i = 0; i < list.size();i++) {
-				uint32_t key = list[i].prop;
-				float value = list[i].value;
+#define CAST(T,N) T N = (T)
+				CAST(ComplexData::Entry*, entry) list.get(i);
+				uint32_t key = entry->prop;
+				float value = entry->value;
 				ComplexPropertyType* prop = session->complexDataRegistry.getProperty(key);
 				if (!prop) {
 					log::out << log::RED << "DrawItemTooltip : " << key << " is not a valid index for property";

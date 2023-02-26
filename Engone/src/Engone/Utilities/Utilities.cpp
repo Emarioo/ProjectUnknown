@@ -210,13 +210,13 @@ namespace engone {
 	void ConvertWide(const std::string& in, std::wstring& out) {
 		out.resize(in.length(), 0);
 		for (int i = 0; i < in.length(); i++) {
-			out.data()[i] = in[i];
+			*(&out[i]) = in[i];
 		}
 	}
 	void ConvertWide(const std::wstring& in, std::string& out) {
 		out.resize(in.length(), 0);
 		for (int i = 0; i < in.length(); i++) {
-			out.data()[i] = in[i];
+			*(&out[i]) = in[i];
 		}
 	}
 }

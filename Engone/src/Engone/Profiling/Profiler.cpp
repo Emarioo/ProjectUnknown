@@ -256,8 +256,8 @@ namespace engone {
 		}
 
 		//-- Graphs
-		for (auto& [name, graph] : m_graphs) {
-			renderGraph(info, graph);
+		for (auto& pair : m_graphs) {
+			renderGraph(info, pair.second);
 		}
 	}
 	Profiler::Graph::~Graph() {

@@ -32,10 +32,11 @@ namespace engone {
 			m_world->m_objectsMutex.unlock();
 			return nullptr;
 		}
-		UUID uuid = m_iterator.ptr->getUUID();
+		UUID uuid = ((EngineObject*)m_iterator.ptr)->getUUID();
 		m_world->m_objectsMutex.unlock();
 
-		EngineObject* obj = m_world->requestAccess(uuid);
+		EngineObject* obj = (EngineObject*)m_iterator.ptr;
+		// m_world->requestAccess(uuid); <- don't use this. inf. recursion
 		if (!obj) {
 			m_iterator.ptr = nullptr;
 		}
@@ -47,7 +48,7 @@ namespace engone {
 	}
 	void EngineObjectIterator::finish() {
 		if (m_iterator.ptr) {
-			m_world->releaseAccess(m_iterator.ptr->getUUID());
+			m_world->releaseAccess(((EngineObject*)m_iterator.ptr)->getUUID());
 		}
 	}
 	EngineWorld::~EngineWorld() {
@@ -111,10 +112,13 @@ namespace engone {
 		//while (m_objects.iterate(iter)) {
 		//	requestAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
 		//}
-		m_physicsMutex.lock();
+		//m_physicsMutex.lock();
+		//log::out << "PhysUpdate... ";
+		log::out.flush();
 		if (m_physicsWorld)
 			m_physicsWorld->update(info.timeStep);
-		m_physicsMutex.unlock();
+		//log::out << "done\n";
+		//m_physicsMutex.unlock();
 		//while (m_objects.iterate(iter)) {
 		//	releaseAccess(iter.ptr->getUUID()); // could fail if ptr is delete while using it
 		//}
@@ -138,8 +142,9 @@ namespace engone {
 	//}
 	EngineObject* EngineWorld::createObject(UUID uuid) {
 		m_objectsMutex.lock();
-		uint32_t index = m_objects.add({});
-		EngineObject* obj = m_objects.get(index);
+		EngineObject* obj = 0;
+		EngineObject tmp{};
+		uint32_t index = m_objects.add(&tmp,(void**)&obj);
 
 		//uint32_t index = m_objects.size();
 		//EngineObject* obj = new EngineObject();
@@ -155,25 +160,27 @@ namespace engone {
 		//obj->m_mutex.lock(); // Will never wait, locking below with requestAccess for consistency
 		m_objectsMutex.unlock();
 
-		m_objectMapMutex.lock();
-		m_objectMap[uuid].object=obj;
-		m_objectMapMutex.unlock();
+		//m_objectMapMutex.lock();
+		//m_objectMap[uuid].object=obj;
+		//m_objectMapMutex.unlock();
 
-		obj = requestAccess(uuid);
+		//obj = requestAccess(uuid);
 
 		return obj;
 	}
 	EngineObject* EngineWorld::requestAccess(UUID uuid) {
-		m_objectMapMutex.lock();
-		auto find = m_objectMap.find(uuid);
-		if (find == m_objectMap.end()) {
-			m_objectMapMutex.unlock();
-			return nullptr;
-		}
-		EngineObject* obj = find->second.object;
-		m_objectMapMutex.unlock();
+		return getObject(uuid);
 
-		return obj;
+		//m_objectMapMutex.lock();
+		//auto find = m_objectMap.find(uuid);
+		//if (find == m_objectMap.end()) {
+		//	m_objectMapMutex.unlock();
+		//	return nullptr;
+		//}
+		//EngineObject* obj = find->second.object;
+		//m_objectMapMutex.unlock();
+
+		//return obj;
 		
 		//// deprecated code below, might be reused.
 		//m_objectMapMutex.lock();
@@ -277,9 +284,10 @@ namespace engone {
 		RaycastInfo info;
 		info.m_objectLimit = objectLimit;
 		info.ignoreType = ignoreObjectType;
-		lockPhysics();
-		getPhysicsWorld()->raycast(ray, &info); // mutex?
-		unlockPhysics();
+		//lockPhysics();
+		// Todo: uncomment
+		getPhysicsWorld()->raycast(ray, &info);
+		//unlockPhysics();
 		return std::move(info.m_hitObjects);
 	}
 #endif
@@ -303,20 +311,34 @@ namespace engone {
 	//	}
 	//	m_iteratorsMutex.unlock();
 	//}
+	EngineObject* EngineWorld::getObject(UUID uuid) {
+		auto iterator = createIterator();
+		EngineObject* obj;
+		while (obj = iterator.next()) {
+			if (obj->getUUID() == uuid) {
+				iterator.finish();
+				return obj;
+			}
+		}
+		return nullptr;
+	}
 	void EngineWorld::deleteObject(UUID uuid) {
 		// delete object
-		m_objectMapMutex.lock();
-		auto find = m_objectMap.find(uuid);
-		if (find == m_objectMap.end()) {
-			m_objectMapMutex.unlock();
-			return;
-		}
-		EngineObject* obj = find->second.object;
-		m_objectMap.erase(uuid);
-		m_objectMapMutex.unlock();
+		//m_objectMapMutex.lock();
+		//auto find = m_objectMap.find(uuid);
+		//if (find == m_objectMap.end()) {
+		//	m_objectMapMutex.unlock();
+		//	return;
+		//}
+		//EngineObject* obj = find->second.object;
+		//m_objectMap.erase(uuid);
+		//m_objectMapMutex.unlock();
+
+		EngineObject* obj = getObject(uuid);
 
 		m_objectsMutex.lock();
 
+		obj->~EngineObject();
 		m_objects.remove(obj->m_objectIndex);
 
 		//int index = obj->m_objectIndex;
@@ -339,7 +361,8 @@ namespace engone {
 		//releaseAccess(uuid);
 	}
 	void EngineWorld::addParticleGroup(ParticleGroupT* group) {
-		m_particleGroups.push_back(group);
+		//m_particleGroups.push_back(group);
+		m_particleGroups.add(group);
 	}
 #ifdef ENGONE_PHYSICS
 	rp3d::PhysicsCommon* EngineWorld::getPhysicsCommon() {
@@ -349,7 +372,7 @@ namespace engone {
 	rp3d::PhysicsWorld* EngineWorld::getPhysicsWorld() {
 		return m_physicsWorld;
 	}
-	void EngineWorld::lockCommon() { m_app->lockCommon(); }
-	void EngineWorld::unlockCommon() { m_app->unlockCommon(); }
+	//void EngineWorld::lockCommon() { m_app->lockCommon(); }
+	//void EngineWorld::unlockCommon() { m_app->unlockCommon(); }
 #endif
 }

@@ -12,7 +12,7 @@ namespace prounk {
 		return false;
 	}
 
-	ObjectTriggerInfo& GetTriggerInfo(engone::EngineObject* object) {
+	ObjectTriggerInfo* GetTriggerInfo(engone::EngineObject* object) {
 		return ((Dimension*)object->getWorld()->getUserData())->getParent()->objectInfoRegistry.getTriggerInfo(object->getObjectInfo());
 	}
 
@@ -25,11 +25,12 @@ namespace prounk {
 		log::out << log::RED << "ObjectInfoRegistry - Deserialization is not implemented\n";
 	}
 
-	uint32 ObjectInfoRegistry::registerItemInfo() {
-		return m_itemInfos.add({})+1;
+	uint32 ObjectInfoRegistry::registerItemInfo(ObjectItemInfo** outPtr) {
+		ObjectItemInfo tmp{};
+		return m_itemInfos.add(&tmp,(void**)outPtr) + 1;
 	}
-	ObjectItemInfo& ObjectInfoRegistry::getItemInfo(uint32 dataIndex) {
-		return *m_itemInfos.get(dataIndex-1);
+	ObjectItemInfo* ObjectInfoRegistry::getItemInfo(uint32 dataIndex) {
+		return (ObjectItemInfo*)m_itemInfos.get(dataIndex-1);
 	}
 	void ObjectInfoRegistry::unregisterItemInfo(uint32 dataIndex) {
 		// Todo: If ComplexData is handled with registries then it needs to be unregistered here.
@@ -37,36 +38,39 @@ namespace prounk {
 		m_itemInfos.remove(dataIndex - 1);
 	}
 
-	uint32 ObjectInfoRegistry::registerWeaponInfo() {
-		return m_weaponInfos.add({}) + 1;
+	uint32 ObjectInfoRegistry::registerWeaponInfo(ObjectWeaponInfo** outPtr) {
+		ObjectWeaponInfo tmp{};
+		return m_weaponInfos.add(&tmp,(void**)outPtr) + 1;
 	}
-	ObjectWeaponInfo& ObjectInfoRegistry::getWeaponInfo(uint32 dataIndex) {
-		return *m_weaponInfos.get(dataIndex - 1);
+	ObjectWeaponInfo* ObjectInfoRegistry::getWeaponInfo(uint32 dataIndex) {
+		return (ObjectWeaponInfo*)m_weaponInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterWeaponInfo(uint32 dataIndex) {
 		m_weaponInfos.remove(dataIndex-1);
 	}
 
-	uint32 ObjectInfoRegistry::registerCreatureInfo(const std::string& name) {
-		return m_creatureInfos.add({name}) + 1;
+	uint32 ObjectInfoRegistry::registerCreatureInfo(const std::string& name, ObjectCreatureInfo** outPtr) {
+		ObjectCreatureInfo tmp{ name };
+		return m_creatureInfos.add(&tmp, (void**)outPtr) + 1;
 	}
-	ObjectCreatureInfo& ObjectInfoRegistry::getCreatureInfo(uint32 dataIndex) {
-		return *m_creatureInfos.get(dataIndex - 1);
+	ObjectCreatureInfo* ObjectInfoRegistry::getCreatureInfo(uint32 dataIndex) {
+		return (ObjectCreatureInfo*)m_creatureInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterCreatureInfo(uint32 dataIndex) {
 		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-		auto oinfo = m_creatureInfos.get(dataIndex-1);
+		auto oinfo = (ObjectCreatureInfo*)m_creatureInfos.get(dataIndex-1);
 		if (oinfo->inventoryDataIndex)
 			session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
 
 		m_creatureInfos.remove(dataIndex-1);
 	}
 
-	uint32 ObjectInfoRegistry::registerTriggerInfo() {
-		return m_triggerInfos.add({}) + 1;
+	uint32 ObjectInfoRegistry::registerTriggerInfo(ObjectTriggerInfo** outPtr) {
+		ObjectTriggerInfo tmp{};
+		return m_triggerInfos.add(&tmp, (void**)outPtr) + 1;
 	}
-	ObjectTriggerInfo& ObjectInfoRegistry::getTriggerInfo(uint32 dataIndex) {
-		return *m_triggerInfos.get(dataIndex - 1);
+	ObjectTriggerInfo* ObjectInfoRegistry::getTriggerInfo(uint32 dataIndex) {
+		return (ObjectTriggerInfo*)m_triggerInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterTriggerInfo(uint32 dataIndex) {
 		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();

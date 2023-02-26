@@ -31,6 +31,6 @@ namespace prounk {
 		float pixelX = mx-pixelSize/2;
 		float pixelY = my-pixelSize/2;
 
-		DrawItem(pixelX, pixelY, pixelSize, m_heldItem);
+		DrawItem(pixelX, pixelY, pixelSize, &m_heldItem);
 	}
 }

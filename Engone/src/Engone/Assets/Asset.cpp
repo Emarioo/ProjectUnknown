@@ -383,7 +383,10 @@ namespace engone {
 		// q0[3] == q0[].w == 1
 
 		float slerpT = 0;
-		for (auto& [type, curve] : fcurves) {
+		for (auto& pair : fcurves) {
+			auto& type = pair.first;
+			auto& curve = pair.second;
+				
 			Keyframe* a = nullptr;
 			Keyframe* b = nullptr;
 			for (Keyframe& k : curve.frames) {

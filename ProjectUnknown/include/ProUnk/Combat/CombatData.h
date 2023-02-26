@@ -28,7 +28,13 @@ namespace prounk {
 		SkillType skillType = (SkillType)0;
 
 		//-- stats
-		float health = 100;
+		float getHealth() {
+			return m_health;
+		}
+		void setHealth(float health) {
+			m_health = health;
+		}
+		float m_health = 100;
 		float totalFlatMaxHealth = 100;
 		float totalModMaxHealth = 1;
 		

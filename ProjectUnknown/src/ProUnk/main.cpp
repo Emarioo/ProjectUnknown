@@ -23,12 +23,23 @@ void runApp(int argc, char** argv) {
 	
 	// log::out << "Broken?\n";
 	
+<<<<<<< HEAD
 	// GameMemoryTest();
 
 	TestPlatformErrors();
+=======
+	 //GameMemoryTest();
+
+	//FrameArrayTest();
+	//HashMapTestCase();
+	//EngoneStackTest();
+	//EngoneStableArrayTest();
+>>>>>>> ba877d5dc38469a50ec123163df8caa45c755bd9
 	
-	return;
-	// auto tp = MeasureSeconds();
+	 //system("pause");
+
+	 //return;
+	 //auto tp = MeasureSeconds();
 	
 	// char* ptr = (char*)Allocate(2e9);
 	

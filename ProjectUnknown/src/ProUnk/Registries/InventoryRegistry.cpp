@@ -85,8 +85,8 @@ namespace prounk {
 		outItem.m_type = m_type;
 		outItem.m_displayName = m_displayName;
 		outItem.m_modelId = m_modelId;
-		outItem.m_complexData = m_complexData;
-
+		//outItem.m_complexData = m_complexData;
+		m_complexData.copy(&outItem.m_complexData);
 		if (count == -1) {
 			outItem.m_count = getCount();
 		} else {
@@ -184,89 +184,104 @@ namespace prounk {
 		*this = temp;
 		return true;
 	}
-	Item& Inventory::getItem(int slotIndex) {
-		return m_slots[slotIndex];
+	Item* Inventory::getItem(int slotIndex) {
+		return (Item*)m_slots.get(slotIndex);
 	}
-	std::vector<Item>& Inventory::getList() {
+	engone::Array& Inventory::getList() {
 		return m_slots;
 	}
-	bool Inventory::resizeSlots(int newSlotSize) {
-		// check if items would be lost
-		for (int i = m_slots.size()-1; i >= newSlotSize;i--) {
-			if (m_slots[i].getType() != 0)
-				return false; // item is lost, resize failed
-		}
-		m_slots.resize(newSlotSize, Item());
-		return true;
-	}
-	void Inventory::resizeSlots(int newSlotSize, std::vector<Item>* outItems) {
+	//bool Inventory::resizeSlots(int newSlotSize) {
+	//	// check if items would be lost
+	//	for (int i = m_slots.size()-1; i >= newSlotSize;i--) {
+	//		Item
+	//		if (m_slots[i].getType() != 0)
+	//			return false; // item is lost, resize failed
+	//	}
+	//	uint32 oldSize = m_slots.size();
+	//	m_slots.resize(newSlotSize);
+	//	for (int i = oldSize; i < newSlotSize; i++) {
+	//		*((Item*)m_slots.data() + i) = {};
+	//	}
+	//	//m_slots.resize(newSlotSize, Item());
+	//	return true;
+	//}
+	bool Inventory::resizeSlots(int newSlotSize, std::vector<Item>* outItems) {
 		if (outItems) {
 			// add lost items to the list
 			for (int i = m_slots.size() - 1; i >= newSlotSize; i--) {
-				if (m_slots[i].getType() != 0) {
-					outItems->push_back(m_slots[i]);
+				Item* item = (Item*)m_slots.get(i);
+				if (item->getType() != 0) {
+					outItems->push_back(*item);
 				}
 			}
 		}
-		m_slots.resize(newSlotSize, Item());
+		uint32 oldSize = m_slots.size();
+		if (!m_slots.resize(newSlotSize))
+			return false;
+		for (int i = oldSize; i < newSlotSize;i++) {
+			*((Item*)m_slots.data() + i) = {};
+		}
+		//m_slots.resize(newSlotSize, Item());
 	}
 	int Inventory::getSlotSize() {
 		return m_slots.size();
 	}
-	int Inventory::transferItem(Item& item) {
-		if (item.getType() == 0)
+	int Inventory::transferItem(Item* item) {
+		if (item->getType() == 0)
 			return false;
 		
 		int transferAmount =0;
 
 		// find same item types and fill them
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& target = m_slots[i];
+			Item* target = (Item*)m_slots.get(i);
 
-			if (target.getType() == 0) {
+			if (target->getType() == 0) {
 				continue;
 			}
 
-			bool yes = item.sameAs(target);
+			bool yes = item->sameAs(*target);
 			if (!yes) continue;
 
 			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			auto type = session->itemTypeRegistry.getType(target.getType());
+			auto type = session->itemTypeRegistry.getType(target->getType());
 			
-			int emptySpace = (int)type->maxStack - (int)target.getCount();
+			// int is used for a reason. I don't remember why.
+			// don't change it unless you know in which case you won't change since you know why...
+			int emptySpace = (int)type->maxStack - (int)target->getCount();
 			if (emptySpace <= 0) {
 				continue;
 			}
 
-			if (item.getCount() > emptySpace) {
-				target.setCount(target.getCount() + emptySpace);
+			if (item->getCount() > emptySpace) {
+				target->setCount(target->getCount() + emptySpace);
 				transferAmount += emptySpace;
-				item.setCount(item.getCount() - emptySpace);
+				item->setCount(item->getCount() - emptySpace);
 			} else {
-				target.setCount(target.getCount() + item.getCount());
-				transferAmount += item.getCount();
-				item.setCount(0);
+				target->setCount(target->getCount() + item->getCount());
+				transferAmount += item->getCount();
+				item->setCount(0);
 				return transferAmount;
 			}
 		}
 
 		// find empty slots and fill them
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& target = m_slots[i];
+			Item* target = (Item*)m_slots.get(i);
 
-			if (target.getType() == 0) {
-				item.copy(target,0); // could do target = item if just one stack of items are transferred successfully.
+			if (target->getType() == 0) {
+				item->copy(*target,0); // could do target = item if just one stack of items are transferred successfully.
 
 				Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-				auto type = session->itemTypeRegistry.getType(item.getType());
-				if (item.getCount() > type->maxStack) {
-					target.setCount(type->maxStack);
+				auto type = session->itemTypeRegistry.getType(item->getType());
+				if (item->getCount() > type->maxStack) {
+					target->setCount(type->maxStack);
 					transferAmount += type->maxStack;
-					item.setCount(item.getCount() - type->maxStack);
+					item->setCount(item->getCount() - type->maxStack);
 				} else {
-					target.setCount(target.getCount() + item.getCount());
-					transferAmount += item.getCount();
-					item.setCount(0);
+					target->setCount(target->getCount() + item->getCount());
+					transferAmount += item->getCount();
+					item->setCount(0);
 					return transferAmount;
 				}
 			}
@@ -274,27 +289,27 @@ namespace prounk {
 
 		return transferAmount;
 	}
-	uint32_t Inventory::findAvailableSlot(Item& item) {
-		if (item.getType() == 0)
+	uint32_t Inventory::findAvailableSlot(Item* item) {
+		if (item->getType() == 0)
 			return findEmptySlot();
 
 		uint32_t emptySlot = -1;
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& target = m_slots[i];
+			Item* target = (Item*)m_slots.get(i);
 
-			if (target.getType() == 0&&emptySlot==-1) {
+			if (target->getType() == 0&&emptySlot==-1) {
 				emptySlot = i;
 				continue;
 			}
 
-			bool yes = item.sameAs(target);
+			bool yes = item->sameAs(*target);
 			if (!yes)
 				continue;
 	
 			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			auto type = session->itemTypeRegistry.getType(target.getType());
+			auto type = session->itemTypeRegistry.getType(target->getType());
 
-			if (target.getCount() >= type->maxStack)
+			if (target->getCount() >= type->maxStack)
 				continue;
 
 			return i;
@@ -303,23 +318,25 @@ namespace prounk {
 	}
 	uint32_t Inventory::findEmptySlot() {
 		for (int i = 0; i < m_slots.size(); i++) {
-			Item& item = m_slots[i];
+			Item* item = (Item*)m_slots.get(i);
 
-			if (item.getType() == 0) {
+			if (item->getType() == 0) {
 				return i;
 			}
 		}
 		return -1;
 	}
-	uint32 InventoryRegistry::createInventory() {
-		return m_inventories.add({}) + 1;
+	uint32 InventoryRegistry::createInventory(Inventory** outPtr) {
+		Inventory tmp{};
+		return m_inventories.add(&tmp,(void**)outPtr) + 1;
 	}
 	Inventory* InventoryRegistry::getInventory(uint32 dataIndex) {
 		if (dataIndex == 0) return nullptr;
-		return m_inventories.get(dataIndex - 1);
+		return (Inventory*)m_inventories.get(dataIndex - 1);
 	}
 	void InventoryRegistry::destroyInventory(uint32 dataIndex) {
 		// Todo: Unregister ComplexData of all the items?
+		// Todo: proper cleanup
 		m_inventories.remove(dataIndex - 1);
 	}
 	void InventoryRegistry::serialize() {

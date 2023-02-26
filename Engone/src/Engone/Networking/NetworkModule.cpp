@@ -840,9 +840,9 @@ namespace engone {
 		// ISSUE: What if the worker thread is active and tries to delete a connection while connections
 		//		are being looped through? use mutex lock for connections?
 		m_connectionsMutex.lock();
-		for (auto [id, conn] : m_connections) {
+		for (auto& pair : m_connections) {
 			//delete conn;
-			ALLOC_DELETE(Connection, conn);
+			ALLOC_DELETE(Connection, pair.second);
 		}
 		m_connections.clear();
 		m_connectionsMutex.unlock();
@@ -888,9 +888,9 @@ namespace engone {
 					}
 				}
 			} else {
-				for (auto [id, conn] : m_connections) {
-					if (uuid != id) {
-						conn->sendMsg(ptr, synchronous);
+				for (auto& pair : m_connections) {
+					if (uuid != pair.first) {
+						pair.second->sendMsg(ptr, synchronous);
 					}
 				}
 			}

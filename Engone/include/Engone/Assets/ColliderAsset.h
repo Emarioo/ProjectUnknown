@@ -24,7 +24,7 @@ namespace engone {
 		uint32_t gridWidth = 0, gridHeight = 0;
 
 		Type colliderType = Type::SphereType;
-		union {
+		//union { // use union again
 			struct {// sphere
 				float radius = 0;
 			} sphere;
@@ -40,7 +40,7 @@ namespace engone {
 				glm::vec3 scale;
 				std::vector<float> heights;
 			} map;
-		};
+		//};
 
 		// static TrackerId trackerId;
 	private:

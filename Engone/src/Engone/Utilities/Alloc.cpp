@@ -3,6 +3,7 @@
 // #include "Engone/Logger.h"
 
 #include "Engone/PlatformModule/PlatformLayer.h"
+#include "Engone/PlatformModule/GameMemory.h"
 // #include <mutex>
 
 namespace engone {
@@ -55,20 +56,24 @@ namespace engone {
 	}
 	bool Memory::resize(uint64 count){
 		if (count == 0) {
-			if (data)
-				Free(data, max * m_typeSize);
+			if (data) {
+				if (m_allocType == ALLOC_TYPE_HEAP) engone::Free(data, max * m_typeSize);
+				else if (m_allocType == ALLOC_TYPE_GAME_MEMORY) GetGameMemory().free(data);
+			}
 			data = nullptr;
 			max = 0;
 			used = 0;
-		}
-		if (!data) {
-			data = (char*)Allocate(count * m_typeSize);
+		}else if (!data) {
+			if (m_allocType == ALLOC_TYPE_HEAP) data = engone::Allocate(count * m_typeSize);
+			else if (m_allocType == ALLOC_TYPE_GAME_MEMORY) data = GetGameMemory().allocate(count * m_typeSize);
 			if (data) {
 				max = count;
 				used = 0;
 			}
 		} else {
-			char* newData = (char*)Reallocate(data, max * m_typeSize, count * m_typeSize);
+			void* newData = 0;
+			if (m_allocType == ALLOC_TYPE_HEAP) newData = engone::Reallocate(data, max * m_typeSize, count * m_typeSize);
+			else if (m_allocType == ALLOC_TYPE_GAME_MEMORY) newData = GetGameMemory().reallocate(data, count * m_typeSize);
 			if (newData) {
 				data = newData;
 				max = count;
@@ -78,6 +83,25 @@ namespace engone {
 		}
 		//printf("Resize max: %d count: %d\n", max,count);
 		return max == count; // returns true when intention was successful
+	}
+	void* MemoryResize(void* ptr, uint32 oldBytes, uint32 newBytes, uint32 allocType) {
+		if (newBytes == 0) {
+			if (ptr) {
+				if (allocType==ALLOC_TYPE_HEAP) engone::Free(ptr,oldBytes);
+				else if (allocType==ALLOC_TYPE_GAME_MEMORY) GetGameMemory().free(ptr);
+			}
+		}else if (!ptr) {
+			if (allocType == ALLOC_TYPE_HEAP) ptr = engone::Allocate(newBytes);
+			else if (allocType == ALLOC_TYPE_GAME_MEMORY) ptr = GetGameMemory().allocate(newBytes);
+		} else {
+			void* newData = 0;
+			if (allocType == ALLOC_TYPE_HEAP) newData = engone::Reallocate(ptr,oldBytes,newBytes);
+			else if (allocType == ALLOC_TYPE_GAME_MEMORY) newData = GetGameMemory().reallocate(ptr,newBytes);
+			if (newData) {
+				ptr = newData;
+			}
+		}
+		return ptr;
 	}
 	// template<>
 	// bool Memory<char>::resize(uint64 count, uint64 size) {

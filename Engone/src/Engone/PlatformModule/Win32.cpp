@@ -267,10 +267,13 @@ namespace PL_NAMESPACE {
             access = GENERIC_READ;
          	sharing = FILE_SHARE_READ;
 		}
-		DWORD creation = (flags&FILE_CAN_CREATE)?OPEN_ALWAYS:OPEN_EXISTING;
-        // printf("creation %u",creation);
+		DWORD creation = OPEN_EXISTING;
+		if(flags&FILE_CAN_CREATE)
+			creation = OPEN_ALWAYS;
+		if(flags&FILE_WILL_CREATE)
+			creation = CREATE_ALWAYS;
 
-		if(creation&OPEN_ALWAYS){
+		if(creation&OPEN_ALWAYS||creation&CREATE_ALWAYS){
 			std::string temp;
 			int i=0;
 			int at = path.find_first_of(':');
@@ -325,19 +328,19 @@ namespace PL_NAMESPACE {
 		DWORD success = ReadFile(TO_HANDLE(file),buffer,readBytes,&bytesRead,NULL);
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] Error reading file handle '%lu'\n",err,file);
+			PL_PRINTF("[WinError %u] FileRead '%lu'\n",err,file);
 			return -1;
 		}
 		return bytesRead;
 	}
-	uint64 FileWrite(APIFile* file, void* buffer, uint64 writeBytes){
+	uint64 FileWrite(APIFile* file, const void* buffer, uint64 writeBytes){
 		Assert(writeBytes!=(uint64)-1); // -1 indicates no bytes read
 		
 		DWORD bytesWritten=0;
 		DWORD success = WriteFile(TO_HANDLE(file),buffer,writeBytes,&bytesWritten,NULL);
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] Error reading file handle '%lu'\n",err,file);
+			PL_PRINTF("[WinError %u] FileWrite '%lu'\n",err,file);
 			return -1;
 		}
 		return bytesWritten;
@@ -352,7 +355,7 @@ namespace PL_NAMESPACE {
 		if(success) return true;
 		
 		int err = GetLastError();
-		PL_PRINTF("[WinError %u] Error reading file handle '%lu'\n",err,file);
+		PL_PRINTF("[WinError %u] FileSetHead '%lu'\n",err,file);
 		return false;
 	}
 	void FileClose(APIFile* file){
@@ -505,7 +508,7 @@ namespace PL_NAMESPACE {
 	void* Allocate(uint64 bytes){
 		if(bytes==0) return nullptr;
 		void* ptr = HeapAlloc(GetProcessHeap(),0,bytes);
-		// void* ptr = malloc(bytes);
+		 //void* ptr = malloc(bytes);
 		if(!ptr) return nullptr;
 		
 		// s_allocStatsMutex.lock();
@@ -967,7 +970,7 @@ namespace PL_NAMESPACE {
 						if (length < MAX_PATH + 1) {
 							temp.resize(length);
 							for (int i = 0; i < length; i++) {
-								temp.data()[i] = (char)*(info.FileName + i);
+								*(&temp[i]) = (char)*(info.FileName + i);
 							}
 						}
 
@@ -1022,7 +1025,7 @@ namespace PL_NAMESPACE {
 	}
 	// Todo: handle is checked against NULL, it should be checked against INVALID_HANDLE_VALUE
 	bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
-		if (!std::filesystem::exists(path))
+		if (!FileExist(path))
 			return false;
 		//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
 
@@ -1115,11 +1118,11 @@ namespace PL_NAMESPACE {
 		DWORD dwFlags; // Reserved for future use, must be zero.
 	} THREADNAME_INFO;
 #pragma pack(pop)
-	void SetThreadName(DWORD dwThreadID, const char* threadName) {
+	void SetThreadName(ThreadId threadId, const char* threadName) {
 		THREADNAME_INFO info;
 		info.dwType = 0x1000;
 		info.szName = threadName;
-		info.dwThreadID = dwThreadID;
+		info.dwThreadID = threadId;
 		info.dwFlags = 0;
 #pragma warning(push)
 #pragma warning(disable: 6320 6322)

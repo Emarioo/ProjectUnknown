@@ -21,7 +21,7 @@ namespace prounk {
 		float health = 0;
 		float maxHealth = 0;
 		if (combatData) {
-			health = combatData->health;
+			health = combatData->getHealth();
 			maxHealth = combatData->getMaxHealth();
 		}
 		float atk = 0;

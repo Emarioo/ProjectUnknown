@@ -389,10 +389,10 @@ namespace prounk {
 
 				if (object) {
 
-					auto& oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
-					oinfo.combatData.health = health;
-					if (oinfo.combatData.health < 0)
-						oinfo.combatData.health = 0;
+					auto oinfo = objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+					oinfo->combatData.setHealth(health);
+					if (oinfo->combatData.getHealth() < 0)
+						oinfo->combatData.setHealth(0);
 
 					// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
 

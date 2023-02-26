@@ -53,13 +53,13 @@ namespace prounk {
 			log::out << "DropInventory("<<(BasicObjectType)object->getObjectType()<<") : No items to drop\n";
 		}
 		for (int i = 0; i < inv->getSlotSize(); i++) {
-			Item& item = inv->getItem(i);
+			Item* item = (Item*)inv->getItem(i);
 
-			if (item.getType() == 0)
+			if (item->getType() == 0)
 				continue;
 
-			auto itemObject = CreateItem(dim, item);
-			item = Item(); // clear slot
+			auto itemObject = CreateItem(dim, *item);
+			*item = {}; // clear slot
 
 			// use a random position for items not equipped.
 			glm::vec3 offset = { GetRandom() - .5f, 1 + GetRandom() - .5f,GetRandom() - .5f };
@@ -87,8 +87,8 @@ namespace prounk {
 		int type = object->getObjectType();
 		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
 		if (type & OBJECT_CREATURE) {
-			CombatData& combatData = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).combatData;
-			return combatData.health == 0;
+			CombatData& combatData = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo())->combatData;
+			return combatData.getHealth() == 0;
 		}
 		return false;
 	}
@@ -97,9 +97,9 @@ namespace prounk {
 		int type = object->getObjectType();
 		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
 		if (type & OBJECT_CREATURE) {
-			return &session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).combatData;
+			return &session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo())->combatData;
 		} else if (type & OBJECT_WEAPON) {
-			return &session->objectInfoRegistry.getWeaponInfo(object->getObjectInfo()).combatData;
+			return &session->objectInfoRegistry.getWeaponInfo(object->getObjectInfo())->combatData;
 		}
 		return nullptr;
 	}
@@ -108,7 +108,7 @@ namespace prounk {
 		int type = object->getObjectType();
 		Session* session = ((Dimension*)object->getWorld()->getUserData())->getParent();
 		if (type & OBJECT_CREATURE) {
-			return session->inventoryRegistry.getInventory(session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo()).inventoryDataIndex);
+			return session->inventoryRegistry.getInventory(session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo())->inventoryDataIndex);
 		} 
 		return nullptr;
 	}
@@ -171,8 +171,8 @@ namespace prounk {
 		uint32 dataIndex = session->objectInfoRegistry.registerCreatureInfo("Dummy");
 		out->setObjectInfo(dataIndex);
 
-		auto& oinfo = session->objectInfoRegistry.getCreatureInfo(dataIndex);
-		CombatData& combatData = oinfo.combatData;
+		auto oinfo = session->objectInfoRegistry.getCreatureInfo(dataIndex);
+		CombatData& combatData = oinfo->combatData;
 		combatData.owner = out;
 		combatData.damageType = CombatData::CONTINOUS_DAMAGE;
 		combatData.damagePerSecond = 20;
@@ -183,14 +183,14 @@ namespace prounk {
 			goldCount += 5;
 		
 		if (goldCount > 0) {
-			oinfo.inventoryDataIndex = session->inventoryRegistry.createInventory();
-			Inventory* inv = session->inventoryRegistry.getInventory(oinfo.inventoryDataIndex);
+			oinfo->inventoryDataIndex = session->inventoryRegistry.createInventory();
+			Inventory* inv = session->inventoryRegistry.getInventory(oinfo->inventoryDataIndex);
 
 			auto* goldType = session->itemTypeRegistry.getType("gold_ingot");
 			if (goldType) {
-				inv->resizeSlots(goldCount);
+				inv->resizeSlots(goldCount,nullptr);
 				for (int i = 0; i < goldCount; i++) {
-					inv->getItem(i) = Item(goldType->itemType, 1);
+					*(Item*)inv->getItem(i) = Item(goldType->itemType, 1);
 				}
 			} else {
 				log::out << "CreateDummy : gold_ingot is not registered\n";
@@ -236,7 +236,7 @@ namespace prounk {
 		uint32 id = dimension->getParent()->objectInfoRegistry.registerCreatureInfo("Player");
 		out->setObjectInfo(id);
 		
-		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id).combatData;
+		CombatData& combatData = dimension->getParent()->objectInfoRegistry.getCreatureInfo(id)->combatData;
 		combatData.owner = out;
 
 		return out;
@@ -263,7 +263,7 @@ namespace prounk {
 		int id = session->objectInfoRegistry.registerWeaponInfo();
 		out->setObjectInfo(id);
 
-		CombatData& combatData = session->objectInfoRegistry.getWeaponInfo(id).combatData;
+		CombatData& combatData = session->objectInfoRegistry.getWeaponInfo(id)->combatData;
 		combatData.owner = out;
 
 		return out;
@@ -287,10 +287,11 @@ namespace prounk {
 
 		Session* session = dimension->getParent();
 
-		int id = session->objectInfoRegistry.registerItemInfo();
+		uint32 id = session->objectInfoRegistry.registerItemInfo();
 		out->setObjectInfo(id);
 
-		session->objectInfoRegistry.getItemInfo(id).item = item;
+		//session->objectInfoRegistry.getItemInfo(id).item = item;
+		item.copy(session->objectInfoRegistry.getItemInfo(id)->item);
 
 		return out;
 	}

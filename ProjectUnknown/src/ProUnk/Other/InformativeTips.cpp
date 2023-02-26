@@ -118,11 +118,8 @@ namespace infotips
 		}
 		return true;
 	}
-	std::mt19937 global_gen;
-	std::uniform_real_distribution global_dis;
 	void Init()
 	{
-		global_gen.seed((unsigned int)engone::GetSystemTime());
 		// Death tips
 		AddDeathTip({ "You have died [x] times.", PlayerDeaths });
 		AddDeathTip({ "Are you raging because you have died [x] times the last hour.",PlayerDeathsLastHour,{PlayerDeathsLastHour,7,0} });
@@ -166,13 +163,15 @@ namespace infotips
 	}
 	std::string InformativeTips_GetTip(std::vector<Tip>& tips)
 	{
+		using namespace engone;
+
 		double totalChance = 0;
 		for (auto& m : tips) {
 			if (m.IsFulfilled())
 				totalChance += m.chance;
 		}
 
-		double random = global_dis(global_gen) * totalChance;
+		double random = GetRandom() * totalChance;
 		double at = 0;
 		int index = 0;
 		for (size_t j = 0; j < tips.size(); j++) {

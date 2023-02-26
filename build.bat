@@ -1,9 +1,13 @@
 @echo OFF
 
-call gen_engone.bat
-call gen_prounk.bat
+@REM call gen_engone.bat
+@REM call gen_prounk.bat
 
-gcc main.c -o app.exe
+@REM gcc main.c -o app.exe
+
+premake5 build
+
+bin\ProjectUnknown\Debug\ProjectUnknown.exe
 
 @REM @ECHO OFF
 @REM @setlocal enabledelayedexpansion

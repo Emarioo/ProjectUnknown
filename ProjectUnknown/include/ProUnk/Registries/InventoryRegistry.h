@@ -79,12 +79,12 @@ namespace prounk {
 		// sort name, count...
 
 		// no bound check
-		Item& getItem(int slotIndex);
+		Item* getItem(int slotIndex);
 
 		// give item to inventory
 		// item is put in inventory if function returns true
 		// returns the amount of moved items. Zero if it failed or no items to move.
-		int transferItem(Item& item);
+		int transferItem(Item* item);
 
 		// Returns -1 if it failed
 		// Fail happens if slot wasn't found.
@@ -92,23 +92,25 @@ namespace prounk {
 		// Function acts as findEmptySlot if item's type is 0.
 		// slots with maximum stack size are skipped.
 		// rename function to findNonFullSlot?
-		uint32_t findAvailableSlot(Item& item);
+		uint32_t findAvailableSlot(Item* item);
 		// Returns -1 if it failed
 		// Fail happens if slot wasn't found
 		uint32_t findEmptySlot();
 
-		std::vector<Item>& getList();
-		// Will fail if items are lost during resize.
-		// This is to prevent where players lose items due to bugs.
-		bool resizeSlots(int newSlotSize);
+		engone::Array& getList();
+		// 
 		// "lost items" during resize will be put into outItems.
 		// outItems can be nullptr if you want to ignore the lost items.
-		void resizeSlots(int newSlotSize, std::vector<Item>* outItems);
+		bool resizeSlots(int newSlotSize, std::vector<Item>* outItems);
 		int getSlotSize();
 
-	private:
+		// Will fail if items are lost during resize.
+		// This is to prevent where players lose items due to bugs.
+		//bool resizeSlots(int newSlotSize);
 
-		std::vector<Item> m_slots;
+	private:
+		engone::Array m_slots{sizeof(Item),ALLOC_TYPE_GAME_MEMORY};
+		//std::vector<Item> m_slots;
 	};
 	class InventoryRegistry : public Registry {
 	public:
@@ -123,12 +125,13 @@ namespace prounk {
 		void deserialize() override;
 
 		// no bounds check
-		uint32 createInventory();
+		uint32 createInventory(Inventory** outPtr = nullptr);
 		Inventory* getInventory(uint32 dataIndex);
 		void destroyInventory(uint32 dataIndex);
 
 	private:
 
-		engone::FrameArray<Inventory> m_inventories{64};
+		engone::FrameArray m_inventories{sizeof(Inventory),64,ALLOC_TYPE_GAME_MEMORY };
+		//engone::FrameArray m_inventories{sizeof(Inventory),64,ALLOC_TYPE_HEAP };
 	};
 }

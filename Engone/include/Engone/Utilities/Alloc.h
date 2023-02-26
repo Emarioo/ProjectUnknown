@@ -14,6 +14,9 @@
 #define ALLOC_NEW(CLASS) new((CLASS*)engone::Allocate(sizeof(CLASS))) CLASS
 #define ALLOC_DELETE(CLASS,VAR) {VAR->~CLASS();engone::Free(VAR,sizeof(CLASS));}
 
+#define ALLOC_TYPE_HEAP 0
+#define ALLOC_TYPE_GAME_MEMORY 1
+
 namespace engone {
 	
 	// Todo: MemoryAllocator for game state memory
@@ -27,7 +30,8 @@ namespace engone {
 	// 	uint64 allocatedBytes();
 	// }
 	struct Memory {
-		Memory(uint32 typeSize) : m_typeSize(typeSize) {}
+		// @param allocType ALLOC_TYPE_HEAP or ALLOC_TYPE_GAME_MEMORY
+		Memory(uint32 typeSize, uint32 allocType) : m_typeSize(typeSize), m_allocType(allocType) {}
 
 		uint64 max = 0;
 		uint64 used = 0; // may be useful to you.
@@ -35,11 +39,17 @@ namespace engone {
 
 		// count is not in bytes.
 		// function is only defined for Memory<char>
+		// Rename to reserve?
 		bool resize(uint64 count);
 
+		inline uint32 getTypeSize() { return m_typeSize; }
+		inline uint32 getAllocType() { return m_allocType; }
 	private:
 		uint32 m_typeSize = 0;
+		uint32 m_allocType = 0;
 	};
+	// Funct is not tested!
+	void* MemoryResize(void* ptr, uint32 bytes, uint32 allocType);
 	// Does not have a destructor. You need to free the memory with resize(0)
 	// template<class T>
 	// struct Memory {

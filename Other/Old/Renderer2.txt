@@ -1,0 +1,258 @@
+// HEADER
+#pragma once
+
+#include "Shader.h"
+
+#include <iostream>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "../World/World.h"
+
+#include <vector>
+#include <map>
+
+#include "GL/glew.h"
+
+#include "../Gui/TElem.h"
+#include "../Gui/TLayout.h"
+
+#include "../Rendering/IndexBuffer.h"
+#include "../Rendering/VertexBuffer.h"
+#include "../Rendering/VertexArray.h"
+
+#define ASSERT(x) if (!(x))__debugbreak();
+#define GLCall(x) GLClearError();\
+	x;\
+	ASSERT(GLLogCall(#x, __FILE__,__LINE__));
+
+void GLClearError();
+bool GLLogCall(const char* function, const char* file, int line);
+//unsigned int LoadTexture(std::string path);
+
+class Renderer
+{
+public:
+	Renderer();
+
+	void GuiStart();
+	void Setup(World* world,int wid, int hei);
+
+	void DrawGui();
+	void DrawWorld();
+	void UpdateWorld(World* world, glm::vec3 player);
+	unsigned int RegionVA, RegionVB, RegionIB, RegionIBS;
+
+	void DrawBone(Bone& b);
+	std::map<std::string, Mesh> MeshArray;
+	
+	void BuildBuffer(Mesh& mesh);
+	TLayout layout;
+	bool updateDraw;
+	Shader gameShader;
+	Shader guiShader;
+
+	VertexArray temp1;
+	VertexBuffer temp2;
+	IndexBuffer temp3;
+private:
+
+};
+// CPP
+#include "Renderer.h"
+
+#include <GL/glew.h>
+
+void GLClearError(){
+	while (glGetError() != GL_NO_ERROR);
+}
+bool GLLogCall(const char* function, const char* file, int line)
+{
+	// Fix: Translate "error" to words
+	while (GLenum error = glGetError())
+	{
+		std::cout << "[OpenGL Error] (" << error << ") " << function << " " << file << ":" << line << std::endl;
+		return false;
+	}
+	return true;
+}
+Renderer::Renderer()
+{
+	
+}
+//Texture texti("assets/textures/loginbtn.png");
+void Renderer::GuiStart()
+{
+	guiShader = Shader("assets/shaders/Gui.shader");
+	
+	layout.AddElement("box",0,0,1,1,"");
+
+	//layout.AddElement("user", GuiElement(GuiStyle("assets/textures/userbtn.png"), GuiConstraint("width:0.5+-150", "height:0.8+-75", "300", "150")));
+	//layout.AddElement("pass",GuiElement(GuiStyle("assets/textures/passbtn.png"), GuiConstraint("user.x", "user.y+user.h:-1.5", "300", "150")));
+	//layout.AddElement("login",GuiElement(GuiStyle("assets/textures/loginbtn.png"),GuiConstraint("user.x","pass.y+pass.h:-1.5","300","150")));
+}
+void Renderer::Setup(World* world,int wid,int hei) {
+	gameShader = Shader("assets/shaders/Game.shader");
+
+	//layout.width = wid;
+	//layout.height = hei;
+
+	GuiStart();
+
+	// Load all meshes
+	MeshArray["Tri"] = Mesh("assets/models/Tri.txt");
+	MeshArray["Basic"] = Mesh("assets/models/Basic.txt");
+	int ms = MeshArray.size() + 1;
+	unsigned int* VAS = new unsigned int[ms];
+	unsigned int* VBS = new unsigned int[ms];
+	unsigned int* IBS = new unsigned int[ms];
+	glGenVertexArrays(ms, VAS);
+	glGenBuffers(ms, VBS);
+	glGenBuffers(ms, IBS);
+
+	RegionVA = VAS[ms - 1];
+	RegionVB = VBS[ms - 1];
+	RegionIB = IBS[ms - 1];
+
+	// World
+	glBindVertexArray(RegionVA);
+	glBindBuffer(GL_ARRAY_BUFFER, RegionVB);
+	int count = world->LoadedArea;
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*count*count*10, nullptr, GL_DYNAMIC_DRAW); // DECIDE CHUNK SIZE AND WORLD LIMIT
+	
+	glEnableVertexArrayAttrib(RegionVB, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), 0);
+	glEnableVertexArrayAttrib(RegionVB, 1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(3*sizeof(float)));
+	glEnableVertexArrayAttrib(RegionVB, 2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(7*sizeof(float)));
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RegionIB);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int)*(count-1)*(count-1)*3*2, nullptr, GL_DYNAMIC_DRAW); // DECIDE INDEX AS WELL
+
+	// Meshes
+	int index=0;
+	for (auto& m : MeshArray) {
+		Mesh& mesh = m.second;
+
+		mesh.Connect(VAS[index],VBS[index],IBS[index]);
+		BuildBuffer(mesh);
+
+		index++;
+	}
+	// Clean up
+	delete VAS;
+	delete VBS;
+	delete IBS;
+}
+void Renderer::BuildBuffer(Mesh& mesh) {
+	std::vector<std::string> text = ReadFileList(mesh.path);
+
+	std::vector<float> vertices;
+	std::vector<int> indices;
+
+	for (auto &line : text) {
+		if (line[0] == '#')
+			continue;
+		std::vector<std::string> set = SplitString(line, " ");
+
+		if (set[0] == "v") {
+			vertices.push_back(std::stof(set[1]));
+			vertices.push_back(std::stof(set[2]));
+			vertices.push_back(std::stof(set[3]));
+		}
+		else if (set[0] == "f") {
+			indices.push_back({ std::stoi(set[1]) });
+			indices.push_back({ std::stoi(set[2]) });
+			indices.push_back({ std::stoi(set[3]) });
+		}
+	}
+
+	float* VBA = new float[vertices.size()];
+	int* IBA = new int[indices.size()];
+	mesh.IndexCount= indices.size();
+
+	for (int i = 0; i < vertices.size(); i++) {
+		VBA[i] = vertices[i];
+	}
+	for (int i = 0; i < indices.size(); i++) {
+		IBA[i] = indices[i];
+	}
+	glBindVertexArray(mesh.VA);
+	glBindBuffer(GL_ARRAY_BUFFER, mesh.VB);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertices.size(), VBA, GL_STATIC_DRAW);
+
+	glEnableVertexArrayAttrib(mesh.VB, 0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), 0);
+
+	glEnableVertexArrayAttrib(mesh.VB, 1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 10 *sizeof(float), (const void*)(3*sizeof(float)));
+
+	glEnableVertexArrayAttrib(mesh.VB, 2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (const void*)(7*sizeof(float)));
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.IB);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int)*indices.size(), IBA, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	delete VBA;
+	delete IBA;
+}
+void Renderer::DrawWorld() {
+	gameShader.Bind();
+	glUniformMatrix4fv(glGetUniformLocation(gameShader.programID, "transform"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1)));
+	glBindVertexArray(RegionVA);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RegionIB);
+	glDrawElements(GL_TRIANGLES, RegionIBS, GL_UNSIGNED_INT, nullptr);
+}
+void Renderer::DrawGui() {
+	guiShader.Bind();
+	layout.DrawElements(&guiShader);
+}
+void Renderer::UpdateWorld(World* world, glm::vec3 player) {
+	// Remember to change BufferData sizeof(float)*1000 in Setup()
+	const int count = world->LoadedArea;
+	const int vertS = count*count * 10;
+	const int indS = (count - 1)*(count - 1) * 3 * 2;
+	float* vertices = new float[vertS];
+	int* indices = new int[indS];
+
+	world->GenerateWorldMesh(player.x,player.z, vertices, indices,count);
+
+	// FIX : Might only need to create this once
+	glBindVertexArray(RegionVA);
+	glBindBuffer(GL_ARRAY_BUFFER, RegionVB);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float)*vertS, vertices);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, RegionIB);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(int)*indS, indices);
+	RegionIBS = indS;
+
+	delete vertices;
+	delete indices;
+}
+void Renderer::DrawBone(Bone &b) {
+	Mesh& mesh = MeshArray[b.meshID];
+	glm::mat4 pos = glm::mat4(1);
+	Bone* par = &b;
+	while (par != nullptr) {
+
+		pos *= glm::translate(par->position);
+		pos *= glm::rotate(par->rotation.y, glm::vec3(0, 1, 0));
+		pos *= glm::rotate(par->rotation.x, glm::vec3(1, 0, 0));
+		pos *= glm::rotate(par->rotation.z, glm::vec3(0, 0, 1));
+		pos *= glm::scale(par->scale);
+		par = par->parent;
+	}
+	//pos = glm::translate(glm::mat4(1), glm::vec3(0, 1, 0));
+	glUniformMatrix4fv(glGetUniformLocation(gameShader.programID, "transform"), 1, GL_FALSE, glm::value_ptr(pos));
+	glBindVertexArray(mesh.VA);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,mesh.IB);
+	glDrawElements(GL_TRIANGLES, mesh.IndexCount, GL_UNSIGNED_INT, nullptr);
+}

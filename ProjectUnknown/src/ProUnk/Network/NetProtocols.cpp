@@ -149,21 +149,21 @@ namespace prounk {
 
 		Session* session = getSession();
 
-		auto& info = session->objectInfoRegistry.getItemInfo(object->getObjectInfo());
+		auto info = session->objectInfoRegistry.getItemInfo(object->getObjectInfo());
 
-		ItemType type = info.item.getType();
+		ItemType type = info->item.getType();
 		//ModelId id = info.item.getModelId();
-		int count = info.item.getCount();
+		int count = info->item.getCount();
 		//info.item.getDisplayName();
 		//info.item.getComplexData();
 		msg.push(type);
 		msg.push(count);
 
-		auto& list = info.item.getComplexData()->getList();
+		auto& list = info->item.getComplexData()->getList();
 		int propCount = list.size();
 		
 		msg.push(&propCount);
-		msg.push(list.data(), propCount);
+		msg.push((ComplexData::Entry*)list.data(), propCount);
 		
 		//for (int i = 0; i < propCount;i++) {
 		//	msg.push(&list[i].prop);
@@ -220,7 +220,7 @@ namespace prounk {
 		msg.push(&objectType);
 		Session* session = getSession();
 
-		auto& info = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+		//auto info = session->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
 		
 		msg.push(object->getModel()->getLoadName());
 
@@ -371,10 +371,10 @@ namespace prounk {
 			//log::out << "Session::Receive : DamageObject is broken\n";
 			if (object) {
 
-				auto& oinfo = getSession()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
-				oinfo.combatData.health -= damage;
-				if (oinfo.combatData.health < 0)
-					oinfo.combatData.health = 0;
+				auto oinfo = getSession()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+				oinfo->combatData.setHealth(oinfo->combatData.getHealth()-damage);
+				if (oinfo->combatData.getHealth() < 0)
+					oinfo->combatData.setHealth(0);
 
 				object->applyForce(knockDirection);
 
@@ -463,19 +463,19 @@ namespace prounk {
 		Session* session = getSession();
 
 		//-- Extract data
-		UUID_DIM obj;
+		UUID_DIM obj{};
 		pullObject(msg, obj); // Issue: what if uuid already exists (the client may have sent the same uuid by intention)
 
-		ItemType type;
-		int count;
+		ItemType type=0;
+		int count=0;
 		msg->pull(&type);
 		msg->pull(&count);
 
-		int propCount;
+		int propCount=0;
 		msg->pull(&propCount);
-		ComplexData temp;
+		ComplexData temp{};
 		temp.getList().resize(propCount);
-		msg->pull(temp.getList().data(), propCount);
+		msg->pull((ComplexData::Entry*)temp.getList().data(), propCount);
 
 		//-- don't create object if uuid exists
 		if (!obj.dim)

@@ -62,17 +62,17 @@ namespace prounk {
 		if (!session->getServer().isRunning() && !session->getClient().isRunning()) {
 			bool result = false;
 
-			auto [ip, port] = SplitAddress(m_address);
+			auto address = SplitAddress(m_address);
 
 			// TODO: handle potential error messages.
 			if (m_type == "Client") {
-				result = session->getClient().start(ip,port);
+				result = session->getClient().start(address.ip, address.port);
 				if (!result)
-					log::out << log::RED << "SessionPanel : Client failed (ip: " << ip << ", port: " << port << "\n";
+					log::out << log::RED << "SessionPanel : Client failed (ip: " << address.ip << ", port: " << address.port << "\n";
 			} else if (m_type == "Server") {
-				result = session->getServer().start(port);
+				result = session->getServer().start(address.port);
 				if (!result)
-					log::out << log::RED << "SessionPanel : Server failed (ip: " << ip << ", port: " << port<< "\n";
+					log::out << log::RED << "SessionPanel : Server failed (ip: " << address.ip << ", port: " << address.port<< "\n";
 			}
 		}
 	}

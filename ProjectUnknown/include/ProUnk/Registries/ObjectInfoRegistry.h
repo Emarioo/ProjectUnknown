@@ -25,7 +25,7 @@ namespace prounk {
 		std::vector<engone::UUID> collisions;
 		bool hit(engone::UUID uuid);
 	};
-	ObjectTriggerInfo& GetTriggerInfo(engone::EngineObject* object);
+	ObjectTriggerInfo* GetTriggerInfo(engone::EngineObject* object);
 	
 	// This class has a lot of repetition in it.
 	// Can it be improved? macros perhaps?
@@ -36,28 +36,31 @@ namespace prounk {
 		void serialize();
 		void deserialize();
 
-		ObjectItemInfo& getItemInfo(uint32 dataIndex);
-		uint32 registerItemInfo();
+		// Todo: change reference to pointer
+
+		ObjectItemInfo* getItemInfo(uint32 dataIndex);
+		uint32 registerItemInfo(ObjectItemInfo** outPtr = nullptr);
 		void unregisterItemInfo(uint32 dataIndex);
 		
-		ObjectWeaponInfo& getWeaponInfo(uint32 dataIndex);
-		uint32 registerWeaponInfo();
+		ObjectWeaponInfo* getWeaponInfo(uint32 dataIndex);
+		uint32 registerWeaponInfo(ObjectWeaponInfo** outPtr = nullptr);
 		void unregisterWeaponInfo(uint32 dataIndex);
 
-		ObjectCreatureInfo& getCreatureInfo(uint32 dataIndex);
-		uint32 registerCreatureInfo(const std::string& name);
+		ObjectCreatureInfo* getCreatureInfo(uint32 dataIndex);
+		uint32 registerCreatureInfo(const std::string& name, ObjectCreatureInfo** outPtr=nullptr);
 		void unregisterCreatureInfo(uint32 dataIndex);
 		
-		ObjectTriggerInfo& getTriggerInfo(uint32 dataIndex);
-		uint32 registerTriggerInfo();
+		ObjectTriggerInfo* getTriggerInfo(uint32 dataIndex);
+		uint32 registerTriggerInfo(ObjectTriggerInfo** outPtr = nullptr);
 		void unregisterTriggerInfo(uint32 dataIndex);
 
 	private:
-		// Each allocated frame has 128 infos
-		engone::FrameArray<ObjectCreatureInfo> m_creatureInfos{128};
-		engone::FrameArray<ObjectItemInfo> m_itemInfos{128};
-		engone::FrameArray<ObjectWeaponInfo> m_weaponInfos{128};
-		engone::FrameArray<ObjectTriggerInfo> m_triggerInfos{128};
+
+#define USE_ALLOC_TYPE ALLOC_TYPE_GAME_MEMORY
+		engone::FrameArray m_creatureInfos{ sizeof(ObjectCreatureInfo),32,USE_ALLOC_TYPE };
+		engone::FrameArray m_itemInfos{ sizeof(ObjectItemInfo),32,USE_ALLOC_TYPE };
+		engone::FrameArray m_weaponInfos{ sizeof(ObjectWeaponInfo),32,USE_ALLOC_TYPE };
+		engone::FrameArray m_triggerInfos{ sizeof(ObjectTriggerInfo),32,USE_ALLOC_TYPE };
 		
 	};
 }
