@@ -32,7 +32,7 @@ namespace engone {
 
         uint64_t writtenBytes = FileWrite(m_file,(char*)ptr,bytes);
         if(writtenBytes!=bytes){
-            m_error = PlatformError;
+            m_error = OtherError;
             printf("FileWriter::write : bad error\n");
             return false;
         }
@@ -62,7 +62,7 @@ namespace engone {
             }
             uint64 bytesWritten = FileWrite(m_file, buffer, strlen(buffer));
             if(bytesWritten!=strlen(buffer)){
-                m_error = PlatformError;
+                m_error = OtherError;
                 printf("Some error\n");
                 return i;
             }

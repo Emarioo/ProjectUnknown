@@ -8,7 +8,7 @@ namespace engone {
 			GEN_STR(FileNotFound);
 			GEN_STR(EndOfFile);
 			GEN_STR(AllocFailure);
-			GEN_STR(PlatformError);
+			GEN_STR(OtherError);
 		// case ErrorNone: return "None";
 		// case ErrorMissingFile: return "MissingFile";
 		// case ErrorCorruptedFile: return "CorruptedFile";

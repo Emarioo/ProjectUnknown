@@ -3,9 +3,9 @@
 
 #include "Engone/EventModule.h"
 #include "Engone/AssetModule.h"
-const char* test2dGLSL = {
-#include "Engone/Tests/test2d.glsl"
-};
+// const char* test2dGLSL = {
+// #include "Engone/Tests/test2d.glsl"
+// };
 #include "Engone/Tests/BasicRendering.h"
 
 #include "Engone/Networking/NetworkModule.h"
@@ -22,15 +22,15 @@ const char* test2dGLSL = {
 namespace engone {
 	// TrackerId Engone::trackerId = "Engone";
 
-	static const char* guiShaderSource = {
-#include "Engone/Shaders/gui.glsl"
-	};
-	static const char* objectSource = {
-#include "Engone/Shaders/object.glsl"
-	};
-	static const char* collisionSource = {
-#include "Engone/Shaders/collision.glsl"
-	};
+// 	static const char* guiShaderSource = {
+// #include "Engone/Shaders/gui.glsl"
+// 	};
+// 	static const char* objectSource = {
+// #include "Engone/Shaders/object.glsl"
+// 	};
+// 	static const char* collisionSource = {
+// #include "Engone/Shaders/collision.glsl"
+// 	};
 
 #define INSTANCE_LIMIT 1000u
 

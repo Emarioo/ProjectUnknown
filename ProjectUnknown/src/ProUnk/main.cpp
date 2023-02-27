@@ -17,24 +17,39 @@
 
 #include "Engone/PlatformModule/GameMemory.h"
 
+#include "Engone/Win32Includes.h"
+
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
 	
+	HMODULE module = LoadLibraryA("C:\\Users\\datao\\Desktop\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll");
+	if (module == NULL) {
+		int err = GetLastError();
+		printf("Error: %d\n",err);
+	} else {
+		int(*proc)(int) = (int(*)(int)) GetProcAddress(module, "HelloWorld");
+
+		if (proc == NULL) {
+			int err = GetLastError();
+			printf("Err: %d\n", err);
+		} else {
+			int val = proc(25);
+			printf("WOOS %d\n",val);
+		}
+	}
+
 	// log::out << "Broken?\n";
 	
-<<<<<<< HEAD
 	// GameMemoryTest();
 
-	TestPlatformErrors();
-=======
+	// TestPlatformErrors();
 	 //GameMemoryTest();
 
 	//FrameArrayTest();
 	//HashMapTestCase();
 	//EngoneStackTest();
 	//EngoneStableArrayTest();
->>>>>>> ba877d5dc38469a50ec123163df8caa45c755bd9
 	
 	 //system("pause");
 

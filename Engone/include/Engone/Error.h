@@ -14,7 +14,7 @@ namespace engone {
 		EndOfFile,
 		AllocFailure,
 		DataWasLost,
-		PlatformError,
+		OtherError,
 
 	};
 	const char* ToString(Error value);

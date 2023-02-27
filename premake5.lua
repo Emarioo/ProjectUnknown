@@ -23,6 +23,7 @@ include "GLFW3"
 include "rp3d"
 include "Engone"
 include "ProjectUnknown"
+include "GameCode"
     
 newaction {
     trigger     = "build",

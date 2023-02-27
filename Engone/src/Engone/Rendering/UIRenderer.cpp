@@ -7,27 +7,29 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-static const char* uiPipelineGLSL = {
-#include "Engone/Shaders/uiPipeline.glsl"
-};
-static const char* rendererGLSL = {
-#include "Engone/Shaders/renderer.glsl"
-};
-static const char* linesGLSL = {
-#include "Engone/Shaders/lines3d.glsl"
-};
-static const char* guiShaderSource = {
-#include "Engone/Shaders/gui.glsl"
-};
-static const char* objectSource = {
-#include "Engone/Shaders/object.glsl"
-};
-static const char* armatureSource = {
-#include "Engone/Shaders/armature.glsl"
-};
-static const char* particleGLSL = {
-#include "Engone/Shaders/particle.glsl"
-};
+#include "Engone/Shaders/ShaderGLSL.h"
+
+// static const char* uiPipelineGLSL = {
+// #include "Engone/Shaders/uiPipeline.glsl"
+// };
+// static const char* rendererGLSL = {
+// #include "Engone/Shaders/renderer.glsl"
+// };
+// static const char* linesGLSL = {
+// #include "Engone/Shaders/lines3d.glsl"
+// };
+// static const char* guiShaderSource = {
+// #include "Engone/Shaders/gui.glsl"
+// };
+// static const char* objectSource = {
+// #include "Engone/Shaders/object.glsl"
+// };
+// static const char* armatureSource = {
+// #include "Engone/Shaders/armature.glsl"
+// };
+// static const char* particleGLSL = {
+// #include "Engone/Shaders/particle.glsl"
+// };
 
 namespace engone {
 

@@ -7,12 +7,12 @@ namespace engone {
 	// Do one test at a time. The tests share resources.
 	namespace test {
 
-		static const char* test2dGLSL = {
-#include "Engone/Tests/test2d.glsl"
-		};
-		static const char* test3dGLSL = {
-#include "Engone/Tests/test3d.glsl"
-		};
+// 		static const char* test2dGLSL = {
+// #include "Engone/Tests/test2d.glsl"
+// 		};
+// 		static const char* test3dGLSL = {
+// #include "Engone/Tests/test3d.glsl"
+// 		};
 
 		static VertexBuffer VBO;
 		static IndexBuffer IBO;
@@ -24,7 +24,8 @@ namespace engone {
 		void Test2D(LoopInfo& info) {
 			if (!shader2) {
 
-				shader2 = ALLOC_NEW(Shader)(test2dGLSL);
+				shader2 = nullptr;
+				// ALLOC_NEW(Shader)(test2dGLSL);
 				float fArray[]{
 					0,0,
 					1,0,
@@ -42,7 +43,8 @@ namespace engone {
 		}
 		void Test3D(LoopInfo& info) {
 			if (!shader3) {
-				shader3 = ALLOC_NEW(Shader)(test3dGLSL);
+				shader3 = nullptr;
+				// ALLOC_NEW(Shader)(test3dGLSL);
 				float fArray[]{
 					0,0,-4,
 					1,0,-4,
@@ -64,14 +66,15 @@ namespace engone {
 			renderer->updatePerspective(shader3);
 			VAO.draw(&IBO);
 		}
-		static const char* particlesGLSL = {
-#include "Engone/Tests/testParticle.glsl"
-		};
+// 		static const char* particlesGLSL = {
+// #include "Engone/Tests/testParticle.glsl"
+// 		};
 		static ParticleGroup<DefaultParticle> partGroup{};
 		static Shader* shaderPart = nullptr;
 		void TestParticles(LoopInfo& info) {
 			if (!shaderPart) {
-				shaderPart = ALLOC_NEW(Shader)(particlesGLSL);
+				shaderPart = nullptr;
+				// ALLOC_NEW(Shader)(particlesGLSL);
 				partGroup.init(info.window, shaderPart);
 				//partGroup.resize(10000000);
 				//uint32_t count = 18*pow(10,6);

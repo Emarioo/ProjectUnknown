@@ -23,7 +23,7 @@
 
 namespace engone {
 	// Todo: Change the error
-#define CHECK_ERR(x) if(!(x)) { m_error = PlatformError; m_state=Failed; return m_error; }
+#define CHECK_ERR(x) if(!(x)) { m_error = OtherError; m_state=Failed; return m_error; }
 
 	// TrackerId TextureAsset::trackerId = "TextureAsset";
 	// TrackerId FontAsset::trackerId = "FontAsset";

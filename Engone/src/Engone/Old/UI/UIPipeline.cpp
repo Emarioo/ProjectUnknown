@@ -3,15 +3,17 @@
 
 #include "../Rendering/Buffer.h"
 
-#include "../Handlers/AssetHandler.h"
+#include "Engone/AssetHandler.h"
 
-#include "../EventHandler.h"
+#include "Engone/EventHandler.h"
 
-#include "../Window.h"
+#include "Engone/Window.h"
 
-static const char* uiPipelineGLSL = {
-#include "../Shaders/uiPipeline.glsl"
-};
+#include "Engone/Shaders/ShaderGLSL.h"
+
+// static const char* uiPipelineGLSL = {
+// #include "../Shaders/uiPipeline.glsl"
+// };
 
 namespace engone {
 

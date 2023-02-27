@@ -394,11 +394,11 @@ namespace engone {
 			profiler->updateSection(name, endSeconds - startSeconds);
 		}
 	}
-	void test() {
-		Profiler profiler;
-		{
-			TIME_SECTION(test, &profiler)
+	// void test() {
+	// 	Profiler profiler;
+	// 	{
+	// 		TIME_SECTION(test, &profiler)
 		
-		}
-	}
+	// 	}
+	// }
 }

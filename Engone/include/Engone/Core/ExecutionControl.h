@@ -22,9 +22,11 @@ namespace engone {
 	private:
 		std::string m_executionName;
 		int m_priority = 0;
+		void* funcPtr;
 
 		friend class ExecutionControl;
 	};
+
 	class ExecutionTimer {
 	public:
 		double delta = 0;

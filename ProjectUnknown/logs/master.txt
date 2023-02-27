@@ -1,36 +1,38 @@
-[03:22:47] [Thread 23736] Saving game memory (5258816 bytes)... [03:22:47] [Thread 23736] done
-[03:22:51] [Thread 23736] Loading game memory (5258816 bytes)... [03:22:51] [Thread 23736] done
-[03:22:52] [Thread 23736] Loading game memory (5258816 bytes)... [03:22:52] [Thread 23736] done
-[03:22:53] [Thread 23736] Loading game memory (5258816 bytes)... [03:22:53] [Thread 23736] done
-[03:22:56] [Thread 23736] Loading game memory (5258816 bytes)... [03:22:56] [Thread 23736] done
-[03:23:05] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:05] [Thread 23736] done
-[03:23:07] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:07] [Thread 23736] done
-[03:23:08] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:08] [Thread 23736] done
-[03:23:08] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:08] [Thread 23736] done
-[03:23:09] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:09] [Thread 23736] done
-[03:23:10] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:10] [Thread 23736] done
-[03:23:10] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:10] [Thread 23736] done
-[03:23:10] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:10] [Thread 23736] done
-[03:23:11] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:11] [Thread 23736] done
-[03:23:11] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:11] [Thread 23736] done
-[03:23:12] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:12] [Thread 23736] done
-[03:23:12] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:12] [Thread 23736] done
-[03:23:12] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:12] [Thread 23736] done
-[03:23:12] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:12] [Thread 23736] done
-[03:23:13] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:13] [Thread 23736] done
-[03:23:13] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:13] [Thread 23736] done
-[03:23:13] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:13] [Thread 23736] done
-[03:23:14] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:14] [Thread 23736] done
-[03:23:15] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:15] [Thread 23736] done
-[03:23:15] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:15] [Thread 23736] done
-[03:23:16] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:16] [Thread 23736] done
-[03:23:16] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:16] [Thread 23736] done
-[03:23:18] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:18] [Thread 23736] done
-[03:23:19] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:19] [Thread 23736] done
-[03:23:20] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:20] [Thread 23736] done
-[03:23:20] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:20] [Thread 23736] done
-[03:23:21] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:21] [Thread 23736] done
-[03:23:21] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:21] [Thread 23736] done
+[12:53:44] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:44] [Thread 15680] done
+[12:53:49] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:49] [Thread 15680] done
+[12:53:51] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:51] [Thread 15680] done
+[12:53:53] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:53] [Thread 15680] done
+[12:53:54] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:54] [Thread 15680] done
+[12:53:56] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:56] [Thread 15680] done
+[12:53:57] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:57] [Thread 15680] done
+[12:53:58] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:58] [Thread 15680] done
+[12:53:59] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:59] [Thread 15680] done
+[12:54:01] [Thread 15680] Saving game memory (5258816 bytes)... [12:54:01] [Thread 15680] done
+[12:54:03] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:03] [Thread 15680] done
+[12:54:03] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:03] [Thread 15680] done
+[12:54:04] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:04] [Thread 15680] done
+[12:54:05] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:05] [Thread 15680] done
+[12:54:06] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:06] [Thread 15680] done
+[12:54:06] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:06] [Thread 15680] done
+[12:54:07] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:07] [Thread 15680] done
+[12:54:08] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:08] [Thread 15680] done
+[12:54:09] [Thread 15680] Saving game memory (5258816 bytes)... [12:54:09] [Thread 15680] done
+[12:54:10] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:10] [Thread 15680] done
+[12:54:11] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:11] [Thread 15680] done
+[12:54:12] [Thread 15680] Saving game memory (5258816 bytes)... [12:54:12] [Thread 15680] done
+[12:54:14] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:14] [Thread 15680] done
+[12:54:17] [Thread 15680] Saving game memory (5258816 bytes)... [12:54:17] [Thread 15680] done
+[12:54:19] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:19] [Thread 15680] done
+[12:54:20] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:20] [Thread 15680] done
+[12:54:28] [Thread 15680] Loading game memory (5258816 bytes)... [12:54:28] [Thread 15680] done
+[14:22:35] [Thread 15680] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:22:35] [Thread 15680] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:22:35] [Thread 15680] MaterialAsset : Cleanup may be broken (deleting diffuse_map, is it used for others?)
+[14:22:35] [Thread 15680] AnimationAsset::cleanup - not implemented
+[14:22:35] [Thread 15680] AnimationAsset::cleanup - not implemented
+[14:22:35] [Thread 15680] AnimationAsset::cleanup - not implemented
+[14:22:35] [Thread 15680] GameApp : CLEANUP NOT IMPLEMENTED
+e
 [03:23:22] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:22] [Thread 23736] done
 [03:23:23] [Thread 23736] Saving game memory (5262216 bytes)... [03:23:23] [Thread 23736] done
 [03:23:23] [Thread 23736] Loading game memory (5262216 bytes)... [03:23:23] [Thread 23736] done

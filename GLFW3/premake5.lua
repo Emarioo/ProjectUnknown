@@ -18,7 +18,7 @@ project "glfw3"
 
     -- win32 is not removed
     removefiles{"**posix**","**cocoa**","**nsgl**","**glx**","**x11**","**xkb**","**wl**","**linux**"}
-    -- removefiles{"**null**"}
+    removefiles{"**null**"}
    
     -- includedirs {"__glfw/include"}
     includedirs {"glfw-3.3.8/include"}
