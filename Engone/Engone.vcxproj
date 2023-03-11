@@ -43,7 +43,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>-g %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zi %(AdditionalOptions)</AdditionalOptions>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
@@ -102,6 +102,7 @@
     <ClInclude Include="include\Engone\Rendering\Light.h" />
     <ClInclude Include="include\Engone\Rendering\RenderPipeline.h" />
     <ClInclude Include="include\Engone\Rendering\UIRenderer.h" />
+    <ClInclude Include="include\Engone\Shaders\ShaderGLSL.h" />
     <ClInclude Include="include\Engone\Sound\SoundBuffer.h" />
     <ClInclude Include="include\Engone\Sound\SoundSource.h" />
     <ClInclude Include="include\Engone\Sound\SoundStream.h" />
@@ -130,7 +131,6 @@
     <ClInclude Include="include\Engone\World\EngineWorld.h" />
     <ClInclude Include="include\Engone\pch.h" />
     <ClInclude Include="include\Engone\vendor\Libaudio.h" />
-    <ClInclude Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes\foo.h" />
     <ClInclude Include="include\Engone\vendor\glm\simd\common.h" />
     <ClInclude Include="include\Engone\vendor\glm\simd\exponential.h" />
     <ClInclude Include="include\Engone\vendor\glm\simd\geometric.h" />
@@ -172,6 +172,7 @@
     <ClCompile Include="src\Engone\Rendering\RenderModule.cpp" />
     <ClCompile Include="src\Engone\Rendering\RenderPipeline.cpp" />
     <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp" />
+    <ClCompile Include="src\Engone\ShaderGLSL.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundModule.cpp" />
     <ClCompile Include="src\Engone\Sound\SoundSource.cpp" />

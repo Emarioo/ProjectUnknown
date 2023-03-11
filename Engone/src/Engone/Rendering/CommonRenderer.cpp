@@ -36,11 +36,11 @@
 #endif
 
 namespace engone {
-	void CommonRenderer::init() {
+	void CommonRenderer::init(Window* win) {
 		if (m_initialized) return;
 		m_initialized = true;
 		setActiveRenderer();
-		Window* win = engone::GetActiveWindow();
+		// Window* win =  engone::GetActiveWindow();
 
 		//m_parent = GetActiveWindow();
 		uint32_t indes[TEXT_BATCH * 6];
@@ -216,7 +216,8 @@ namespace engone {
 		return lightProjection;
 	}
 	void CommonRenderer::setPerspective() {
-		float ratio = GetWidth() / GetHeight();
+		Window* win = GetActiveUIRenderer()->m_owner;
+		float ratio = win->getWidth() / win->getHeight();
 		if (std::isfinite(ratio))
 			perspectiveMatrix = glm::perspective(fov, ratio, zNear, zFar);
 	}
@@ -258,9 +259,9 @@ namespace engone {
 	}
 	void CommonRenderer::updateOrthogonal(Shader* shader) {
 		setOrthogonal();
-		if (shader != nullptr)
+		if (shader != nullptr){
 			shader->setMat4("uProj", orthogonalMatrix * camera.getViewMatrix());
-		else
+		}else
 			log::out << log::RED << "CommonRenderer::updateOrthogonal : shader is null";
 	}
 	void CommonRenderer::updateOrthogonal(Shader* shader, glm::mat4 viewMatrix) {
@@ -285,7 +286,7 @@ namespace engone {
 		} else if (font->getError()) {
 			return;
 		} else {
-			Window* win = engone::GetActiveWindow();
+			Window* win = GetActiveUIRenderer()->m_owner;
 			//Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
 			ShaderAsset* guiShader = win->getStorage()->get<ShaderAsset>("gui");
 			if (guiShader != nullptr)
@@ -526,7 +527,7 @@ namespace engone {
 		} else if (font->getError()) {
 			return;
 		} else {
-			Window* win = engone::GetActiveWindow();
+			Window* win = GetActiveUIRenderer()->m_owner;
 			//Shader* guiShader = m_parent->getAssets()->get<Shader>("gui");
 			ShaderAsset* guiShader = win->getStorage()->get<ShaderAsset>("gui");
 			if (guiShader != nullptr)
@@ -733,13 +734,12 @@ namespace engone {
 	}
 	void CommonRenderer::render(LoopInfo& info) {
 		EnableDepth();
-		Window* win = engone::GetActiveWindow();
 
 		//if (!instanceBuffer.initialized()) {
 		//	instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
 		//}
 
-		ShaderAsset* shader = win->getStorage()->get<ShaderAsset>("renderer");
+		ShaderAsset* shader = info.window->getStorage()->get<ShaderAsset>("renderer");
 		if (shader) {
 			shader->bind();
 			updatePerspective(shader);
@@ -747,7 +747,7 @@ namespace engone {
 			uint32_t drawnCubes = 0;
 			uint32_t cubeCount = 0;
 
-			win->getParent()->getEngine()->bindLights(shader, { 0,0,0 });
+			info.window->getParent()->getEngine()->bindLights(shader, { 0,0,0 });
 
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_CUBE_BATCH, cubeObjects.size() - drawnCubes);
@@ -760,7 +760,7 @@ namespace engone {
 			}
 			cubeObjects.clear();
 		}
-		shader = win->getStorage()->get<ShaderAsset>("lines3d");
+		shader = info.window->getStorage()->get<ShaderAsset>("lines3d");
 		if (shader) {
 			shader->bind();
 			updatePerspective(shader);

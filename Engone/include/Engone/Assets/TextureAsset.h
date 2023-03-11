@@ -8,6 +8,12 @@ namespace engone {
 	public:
 		static const AssetType TYPE = AssetTexture;
 		TextureAsset() : Asset(TYPE) { };
+		TextureAsset(int id) : Asset(TYPE) { 
+			auto png = PNG::Load(id);
+			rawImage = PNGToRawImage(png);
+			ALLOC_DELETE(PNG,png);
+			m_flags=LoadGraphic;
+		}
 		~TextureAsset() { cleanup(); }
 		
 		void cleanup() override;

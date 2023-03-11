@@ -2,7 +2,7 @@
 
 #include "Engone/Utilities/ImageUtility.h"
 
-#define GL_CHECK()  {int err = glGetError();if(err) {log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
+#define GL_CHECK()  {int err = glGetError();if(err) {printf("OH NO %d\n",err); engone::log::out << engone::log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
 
 namespace engone {
 
@@ -62,8 +62,10 @@ namespace engone {
 		void bind() const;
 		void unbind() const;
 		void cleanup() override;
-
+		
+		// size in bytes
 		void setData(uint32_t size, void* data, uint32_t offset = 0) override;
+		// size in bytes
 		void getData(uint32_t size, void* data, uint32_t offset = 0) override;
 
 	};
@@ -139,7 +141,10 @@ namespace engone {
 		void drawLines(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer);
 		void draw(IndexBuffer* indexBuffer, uint32_t instanceAmount);
+		// NOTE THAT THE ARGUMENT IS VERTEX COUNT NOT TRIANGLE COUNT
 		void drawTriangleArray(int vertexCount);
+		// NOTE THAT THE ARGUMENT IS VERTEX COUNT NOT LINE COUNT
+		void drawLineArray(int vertexCount);
 		
 		static const int MAX_LOCATIONS =  8;
 		static const int MAX_BUFFERS =  2;
@@ -166,7 +171,8 @@ namespace engone {
 
 		// image cannot be nullptr
 		void init(RawImage* image);
-		//void init(int width, int height, char* data, int x=0,int y);
+		// void init(int width, int height, char* data);
+		// void init(char* data, int width, int height, int x = 0, int y = 0);
 		//void init(const void* inBuffer, uint32_t size);
 		//Texture(const std::string& path) : Asset(TYPE) { load(path); };
 		//Texture(const char* inBuffer, uint32_t size, Assets* assets = nullptr) : Asset(TYPE, "") { load(inBuffer, size, assets); };
@@ -176,7 +182,7 @@ namespace engone {
 		//void init(int w, int h, void* data);
 		
 		// function is not complete. Initialization of the image can only be done once.
-		void setData(int width, int height, char* data, int x = 0, int y=0);
+		void setData(char* data, int width, int height, int x = 0, int y=0);
 
 		int getWidth() const;
 		int getHeight() const;

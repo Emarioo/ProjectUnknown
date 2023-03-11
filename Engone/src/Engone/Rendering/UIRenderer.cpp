@@ -31,6 +31,22 @@
 // #include "Engone/Shaders/particle.glsl"
 // };
 
+/*
+Example uses
+	
+newlayout("",depth)
+	
+id0 = drawbox("",x,y,w,h,color)	
+
+id1 = drawbox("",id0,alignbelow,offset)
+
+id2 = drawbox("",)
+id3 = drawtext("",)
+
+layout("",)
+
+*/
+
 namespace engone {
 
 	struct PIPE_VERTEX {
@@ -59,7 +75,8 @@ namespace engone {
 		};
 		void Draw(Box box) {
 			if (!GetActiveUIRenderer()) return;
-			if (box.x + box.w < 0 || box.x>GetWidth() || box.y + box.h<0 || box.y>GetHeight())
+				Window* win = GetActiveUIRenderer()->m_owner;
+			if (box.x + box.w < 0 || box.x>win->getWidth() || box.y + box.h<0 || box.y>win->getHeight())
 				return; // out of bounds
 			UIRenderer ead;
 			GetActiveUIRenderer()->uiObjects.writeMemory<Box>('B', &box);
@@ -69,7 +86,8 @@ namespace engone {
 				return;
 			}
 			if (!GetActiveUIRenderer()) return;
-			if (box.x + box.w < 0 || box.x>GetWidth() || box.y + box.h<0 || box.y>GetHeight())
+				Window* win = GetActiveUIRenderer()->m_owner;
+			if (box.x + box.w < 0 || box.x>win->getWidth() || box.y + box.h<0 || box.y>win->getHeight())
 				return; // out of bounds
 			GetActiveUIRenderer()->uiObjects.writeMemory<TexturedBox>('T', &box);
 		}
@@ -78,9 +96,10 @@ namespace engone {
 				box.at = -1;
 			}
 			if (!GetActiveUIRenderer()) return;
+			Window* win = GetActiveUIRenderer()->m_owner;
 			// ISSUE: width of str is used.  ( box.x+box.w<0 )
 			float h = box.getHeight();
-			if (box.x > GetWidth() || box.y + h<0 || box.y>GetHeight())
+			if (box.x > win->getWidth() || box.y + h<0 || box.y>win->getHeight())
 				return; // out of bounds
 			PipeTextBox a;
 			GetActiveUIRenderer()->uiStrings.push_back(box.text);
@@ -210,8 +229,14 @@ namespace engone {
 	}
 	VertexBuffer& UIRenderer::getInstanceBuffer() { return instanceBuffer; }
 
+	void UIRenderer::drawLine(float x, float y, float x1, float y1, ui::Color color){
+		lines.push_back({x,y,x1,y1,color});
+	}
 	void UIRenderer::render(LoopInfo& info) {
 		EnableBlend();
+		
+		float sw = info.window->getWidth();
+		float sh = info.window->getHeight();
 		
 		if (!instanceBuffer.initialized()) {
 			instanceBuffer.setData(INSTANCE_BATCH * sizeof(glm::mat4), nullptr);
@@ -228,7 +253,7 @@ namespace engone {
 				intArray[i * 6 + 4] = i * 4 + 3;
 				intArray[i * 6 + 5] = i * 4 + 0;
 			}
-			boxIBO.setData(6 * MAX_BOX_BATCH * sizeof(float), intArray);
+			boxIBO.setData(6 * MAX_BOX_BATCH * sizeof(unsigned int), intArray);
 
 			boxVAO.addAttribute(2); // pos
 			boxVAO.addAttribute(2); // uv
@@ -236,34 +261,43 @@ namespace engone {
 			boxVAO.addAttribute(1, &boxVBO); // texture
 		}
 
-		Window* win = engone::GetActiveWindow();
-		CommonRenderer* renderer = GetActiveRenderer();
+		if(!lineVBO.initialized()){
+			lineVBO.setData(2*VERTEX_SIZE*MAX_LINE_BATCH*sizeof(float),nullptr);	
+			
+			lineVAO.addAttribute(2); // pos
+			lineVAO.addAttribute(2); // uv
+			lineVAO.addAttribute(4); // color
+			lineVAO.addAttribute(1, &lineVBO); // texture
+		}
+
+		// Window* win = engone::GetActiveWindow();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 		Camera* camera = renderer->getCamera();
 		
 		// setup
-		ShaderAsset* guiShad = win->getStorage()->get<ShaderAsset>("gui");
+		ShaderAsset* guiShad = info.window->getStorage()->get<ShaderAsset>("gui");
 		if (!guiShad) {
 			log::out << "UIRenderer : Missing gui shader\n";
 			return;
 		}
 
 		guiShad->bind();
-		guiShad->setVec2("uWindow", { GetWidth(), GetHeight() });
+		guiShad->setVec2("uWindow", { sw, sh });
 
-		ShaderAsset* pipeShad = win->getStorage()->get<ShaderAsset>("uiPipeline");
+		ShaderAsset* pipeShad = info.window->getStorage()->get<ShaderAsset>("uiPipeline");
 		if (!pipeShad) {
 			log::out << "UIRenderer : Missing uiPipeline shader\n";
 			return;
 		}
 
 		pipeShad->bind();
-		pipeShad->setVec2("uWindow", { GetWidth(), GetHeight() });
+		pipeShad->setVec2("uWindow", { sw, sh });
 		// needs to be done once
 		for (int i = 0; i < 8; i++) {
 			pipeShad->setInt("uSampler[" + std::to_string(i) + std::string("]"), i);
 		}
 
-		ShaderAsset* objectShad = win->getStorage()->get<ShaderAsset>("object");
+		ShaderAsset* objectShad = info.window->getStorage()->get<ShaderAsset>("object");
 		if (!objectShad) {
 			log::out << "UIRenderer : Missing object shader\n";
 			return;
@@ -273,7 +307,7 @@ namespace engone {
 		renderer->updateOrthogonal(objectShad, glm::mat4(1));
 		objectShad->setVec3("uCamera", camera->getPosition());
 
-		ShaderAsset* armatureShad = win->getStorage()->get<ShaderAsset>("armature");
+		ShaderAsset* armatureShad = info.window->getStorage()->get<ShaderAsset>("armature");
 		if (!armatureShad) {
 			log::out << "UIRenderer : Missing armature shader\n";
 			return;
@@ -285,7 +319,7 @@ namespace engone {
 
 		// Method one
 		int floatIndex = 0;
-		std::unordered_map<Texture*, int> boundTextures;
+		std::unordered_map<Texture*, int> boundTextures; // Todo: Use an array instead of a map. There will only be 8 elements in the array.
 		char lastShader = 0;
 		while (true) {
 			char type = uiObjects.readType();
@@ -302,13 +336,15 @@ namespace engone {
 			} else if (type == 'T') {
 				ui::TexturedBox* box = uiObjects.readItem<ui::TexturedBox>();
 
-				int slot = boundTextures.size();
-				if (boundTextures.count(box->texture)) {
-					boundTextures[box->texture] = boundTextures.size();
-				} else {
+				// New good code
+				int slot = 0;
+				auto find = boundTextures.find(box->texture);
+				if(find==boundTextures.end()){
+					slot = boundTextures[box->texture] = boundTextures.size();
+				}else{
 					slot = boundTextures[box->texture];
 				}
-
+				
 				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 0] = { box->x,			box->y,			box->u,			box->v + box->vh,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
 				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 1] = { box->x,			box->y + box->h,	box->u,			box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
 				((PIPE_VERTEX*)&floatArray)[floatIndex * 4 + 2] = { box->x + box->w, box->y + box->h,	box->u + box->uw,	box->v,				box->rgba.r, box->rgba.g, box->rgba.b, box->rgba.a, (float)slot };
@@ -362,7 +398,7 @@ namespace engone {
 
 				lastShader = 'O';
 
-				ModelAsset* modelAsset = win->getStorage()->get<ModelAsset>(uiStrings[box->model_text_index]);
+				ModelAsset* modelAsset = info.window->getStorage()->get<ModelAsset>(uiStrings[box->model_text_index]);
 				glm::mat4& modelMatrix = box->matrix;
 				//glm::mat4 modelMatrix = ToMatrix(obj->rigidBody->getTransform());
 
@@ -394,7 +430,7 @@ namespace engone {
 						}
 					}
 				}
-				ShaderAsset* shader = win->getStorage()->get<ShaderAsset>("object");
+				ShaderAsset* shader = info.window->getStorage()->get<ShaderAsset>("object");
 				if (!shader->getError()) {
 					shader->bind();
 
@@ -420,7 +456,7 @@ namespace engone {
 					}
 					normalObjects.clear();
 				}
-				shader = win->getStorage()->get<ShaderAsset>("armature");
+				shader = info.window->getStorage()->get<ShaderAsset>("armature");
 				lastShader = 'A';
 				if (!shader->getError()) {
 					shader->bind();
@@ -471,6 +507,41 @@ namespace engone {
 		}
 		uiObjects.clear();
 		uiStrings.clear();
+		
+		pipeShad->bind();
+		//renderer->updateOrthogonal(pipeShad, glm::mat4(1));
+		EnableBlend();
+
+		glLineWidth(2.f);
+
+		int lineIndex=0;
+		while(true){
+			// MAX_LINE_BATCH
+			
+			// lineVBO.setData(MAX_LINE_BATCH*));
+			if(lineIndex==lines.size())
+				break;
+				
+			Line& line = lines[lineIndex];
+			lineIndex++;
+			((PIPE_VERTEX*)&floatArray)[floatIndex * 2 + 0] = { line.x, line.y, 0, 0, line.color.r, line.color.g, line.color.b, line.color.a, -1 };
+			((PIPE_VERTEX*)&floatArray)[floatIndex * 2 + 1] = { line.x1, line.y1, 0, 0, line.color.r, line.color.g, line.color.b, line.color.a, -1 };
+			floatIndex++;		
+
+			if(floatIndex == MAX_LINE_BATCH || lineIndex==lines.size()){
+
+				if (floatIndex != MAX_LINE_BATCH)
+					// Note: floatArray's size is based on MAX_BOX_BATCH. That's why we mix box and line. Line rendering is borrowing floatArray.
+					ZeroMemory(floatArray + floatIndex * 2 * VERTEX_SIZE, (MAX_BOX_BATCH*4 - floatIndex*2) * VERTEX_SIZE * sizeof(float));
+
+				// time to render
+				lineVBO.setData(MAX_LINE_BATCH*VERTEX_SIZE*2*sizeof(float),floatArray);
+				
+				lineVAO.drawLineArray(floatIndex*2);
+				floatIndex=0;
+			}
+		}
+		lines.clear();
 	}
 	
 	static UIRenderer* s_activeUIRenderer = nullptr;

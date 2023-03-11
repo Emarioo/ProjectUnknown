@@ -21,6 +21,8 @@
 
 #include "ProUnk/Effects/VisualEffects.h"
 
+#include "Engone/UIModule/UIModule.h"
+
 // #include "Engone/Sound/SoundStream.h"
 
 namespace prounk {
@@ -58,6 +60,8 @@ namespace prounk {
 		PlayerController playerController;
 
 		PanelHandler panelHandler;
+		
+		// UIModule uiModule{};
 
 		MasterInventoryPanel* masterInventoryPanel = nullptr;
 		InventoryPanel* inventoryPanel = nullptr;
@@ -69,7 +73,7 @@ namespace prounk {
 		engone::DelayCode delayed;
 
 		rp3d::RigidBody* testRB = nullptr;
-
+		
 		//inline World* getWorld() override { return (World*)Application::getWorld(); }
 		//inline void setWorld(World* world) { Application::setWorld(world); }
 
@@ -87,6 +91,18 @@ namespace prounk {
 		}
 
 		// engone::SoundStream melody;
+
+		float codeReloadTime=0;
+		double codeLastModified=0;
+		void* codeLibrary=nullptr;
+		const char* codePath = "D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll";
+		const char* codePath2 = "D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode_.dll";
+		const char* pdbPath = "D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.pdb";
+		const char* pdbPath2 = "D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode_.pdb";
+
+		typedef void(*PlayerUpdateFunc)(engone::LoopInfo*,engone::EngineObject*);
+
+		PlayerUpdateFunc updatePlayerMovement = 0;
 
 		//std::unordered_map<std::string, bool>& getStates() {
 		//	return m_stateMap;

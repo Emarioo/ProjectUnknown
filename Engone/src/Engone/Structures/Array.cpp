@@ -28,9 +28,12 @@ namespace engone {
 		m_values.used++;
 		return true;
 	}
+	void Array::clear(){
+		m_values.used=0;
+	}
 	bool Array::insert(uint32 index, const void* value) {
 		if (index >= m_values.used) {
-			return nullptr;
+			return false;
 		}
 		if (m_values.used == m_values.max) {
 			bool yes = m_values.resize(m_values.max * 2 + 4);

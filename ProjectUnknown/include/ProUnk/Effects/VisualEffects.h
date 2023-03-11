@@ -6,13 +6,18 @@
 
 namespace prounk {
 	
-	class VisualEffects : public engone::RenderComponent {
+	class VisualEffects 
+	// : public engone::RenderComponent 
+	{
 	public:
-		VisualEffects() : RenderComponent("VisualEffects") {
+		VisualEffects() 
+		// : RenderComponent("VisualEffects") 
+		{
 		}
 
 		void update(engone::LoopInfo& info);
-		void render(engone::LoopInfo& info) override;
+		void render(engone::LoopInfo& info);
+		//  override;
 
 		void CreateTextParticle(glm::vec3 position, float scale, const std::string& text);
 	

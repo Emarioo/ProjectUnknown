@@ -1,17 +1,17 @@
 #include "Engone/Rendering/Buffer.h"
 #include "Engone/Logger.h"
-// #define GLEW_STATIC
+ #define GLEW_STATIC
 #include <GL/glew.h>
 
 #include "Engone/Utilities/Alloc.h"
 
 #include "Engone/vendor/stb_image/stb_image.h"
 
-#define CHECK()  {int err = glGetError();if(err) {log::out << log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
+// #define GL_CHECK()  {int err = glGetError();if(err) {engone::log::out << engone::log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();}}
 // unknown error can happen if vertex array isn't bound when a vertex buffer is bound
 namespace engone {
 
-	//static void CHECK() {
+	//static void GL_CHECK() {
 	//	{
 	//		int err = glGetError();
 	//		if (err)
@@ -43,14 +43,14 @@ namespace engone {
 			if (data)
 				glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void VertexBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
 		if (size == 0) return;
 		bind();
 		glGetBufferSubData(GL_ARRAY_BUFFER, offset, size, outData);
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void IndexBuffer::bind() const {
@@ -76,7 +76,7 @@ namespace engone {
 			if (data)
 				glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, size, data);
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void IndexBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
@@ -112,7 +112,7 @@ namespace engone {
 			if (data)
 				glBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, data);
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void ShaderBuffer::getData(uint32_t size, void* outData, uint32_t offset) {
@@ -123,7 +123,7 @@ namespace engone {
 		}
 		bind();
 		glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, offset, size, outData);
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void ShaderBuffer::bindBase(int index) const {
@@ -133,9 +133,9 @@ namespace engone {
 		bind();
 		bindBase(bindingIndex);
 		glBindVertexArray(m_vaId);
-		CHECK();
+		GL_CHECK();
 		glDrawArrays(GL_POINTS, 0, count);
-		CHECK();
+		GL_CHECK();
 		unbind();
 		glBindVertexArray(0);
 	}
@@ -195,7 +195,7 @@ namespace engone {
 			location++;
 		}
 		bufferSection++;
-		CHECK();
+		GL_CHECK();
 		if (buffer) buffer->bind();
 		unbind();
 	}
@@ -216,7 +216,7 @@ namespace engone {
 		}
 		buffer->bind();
 		bind();
-		CHECK();
+		GL_CHECK();
 		uint32_t offset = 0;
 		uint32_t section = 0;
 		while (section < MAX_BUFFERS) {
@@ -239,7 +239,7 @@ namespace engone {
 			offset += size;
 			location++;
 		}
-		CHECK();
+		GL_CHECK();
 		buffer->bind(); // buffer is probably an instance buffer which needs to be bound before drawing. I did bind it a few lines up so may not need to bind again.
 		unbind();
 	}
@@ -278,7 +278,7 @@ namespace engone {
 		else {
 			log::out << log::RED << "VertexArray::drawLines - Must have indexBuffer when drawing!\n";
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void VertexArray::drawPoints(int count) {
@@ -301,12 +301,12 @@ namespace engone {
 		//else {
 		//	log::out << log::RED << "VertexArray::drawPoints Must have vertexBuffer when drawing!\n";
 		//}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void VertexArray::draw(IndexBuffer* indexBuffer) {
 		if (!initialized()) {
-			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			log::out << log::RED << "VertexArray::draw - object is uninitialized!\n";
 			return;
 		}
 		bind();
@@ -327,12 +327,12 @@ namespace engone {
 		else {
 			log::out << log::RED << "VertexArray::draw Must have indexBuffer when drawing!\n";
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void VertexArray::draw(IndexBuffer* indexBuffer, uint32_t instanceAmount) {
 		if (!initialized()) {
-			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			log::out << log::RED << "VertexArray::draw - object is uninitialized!\n";
 			return;
 		}
 		bind();
@@ -349,19 +349,36 @@ namespace engone {
 		else {
 			log::out << log::RED << "VertexArray::draw indexBuffer required when drawing instances!\n";
 		}
-		CHECK();
+		GL_CHECK();
 		unbind();
 	}
 	void VertexArray::drawTriangleArray(int vertexCount) {
 		if (!initialized()) {
-			log::out << log::RED << "VertexArray::drawLines - object is uninitialized!\n";
+			log::out << log::RED << "VertexArray::drawTriangleArray - object is uninitialized!\n";
 			return;
 		}
 		bind();
 
 		glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 
-		CHECK();
+		GL_CHECK();
+		unbind();
+	}
+	void VertexArray::drawLineArray(int vertexCount) {
+		if (!initialized()) {
+			log::out << log::RED << "VertexArray::drawLineArray - object is uninitialized!\n";
+			return;
+		}
+		bind();
+
+		glDrawArrays(GL_LINES, 0, vertexCount);
+
+		int err = glGetError();
+		if(err) {
+			engone::log::out << engone::log::RED<<"GLError: "<<err<<" "<<(const char*)glewGetErrorString(err)<<"\n";DebugBreak();
+		}
+
+		GL_CHECK();
 		unbind();
 	}
 	void Texture::cleanup() {
@@ -373,28 +390,28 @@ namespace engone {
 			log::out << "Texture::init - image was null\n";
 			return;
 		}
-		setData(image->width, image->height, image->data());
+		setData(image->data(),image->width, image->height);
 	}
-	//void Texture::init(char* data, int _width, int _height) {
-		//if (!data) {
-		//	log::out << "Texture::init - data was null\n";
-		//	return;
-		//}
-		//m_width = _width;
-		//m_height = _height;
+	// void Texture::init(char* data, int width, int height) {
+	// 	if (!data) {
+	// 		log::out << "Texture::init - data was null\n";
+	// 		return;
+	// 	}
+	// 	m_width = width;
+	// 	m_height = height;
 
-		//glGenTextures(1, &m_id);
-		//glBindTexture(GL_TEXTURE_2D, m_id);
+	// 	glGenTextures(1, &m_id);
+	// 	glBindTexture(GL_TEXTURE_2D, m_id);
 
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	// 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		//glBindTexture(GL_TEXTURE_2D, 0);
-	//}
-	void Texture::setData(int width, int height, char* data, int x, int y) {
+	// 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	// 	glBindTexture(GL_TEXTURE_2D, 0);
+	// }
+	void Texture::setData(char* data,int width, int height, int x, int y) {
 		if (!initialized()) {
 			if (width == 0 || height == 0) {
 				log::out <<log::RED<< "Texture::setData - width or height cannot be 0\n";
@@ -572,7 +589,7 @@ namespace engone {
 		glBlitFramebuffer(0, 0, m_width, m_height,
 			0, 0, width, height,
 			GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		//CHECK();
+		//GL_CHECK();
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	}
@@ -754,7 +771,7 @@ namespace engone {
 	void Shader::setFloat(const std::string& name, float f)
 	{
 		glUniform1f(getUniformLocation(name), f);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setVec2(const std::string& name, glm::vec2 v)
 	{
@@ -763,37 +780,37 @@ namespace engone {
 		//const GLubyte* okay = glewGetErrorString(num);
 		//std::cout << okay << "\n";
 		glUniform2f(getUniformLocation(name), v.x, v.y);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setIVec2(const std::string& name, glm::ivec2 v)
 	{
 		glUniform2i(getUniformLocation(name), v.x, v.y);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setVec3(const std::string& name, glm::vec3 v)
 	{
 		glUniform3f(getUniformLocation(name), v.x, v.y, v.z);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setIVec3(const std::string& name, glm::ivec3 v)
 	{
 		glUniform3i(getUniformLocation(name), v.x, v.y, v.z);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setVec4(const std::string& name, glm::vec4 v)
 	{
 		glUniform4f(getUniformLocation(name), v.x, v.y, v.z, v.w);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setInt(const std::string& name, int v)
 	{
 		glUniform1i(getUniformLocation(name), v);
-		CHECK();
+		GL_CHECK();
 	}
 	void Shader::setMat4(const std::string& name, glm::mat4 mat)
 	{
 		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat));
-		CHECK();
+		GL_CHECK();
 	}
 	unsigned int Shader::getUniformLocation(const std::string& name)
 	{

@@ -63,25 +63,38 @@ namespace engone {
 		//printf("%s",lineBuffer.data+lineBuffer.used);
 	}
 	void Logger::enableReport(bool yes){
-		m_enabledReports = yes;
+		if(realLogger) realLogger->enableReport(yes);
+		else m_enabledReports = yes;
 	}
 	void Logger::enableConsole(bool yes){
-		m_enabledConsole = yes;
+		if(realLogger) realLogger->enableConsole(yes);
+		else m_enabledConsole = yes;
 	}
 	void Logger::setMasterColor(log::Color color){
-		m_masterColor = color;
+		if(realLogger) realLogger->setMasterColor(color);
+		else m_masterColor = color;
 	}
 	void Logger::setMasterReport(const std::string path){
-		m_masterReportPath = path;
+		if(realLogger) realLogger->setMasterReport(path);
+		else m_masterReportPath = path;
 	}
 	void Logger::setReport(const std::string path){
-		auto& info = getThreadInfo();
-		info.logReport = path;
+		if(realLogger) realLogger->setReport(path);
+		else{
+			auto& info = getThreadInfo();
+			info.logReport = path;
+		}
 	}
 	void Logger::useThreadReports(bool yes){
-		m_useThreadReports=yes;
+		if(realLogger) realLogger->useThreadReports(yes);
+		else m_useThreadReports=yes;
+	}
+	void Logger::setRealLogger(Logger* logger){
+		realLogger = logger;
 	}
 	Logger::ThreadInfo& Logger::getThreadInfo() {
+		if(realLogger) return realLogger->getThreadInfo();
+		
 		auto id = Thread::GetThisThreadId();
 		auto find = m_threadInfos.find(id);
 		if (find == m_threadInfos.end()) {
@@ -90,93 +103,100 @@ namespace engone {
 		return m_threadInfos[Thread::GetThisThreadId()];
 	}
 	void Logger::flush(){
-		auto& info = getThreadInfo();
-		if(info.lineBuffer.used==0)
-			return;
-		print((char*)info.lineBuffer.data, info.lineBuffer.used);
-		info.lineBuffer.used = 0; // flush buffer
+		if(realLogger) realLogger->flush();
+		else {
+			auto& info = getThreadInfo();
+			if(info.lineBuffer.used==0)
+				return;
+			print((char*)info.lineBuffer.data, info.lineBuffer.used);
+			info.lineBuffer.used = 0; // flush buffer
+		}
 	}
 	void Logger::print(char* str, int len) {
-		auto& info = getThreadInfo();
-		m_printMutex.lock();
-		if (m_masterColor == log::NO_COLOR)
-			SetConsoleColor(info.color);
-		else
-			SetConsoleColor(m_masterColor);
+		if(realLogger) realLogger->print(str,len);
+		else{
+			auto& info = getThreadInfo();
+			m_printMutex.lock();
+			if (m_masterColor == log::NO_COLOR)
+				SetConsoleColor(info.color);
+			else
+				SetConsoleColor(m_masterColor);
 
-		if(m_enabledConsole){
-			printf("%s", str);
+			if(m_enabledConsole){
+				printf("%s", str);
+			}
+			if(m_enabledReports){
+				const char* te = "[Thread 65536] ";
+				char extraBuffer[11+15+1]{0};
+				extraBuffer[0]='[';
+				extraBuffer[9]=']';
+				extraBuffer[10]=' ';
+				_GetClock(extraBuffer+1);
+				sprintf(extraBuffer+11,"[Thread %u] ",Thread::GetThisThreadId());
+				if(!m_masterReportPath.empty()){
+					std::string path = m_rootDirectory+"/"+m_masterReportPath;
+					auto find = m_logFiles.find(path);
+					APIFile* file=nullptr;
+					if(find==m_logFiles.end()){
+						file = FileOpen(path,0,FILE_CAN_CREATE);
+						if(file)
+							m_logFiles[path] = file;
+					}else{
+						file = find->second;
+					}
+					if(file){
+						FileWrite(file,extraBuffer,strlen(extraBuffer));
+						uint64 bytes = FileWrite(file,str,len);
+						// Todo: check for failure
+					}
+				}
+				if(!info.logReport.empty()){
+					std::string path = m_rootDirectory+"/"+info.logReport;
+					auto find = m_logFiles.find(path);
+					APIFile* file=nullptr;
+					if(find==m_logFiles.end()){
+						file = FileOpen(path,0,FILE_CAN_CREATE);
+						if(file)
+							m_logFiles[path] = file;
+					}else{
+						file = find->second;
+					}
+					if(file){
+						FileWrite(file,extraBuffer,strlen(extraBuffer));
+						uint64 bytes = FileWrite(file,str,len);
+						// Todo: check for failure
+					}
+				}
+				if(m_useThreadReports){
+					std::string path = m_rootDirectory+"/thread";
+					path += std::to_string((uint32)Thread::GetThisThreadId())+".txt";
+					auto find = m_logFiles.find(path);
+					APIFile* file=nullptr;
+					if(find==m_logFiles.end()){
+						file = FileOpen(path,0,FILE_CAN_CREATE);
+						if(file)
+							m_logFiles[path] = file;
+					}else{
+						file = find->second;
+					}
+					if(file){
+						FileWrite(file,extraBuffer,strlen(extraBuffer));
+						uint64 bytes = FileWrite(file,str,len);
+						// Todo: check for failure
+					}
+				}
+			}
+			m_printMutex.unlock();
+
+			info.color = log::SILVER; // reset color after new line
+			if (m_masterColor == log::NO_COLOR)
+				SetConsoleColor(log::SILVER);
+
+			// Todo: write to report
 		}
-		if(m_enabledReports){
-			const char* te = "[Thread 65536] ";
-			char extraBuffer[11+15+1]{0};
-			extraBuffer[0]='[';
-			extraBuffer[9]=']';
-			extraBuffer[10]=' ';
-			_GetClock(extraBuffer+1);
-			sprintf(extraBuffer+11,"[Thread %u] ",Thread::GetThisThreadId());
-			if(!m_masterReportPath.empty()){
-				std::string path = m_rootDirectory+"/"+m_masterReportPath;
-				auto find = m_logFiles.find(path);
-				APIFile* file=nullptr;
-				if(find==m_logFiles.end()){
-					file = FileOpen(path,0,FILE_CAN_CREATE);
-					if(file)
-						m_logFiles[path] = file;
-				}else{
-					file = find->second;
-				}
-				if(file){
-					FileWrite(file,extraBuffer,strlen(extraBuffer));
-					uint64 bytes = FileWrite(file,str,len);
-					// Todo: check for failure
-				}
-			}
-			if(!info.logReport.empty()){
-				std::string path = m_rootDirectory+"/"+info.logReport;
-				auto find = m_logFiles.find(path);
-				APIFile* file=nullptr;
-				if(find==m_logFiles.end()){
-					file = FileOpen(path,0,FILE_CAN_CREATE);
-					if(file)
-						m_logFiles[path] = file;
-				}else{
-					file = find->second;
-				}
-				if(file){
-					FileWrite(file,extraBuffer,strlen(extraBuffer));
-					uint64 bytes = FileWrite(file,str,len);
-					// Todo: check for failure
-				}
-			}
-			if(m_useThreadReports){
-				std::string path = m_rootDirectory+"/thread";
-				path += std::to_string((uint32)Thread::GetThisThreadId())+".txt";
-				auto find = m_logFiles.find(path);
-				APIFile* file=nullptr;
-				if(find==m_logFiles.end()){
-					file = FileOpen(path,0,FILE_CAN_CREATE);
-					if(file)
-						m_logFiles[path] = file;
-				}else{
-					file = find->second;
-				}
-				if(file){
-					FileWrite(file,extraBuffer,strlen(extraBuffer));
-					uint64 bytes = FileWrite(file,str,len);
-					// Todo: check for failure
-				}
-			}
-		}
-		m_printMutex.unlock();
-
-		info.color = log::SILVER; // reset color after new line
-		if (m_masterColor == log::NO_COLOR)
-			SetConsoleColor(log::SILVER);
-
-		// Todo: write to report
 	}
 	log::Color Logger::getColor() {
+		if(realLogger) return realLogger->getColor();
 		auto& info = getThreadInfo();
 		if (m_masterColor == log::NO_COLOR)
 			return info.color;
@@ -184,31 +204,36 @@ namespace engone {
 			return m_masterColor;
 	}
 	Logger& Logger::operator<<(log::Color value) {
-		getThreadInfo().color = value;
+		if(realLogger) *realLogger << value;
+		else getThreadInfo().color = value;
 		return *this;
 	}
 	Logger& Logger::operator<<(log::Filter value) {
-		getThreadInfo().filter = value;
+		if(realLogger) *realLogger << value;
+		else getThreadInfo().filter = value;
 		return *this;
 	}
 	Logger& Logger::operator<<(const char* value) {
-		uint32 len = strlen(value);
+		if(realLogger) *realLogger<<value;
+		else {
+			uint32 len = strlen(value);
 
-		if (len == 0) return *this;
+			if (len == 0) return *this;
 
-		auto& info = getThreadInfo();
+			auto& info = getThreadInfo();
 
-		char* buf = info.ensure(len);
-		if (buf) {
-			memcpy(buf, value, len);
-			info.use(len);
-		} else {
-			printf("[Logger] : Failed insuring %u bytes\n", len); \
-		}
-		if (value[len - 1] == '\n') {
+			char* buf = info.ensure(len);
+			if (buf) {
+				memcpy(buf, value, len);
+				info.use(len);
+			} else {
+				printf("[Logger] : Failed insuring %u bytes\n", len); \
+			}
+			if (value[len - 1] == '\n') {
 			flush();
 			// print((char*)info.lineBuffer.data, info.lineBuffer.used);
 			// info.lineBuffer.used = 0; // flush buffer
+		}
 		}
 		return *this;
 	}
@@ -226,14 +251,17 @@ namespace engone {
 	// Am I lazy or smart?
 #define GEN_LOG_NUM(TYPE,ENSURE,FORMAT)\
 	Logger& Logger::operator<<(TYPE value) {\
-		auto& info = getThreadInfo();\
-		uint32 ensureBytes = ENSURE;\
-		char* buf = info.ensure(ensureBytes);\
-		if (buf) {\
-			int used = sprintf(buf,FORMAT,(TYPE)value);\
-			info.use(used);\
-		} else {\
-			printf("[Logger] : Failed insuring %u bytes\n", ensureBytes);\
+		if(realLogger) *realLogger << value;\
+		else {\
+			auto& info = getThreadInfo();\
+			uint32 ensureBytes = ENSURE;\
+			char* buf = info.ensure(ensureBytes);\
+			if (buf) {\
+				int used = sprintf(buf,FORMAT,(TYPE)value);\
+				info.use(used);\
+			} else {\
+				printf("[Logger] : Failed insuring %u bytes\n", ensureBytes);\
+			}\
 		}\
 		return *this;\
 	}
@@ -250,14 +278,17 @@ namespace engone {
 
 #define GEN_LOG_GEN(TYPE,ENSURE,PRINT)\
 	Logger& Logger::operator<<(TYPE value) {\
-		auto& info = getThreadInfo();\
-		uint32 ensureBytes = ENSURE;\
-		char* buf = info.ensure(ensureBytes);\
-		if (buf) {\
-			int used = sprintf PRINT;\
-			info.use(used);\
-		} else {\
-			printf("[Logger] : Failed insuring %u bytes\n", ensureBytes);\
+		if(realLogger) *realLogger<<value;\
+		else {\
+			auto& info = getThreadInfo();\
+			uint32 ensureBytes = ENSURE;\
+			char* buf = info.ensure(ensureBytes);\
+			if (buf) {\
+				int used = sprintf PRINT;\
+				info.use(used);\
+			} else {\
+				printf("[Logger] : Failed insuring %u bytes\n", ensureBytes);\
+			}\
 		}\
 		return *this;\
 	}

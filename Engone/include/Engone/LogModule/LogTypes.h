@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engone/Utilities/Typedefs.h"
+
 namespace engone {
 	namespace log {
 		enum Color : uint8 {

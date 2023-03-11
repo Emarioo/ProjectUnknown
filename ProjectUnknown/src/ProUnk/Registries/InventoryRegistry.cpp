@@ -221,6 +221,7 @@ namespace prounk {
 		for (int i = oldSize; i < newSlotSize;i++) {
 			*((Item*)m_slots.data() + i) = {};
 		}
+		return true;
 		//m_slots.resize(newSlotSize, Item());
 	}
 	int Inventory::getSlotSize() {

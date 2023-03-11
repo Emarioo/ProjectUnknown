@@ -14,6 +14,8 @@
 // #include "Engone/Utilities/Thread.h"
 #include "Engone/PlatformModule/PlatformLayer.h"
 
+#include "Engone/UIModule/UIModule.h"
+
 // #ifdef WIN32
 // extern "C" {
 // 	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; // use the graphics card
@@ -58,7 +60,16 @@ namespace engone {
 		m_appSizes.push_back(sizeof(Application));
 		// m_appIds.push_back(Application::trackerId);
 	}
-
+	
+	Window* Engone::createWindow(WindowDetail detail){
+		// Window* win = ALLOC_NEW(Window)(this, detail);
+		// GetTracker().track(win);
+		// windows.push_back(win);
+		return 0;
+	}
+	void Engone::add(AppInstance app){
+		appInstances.push_back(app);
+	}
 	void Engone::saveGameMemory(const std::string& path) {
 		GetGameMemory().save(path);
 	}
@@ -71,6 +82,12 @@ namespace engone {
 			log::out << log::YELLOW<<"Engone::start : Returning because of zero apps\n";
 			return;
 		}
+
+		for(AppInstance& app : appInstances){
+			app.initProc(this,&app);
+		}
+
+		m_flags |= EngoneRenderOnResize; // Todo: remove later?
 
 		// start threaded apps
 
@@ -98,7 +115,7 @@ namespace engone {
 			// special thread for input or just after render thread
 			glfwPollEvents(); // window refreh callback to redraw when resizing?
 
-			// sleep a bit if minimal work was done
+			// sleep a bit if little work was done
 			const float limit = mainUpdateTimer.aimedDelta / 8;
 			if(mainUpdateTimer.delta < limit)
 				engone::Sleep(limit*2);
@@ -275,62 +292,8 @@ namespace engone {
 		//if (mainRenderTimer.accumulate()) {
 			//log::out << "RENDER\n";
 			//printf("render\n");
-			for (Application* app : m_applications) {
-				if (app->isMultiThreaded())
-					continue;
-				app->m_renderingWindows = true;
-				for (Window* win : app->getAttachedWindows()) {
-					if (!win->isOpen()) continue;
-
-					double interpolation = mainUpdateTimer.accumulator / mainUpdateTimer.aimedDelta; // Note: update accumulator should be there.
-					if(getFlags()&EngoneShowHitboxes)
-						interpolation = 1;
-					//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
-					currentLoopInfo = { mainRenderTimer.delta,app,win,interpolation};
-					//currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
-					// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
-
-					win->setActiveContext();
-					app->getProfiler().getGraph("render").plot(GetSystemTime());
-
-					if (!win->getStorage()->getGraphicProcessors().empty()) {
-						win->getStorage()->getGraphicProcessors()[0]->process();
-					}
-
-					// Important setup
-					// DONE IN Window::setActiveContext
-					glViewport(0, 0, (uint32_t)GetWidth(), (uint32_t)GetHeight());
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-					glDepthFunc(GL_LESS);
-					glEnable(GL_CULL_FACE);
-					glClearColor(0.15f, 0.18f, 0.18f, 1.f);
-					//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
-					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-					// 3d stuff
-					app->render(currentLoopInfo);
-
-					render(currentLoopInfo);
-
-					app->getProfiler().getSampler(win).increment();
-					win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
-
-					// orthogonal was set before hand
-					win->getPipeline()->render(currentLoopInfo);
-
-					glfwSwapInterval(0); // turning off vsync?
-					//Timer swapT("glSwapBuffers");
-					glfwSwapBuffers(win->glfw());
-					//swapT.stop();
-					// frame reset
-					win->resetEvents(true);
-					char endChr;
-					while (endChr = win->pollChar()) {
-						//log::out << "endpoll " << endChr << "\n";
-					}
-				}
-				app->m_renderingWindows = false;
-			}
+		// log::out << "Time "<<mainUpdateTimer.runtime<<"\n";
+		renderApps();
 		//}
 		for (Application* app : m_applications) {
 			if (!app->isMultiThreaded()) {
@@ -359,13 +322,80 @@ namespace engone {
 				// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
 				// app should be safe to delete
 				// GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
-				ALLOC_DELETE(Application, app);
+				 
+				// crashes if allocated with new
+				//ALLOC_DELETE(Application, app);
+				app->~Application();
 
 				m_applications.erase(m_applications.begin() + i);
 				m_appSizes.erase(m_appSizes.begin() + i);
 				// m_appIds.erase(m_appIds.begin() + i);
 				i--;
 			}
+		}
+	}
+	void Engone::renderApps(){
+		for (Application* app : m_applications) {
+			if (app->isMultiThreaded())
+				continue;
+			app->m_renderingWindows = true;
+			for (Window* win : app->getAttachedWindows()) {
+				if (!win->isOpen()) continue;
+
+				double interpolation = mainUpdateTimer.accumulator / mainUpdateTimer.aimedDelta; // Note: update accumulator should be there.
+				if(getFlags()&EngoneShowHitboxes)
+					interpolation = 1;
+				//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
+				// Todo: Will delta still be a good value when rendering on window resize? Fix it if not.
+				currentLoopInfo = { mainRenderTimer.delta,app,win,interpolation};
+				//currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
+				// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
+
+				win->setActiveContext();
+				app->getProfiler().getGraph("render").plot(GetSystemTime());
+
+				if (!win->getStorage()->getGraphicProcessors().empty()) {
+					win->getStorage()->getGraphicProcessors()[0]->process();
+				}
+
+				// Important setup
+				// DONE IN Window::setActiveContext
+				glViewport(0, 0, (uint32_t)win->getWidth(), (uint32_t)win->getHeight());
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDepthFunc(GL_LESS);
+				glEnable(GL_CULL_FACE);
+				glClearColor(0.15f, 0.18f, 0.18f, 1.f);
+				//glClearColor(1.15f, 0.18f, 0.18f, 1.f);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				// 3d stuff
+				app->render(currentLoopInfo);
+
+				render(currentLoopInfo);
+
+				app->getProfiler().getSampler(win).increment();
+				win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
+
+				// orthogonal was set before hand
+				win->getCommonRenderer()->render(currentLoopInfo);
+				win->getUIRenderer()->render(currentLoopInfo);
+				
+				// static UIModule uiModule{};
+				// TestUIMaintain(uiModule);
+				// uiModule.render(currentLoopInfo.window->getWidth(),currentLoopInfo.window->getHeight());
+
+				glfwSwapInterval(0); // turning off vsync?
+				//Timer swapT("glSwapBuffers");
+				glfwSwapBuffers(win->glfw());
+				//swapT.stop();
+				// frame reset
+				win->resetEvents(true);
+				char endChr;
+				while (endChr = win->pollChar()) {
+					//log::out << "endpoll " << endChr << "\n";
+				}
+			}
+			app->m_renderingWindows = false;
 		}
 	}
 	//FrameBuffer depthBuffer;
@@ -405,9 +435,9 @@ namespace engone {
 		if (blur) {
 			float detail = 1 / 3.f;
 			//float detail = 1;
-			glViewport(0, 0, GetWidth() * detail, GetHeight() * detail);
+			glViewport(0, 0, info.window->getWidth() * detail, info.window->getHeight() * detail);
 			if (!frameBuffer.initialized()) {
-				frameBuffer.initBlur(GetWidth() * detail, GetHeight() * detail);
+				frameBuffer.initBlur(info.window->getWidth() * detail, info.window->getHeight() * detail);
 			}
 			frameBuffer.bind();
 			glClearColor(0, 0, 0, 1);
@@ -430,7 +460,7 @@ namespace engone {
 			//glDisable(GL_POINT_SMOOTH);
 			//if (IsKeyDown(GLFW_KEY_K)) {
 			frameBuffer.unbind();
-			glViewport(0, 0, GetWidth(), GetHeight());
+			glViewport(0, 0, info.window->getWidth(), info.window->getHeight());
 			//
 			//Shader* blur = info.window->getAssets()->get<Shader>("blur");
 			ShaderAsset* blur = info.window->getStorage()->get<ShaderAsset>("blur");
@@ -439,11 +469,11 @@ namespace engone {
 			blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
 			frameBuffer.bindTexture();
 			glDisable(GL_DEPTH_TEST); // these depend on what you want, don't disable if you use fragdepth
-			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			CommonRenderer* renderer = info.window->getCommonRenderer();
 			renderer->drawQuad(info);
 
 			//EnableDepth();
-			frameBuffer.blitDepth(GetWidth(), GetHeight()); // not this if frag depth
+			frameBuffer.blitDepth(info.window->getWidth(), info.window->getHeight()); // not this if frag depth
 		}
 		EnableDepth();
 		//}
@@ -519,7 +549,7 @@ namespace engone {
 		//info.window->getRenderer()->DrawString(info.window->getAssets()->get<Font>("consolas"),
 		//	std::to_string(cam->getPosition().x) + " " + std::to_string(cam->getPosition().y) + " " +
 		//	std::to_string(cam->getPosition().z), false, 50, 300, 50, -1);
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 		if (renderer) {
 			// Physics debug
 #ifdef ENGONE_PHYSICS
@@ -565,7 +595,7 @@ namespace engone {
 		AssetStorage* assets = info.window->getStorage();
 		//Assets* assets = info.window->getAssets();
 		//Renderer* renderer = info.window->getRenderer();
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 		if (!renderer) {
 			log::out << log::RED << "Engone::RenderObjects : renderer is null\n";
 			return;

@@ -79,7 +79,7 @@ namespace prounk {
 
 	void SessionPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
 		Session* session = app->getActiveSession();
 
@@ -87,8 +87,8 @@ namespace prounk {
 
 		// does not reflect the current connections at startup.
 		// active when locked or not?
-		float sw = GetWidth();
-		float sh = GetHeight();
+		float sw = info.window->getWidth();
+		float sh = info.window->getHeight();
 
 		const ui::Color backColor = { 0.,0.,0.,0.5 };
 		const ui::Color textColor = { 1 };
@@ -222,7 +222,7 @@ namespace prounk {
 		// Special keybindings
 		ui::TextBox infodump = { "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies",0,0,17,consolas,{1} };
 		infodump.x = 3;
-		infodump.y = GetHeight()-infodump.getHeight() - 3;
+		infodump.y = info.window->getHeight()-infodump.getHeight() - 3;
 
 		ui::Box infoback = { 0,0,0,0,{0.f,0.5f} };
 		infoback.x = 0;

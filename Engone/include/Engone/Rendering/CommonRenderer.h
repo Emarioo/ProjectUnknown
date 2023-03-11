@@ -8,19 +8,21 @@
 
 #include "Engone/Rendering/RenderPipeline.h"
 
-#define GET_COMMON_RENDERER() (CommonRenderer*)engone::GetActiveWindow()->getPipeline()->getComponent("common_renderer");
+// #define GET_COMMON_RENDERER() (CommonRenderer*)engone::GetActiveWindow()->getPipeline()->getComponent("common_renderer");
 
 namespace engone {
 
 	class Window;
 	// Render pipeline with a few useful functions
-	class CommonRenderer : public RenderComponent {
+	class CommonRenderer 
+	// : public RenderComponent 
+	{
 	public:
-		CommonRenderer() : RenderComponent("common_renderer",1000) {}
+		CommonRenderer() = default; // : RenderComponent("common_renderer",1000) {}
 		~CommonRenderer();
 
 		// buffers will be attached to the active window
-		void init();
+		void init(Window* win);
 
 		Camera* getCamera();
 		glm::mat4& getLightProj();

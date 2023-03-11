@@ -47,7 +47,8 @@ namespace prounk {
 	static Item temp;
 	void PlayerController::update(engone::LoopInfo& info) {
 		using namespace engone;
-		Movement(info);
+		// Movement(info);
+		
 		DetectHeldWeapon(info);
 		UpdateWeaponTransform(info);
 		Input(info);
@@ -212,7 +213,7 @@ namespace prounk {
 	engone::EngineObject* PlayerController::getSeenObject() {
 		using namespace engone;
 
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = app->getWindow()->getCommonRenderer();
 		
 		if (!renderer) {
 			log::out << log::RED << "PlayerController::getSeenObject : renderer is null\n";
@@ -459,7 +460,7 @@ namespace prounk {
 		}
 		if (IsKeyPressed(GLFW_KEY_T)) {
 			engone::EngineObject* plr = requestPlayer();
-			auto renderer = GET_COMMON_RENDERER();
+			auto renderer = info.window->getCommonRenderer();
 			plr->setPosition(plr->getPosition() + renderer->getCamera()->getFlatLookVector()*5.f);
 			//plr->setPosition(plr->getPosition() + glm::vec3(0, -4, 0));
 			//plr->applyForce({0,100,0});
@@ -526,8 +527,8 @@ namespace prounk {
 
 		if (!hoveredItem.empty()) {
 			ui::TextBox textBox = { hoveredItem, 0, 0, 30, consolas, {0,1.f,1.f,1.f}};
-			textBox.x = GetWidth() / 2 - textBox.getWidth()/2;
-			textBox.y = GetHeight() / 2 - textBox.getHeight()/2-50;
+			textBox.x = info.window->getWidth() / 2 - textBox.getWidth()/2;
+			textBox.y = info.window->getHeight() / 2 - textBox.getHeight()/2-50;
 			ui::Draw(textBox);
 		}
 		EngineObject* plr = requestPlayer();
@@ -536,7 +537,7 @@ namespace prounk {
 		if (plr->getRigidBody() && !IsDead(plr)) {
 			//glm::vec3 pos = plr->getPosition();
 			glm::mat4 mat = plr->getInterpolatedMat4(info.interpolation);
-			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			CommonRenderer* renderer = info.window->getCommonRenderer();
 			if (!renderer) {
 				log::out << log::RED << "PlayerController::render : renderer is null\n";
 			} else {
@@ -558,258 +559,258 @@ namespace prounk {
 		}
 		releasePlayer(plr);
 	}
-	void PlayerController::Movement(engone::LoopInfo& info) {
-		using namespace engone;
+	// void PlayerController::Movement(engone::LoopInfo& info) {
+	// 	using namespace engone;
 
-		Window* window = engone::GetActiveWindow();
-		if (!window) return;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
-		//Renderer* renderer = window->getRenderer(); // if window is valid, render and camera should as well. BUT i may change somethings which would break this assumption. So i'll keep it.
-		if (!renderer) return;
-		Camera* camera = renderer->getCamera();
-		if (!camera) return;
+	// 	Window* window = engone::GetActiveWindow();
+	// 	if (!window) return;
+	// 	CommonRenderer* renderer = GET_COMMON_RENDERER();
+	// 	//Renderer* renderer = window->getRenderer(); // if window is valid, render and camera should as well. BUT i may change somethings which would break this assumption. So i'll keep it.
+	// 	if (!renderer) return;
+	// 	Camera* camera = renderer->getCamera();
+	// 	if (!camera) return;
 
-		float speed = walkSpeed;
-		if (flight)
-			speed = flySpeed;
-		if (IsKeybindingDown(KeySprint)) {
-			if (flight)
-				speed = flyFastSpeed;
-			else
-				speed = sprintSpeed;
-		}
+	// 	float speed = walkSpeed;
+	// 	if (flight)
+	// 		speed = flySpeed;
+	// 	if (IsKeybindingDown(KeySprint)) {
+	// 		if (flight)
+	// 			speed = flyFastSpeed;
+	// 		else
+	// 			speed = sprintSpeed;
+	// 	}
 
-		glm::vec3 flatInput = { 0,0,0 };
-		if (IsKeybindingDown(KeyForward)) {
-			flatInput.z += 1;
-		}
-		if (IsKeybindingDown(KeyLeft)) {
-			flatInput.x -= 1;
-		}
-		if (IsKeybindingDown(KeyBack)) {
-			flatInput.z -= 1;
-		}
-		if (IsKeybindingDown(KeyRight)) {
-			flatInput.x += 1;
-		}
-		EngineObject* plr = requestPlayer();
-		if (!plr) return;
-		if (!IsDead(plr)&&engone::GetActiveWindow()->isCursorLocked()) {
-			float zoomAcc = 0.1 + 5 * abs(zoomSpeed);
-			if (zoomSpeed > 0) {
-				zoomSpeed -= zoomAcc * info.timeStep;
-				if (zoomSpeed < 0)
-					zoomSpeed = 0;
-			} else if (zoomSpeed < 0) {
-				zoomSpeed += zoomAcc * info.timeStep;
-				if (zoomSpeed > 0)
-					zoomSpeed = 0;
-			}
-			float minZoom = 1.3;
-			zoom += zoomSpeed * info.timeStep;
-			if (zoom < 0) {
-				zoom = 0;
-				zoomSpeed = 0;
-			} else if (zoom != 0 && zoom < minZoom) {
-				zoom = minZoom;
-			}
-			float scroll = IsScrolledY();
-			if (scroll) {
-				if (zoom == minZoom)
-					zoom = 0;
-				zoomSpeed -= scroll * (0.8 + zoom * 0.3);
-			}
-		}
+	// 	glm::vec3 flatInput = { 0,0,0 };
+	// 	if (IsKeybindingDown(KeyForward)) {
+	// 		flatInput.z += 1;
+	// 	}
+	// 	if (IsKeybindingDown(KeyLeft)) {
+	// 		flatInput.x -= 1;
+	// 	}
+	// 	if (IsKeybindingDown(KeyBack)) {
+	// 		flatInput.z -= 1;
+	// 	}
+	// 	if (IsKeybindingDown(KeyRight)) {
+	// 		flatInput.x += 1;
+	// 	}
+	// 	EngineObject* plr = requestPlayer();
+	// 	if (!plr) return;
+	// 	if (!IsDead(plr)&&engone::GetActiveWindow()->isCursorLocked()) {
+	// 		float zoomAcc = 0.1 + 5 * abs(zoomSpeed);
+	// 		if (zoomSpeed > 0) {
+	// 			zoomSpeed -= zoomAcc * info.timeStep;
+	// 			if (zoomSpeed < 0)
+	// 				zoomSpeed = 0;
+	// 		} else if (zoomSpeed < 0) {
+	// 			zoomSpeed += zoomAcc * info.timeStep;
+	// 			if (zoomSpeed > 0)
+	// 				zoomSpeed = 0;
+	// 		}
+	// 		float minZoom = 1.3;
+	// 		zoom += zoomSpeed * info.timeStep;
+	// 		if (zoom < 0) {
+	// 			zoom = 0;
+	// 			zoomSpeed = 0;
+	// 		} else if (zoom != 0 && zoom < minZoom) {
+	// 			zoom = minZoom;
+	// 		}
+	// 		float scroll = IsScrolledY();
+	// 		if (scroll) {
+	// 			if (zoom == minZoom)
+	// 				zoom = 0;
+	// 			zoomSpeed -= scroll * (0.8 + zoom * 0.3);
+	// 		}
+	// 	}
 
-		// death logic
-		CombatData* combatData = GetCombatData(plr);
-		if (combatData->getHealth() == 0 && deathTime == 0) {
-			//log::out << "Kill player\n";
-			// kill player
-			deathTime = 5; // respawn time
+	// 	// death logic
+	// 	CombatData* combatData = GetCombatData(plr);
+	// 	if (combatData->getHealth() == 0 && deathTime == 0) {
+	// 		//log::out << "Kill player\n";
+	// 		// kill player
+	// 		deathTime = 5; // respawn time
 
-			setFlight(false);
-			info.window->enableFirstPerson(false);
+	// 		setFlight(false);
+	// 		info.window->enableFirstPerson(false);
 
-			plr->getWorld()->lockPhysics();
-			// make player jump
-			plr->getRigidBody()->setAngularLockAxisFactor({ 1,1,1 });
+	// 		plr->getWorld()->lockPhysics();
+	// 		// make player jump
+	// 		plr->getRigidBody()->setAngularLockAxisFactor({ 1,1,1 });
 
-			rp3d::Vector3 randomTorque = { (float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
-			randomTorque *= deathShockStrength * 0.1f; // don't want to spin so much
-			//randomTorque /= info.timeStep * info.timeStep;
-			plr->getRigidBody()->applyLocalTorque(randomTorque);
+	// 		rp3d::Vector3 randomTorque = { (float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f,(float)GetRandom() - 0.5f };
+	// 		randomTorque *= deathShockStrength * 0.1f; // don't want to spin so much
+	// 		//randomTorque /= info.timeStep * info.timeStep;
+	// 		plr->getRigidBody()->applyLocalTorque(randomTorque);
 
-			rp3d::Vector3 randomForce = { (float)GetRandom() - 0.5f,(float)GetRandom() / 2.f,(float)GetRandom() - 0.5f };
-			randomForce *= deathShockStrength;
-			//randomForce /= info.timeStep * info.timeStep;
-			plr->getRigidBody()->applyWorldForceAtCenterOfMass(randomForce);
-			plr->getWorld()->unlockPhysics();
+	// 		rp3d::Vector3 randomForce = { (float)GetRandom() - 0.5f,(float)GetRandom() / 2.f,(float)GetRandom() - 0.5f };
+	// 		randomForce *= deathShockStrength;
+	// 		//randomForce /= info.timeStep * info.timeStep;
+	// 		plr->getRigidBody()->applyWorldForceAtCenterOfMass(randomForce);
+	// 		plr->getWorld()->unlockPhysics();
 
-			if (!keepInventory)
-				dropAllItems();
-		}
+	// 		if (!keepInventory)
+	// 			dropAllItems();
+	// 	}
 
-		deathTime -= info.timeStep;
-		if (deathTime < 0) {
-			deathTime = 0;
-			if (IsDead(plr)) {
-				//log::out << "Respawn player\n";
-				info.window->enableFirstPerson(true);
-				plr->getWorld()->lockPhysics();
-				auto tr = plr->getRigidBody()->getForce();
-				auto br = plr->getRigidBody()->getTorque();
-				plr->getRigidBody()->setLinearVelocity({ 0,0,0 });
-				plr->getRigidBody()->setAngularVelocity({ 0,0,0 });
-				plr->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
-				plr->getRigidBody()->setTransform({}); // reset position
-				plr->getWorld()->unlockPhysics();
-				combatData->setHealth(combatData->getMaxHealth());
-				app->getActiveSession()->netEditHealth(plr, combatData->getHealth());
-			}
-		}
-		// Death camera
-		if (combatData->getHealth() == 0) {
-			glm::vec3 pos = plr->getPosition();
-			CommonRenderer* renderer = GET_COMMON_RENDERER();
-			if (!renderer) {
-				log::out << log::RED << "PlayerController::render : renderer is null\n";
-			} else {
-				Camera* cam = renderer->getCamera();
+	// 	deathTime -= info.timeStep;
+	// 	if (deathTime < 0) {
+	// 		deathTime = 0;
+	// 		if (IsDead(plr)) {
+	// 			//log::out << "Respawn player\n";
+	// 			info.window->enableFirstPerson(true);
+	// 			plr->getWorld()->lockPhysics();
+	// 			auto tr = plr->getRigidBody()->getForce();
+	// 			auto br = plr->getRigidBody()->getTorque();
+	// 			plr->getRigidBody()->setLinearVelocity({ 0,0,0 });
+	// 			plr->getRigidBody()->setAngularVelocity({ 0,0,0 });
+	// 			plr->getRigidBody()->setAngularLockAxisFactor({0,1,0}); // only allow spin (y rotation)
+	// 			plr->getRigidBody()->setTransform({}); // reset position
+	// 			plr->getWorld()->unlockPhysics();
+	// 			combatData->setHealth(combatData->getMaxHealth());
+	// 			app->getActiveSession()->netEditHealth(plr, combatData->getHealth());
+	// 		}
+	// 	}
+	// 	// Death camera
+	// 	if (combatData->getHealth() == 0) {
+	// 		glm::vec3 pos = plr->getPosition();
+	// 		CommonRenderer* renderer = GET_COMMON_RENDERER();
+	// 		if (!renderer) {
+	// 			log::out << log::RED << "PlayerController::render : renderer is null\n";
+	// 		} else {
+	// 			Camera* cam = renderer->getCamera();
 
-				glm::vec3 diff = cam->getPosition() - pos;
-				float length = glm::length(diff);
-				glm::vec3 dir = diff/length;
-				glm::vec3 rot{};
-				rot.y = std::atan2(dir.x, dir.z);
-				rot.x = std::asin(-dir.y);
-				cam->setRotation(rot);
-				// Could add some slight rotation to the camera. There is a chance the camera would go through
-				// walls though.
-				float maxLength = 10;
-				if (length > maxLength) {
-					cam->setPosition(dir* maxLength +pos);
-				}
-				//log::out << "CAM LOCK\n";
-			}
-		}
+	// 			glm::vec3 diff = cam->getPosition() - pos;
+	// 			float length = glm::length(diff);
+	// 			glm::vec3 dir = diff/length;
+	// 			glm::vec3 rot{};
+	// 			rot.y = std::atan2(dir.x, dir.z);
+	// 			rot.x = std::asin(-dir.y);
+	// 			cam->setRotation(rot);
+	// 			// Could add some slight rotation to the camera. There is a chance the camera would go through
+	// 			// walls though.
+	// 			float maxLength = 10;
+	// 			if (length > maxLength) {
+	// 				cam->setPosition(dir* maxLength +pos);
+	// 			}
+	// 			//log::out << "CAM LOCK\n";
+	// 		}
+	// 	}
 
-		glm::vec3 flatMove{};
-		if (glm::length(flatInput) != 0) {
-			flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
-		}
-		glm::vec3 moveDir = flatMove;
-		jumpTime -= info.timeStep;
-		if (jumpTime < 0)
-			jumpTime = 0;
-		if (!IsDead(plr)) {
-			if (flight) {
-				if (IsKeybindingDown(KeyJump)) {
-					moveDir.y += speed;
-				}
-				if (IsKeybindingDown(KeyCrouch)) {
-					moveDir.y -= speed;
-				}
-			} else {
-				if (IsKeybindingDown(KeyJump)) {
-					auto oinfo = GetSession(plr)->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
-					if (oinfo->onGround) {
-						if (jumpTime == 0) {
-							moveDir.y += jumpForce;
-							oinfo->onGround = false;
-							jumpTime = jumpDelay;
-						}
-					}
-				}
-				if (IsKeybindingPressed(KeyCrouch)) {
-					moveDir.y -= jumpForce;
-				}
-			}
-		}
-		//return;
-		if (plr->getRigidBody() && !IsDead(plr)) {
-			plr->getWorld()->lockPhysics();
-			rp3d::Vector3 rot = ToEuler(plr->getRigidBody()->getTransform().getOrientation());
-			float realY = rot.y;
-			float wantY = realY;
+	// 	glm::vec3 flatMove{};
+	// 	if (glm::length(flatInput) != 0) {
+	// 		flatMove = speed * glm::normalize(camera->getFlatLookVector() * flatInput.z + camera->getRightVector() * flatInput.x);
+	// 	}
+	// 	glm::vec3 moveDir = flatMove;
+	// 	jumpTime -= info.timeStep;
+	// 	if (jumpTime < 0)
+	// 		jumpTime = 0;
+	// 	if (!IsDead(plr)) {
+	// 		if (flight) {
+	// 			if (IsKeybindingDown(KeyJump)) {
+	// 				moveDir.y += speed;
+	// 			}
+	// 			if (IsKeybindingDown(KeyCrouch)) {
+	// 				moveDir.y -= speed;
+	// 			}
+	// 		} else {
+	// 			if (IsKeybindingDown(KeyJump)) {
+	// 				auto oinfo = GetSession(plr)->objectInfoRegistry.getCreatureInfo(plr->getObjectInfo());
+	// 				if (oinfo->onGround) {
+	// 					if (jumpTime == 0) {
+	// 						moveDir.y += jumpForce;
+	// 						oinfo->onGround = false;
+	// 						jumpTime = jumpDelay;
+	// 					}
+	// 				}
+	// 			}
+	// 			if (IsKeybindingPressed(KeyCrouch)) {
+	// 				moveDir.y -= jumpForce;
+	// 			}
+	// 		}
+	// 	}
+	// 	//return;
+	// 	if (plr->getRigidBody() && !IsDead(plr)) {
+	// 		plr->getWorld()->lockPhysics();
+	// 		rp3d::Vector3 rot = ToEuler(plr->getRigidBody()->getTransform().getOrientation());
+	// 		float realY = rot.y;
+	// 		float wantY = realY;
 
-			float targetMargin = 0.06; // low margin is hard to achive because of friction.
-			float targetSnapSpeed = 0.3;
-			float targetDiff = fabs(AngleDifference(realY, targetRotation));
-			//log::out << "diff " << targetDiff << "\n";
-			if (targetDiff < targetMargin) {
-				followTargetRotation = false;
-			}
+	// 		float targetMargin = 0.06; // low margin is hard to achive because of friction.
+	// 		float targetSnapSpeed = 0.3;
+	// 		float targetDiff = fabs(AngleDifference(realY, targetRotation));
+	// 		//log::out << "diff " << targetDiff << "\n";
+	// 		if (targetDiff < targetMargin) {
+	// 			followTargetRotation = false;
+	// 		}
 
-			if (IsKeybindingDown(KeyMoveCamera) || zoom == 0) {
-				targetRotation = camera->getRotation().y - glm::pi<float>();
-				followTargetRotation = true;
-			}
+	// 		if (IsKeybindingDown(KeyMoveCamera) || zoom == 0) {
+	// 			targetRotation = camera->getRotation().y - glm::pi<float>();
+	// 			followTargetRotation = true;
+	// 		}
 
-			if (followTargetRotation) {
-				wantY = targetRotation;
-			}else if (glm::length(flatMove) != 0) {
-				wantY = std::atan2(flatMove.x, flatMove.z);
-			}
+	// 		if (followTargetRotation) {
+	// 			wantY = targetRotation;
+	// 		}else if (glm::length(flatMove) != 0) {
+	// 			wantY = std::atan2(flatMove.x, flatMove.z);
+	// 		}
 
-			float dv = AngleDifference(wantY, realY) / (info.timeStep);
-			//log::out << "a " << dv << "\n";
-			//if (dv < 0.01) {
-			//	rp3d::Transform t = plr->getRigidBody()->getTransform();
-			//	t.setOrientation(rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(0,wantY,0)));
-			//	plr->getRigidBody()->setTransform(t);
-			//} else {
-				dv *= targetSnapSpeed;
-				if (targetDiff < targetMargin * 2) // extra snap when close to margin so that the turning doesn't get stuck.
-					dv *= 3;
-				rp3d::Vector3 newVel = { 0,dv,0 };
-				plr->getRigidBody()->setAngularVelocity(newVel);
-			//}
-			//log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
-			//log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
-			//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
+	// 		float dv = AngleDifference(wantY, realY) / (info.timeStep);
+	// 		//log::out << "a " << dv << "\n";
+	// 		//if (dv < 0.01) {
+	// 		//	rp3d::Transform t = plr->getRigidBody()->getTransform();
+	// 		//	t.setOrientation(rp3d::Quaternion::fromEulerAngles(rp3d::Vector3(0,wantY,0)));
+	// 		//	plr->getRigidBody()->setTransform(t);
+	// 		//} else {
+	// 			dv *= targetSnapSpeed;
+	// 			if (targetDiff < targetMargin * 2) // extra snap when close to margin so that the turning doesn't get stuck.
+	// 				dv *= 3;
+	// 			rp3d::Vector3 newVel = { 0,dv,0 };
+	// 			plr->getRigidBody()->setAngularVelocity(newVel);
+	// 		//}
+	// 		//log::out << "realY: "<<realY << " wantedY: "<<wantedY<<" diff: "<<diff<< "\n";
+	// 		//log::out <<"angY: "<<rigidBody->getAngularVelocity().y << "\n";
+	// 		//log::out << "velRoty: " << velRotY << " divDiff: "<<(diff / info.timeStep) << "\n";
 
-			glm::vec3 bodyVel = ToGlmVec3(plr->getRigidBody()->getLinearVelocity());
-			float keepY = bodyVel.y;
-			float moveDirY = moveDir.y;
-			if (!flight) {
-				moveDir.y = 0;
-				bodyVel.y = 0;
-			}
-			glm::vec3 flatVelDiff = moveDir - bodyVel;
-			bool dontMove = false;
-			if (!plr->getRigidBody()->isGravityEnabled() && glm::length(moveDir) == 0) {
-				dontMove = true;
-			}
-			if (!dontMove) {
-				float tolerance = 0.0001;
-				if (glm::length(flatVelDiff) < tolerance && !flight) {
-					glm::vec3 other{};
-					if (!flight)
-						other.y = keepY + moveDirY;
-					plr->getRigidBody()->setLinearVelocity(ToRp3dVec3(other));
-				} else {
-					flatVelDiff *= 0.25;
-					if (!flight)
-						flatVelDiff.y = moveDirY;
-					flatVelDiff /= info.timeStep;
-					plr->getRigidBody()->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
-				}
-			}
+	// 		glm::vec3 bodyVel = ToGlmVec3(plr->getRigidBody()->getLinearVelocity());
+	// 		float keepY = bodyVel.y;
+	// 		float moveDirY = moveDir.y;
+	// 		if (!flight) {
+	// 			moveDir.y = 0;
+	// 			bodyVel.y = 0;
+	// 		}
+	// 		glm::vec3 flatVelDiff = moveDir - bodyVel;
+	// 		bool dontMove = false;
+	// 		if (!plr->getRigidBody()->isGravityEnabled() && glm::length(moveDir) == 0) {
+	// 			dontMove = true;
+	// 		}
+	// 		if (!dontMove) {
+	// 			float tolerance = 0.0001;
+	// 			if (glm::length(flatVelDiff) < tolerance && !flight) {
+	// 				glm::vec3 other{};
+	// 				if (!flight)
+	// 					other.y = keepY + moveDirY;
+	// 				plr->getRigidBody()->setLinearVelocity(ToRp3dVec3(other));
+	// 			} else {
+	// 				flatVelDiff *= 0.25;
+	// 				if (!flight)
+	// 					flatVelDiff.y = moveDirY;
+	// 				flatVelDiff /= info.timeStep;
+	// 				plr->getRigidBody()->applyWorldForceAtCenterOfMass(ToRp3dVec3(flatVelDiff));
+	// 			}
+	// 		}
 
-			//-- Extra down force
-			if (!flight) {
-				rp3d::Vector3 extraDownForce = { 0,0,0 };
-				float mass = plr->getRigidBody()->getMass();
-				extraDownForce.y += -1 * 9.82 * mass;
-				if (plr->getRigidBody()->getLinearVelocity().y < 0) {
-					rp3d::Vector3 force = { 0,0,0 };
-					extraDownForce.y += -1.2 * 9.82 * mass;
-				}
-				plr->getRigidBody()->applyLocalForceAtCenterOfMass(extraDownForce);
-			}
-			plr->getWorld()->unlockPhysics();
-		}
-		releasePlayer(plr);
-	}
+	// 		//-- Extra down force
+	// 		if (!flight) {
+	// 			rp3d::Vector3 extraDownForce = { 0,0,0 };
+	// 			float mass = plr->getRigidBody()->getMass();
+	// 			extraDownForce.y += -1 * 9.82 * mass;
+	// 			if (plr->getRigidBody()->getLinearVelocity().y < 0) {
+	// 				rp3d::Vector3 force = { 0,0,0 };
+	// 				extraDownForce.y += -1.2 * 9.82 * mass;
+	// 			}
+	// 			plr->getRigidBody()->applyLocalForceAtCenterOfMass(extraDownForce);
+	// 		}
+	// 		plr->getWorld()->unlockPhysics();
+	// 	}
+	// 	releasePlayer(plr);
+	// }
 }

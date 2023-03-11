@@ -9,29 +9,8 @@
 #define GLFW_MOUSE_BUTTON_1 0
 #endif
 
-#define GET_UI_RENDERER() (CommonRenderer*)engone::GetActiveWindow()->getPipeline()->getComponent("ui_renderer");
-
 namespace engone {
 
-	//class UIRenderer : public RenderComponent {
-	//public:
-	//	UIRenderer() = default;
-
-	//	void render(LoopInfo& info) override;
-
-	//	void setActiveUIRenderer();
-
-	//	friend void ui::Draw(ui::Box box);
-	//	friend void ui::Draw(ui::TexturedBox box);
-	//	friend void ui::Draw(ui::TextBox& box);
-	//	friend void ui::Draw(ModelAsset* asset, glm::mat4 matrix);
-
-	//private:
-
-	//	ItemVector uiObjects{};
-	//	std::vector<std::string> uiStrings;
-	//};
-	//UIRenderer* GetActiveUIRenderer();
 	namespace ui {
 		// r,g,b,a OR rgba OR rgb,a
 		struct Color {
@@ -109,18 +88,28 @@ namespace engone {
 		bool Hover(Box& box);
 		bool Hover(TextBox& box);
 	}
-	class UIRenderer : public RenderComponent {
+	class Window;
+	class UIRenderer 
+	// : public RenderComponent
+	 {
 	public:
-		UIRenderer() : RenderComponent("ui_renderer", 99) {}
+		UIRenderer() = default;
+		// : RenderComponent("ui_renderer", 99) {}
 		~UIRenderer();
 
-		void render(LoopInfo& info) override;
+		void render(LoopInfo& info);
+		//  override;
 
 		void setActiveUIRenderer();
 
 		VertexBuffer& getInstanceBuffer();
+		
+		void drawLine(float x, float y, float x1, float y1, ui::Color color);
+		
+		Window* m_owner=0;
 
 		static const int MAX_BOX_BATCH = 100;
+		static const int MAX_LINE_BATCH = 100;
 		static const int VERTEX_SIZE = 2 + 2 + 4 + 1;
 		static const uint32 INSTANCE_BATCH = 1000;
 	private:
@@ -128,12 +117,20 @@ namespace engone {
 		std::vector<std::string> uiStrings;
 
 		VertexBuffer instanceBuffer;
+		
+		struct Line {
+			float x,y;	
+			float x1,y1;
+			ui::Color color;	
+		};
+		std::vector<Line> lines;
+		VertexArray lineVAO{};
+		VertexBuffer lineVBO{};
 
 		VertexArray boxVAO{};
 		VertexBuffer boxVBO{};
 		IndexBuffer boxIBO{};
 		float floatArray[4 * VERTEX_SIZE * MAX_BOX_BATCH]{};
-
 		
 		friend void ui::Draw(ui::Box box);
 		friend void ui::Draw(ui::TexturedBox box);

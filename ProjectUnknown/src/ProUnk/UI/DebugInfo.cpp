@@ -8,8 +8,8 @@ namespace prounk {
 	void DebugInfo(engone::LoopInfo& info, GameApp* app) {
 		using namespace engone;
 		
-		float sw = GetWidth();
-		float sh = GetHeight();
+		float sw = info.window->getWidth();
+		float sh = info.window->getHeight();
 
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 

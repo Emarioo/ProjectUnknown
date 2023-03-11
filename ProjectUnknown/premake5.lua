@@ -7,7 +7,9 @@ project "ProjectUnknown"
     symbols "On"
     -- toolset "gcc"
     
-    buildoptions {"-g"}
+    filter "action:vs2*" 
+        buildoptions {"/Zi"}
+    -- buildoptions {"-g"}
     
     targetdir "../bin/%{prj.name}/%{cfg.buildcfg}"
     objdir "../bin/intermediates/%{prj.name}/%{cfg.buildcfg}"

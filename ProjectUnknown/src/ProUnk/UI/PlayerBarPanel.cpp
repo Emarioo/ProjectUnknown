@@ -10,7 +10,7 @@ namespace prounk {
 
 	void PlayerBarPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
 		PlayerController* playerController = &m_app->playerController;
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");

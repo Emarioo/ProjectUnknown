@@ -9,7 +9,7 @@ namespace prounk {
 	
 	void InventoryPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
 		//EngineObject* object = m_app->playerController.getPlayerObject();

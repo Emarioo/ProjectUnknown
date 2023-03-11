@@ -37,9 +37,9 @@ namespace engone {
 
 		friend struct std::hash<engone::UUID>;
 	};
-#ifdef ENGONE_LOGGER
+// #ifdef ENGONE_LOGGER
 	Logger& operator<<(Logger& log, UUID value);
-#endif
+// #endif
 }
 template<>
 struct std::hash<engone::UUID> {

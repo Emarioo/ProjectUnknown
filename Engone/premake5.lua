@@ -15,7 +15,10 @@ project "Engone"
     
     files {"src/**.cpp","include/**.h"}
     
-    buildoptions{"-g"}
+    filter "action:vs2*" 
+        buildoptions {"/Zi"}
+    
+    -- buildoptions{"-g"}
 
     removefiles{"**/Old/**"}
     -- removefiles{"**/FileModule/**"}

@@ -15,6 +15,9 @@
 
 namespace engone {
 
+	uint32 FormatBytes(char* outStr, uint32 length, int64 number);
+	uint32 FormatNumber(char* outStr, uint32 length, int64 number);
+	
 	std::vector<std::string> SplitString(std::string text, std::string delim);
 	//std::string SanitizeString(std::string s);
 	

@@ -34,6 +34,12 @@ namespace prounk {
 		}
 		return false;
 	}
+	engone::EngineObject* GetHeldObject(engone::EngineObject* object){
+		Assert(object);
+		Dimension* dim = ((Dimension*)object->getWorld()->getUserData()); // Todo: the dimension should be the one the player is in.
+		auto oinfo = dim->getParent()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+		return dim->getWorld()->getObject(oinfo->heldObject);
+	}
 	void DropInventory(engone::EngineObject* object, float shock) {
 		using namespace engone;
 		if (!object) return;

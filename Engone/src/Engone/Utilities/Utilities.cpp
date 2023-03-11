@@ -9,6 +9,34 @@
 namespace engone {
 	// TrackerId ItemVector::trackerId = "ItemVector";
 
+	uint32 FormatBytes(char* outStr, uint32 length, int64 number){
+		const int KB = pow(2,10);
+		const int MB = pow(2,20);
+		const int GB = pow(2,30);
+		if(number/KB<1)
+			return snprintf(outStr,length,"%lld B",number);
+		else if(number/MB<1)
+			return snprintf(outStr,length,"%.2f KB",(float)number/KB);
+		else if(number/GB<1)
+			return snprintf(outStr,length,"%.2f MB",(float)number/MB);
+		else
+			return snprintf(outStr,length,"%.2f GB",(float)number/GB);
+	}
+	uint32 FormatNumber(char* outStr, uint32 length, int64 number){
+		const int64 K = pow(10,3);
+		const int64 M = pow(10,6);
+		const int64 G = pow(10,9);
+		
+		if(number<K)
+			return snprintf(outStr,length,"%lld",number);
+		else if(number<M)
+			return snprintf(outStr,length,"%.2f K",(float)number/K);
+		else if(number<G)
+			return snprintf(outStr,length,"%.2f M",(float)number/M);
+		else
+			return snprintf(outStr,length," %.2f G",(float)number/G);
+	}
+
 	std::vector<std::string> SplitString(std::string text, std::string delim) {
 		std::vector<std::string> out;
 

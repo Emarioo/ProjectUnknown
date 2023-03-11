@@ -158,7 +158,8 @@ namespace engone {
 			widthValues.clear();
 			
 			if (png) {
-				rawImage = Image::Convert<PNG, RawImage>(png);
+				// rawImage = Image::Convert<PNG, RawImage>(png);
+				rawImage = PNGToRawImage(png);
 				ALLOC_DELETE(PNG, png);
 				//delete png;
 				png = nullptr;
@@ -626,451 +627,309 @@ namespace engone {
 			triangleOut = nullptr;
 
 			FileReader file(m_path);
-			try {
-				uint8_t materialCount;
-				file.read((uint8*)&meshType);
-				file.read(&pointCount);
-				file.read(&colorCount);
-				file.read(&materialCount);
-				//std::cout << "uhu\n";
-				for (uint32_t i = 0; i < materialCount && i < MeshAsset::maxMaterials; ++i) {
-					std::string materialName;
-					file.read(&materialName);
-
-					//std::cout << "Matloc: " << root<<materialName<< "\n";
-					MaterialAsset* asset;
-					if (m_storage) {
-						asset = m_storage->load<MaterialAsset>(root + materialName);
-						//asset = m_parent->set<MaterialAsset>(root + materialName);
-					} else {
-						asset = ALLOC_NEW(MaterialAsset)();
-						asset->loadPath(root + materialName,LoadAll);
-						// GetTracker().track(asset);
-					}
-					if (asset)
-						materials.push_back(asset);
-					else {
-
-					}
-
-					//std::cout << materials.back()->error << " err\n";
-				}
-				if (materialCount == 0) {
-					MaterialAsset* asset;
-					if (m_storage) {
-						// non-disc thing
-						asset = m_storage->get<MaterialAsset>("defaultMaterial");
-						if (!asset) {
-							asset = ALLOC_NEW(MaterialAsset)();
-							m_storage->set<MaterialAsset>("defaultMaterial", asset);
-						}
-					} else {
-						asset = ALLOC_NEW(MaterialAsset)();
-						// GetTracker().track(asset);
-					}
-					materials.push_back(asset);
-				}
-
-				weightCount = 0;
-				if (meshType == MeshType::Boned) {
-					file.read(&weightCount);
-				}
-				//uint16_t triangleCount;
-				file.read(&triangleCount);
-
-				//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
-				pointNumbers = 3 * pointCount;
-				pointSize = sizeof(float) * pointNumbers;
-				points = (float*)Allocate(pointSize); // using malloc because i want to track allocations. I would use the new keyword otherwise.
-				file.read(points, pointNumbers);
-
-				colorNumbers = colorCount * 3;
-				colorSize = sizeof(float) * colorNumbers;
-				colors = (float*)Allocate(colorSize);
-				file.read(colors, colorNumbers);
-
-				// Weight
-				weightNumbers = weightCount * 3;
-				weightIndicesSize = sizeof(int) * weightNumbers;
-				weightIndices = (int*)Allocate(weightIndicesSize);
-				weightValuesSize = sizeof(float) * weightNumbers;
-				weightValues = (float*)Allocate(weightValuesSize);
-
-				if (meshType == MeshType::Boned) {
-					uint8 index[3];
-					float floats[3];
-					for (uint32_t i = 0; i < weightCount; ++i) {
-						file.read(index, 3);
-
-						file.read(floats, 3);
-						weightIndices[i * 3] = index[0];
-						weightIndices[i * 3 + 1] = index[1];
-						weightIndices[i * 3 + 2] = index[2];
-						weightValues[i * 3] = floats[0];
-						weightValues[i * 3 + 1] = floats[1];
-						weightValues[i * 3 + 2] = floats[2];
-					}
-				}
-
-				triangleStride = 6;
-				if (meshType == MeshType::Boned)
-					triangleStride = 9;
-
-				triangleNumbers = triangleCount * triangleStride;
-				trianglesSize = sizeof(uint16_t) * triangleNumbers;
-				triangles = (uint16_t*)Allocate(trianglesSize);
-				file.read(triangles, triangleNumbers);
-				//std::cout << "head: "<<file.readHead << "\n";
-				//file.file.read(reinterpret_cast<char*>(tris), trisS*2);
-				//std::cout << "err? " << file.error << "\n";
-				//std::cout << file.readHead << " "<<trisS<< "\n";
-				//std::cout << "stride " << tStride << "\n";
-				//for (uint32_t i = 0; i < trisS; ++i) {
-					//for (int j = 0; j < tStride;j++) {
-					   //std::cout << tris[i]<<" ";
-				   //}
-				   //std::cout << "\n";
-				//}
-				//std::vector<uint16_t> indexNormal;
-				//std::vector<float> uNormal;
-				//for (uint32_t i = 0; i < triangleCount; ++i) {
-				//	for (uint32_t j = 0; j < 3; ++j) {
-				//		if (tris[i * tStride + j * tStride / 3] * 3u + 2u >= uPointCount) {
-				//			//std::cout << "Corruption at '" << i <<" "<< (i * tStride)<<" "<<(j * tStride / 3) <<" "<< tris[i*tStride+j*tStride/3] << "' : Triangle Index\n";
-				//			throw ErrorCorruptedFile;
-				//		}
-				//	}
-				//	glm::vec3 p0(uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 0 * tStride / 3] * 3 + 2]);
-				//	glm::vec3 p1(uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 1 * tStride / 3] * 3 + 2]);
-				//	glm::vec3 p2(uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 0], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 1], uPoint[tris[i * tStride + 2 * tStride / 3] * 3 + 2]);
-				//	//std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
-				//	//std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
-				//	//std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
-				//	glm::vec3 cro = glm::cross(p1 - p0, p2 - p0);
-				//	//std::cout << cro.x << " " << cro.y << " " << cro.z << std::endl;
-				//	glm::vec3 norm = glm::normalize(cro);
-				//	//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
-				//	bool same = false;
-				//	for (uint32_t j = 0; j < uNormal.size() / 3; ++j) {
-				//		if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
-				//			same = true;
-				//			indexNormal.push_back((uint16_t)j);
-				//			break;
-				//		}
-				//	}
-				//	if (!same) {
-				//		uNormal.push_back(norm.x);
-				//		uNormal.push_back(norm.y);
-				//		uNormal.push_back(norm.z);
-				//		indexNormal.push_back((uint16_t)(uNormal.size() / 3 - 1));
-				//	}
-				//}
-				//std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
-				//triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-				//triangleOut = (uint32_t*)Allocate(triangleOutSize);
-				//uint32_t uvStride = 1 + (tStride) / 3;
-				//for (uint32_t i = 0; i < triangleCount; ++i) {
-				//	for (uint32_t t = 0; t < 3; ++t) {
-				//		bool same = false;
-				//		for (uint32_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
-				//			if (uniqueVertex[v * uvStride] != tris[i * tStride + 0 + t * tStride / 3])
-				//				continue;
-				//			if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
-				//				continue;
-				//			if (uniqueVertex[v * uvStride + 2] != tris[i * tStride + 1 + t * tStride / 3])
-				//				continue;
-				//			if (meshType == MeshType::Boned) {
-				//				if (uniqueVertex[v * uvStride + 3] != tris[i * tStride + 2 + t * tStride / 3])
-				//					continue;
-				//			}
-				//			same = true;
-				//			triangleOut[i * 3 + t] = v;
-				//			break;
-				//		}
-				//		if (!same) {
-				//			triangleOut[i * 3 + t] = uniqueVertex.size() / (uvStride);
-				//			uniqueVertex.push_back(tris[i * tStride + 0 + t * tStride / 3]);
-				//			uniqueVertex.push_back(indexNormal[i]);
-				//			uniqueVertex.push_back(tris[i * tStride + 1 + t * tStride / 3]);
-				//			if (meshType == MeshType::Boned) {
-				//				uniqueVertex.push_back(tris[i * tStride + 2 + t * tStride / 3]);
-				//			}
-				//		}
-				//	}
-				//}
-				//
-				//if (bug::is("load_mesh_?")) {
-				//	bug::out < bug::LIME < "  Special" < bug::end;
-				//	for (int i = 0; i < uniqueVertex.size() / (uvStride); i++) {
-				//		for (int j = 0; j < uvStride; j++) {
-				//			bug::out < uniqueVertex[i * uvStride + j];
-				//		}
-				//		bug::out < bug::end;
-				//	}
-				//}
-				//*/
-				//uint32_t vStride = 3 + 3 + 3;
-				//if (meshType == MeshType::Boned)
-				//	vStride += 6;
-				//vertexOutSize = sizeof(float) * (uniqueVertex.size() / uvStride) * vStride;
-				//vertexOut = (float*)Allocate(vertexOutSize);
-				//for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
-				//	// Position
-				//	for (uint32_t j = 0; j < 3; ++j) {
-				//		if (uniqueVertex[i * uvStride] * 3 + j > uPointCount) {
-				//			//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
-				//			throw ErrorCorruptedFile;
-				//		}
-				//		vertexOut[i * vStride + j] = uPoint[uniqueVertex[i * uvStride] * 3 + j];
-				//	}
-				//	// Normal
-				//	for (uint32_t j = 0; j < 3; ++j) {
-				//		if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
-				//			//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
-				//			throw ErrorCorruptedFile;
-				//		}
-				//		vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
-				//	}
-				//	// UV
-				//	for (uint32_t j = 0; j < 3; ++j) {
-				//		if (uniqueVertex[i * uvStride + 2] * 3 + j > uTextureSize) {
-				//			//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
-				//			//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
-				//			throw ErrorCorruptedFile;
-				//		} else
-				//			vertexOut[i * vStride + 3 + 3 + j] = (float)uTexture[uniqueVertex[i * uvStride + 2] * 3 + j];
-				//	}
-				//	if (meshType == MeshType::Boned) {
-				//		// Bone Index
-				//		for (uint32_t j = 0; j < 3; ++j) {
-				//			if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
-				//				//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
-				//				throw ErrorCorruptedFile;
-				//			}
-				//			vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)uWeightI[uniqueVertex[i * uvStride + 3] * 3 + j];
-				//		}
-				//		// Weight
-				//		for (uint32_t j = 0; j < 3; ++j) {
-				//			if (uniqueVertex[i * uvStride + 3] * 3 + j > uWeightS) {
-				//				//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
-				//				throw ErrorCorruptedFile;
-				//			}
-				//			vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)uWeightF[uniqueVertex[i * uvStride + 3] * 3 + j];
-				//		}
-				//	}
-				//}
-				//
-				//for (int i = 0; i < (uniqueVertex.size() / uvStride) * vStride; i++) {
-				//	std::cout << vertexOut[i] << " ";
-				//	if ((i + 1) / (vStride) == (float)(i + 1) / (vStride))
-				//		std::cout << std::endl;
-				//}
-				//for (int i = 0; i < triangleCount*3; i++) {
-				//	std::cout << triangleOut[i] << " ";
-				//	if ((i + 1) / (3) == (float)(i + 1) / (3))
-				//		std::cout << std::endl;
-				//}
-				//vertexBuffer.setData(vertexOutSize, vertexOut);
-				//indexBuffer.setData(triangleOutSize, triangleOut);
-				//vertexArray.addAttribute(3);// Position
-				//vertexArray.addAttribute(3);// Normal
-				//if (meshType == MeshType::Boned) {
-				//	vertexArray.addAttribute(3);// Color
-				//	vertexArray.addAttribute(3);// Bone Index
-				//	vertexArray.addAttribute(3, &vertexBuffer);// Weight
-				//} else {
-				//	vertexArray.addAttribute(3, &vertexBuffer);// Color
-				//	vertexArray.addAttribute(4, 1);
-				//	vertexArray.addAttribute(4, 1);
-				//	vertexArray.addAttribute(4, 1);
-				//	vertexArray.addAttribute(4, 1, nullptr);// empty instance buffer	
-				//}
-
-				out = LoadData;
-			} catch (Error err) {
-				m_error = err;
+			if(!file.isOpen()){
+				m_error = file.getError();
 				m_state = Failed;
-				out = 0;
-				Free(points, pointSize);
-				Free(colors, colorSize);
-				Free(weightIndices, weightIndicesSize);
-				Free(weightValues, weightValuesSize);
-				Free(triangles, trianglesSize);
-				points = nullptr;
-				colors = nullptr;
-				weightIndices = nullptr;
-				weightValues = nullptr;
-				triangles = nullptr;
-				//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
+				return 0;
 			}
+			if(false){
+				MESH_LOAD_FAILED:
+					m_error = file.getError();
+					m_state = Failed;
+					Free(points, pointSize);
+					Free(colors, colorSize);
+					Free(weightIndices, weightIndicesSize);
+					Free(weightValues, weightValuesSize);
+					Free(triangles, trianglesSize);
+					points = nullptr;
+					colors = nullptr;
+					weightIndices = nullptr;
+					weightValues = nullptr;
+					triangles = nullptr;
+					return 0;
+			}
+		
+			#define MESH_LOAD_CHECK(x) if(!(x)) goto MESH_LOAD_FAILED;
+			uint8_t materialCount;
+			MESH_LOAD_CHECK(file.read((uint8*)&meshType))
+			MESH_LOAD_CHECK(file.read(&pointCount))
+			MESH_LOAD_CHECK(file.read(&colorCount))
+			MESH_LOAD_CHECK(file.read(&materialCount))
+			
+			//std::cout << "uhu\n";
+			for (uint32_t i = 0; i < materialCount && i < MeshAsset::maxMaterials; ++i) {
+				std::string materialName;
+				MESH_LOAD_CHECK(file.read(&materialName))
+
+				//std::cout << "Matloc: " << root<<materialName<< "\n";
+				MaterialAsset* asset;
+				if (m_storage) {
+					asset = m_storage->load<MaterialAsset>(root + materialName);
+					//asset = m_parent->set<MaterialAsset>(root + materialName);
+				} else {
+					asset = ALLOC_NEW(MaterialAsset)();
+					asset->loadPath(root + materialName,LoadAll);
+					// GetTracker().track(asset);
+				}
+				if (asset)
+					materials.push_back(asset);
+				else {
+
+				}
+
+				//std::cout << materials.back()->error << " err\n";
+			}
+			if (materialCount == 0) {
+				MaterialAsset* asset;
+				if (m_storage) {
+					// non-disc thing
+					asset = m_storage->get<MaterialAsset>("defaultMaterial");
+					if (!asset) {
+						asset = ALLOC_NEW(MaterialAsset)();
+						m_storage->set<MaterialAsset>("defaultMaterial", asset);
+					}
+				} else {
+					asset = ALLOC_NEW(MaterialAsset)();
+					// GetTracker().track(asset);
+				}
+				materials.push_back(asset);
+			}
+
+			weightCount = 0;
+			if (meshType == MeshType::Boned) {
+				MESH_LOAD_CHECK(file.read(&weightCount))
+			}
+			//uint16_t triangleCount;
+			MESH_LOAD_CHECK(file.read(&triangleCount))
+
+			//std::cout << "Points " << pointCount << " Textures " << textureCount <<" Triangles: "<<triangleCount<<" Weights "<<weightCount<<" Mats " << (int)materialCount << "\n";
+			pointNumbers = 3 * pointCount;
+			pointSize = sizeof(float) * pointNumbers;
+			points = (float*)Allocate(pointSize); // using malloc because i want to track allocations. I would use the new keyword otherwise.
+			MESH_LOAD_CHECK(file.read(points, pointNumbers))
+
+			colorNumbers = colorCount * 3;
+			colorSize = sizeof(float) * colorNumbers;
+			colors = (float*)Allocate(colorSize);
+			MESH_LOAD_CHECK(file.read(colors, colorNumbers))
+
+			// Weight
+			weightNumbers = weightCount * 3;
+			weightIndicesSize = sizeof(int) * weightNumbers;
+			weightIndices = (int*)Allocate(weightIndicesSize);
+			weightValuesSize = sizeof(float) * weightNumbers;
+			weightValues = (float*)Allocate(weightValuesSize);
+
+			if (meshType == MeshType::Boned) {
+				uint8 index[3];
+				float floats[3];
+				for (uint32_t i = 0; i < weightCount; ++i) {
+					MESH_LOAD_CHECK(file.read(index, 3))
+
+					MESH_LOAD_CHECK(file.read(floats, 3))
+					weightIndices[i * 3] = index[0];
+					weightIndices[i * 3 + 1] = index[1];
+					weightIndices[i * 3 + 2] = index[2];
+					weightValues[i * 3] = floats[0];
+					weightValues[i * 3 + 1] = floats[1];
+					weightValues[i * 3 + 2] = floats[2];
+				}
+			}
+
+			triangleStride = 6;
+			if (meshType == MeshType::Boned)
+				triangleStride = 9;
+
+			triangleNumbers = triangleCount * triangleStride;
+			trianglesSize = sizeof(uint16_t) * triangleNumbers;
+			triangles = (uint16_t*)Allocate(trianglesSize);
+			MESH_LOAD_CHECK(file.read(triangles, triangleNumbers))
+
+			out = LoadData;
+				
+			// } catch (Error err) {
+				// m_error = err;
+				// m_state = Failed;
+				// out = 0;
+				// Free(points, pointSize);
+				// Free(colors, colorSize);
+				// Free(weightIndices, weightIndicesSize);
+				// Free(weightValues, weightValuesSize);
+				// Free(triangles, trianglesSize);
+				// points = nullptr;
+				// colors = nullptr;
+				// weightIndices = nullptr;
+				// weightValues = nullptr;
+				// triangles = nullptr;
+				//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
+			// }
 		}
 		if ((flags & LoadData)&&!m_error) {
-			try {
 				
-				// TODO: hardcoded numbers is bad. Change them.
-				// find boundingPoint
-				glm::vec3 minPoint = {999999,999999,999999};
-				glm::vec3 maxPoint = {-999999,-999999,-999999};
-				for (int i = 0; i < pointCount;i++) {
-					glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
-					minPoint.x = minPoint.x < vec.x ? minPoint.x : vec.x;
-					minPoint.y = minPoint.y < vec.y ? minPoint.y : vec.y;
-					minPoint.z = minPoint.z < vec.z ? minPoint.z : vec.z;
-					maxPoint.x = maxPoint.x > vec.x ? maxPoint.x : vec.x;
-					maxPoint.y = maxPoint.y > vec.y ? maxPoint.y : vec.y;
-					maxPoint.z = maxPoint.z > vec.z ? maxPoint.z : vec.z;
+			// TODO: hardcoded numbers is bad. Change them.
+			// find boundingPoint
+			glm::vec3 minPoint = {999999,999999,999999};
+			glm::vec3 maxPoint = {-999999,-999999,-999999};
+			for (int i = 0; i < pointCount;i++) {
+				glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
+				minPoint.x = minPoint.x < vec.x ? minPoint.x : vec.x;
+				minPoint.y = minPoint.y < vec.y ? minPoint.y : vec.y;
+				minPoint.z = minPoint.z < vec.z ? minPoint.z : vec.z;
+				maxPoint.x = maxPoint.x > vec.x ? maxPoint.x : vec.x;
+				maxPoint.y = maxPoint.y > vec.y ? maxPoint.y : vec.y;
+				maxPoint.z = maxPoint.z > vec.z ? maxPoint.z : vec.z;
+			}
+			boundingPoint = (minPoint + maxPoint) / 2.f;
+			// find boundingRadius
+			boundingRadius = 0;
+			for (int i = 0; i < pointCount; i++) {
+				glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
+				float radius = glm::length(vec-boundingPoint);
+				if (radius>boundingRadius) {
+					boundingRadius = radius;
 				}
-				boundingPoint = (minPoint + maxPoint) / 2.f;
-				// find boundingRadius
-				boundingRadius = 0;
-				for (int i = 0; i < pointCount; i++) {
-					glm::vec3 vec = { points[3 * i],points[3 * i + 1],points[3 * i + 2] };
-					float radius = glm::length(vec-boundingPoint);
-					if (radius>boundingRadius) {
-						boundingRadius = radius;
+			}
+
+			//log::out << "Mesh " << getLoadName() << " " << minPoint << " " << maxPoint << "\n";
+
+			std::vector<uint16_t> indexNormal;
+			std::vector<float> uNormal;
+			for (uint32_t i = 0; i < triangleCount; ++i) {
+				for (uint32_t j = 0; j < 3; ++j) {
+					if (triangles[i * triangleStride + j * triangleStride / 3] * 3u + 2u >= pointNumbers) {
+						//std::cout << "Corruption at '" << i <<" "<<j<<" " << (i * triangleStride) << " " << (j * triangleStride / 3) << " " << triangles[i * triangleStride + j * triangleStride / 3] << "' : Triangle Index\n";
+						Assert(("Corrupt file, error stuff not present, doing assert instead",false));
+						// throw ErrorCorruptedFile;
 					}
 				}
+				glm::vec3 p0(points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 2]);
+				glm::vec3 p1(points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 2]);
+				glm::vec3 p2(points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 2]);
+				//std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
+				//std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
+				//std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
+				glm::vec3 cro = glm::cross(p1 - p0, p2 - p0);
+				//std::cout << cro.x << " " << cro.y << " " << cro.z << std::endl;
+				glm::vec3 norm = glm::normalize(cro);
+				//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
 
-				//log::out << "Mesh " << getLoadName() << " " << minPoint << " " << maxPoint << "\n";
-
-				std::vector<uint16_t> indexNormal;
-				std::vector<float> uNormal;
-				for (uint32_t i = 0; i < triangleCount; ++i) {
-					for (uint32_t j = 0; j < 3; ++j) {
-						if (triangles[i * triangleStride + j * triangleStride / 3] * 3u + 2u >= pointNumbers) {
-							//std::cout << "Corruption at '" << i <<" "<<j<<" " << (i * triangleStride) << " " << (j * triangleStride / 3) << " " << triangles[i * triangleStride + j * triangleStride / 3] << "' : Triangle Index\n";
-							Assert(("Corrupt file, error stuff not present, doing assert instead",false));
-							// throw ErrorCorruptedFile;
-						}
+				bool same = false;
+				for (uint32_t j = 0; j < uNormal.size() / 3; ++j) {
+					if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
+						same = true;
+						indexNormal.push_back((uint16_t)j);
+						break;
 					}
-					glm::vec3 p0(points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 0 * triangleStride / 3] * 3 + 2]);
-					glm::vec3 p1(points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 1 * triangleStride / 3] * 3 + 2]);
-					glm::vec3 p2(points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 0], points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 1], points[triangles[i * triangleStride + 2 * triangleStride / 3] * 3 + 2]);
-					//std::cout << p0.x << " " << p0.y << " " << p0.z << std::endl;
-					//std::cout << p1.x << " " << p1.y << " " << p1.z << std::endl;
-					//std::cout << p2.x << " " << p2.y << " " << p2.z << std::endl;
-					glm::vec3 cro = glm::cross(p1 - p0, p2 - p0);
-					//std::cout << cro.x << " " << cro.y << " " << cro.z << std::endl;
-					glm::vec3 norm = glm::normalize(cro);
-					//std::cout << norm.x << " " << norm.y << " " << norm.z << std::endl;
+				}
+				if (!same) {
+					uNormal.push_back(norm.x);
+					uNormal.push_back(norm.y);
+					uNormal.push_back(norm.z);
+					indexNormal.push_back((uint16_t)(uNormal.size() / 3 - 1));
+				}
+			}
 
+			std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
+
+			triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
+			triangleOut = (uint32_t*)Allocate(triangleOutSize);
+
+			uint32_t uvStride = 1 + (triangleStride) / 3;
+			for (uint32_t i = 0; i < triangleCount; ++i) {
+				for (uint32_t t = 0; t < 3; ++t) {
 					bool same = false;
-					for (uint32_t j = 0; j < uNormal.size() / 3; ++j) {
-						if (uNormal[j * 3 + 0] == norm.x && uNormal[j * 3 + 1] == norm.y && uNormal[j * 3 + 2] == norm.z) {
-							same = true;
-							indexNormal.push_back((uint16_t)j);
-							break;
+					for (uint32_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
+						if (uniqueVertex[v * uvStride] != triangles[i * triangleStride + 0 + t * triangleStride / 3])
+							continue;
+						if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
+							continue;
+						if (uniqueVertex[v * uvStride + 2] != triangles[i * triangleStride + 1 + t * triangleStride / 3])
+							continue;
+						if (meshType == MeshType::Boned) {
+							if (uniqueVertex[v * uvStride + 3] != triangles[i * triangleStride + 2 + t * triangleStride / 3])
+								continue;
 						}
+						same = true;
+						triangleOut[i * 3 + t] = v;
+						break;
 					}
 					if (!same) {
-						uNormal.push_back(norm.x);
-						uNormal.push_back(norm.y);
-						uNormal.push_back(norm.z);
-						indexNormal.push_back((uint16_t)(uNormal.size() / 3 - 1));
-					}
-				}
+						triangleOut[i * 3 + t] = uniqueVertex.size() / (uvStride);
 
-				std::vector<unsigned short> uniqueVertex;// [ posIndex,colorIndex,normalIndex,weightIndex, ...]
-
-				triangleOutSize = sizeof(uint32_t) * triangleCount * 3;
-				triangleOut = (uint32_t*)Allocate(triangleOutSize);
-
-				uint32_t uvStride = 1 + (triangleStride) / 3;
-				for (uint32_t i = 0; i < triangleCount; ++i) {
-					for (uint32_t t = 0; t < 3; ++t) {
-						bool same = false;
-						for (uint32_t v = 0; v < uniqueVertex.size() / (uvStride); ++v) {
-							if (uniqueVertex[v * uvStride] != triangles[i * triangleStride + 0 + t * triangleStride / 3])
-								continue;
-							if (uniqueVertex[v * uvStride + 1] != indexNormal[i])
-								continue;
-							if (uniqueVertex[v * uvStride + 2] != triangles[i * triangleStride + 1 + t * triangleStride / 3])
-								continue;
-							if (meshType == MeshType::Boned) {
-								if (uniqueVertex[v * uvStride + 3] != triangles[i * triangleStride + 2 + t * triangleStride / 3])
-									continue;
-							}
-							same = true;
-							triangleOut[i * 3 + t] = v;
-							break;
-						}
-						if (!same) {
-							triangleOut[i * 3 + t] = uniqueVertex.size() / (uvStride);
-
-							uniqueVertex.push_back(triangles[i * triangleStride + 0 + t * triangleStride / 3]);
-							uniqueVertex.push_back(indexNormal[i]);
-							uniqueVertex.push_back(triangles[i * triangleStride + 1 + t * triangleStride / 3]);
-							if (meshType == MeshType::Boned) {
-								uniqueVertex.push_back(triangles[i * triangleStride + 2 + t * triangleStride / 3]);
-							}
+						uniqueVertex.push_back(triangles[i * triangleStride + 0 + t * triangleStride / 3]);
+						uniqueVertex.push_back(indexNormal[i]);
+						uniqueVertex.push_back(triangles[i * triangleStride + 1 + t * triangleStride / 3]);
+						if (meshType == MeshType::Boned) {
+							uniqueVertex.push_back(triangles[i * triangleStride + 2 + t * triangleStride / 3]);
 						}
 					}
 				}
-
-				uint32_t vStride = 3 + 3 + 3;
-				if (meshType == MeshType::Boned)
-					vStride += 6;
-
-				vertexOutSize = sizeof(float) * (uniqueVertex.size() / uvStride) * vStride;
-				vertexOut = (float*)Allocate(vertexOutSize);
-
-				for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
-					// Position
-					for (uint32_t j = 0; j < 3; ++j) {
-						if (uniqueVertex[i * uvStride] * 3 + j > pointNumbers) {
-							//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
-							Assert(false);
-						}
-						vertexOut[i * vStride + j] = points[uniqueVertex[i * uvStride] * 3 + j];
-					}
-					// Normal
-					for (uint32_t j = 0; j < 3; ++j) {
-						if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
-							//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
-							Assert(false);
-						}
-						vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
-					}
-					// UV
-					for (uint32_t j = 0; j < 3; ++j) {
-						if (uniqueVertex[i * uvStride + 2] * 3 + j > colorNumbers) {
-							//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
-							//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
-							Assert(false);
-						} else
-							vertexOut[i * vStride + 3 + 3 + j] = (float)colors[uniqueVertex[i * uvStride + 2] * 3 + j];
-					}
-					if (meshType == MeshType::Boned) {
-						// Bone Index
-						for (uint32_t j = 0; j < 3; ++j) {
-							if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
-								//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
-								Assert(false);
-							}
-							vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)weightIndices[uniqueVertex[i * uvStride + 3] * 3 + j];
-						}
-						// Weight
-						for (uint32_t j = 0; j < 3; ++j) {
-							if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
-								//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
-								Assert(false);
-							}
-							vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)weightValues[uniqueVertex[i * uvStride + 3] * 3 + j];
-						}
-					}
-				}
-				out = LoadGraphic;
-			} catch (Error err) {
-				m_error = err;
-				m_state = Failed;
-				out = 0;
-				//m_state = Failed;
-				//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
-				Free(vertexOut, vertexOutSize);
-				Free(triangleOut, triangleOutSize);
-				vertexOut = nullptr;
-				triangleOut = nullptr;
 			}
+
+			uint32_t vStride = 3 + 3 + 3;
+			if (meshType == MeshType::Boned)
+				vStride += 6;
+
+			vertexOutSize = sizeof(float) * (uniqueVertex.size() / uvStride) * vStride;
+			vertexOut = (float*)Allocate(vertexOutSize);
+
+			for (uint32_t i = 0; i < uniqueVertex.size() / uvStride; i++) {
+				// Position
+				for (uint32_t j = 0; j < 3; ++j) {
+					if (uniqueVertex[i * uvStride] * 3 + j > pointNumbers) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Position Index\n";
+						Assert(false);
+					}
+					vertexOut[i * vStride + j] = points[uniqueVertex[i * uvStride] * 3 + j];
+				}
+				// Normal
+				for (uint32_t j = 0; j < 3; ++j) {
+					if (uniqueVertex[i * uvStride + 1] * 3 + j > uNormal.size()) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Normal Index\n";
+						Assert(false);
+					}
+					vertexOut[i * vStride + 3 + j] = uNormal[uniqueVertex[i * uvStride + 1] * 3 + j];
+				}
+				// UV
+				for (uint32_t j = 0; j < 3; ++j) {
+					if (uniqueVertex[i * uvStride + 2] * 3 + j > colorNumbers) {
+						//bug::out < bug::RED < "Corruption at '" < path < "' : Color Index\n";
+						//bug::out < (uniqueVertex[i * uvStride + 2] * 3 + j) < " > " < uTextureSize < bug::end;
+						Assert(false);
+					} else
+						vertexOut[i * vStride + 3 + 3 + j] = (float)colors[uniqueVertex[i * uvStride + 2] * 3 + j];
+				}
+				if (meshType == MeshType::Boned) {
+					// Bone Index
+					for (uint32_t j = 0; j < 3; ++j) {
+						if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
+							//bug::out < bug::RED < "Corruption at '" < path < "' : Bone Index\n";
+							Assert(false);
+						}
+						vertexOut[i * vStride + 3 + 3 + 3 + j] = (float)weightIndices[uniqueVertex[i * uvStride + 3] * 3 + j];
+					}
+					// Weight
+					for (uint32_t j = 0; j < 3; ++j) {
+						if (uniqueVertex[i * uvStride + 3] * 3 + j > weightNumbers) {
+							//bug::out < bug::RED < "Corruption at '" < path < "' : Weight Index\n";
+							Assert(false);
+						}
+						vertexOut[i * vStride + 3 + 3 + 3 + 3 + j] = (float)weightValues[uniqueVertex[i * uvStride + 3] * 3 + j];
+					}
+				}
+			}
+			out = LoadGraphic;
+			// } catch (Error err) {
+			// 	m_error = err;
+			// 	m_state = Failed;
+			// 	out = 0;
+			// 	//m_state = Failed;
+			// 	//Logging({ "AssetManager","Mesh",toString(err) + ": " + path }, LogStatus::Error);
+			// 	Free(vertexOut, vertexOutSize);
+			// 	Free(triangleOut, triangleOutSize);
+			// 	vertexOut = nullptr;
+			// 	triangleOut = nullptr;
+			// }
 			// Cleanup - not the stuff needed for OpenGL
 			Free(points, pointSize);
 			Free(colors, colorSize);
@@ -1285,7 +1144,7 @@ namespace engone {
 			// and not. Then do a reload
 
 			FileReader file(m_path);
-			try {
+			// try {
 				uint16_t instanceCount;
 				file.read(&instanceCount);
 				for (uint32_t i = 0; i < instanceCount; ++i) {
@@ -1360,12 +1219,12 @@ namespace engone {
 				out = LoadData;
 				//m_state = Loaded; // doesn't have any opengl stuff
 				//out = 0;
-			} catch (Error err) {
-				m_error = err;
-				out = 0;
-				m_state = Failed;
-				//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
-			}
+			// } catch (Error err) {
+			// 	m_error = err;
+			// 	out = 0;
+			// 	m_state = Failed;
+			// 	//Logging({ "AssetManager","Model",toString(err) + ": " + path }, LogStatus::Error);
+			// }
 		} else if ((flags & LoadData) && !m_error) {
 			// check if assets are fully loaded
 			bool ready = true;
@@ -1521,7 +1380,7 @@ namespace engone {
 
 			glm::mat4 dostuff = quater;//glm::mat4_cast(quat);
 			*/
-
+		
 			glm::mat4 ani = glm::mat4(1);
 			if (animator) {
 				ani = glm::translate(glm::mat4(1), pos)

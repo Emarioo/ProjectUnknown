@@ -16,6 +16,10 @@
 
 #include "ProUnk/UI/UIMenus.h"
 
+#ifndef LIVEDITING
+#include "GameCode/PlayerController.h"
+#endif
+
 // #include "Engone/SoundModule.h"
 // #include "Engone/Sound/SoundStream.h"
 
@@ -57,14 +61,17 @@ namespace prounk {
 
 		// skip if object has been hit earlier in the attack
 		bool hit = false;
-		for (auto& uuid : atkData->hitObjects) {
+		for (int i=0;i<atkData->hitObjects.size();i++) {
+			auto& uuid = *(engone::UUID*)atkData->hitObjects.get(i);
 			if (uuid == defObj->getUUID())
 				hit = true;
 		}
 		if (hit)
 			return;
 
-		atkData->hitObjects.push_back(defObj->getUUID());
+		// atkData->hitObjects.push_back(defObj->getUUID());
+		atkData->hitObjects.add(&defObj->getUUID());
+		
 
 		float atk=0;
 		if (atkData->damageType == CombatData::CONTINOUS_DAMAGE) {
@@ -277,7 +284,9 @@ namespace prounk {
 		m_window->setTitle("Project Unknown");
 		m_window->enableFirstPerson(true);
 
-		m_window->getPipeline()->addComponent(&visualEffects);
+		// m_window->getPipeline()->addComponent(&visualEffects);
+
+		m_window->getStorage()->setRoot("D:/Backup/CodeProjects/ProjectUnknown/ProjectUnknown/assets/");
 
 		AssetStorage* assets = getStorage();
 
@@ -478,11 +487,13 @@ namespace prounk {
 	}
 	void GameApp::createPanels() {
 		using namespace engone;
-
+		
+		Window* win = engone::GetActiveWindow();
+		
 		inventoryPanel = ALLOC_NEW(InventoryPanel)(this);
 		panelHandler.addPanel(inventoryPanel);
 		inventoryPanel->setSize(250, 230);
-		inventoryPanel->setPosition(GetWidth()-270, 10);
+		inventoryPanel->setPosition(win->getWidth()-270, 10);
 
 		EngineObject* plr = playerController.requestPlayer();
 		if (plr) {
@@ -509,12 +520,12 @@ namespace prounk {
 		cheatPanel = ALLOC_NEW(CheatPanel)(this);
 		panelHandler.addPanel(cheatPanel);
 		cheatPanel->setSize(220, 100);
-		cheatPanel->setPosition(GetWidth()-240, 260);
+		cheatPanel->setPosition(win->getWidth()-240, 260);
 
 		sessionPanel = ALLOC_NEW(SessionPanel)(this);
 		panelHandler.addPanel(sessionPanel);
 		sessionPanel->setSize(230, 140);
-		sessionPanel->setPosition(0, GetHeight() / 2);
+		sessionPanel->setPosition(0, win->getHeight() / 2);
 
 		sessionPanel->setHidden(true);
 		inventoryPanel->setHidden(true);
@@ -556,7 +567,45 @@ namespace prounk {
 		//	}
 		//	partRequested = false;
 		//}
-
+		
+		//-- Live code editing
+		#ifdef LIVE_EDITING
+		codeReloadTime+=info.timeStep;
+		const float reloadDelay=1;
+		if(codeReloadTime>reloadDelay){
+			// log::out << "time: "<<codeReloadTime<<"\n";
+			codeReloadTime -= reloadDelay;
+			
+			double seconds=0;
+			bool yes = FileLastWriteSeconds(codePath,&seconds);
+			if(yes){
+				if(seconds>codeLastModified){
+					codeLastModified=seconds;
+					if(codeLibrary)
+						UnloadDynamicLibrary(codeLibrary);
+					updatePlayerMovement=0;
+					log::out << "Load lib\n";
+					FileCopy(codePath,codePath2);
+					FileCopy(pdbPath,pdbPath2);
+					codeLibrary = LoadDynamicLibrary(codePath2);
+					updatePlayerMovement = (PlayerUpdateFunc)GetFunctionPointer(codeLibrary, "UpdatePlayerMovement");
+					typedef void(*InitFunc)(void*,void*);
+					InitFunc func = (InitFunc)GetFunctionPointer(codeLibrary, "GameCodeInit");
+					if(func)
+						func(&GetGameMemory(),&log::out);
+				}
+			}else{
+				//log::out << "bad read?\n";
+			}
+		}
+		if(updatePlayerMovement){
+			updatePlayerMovement(&info,playerController.requestPlayer());
+		}
+		#else
+		UpdatePlayerMovement(&info,playerController.requestPlayer());
+		#endif
+		
+		
 		playerController.update(info);
 
 		m_session->update(info);
@@ -586,6 +635,8 @@ namespace prounk {
 		panelHandler.render(info);
 
 		playerController.render(info);
+		
+		// uiModule.render(info.window->getWidth(),info.window->getHeight());
 	}
 	void GameApp::onClose(engone::Window* window) {
 		stop();

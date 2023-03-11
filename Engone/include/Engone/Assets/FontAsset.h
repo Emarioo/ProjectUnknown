@@ -14,6 +14,11 @@ namespace engone {
 			m_flags = LoadData; // skip io
 			png->setFlags(FlipOnLoad,true);
 		}
+		// path should not include format, .txt and .png will be read
+		FontAsset(const std::string& path) : Asset(TYPE) {
+			m_flags = LoadIO;
+			m_path = path;
+		}
 		void cleanup() override;
 		// font is special in that it requires to files
 		// a .txt and .png with the same name.

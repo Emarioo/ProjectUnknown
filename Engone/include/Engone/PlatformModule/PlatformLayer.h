@@ -76,6 +76,7 @@ namespace PL_NAMESPACE {
 	bool DirectoryCreate(const std::string& path);
     bool FileLastWriteSeconds(const std::string& path, double* seconds);
     
+	bool FileCopy(const std::string& src, const std::string& dst);
     // Todo: Remove the simple directory iterator. Skipping directories in the recursive directory iterator
     //      would work the same as the normal directory iterator.
     
@@ -171,6 +172,13 @@ namespace PL_NAMESPACE {
 	// commandLine cannot be constant (CreateProcessA in windows api says so)
 	bool StartProgram(const std::string& path, char* commandLine=NULL);
 
+	typedef void(*VoidFunction)();
+	// @return null on error (library not found?). Pass returned value into GetFunctionAdress to get function pointer. 
+	void* LoadDynamicLibrary(const std::string& path);
+	void UnloadDynamicLibrary(void* library);
+	// You may need to cast the function pointer to the appropriate function
+	VoidFunction GetFunctionPointer(void* library, const std::string& name);
+
 	// Converts arguments from WinMain into simpler arguments. Not unicode.
 	// note that argc and argv are references and the outputs of this function.
 	// do not forget to call FreeArguments because this function allocates memory.
@@ -202,15 +210,19 @@ namespace PL_NAMESPACE {
 		// calling this again will restart the tracking with new arguments.
 		// the argument in the callback is a relative path from root to the file that was changed.
 		// returns false if root path was invalid
-		bool check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
+		bool check(const std::string& root, void (*callback)(const std::string&, uint32), uint32 flags = 0);
+		// bool check(const std::string& root, std::function<void(const std::string&, uint32)> callback, uint32 flags = 0);
 
 		inline const std::string& getRoot() { return m_root; }
 
-		inline std::function<void(const std::string&, uint32)>& getCallback() { return m_callback; }
+		inline void (*getCallback())(const std::string&, uint32) { return m_callback; }
+		// inline std::function<void(const std::string&, uint32)>& getCallback() { return m_callback; }
 
 	private:
 		bool m_running = false;
-		std::function<void(const std::string&, uint32)> m_callback;
+		// std::function<void(const std::string&, uint32)> m_callback;
+		void (*m_callback)(const std::string&, uint32);
+		
 		std::string m_root; // path passed to check function
 		std::string m_dirPath; // if m_root isn't a directory then this will be the dir of the file
 		uint32 m_flags = 0;

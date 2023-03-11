@@ -29,7 +29,7 @@ namespace prounk {
 
 		void update(engone::LoopInfo& info);
 		void render(engone::LoopInfo& info);
-		void Movement(engone::LoopInfo& info);
+		// void Movement(engone::LoopInfo& info);
 		void Input(engone::LoopInfo& info);
 
 		void performSkills(engone::LoopInfo& info);

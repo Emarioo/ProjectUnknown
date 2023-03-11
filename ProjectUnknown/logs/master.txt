@@ -1,4 +1,5 @@
-[12:53:44] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:44] [Thread 15680] done
+[23:59:26] [Thread 14728] Failed loading: ../../../ProjectUnknown/assets/fonts/consolas42
+done
 [12:53:49] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:49] [Thread 15680] done
 [12:53:51] [Thread 15680] Saving game memory (5258816 bytes)... [12:53:51] [Thread 15680] done
 [12:53:53] [Thread 15680] Loading game memory (5258816 bytes)... [12:53:53] [Thread 15680] done

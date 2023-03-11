@@ -9,6 +9,7 @@
 
 namespace engone{
     class GameMemory;
+    #ifdef ENGONE_PHYSICS
     class CustomAllocator : public rp3d::MemoryAllocator {
     public:
         CustomAllocator() { }    
@@ -16,6 +17,7 @@ namespace engone{
         void* allocate(size_t size) override;
         void release(void* pointer, size_t size) override;
     };
+    #endif
     // typedef uint64 GameMemoryID;
     class GameMemory {
     public:
@@ -36,9 +38,9 @@ namespace engone{
         // void* Allocate(uint64 bytes);
         // void* Reallocate(void* ptr, iuint64nt bytes);
         // void Free(void* ptr);
-
+#ifdef ENGONE_PHYSICS
         rp3d::PhysicsCommon* getCommon();
-
+#endif
         uint64 getUsedMemory();
 
         void getPointers(std::vector<void*>& ptrs);
@@ -55,8 +57,10 @@ namespace engone{
         void print();
 
     private:
+    #ifdef ENGONE_PHYSICS
         rp3d::PhysicsCommon* common=nullptr;
         CustomAllocator* allocator=nullptr;
+    #endif
         Mutex mutex;
 
         // GameMemoryID allocate(int bytes);
@@ -91,5 +95,6 @@ namespace engone{
         
     };
     GameMemory& GetGameMemory();
+    void SetGameMemory(GameMemory* memory);
     void GameMemoryTest();
 }

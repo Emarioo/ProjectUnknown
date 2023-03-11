@@ -78,7 +78,7 @@ namespace engone {
 			EnableDepth();
 		AssetStorage* assets = m_parent->getStorage();
 		//Assets* assets = m_parent->getAssets();
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = m_parent->getRenderer();
 		if (!renderer) {
 			log::out << log::RED << "PlayerController::render : renderer is null\n";

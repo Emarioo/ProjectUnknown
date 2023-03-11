@@ -78,6 +78,8 @@ namespace engone {
 		
 		Logger& TIME();
 
+		void setRealLogger(engone::Logger* logger);
+
 	private:
 		Mutex m_printMutex;
 		
@@ -107,7 +109,10 @@ namespace engone {
 		std::unordered_map<std::string, APIFile*> m_logFiles;
 		
 		std::unordered_map<ThreadId, ThreadInfo> m_threadInfos;
+		
+		Logger* realLogger=0;
 	};
+	
 	namespace log {
 		extern Logger out;
 	}

@@ -14,6 +14,7 @@ namespace prounk {
 		CombatData combatData;
 		uint32 inventoryDataIndex = 0;
 		int onGround = 0;
+		engone::UUID heldObject=0;
 	};
 	struct ObjectItemInfo {
 		Item item;

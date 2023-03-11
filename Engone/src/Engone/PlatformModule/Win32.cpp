@@ -24,11 +24,11 @@
 auto Win32Sleep = Sleep;
 
 namespace PL_NAMESPACE {
-//-- Platform specific
-
-    #define TO_INTERNAL(X) (void*)((uint64)X+1)
-    #define TO_HANDLE(X) (HANDLE)((uint64)X-1)
-
+    //-- Platform specific
+    
+#define TO_INTERNAL(X) (void*)((uint64)X+1)
+#define TO_HANDLE(X) (HANDLE)((uint64)X-1)
+    
 	DirectoryIterator* DirectoryIteratorCreate(const std::string& path, DirectoryIteratorData* result){		
 		WIN32_FIND_DATAA data;
 		std::string _path;
@@ -40,11 +40,11 @@ namespace PL_NAMESPACE {
 		if(handle==INVALID_HANDLE_VALUE){
 			DWORD err = GetLastError();
 			if(err == ERROR_FILE_NOT_FOUND){
-				PL_PRINTF("[WinError %u] Cannot find file '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Cannot find file '%s'\n",err,path.c_str());
 			}else if(err==ERROR_PATH_NOT_FOUND){
-				PL_PRINTF("[WinError %u] Cannot find path '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Cannot find path '%s'\n",err,path.c_str());
 			}else {
-				PL_PRINTF("[WinError %u] Error opening '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Error opening '%s'\n",err,path.c_str());
 			}
 			return 0;
 		}
@@ -56,12 +56,12 @@ namespace PL_NAMESPACE {
 					if(err == ERROR_NO_MORE_FILES){
 						// PL_PRINTF("[WinError %u] No files '%lu'\n",err,(uint64)iterator);
 					}else {
-						PL_PRINTF("[WinError %u] Error iterating '%lu'\n",err,(uint64)handle);
+						PL_PRINTF("[WinError %lu] Error iterating '%llu'\n",err,(uint64)handle);
 					}
 					BOOL success = FindClose(handle);
 					if(!success){
 						DWORD err = GetLastError();
-						PL_PRINTF("[WinError %u] Error closing '%lu'\n",(uint64)handle);
+						PL_PRINTF("[WinError %lu] Error closing '%llu'\n",err,(uint64)handle);
 					}
 					return 0;
 				}
@@ -89,7 +89,7 @@ namespace PL_NAMESPACE {
 					// take one from directory and do shit.
 					// PL_PRINTF("[WinError %u] No files '%lu'\n",err,(uint64)iterator);
 				}else {
-					PL_PRINTF("[WinError %u] Error iterating '%lu'\n",err,(uint64)iterator);
+					PL_PRINTF("[WinError %lu] Error iterating '%llu'\n",err,(uint64)iterator);
 				}
 				return false;
 			}
@@ -110,10 +110,10 @@ namespace PL_NAMESPACE {
 		BOOL success = FindClose((HANDLE)((uint64)iterator-1));
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] Error closing '%lu'\n",(uint64)iterator);
+			PL_PRINTF("[WinError %lu] Error closing '%llu'\n",err,(uint64)iterator);
 		}
 	}
-
+    
 	// Recursive directory iterator info
 	struct RDIInfo{
 		std::string root;
@@ -175,13 +175,13 @@ namespace PL_NAMESPACE {
 					if(err == ERROR_NO_MORE_FILES){
 						// PL_PRINTF("[WinError %u] No files '%lu'\n",err,(uint64)iterator);
 					}else {
-						PL_PRINTF("[WinError %u] FindNextFileA '%lu'\n",err,(uint64)iterator);
+						PL_PRINTF("[WinError %lu] FindNextFileA '%llu'\n",err,(uint64)iterator);
 					}
 					bool success = FindClose(info->second.handle);
 					info->second.handle = INVALID_HANDLE_VALUE;
 					if(!success){
 						err = GetLastError();
-						PL_PRINTF("[WinError %u] FindClose '%lu'\n",err,(uint64)iterator);
+						PL_PRINTF("[WinError %lu] FindClose '%llu'\n",err,(uint64)iterator);
 					}
 					continue;
 				}
@@ -225,12 +225,12 @@ namespace PL_NAMESPACE {
 			BOOL success = FindClose(info->second.handle);
 			if(!success){
 				DWORD err = GetLastError();
-				PL_PRINTF("[WinError %u] Error closing '%lu'\n",(uint64)iterator);
+				PL_PRINTF("[WinError %lu] Error closing '%llu'\n",err,(uint64)iterator);
 			}
 		}
 		s_rdiInfos.erase(iterator);
 	}
-
+    
 	TimePoint MeasureSeconds(){
 		uint64 tp;
 		BOOL success = QueryPerformanceCounter((LARGE_INTEGER*)&tp);
@@ -265,14 +265,14 @@ namespace PL_NAMESPACE {
         DWORD sharing = 0;
         if(flags&FILE_ONLY_READ){
             access = GENERIC_READ;
-         	sharing = FILE_SHARE_READ;
+            sharing = FILE_SHARE_READ;
 		}
 		DWORD creation = OPEN_EXISTING;
 		if(flags&FILE_CAN_CREATE)
 			creation = OPEN_ALWAYS;
 		if(flags&FILE_WILL_CREATE)
 			creation = CREATE_ALWAYS;
-
+        
 		if(creation&OPEN_ALWAYS||creation&CREATE_ALWAYS){
 			std::string temp;
 			int i=0;
@@ -295,26 +295,26 @@ namespace PL_NAMESPACE {
 				temp+=chr;
 			}
 		}
-
+        
 		HANDLE handle = CreateFileA(path.c_str(),access,sharing,NULL,creation,FILE_ATTRIBUTE_NORMAL, NULL);
 		
 		if(handle==INVALID_HANDLE_VALUE){
 			DWORD err = GetLastError();
 			if(err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND){
-				PL_PRINTF("[WinError %u] Cannot find '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Cannot find '%s'\n",err,path.c_str());
 			}else if(err == ERROR_ACCESS_DENIED){
-				PL_PRINTF("[WinError %u] Denied access to '%s'\n",err,path.c_str()); // tried to open a directory?
+				PL_PRINTF("[WinError %lu] Denied access to '%s'\n",err,path.c_str()); // tried to open a directory?
 			}else {
-				PL_PRINTF("[WinError %u] Error opening '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Error opening '%s'\n",err,path.c_str());
 			}
 			return 0;
 		}else if (outFileSize){
-
+            
 			DWORD success = GetFileSizeEx(handle, (LARGE_INTEGER*)outFileSize);
 			if (!success) {
 				// GetFileSizeEx will probably not fail if CreateFile succeeded. But just in case it does.
 				DWORD err = GetLastError();
-				printf("[WinError %u] Error aquiring file size from '%s'",err,path.c_str());
+				printf("[WinError %lu] Error aquiring file size from '%s'",err,path.c_str());
 				*outFileSize = 0;
 				Assert(outFileSize)
 			}
@@ -328,7 +328,7 @@ namespace PL_NAMESPACE {
 		DWORD success = ReadFile(TO_HANDLE(file),buffer,readBytes,&bytesRead,NULL);
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] FileRead '%lu'\n",err,file);
+			PL_PRINTF("[WinError %lu] FileRead '%llu'\n",err,(uint64)file);
 			return -1;
 		}
 		return bytesRead;
@@ -340,7 +340,7 @@ namespace PL_NAMESPACE {
 		DWORD success = WriteFile(TO_HANDLE(file),buffer,writeBytes,&bytesWritten,NULL);
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] FileWrite '%lu'\n",err,file);
+			PL_PRINTF("[WinError %lu] FileWrite '%llu'\n",err,(uint64)file);
 			return -1;
 		}
 		return bytesWritten;
@@ -355,7 +355,7 @@ namespace PL_NAMESPACE {
 		if(success) return true;
 		
 		int err = GetLastError();
-		PL_PRINTF("[WinError %u] FileSetHead '%lu'\n",err,file);
+		PL_PRINTF("[WinError %lu] FileSetHead '%llu'\n",err,(uint64)file);
 		return false;
 	}
 	void FileClose(APIFile* file){
@@ -365,8 +365,8 @@ namespace PL_NAMESPACE {
 	bool FileExist(const std::string& path){
         DWORD attributes = GetFileAttributesA(path.c_str());   
         if(attributes == INVALID_FILE_ATTRIBUTES){
-            DWORD err = GetLastError();
-            PL_PRINTF("[WinError %u] GetFileAttributesA '%s'\n",err,path.c_str());
+            // DWORD err = GetLastError();
+            // PL_PRINTF("[WinError %lu] GetFileAttributesA '%s'\n",err,path.c_str());
             return false;
         }
         return (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
@@ -375,7 +375,7 @@ namespace PL_NAMESPACE {
 		DWORD success = CreateDirectoryA(path.c_str(),0);
 		if(!success){
 			DWORD err = GetLastError();
-			PL_PRINTF("[WinError %u] CreateDirectoryA '%s'\n",err,path.c_str());
+			PL_PRINTF("[WinError %lu] CreateDirectoryA '%s'\n",err,path.c_str());
             return false;
 		}
 		return true;
@@ -386,27 +386,30 @@ namespace PL_NAMESPACE {
             DWORD err = GetLastError();
 			if(err==ERROR_FILE_NOT_FOUND)
 				return false;
-            PL_PRINTF("[WinError %u] GetFileAttributesA '%s'\n",err,path.c_str());
+            PL_PRINTF("[WinError %lu] GetFileAttributesA '%s'\n",err,path.c_str());
             return false;
         }
         return (attributes & FILE_ATTRIBUTE_DIRECTORY);
     }
     bool FileLastWriteSeconds(const std::string& path, double* seconds){
-        HANDLE handle = CreateFileA(path.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL, NULL);
+        // HANDLE handle = CreateFileA(path.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL, NULL);
+        HANDLE handle = CreateFileA(path.c_str(),GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,0, NULL);
 		
 		if(handle==INVALID_HANDLE_VALUE){
 			DWORD err = GetLastError();
 			if(err == ERROR_FILE_NOT_FOUND || err == ERROR_PATH_NOT_FOUND){
-				PL_PRINTF("[WinError %u] Cannot find '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Cannot find '%s'\n",err,path.c_str());
 			}else if(err == ERROR_ACCESS_DENIED){
-				PL_PRINTF("[WinError %u] Denied access to '%s'\n",err,path.c_str()); // tried to open a directory?
+				PL_PRINTF("[WinError %lu] Denied access to '%s'\n",err,path.c_str()); // tried to open a directory?
 			}else {
-				PL_PRINTF("[WinError %u] Error opening '%s'\n",err,path.c_str());
+				PL_PRINTF("[WinError %lu] Error opening '%s'\n",err,path.c_str());
 			}
 			return false;
 		}
-        FILETIME time;
-        BOOL success = GetFileTime(handle,0,0,&time);
+        FILETIME modified;
+        FILETIME creation;
+        FILETIME access;
+        BOOL success = GetFileTime(handle,&creation,&access,&modified);
         if(!success){
             DWORD err = GetLastError();
             PL_PRINTF("[WinError %u] GetFileTime '%s'\n",err,path.c_str());
@@ -415,15 +418,27 @@ namespace PL_NAMESPACE {
         success = CloseHandle(handle);
         if(!success){
             DWORD err = GetLastError();
-            PL_PRINTF("[WinError %u] CloseHandle '%s'\n",err,path.c_str());
+            PL_PRINTF("[WinError %lu] CloseHandle '%s'\n",err,path.c_str());
         }
-        uint64 somet = (uint64)time.dwLowDateTime+(uint64)time.dwHighDateTime*((uint64)MAXDWORD+1);
-		*seconds = somet/10000000.f; // 100-nanosecond intervals
+		uint64 t0 = (uint64)creation.dwLowDateTime+(uint64)creation.dwHighDateTime*((uint64)MAXDWORD+1);
+		uint64 t1 = (uint64)access.dwLowDateTime+(uint64)access.dwHighDateTime*((uint64)MAXDWORD+1);
+		uint64 t2 = (uint64)modified.dwLowDateTime+(uint64)modified.dwHighDateTime*((uint64)MAXDWORD+1);
+		//printf("T: %llu, %llu, %llu\n",t0,t1,t2);
+		*seconds = t2/10000000.; // 100-nanosecond intervals
         return true;
     }
-	#define DEBUG_PLATFORM_ERROR(x) x
+	bool FileCopy(const std::string& src, const std::string& dst){
+		bool yes = CopyFileA(src.c_str(),dst.c_str(),0);
+		if(!yes){
+			DWORD err = GetLastError();
+            PL_PRINTF("[WinError %u] CopyFile '%s' '%s'\n",err,src.c_str(),dst.c_str());
+            return false;
+		}
+		return true;
+	}		
+#define DEBUG_PLATFORM_ERROR(x) x
 	// #define DEBUG_PLATFORM_ERROR(x)
-
+    
 	static const int PLATFORM_ERROR_BUFFER = 3;
 	static PlatformError s_platformErrors[PLATFORM_ERROR_BUFFER];
 	static int s_errorIn = 0;
@@ -431,53 +446,53 @@ namespace PL_NAMESPACE {
 	static bool s_platformErrorEmpty = true;
 	bool PollError(PlatformError* out){
 		if(s_errorIn==s_errorOut){
-		// if(s_errorIn==(s_errorOut+1)%PLATFORM_ERROR_BUFFER){
+            // if(s_errorIn==(s_errorOut+1)%PLATFORM_ERROR_BUFFER){
 			DEBUG_PLATFORM_ERROR(printf("PlatformError: empty, in:%d out:%d\n",s_errorIn, s_errorOut);)
-			// empty
-			return false;
+                // empty
+                return false;
 		}
 		*out = s_platformErrors[s_errorOut];
 		s_errorOut = (s_errorOut+1)%PLATFORM_ERROR_BUFFER;
 		if(s_errorIn==s_errorOut)
 			s_platformErrorEmpty=true;
 		DEBUG_PLATFORM_ERROR(printf("PlatformError: poll %d, new out: %d\n",out->errorType,s_errorOut);)
-		return true;
+            return true;
 	}
 	bool PushError(PlatformError* error){
 		if(s_errorIn==s_errorOut){
-		// if(s_errorOut==(s_errorIn+1)%PLATFORM_ERROR_BUFFER){
+            // if(s_errorOut==(s_errorIn+1)%PLATFORM_ERROR_BUFFER){
 			DEBUG_PLATFORM_ERROR(printf("PlatformError: full, in:%d, out:%d\n",s_errorIn, s_errorOut);)
-			return false; // full
+                return false; // full
 		}
 		s_platformErrorEmpty=false;
 		s_platformErrors[s_errorIn] = *error;
 		s_errorIn = (s_errorIn+1)%PLATFORM_ERROR_BUFFER;
 		DEBUG_PLATFORM_ERROR(printf("PlatformError: push %d, new out: %d\n",error->errorType,s_errorIn);)
-		return false;
+            return false;
 	}
 	void ClearErrors(){
 		s_errorIn = 0;
 		s_errorOut = 0;
 	}
-
+    
 	void TestPlatformErrors(){
 		PlatformError e1 = {1,""};
 		PlatformError e2 = {2,""};
 		PlatformError e3 = {3,""};
 		PlatformError e4 = {4,""};
 		PlatformError tmp;
-
+        
 		// Note: Set MAX_PLATFORM_BUFFER to 4 when testing
-
+        
 		//-- Empty case
 		printf("--- Empty case ---\n");
 		PollError(&tmp);
 		PushError(&e1);
 		PollError(&tmp);
 		PollError(&tmp);
-
+        
 		ClearErrors();
-
+        
 		//-- Full case
 		printf("--- Full case ---\n");
 		PushError(&e1);
@@ -486,7 +501,7 @@ namespace PL_NAMESPACE {
 		PushError(&e4);
 		PollError(&tmp);
 		PushError(&e3);
-
+        
 		ClearErrors();
 		
 		//-- Normal case
@@ -496,7 +511,7 @@ namespace PL_NAMESPACE {
 		PushError(&e2);
 		PushError(&e3);
 		PollError(&tmp);
-
+        
 		ClearErrors();
 	}
     
@@ -508,7 +523,7 @@ namespace PL_NAMESPACE {
 	void* Allocate(uint64 bytes){
 		if(bytes==0) return nullptr;
 		void* ptr = HeapAlloc(GetProcessHeap(),0,bytes);
-		 //void* ptr = malloc(bytes);
+        //void* ptr = malloc(bytes);
 		if(!ptr) return nullptr;
 		
 		// s_allocStatsMutex.lock();
@@ -726,11 +741,38 @@ namespace PL_NAMESPACE {
 	ThreadId Thread::GetThisThreadId() {
 		return GetCurrentThreadId();
 	}
-		void ConvertArguments(int& argc, char**& argv) {
+	void* LoadDynamicLibrary(const std::string& path){
+		HMODULE module = LoadLibraryA(path.c_str());
+		if (module == NULL) {
+			DWORD err = GetLastError();
+			printf("[WinError %lu] LoadDynamicLibrary: %s\n",err,path.c_str());
+		}
+		return module;
+	}
+	void UnloadDynamicLibrary(void* library){
+		int yes = FreeLibrary((HMODULE)library);
+		if (!yes) {
+			DWORD err = GetLastError();
+			printf("[WinError %lu] UnloadDynamicLibrary\n",err);
+		}
+	}
+	VoidFunction GetFunctionPointer(void* library, const std::string& name){
+		FARPROC proc = GetProcAddress((HMODULE)library, name.c_str());
+		if (proc == NULL) {
+			int err = GetLastError();
+			if(err==ERROR_PROC_NOT_FOUND){
+				printf("[WinError %lu] GetFunctionPointer, could not find '%s'\n", err, name.c_str());
+			}else
+				printf("[WinError %lu] GetFunctionPointer %s\n", err, name.c_str());
+		}
+		return (VoidFunction)proc;
+	}
+    
+	void ConvertArguments(int& argc, char**& argv) {
 		LPWSTR wstr = GetCommandLineW();
-
+        
 		wchar_t** wargv = CommandLineToArgvW(wstr, &argc);
-
+        
 		if (wargv == NULL) {
 			int err = GetLastError();
 			printf("ConvertArguments : WinError %d!\n",err);
@@ -752,9 +794,9 @@ namespace PL_NAMESPACE {
 				index = 0;
 				for (int i = 0; i < argc; i++) {
 					int length = wcslen(wargv[i]);
-
+                    
 					argv[i] = argData + index;
-
+                    
 					for (int j = 0; j < length; j++) {
 						argData[index] = wargv[i][j];
 						index++;
@@ -800,7 +842,7 @@ namespace PL_NAMESPACE {
 				int strIndex = 0; // index of char*
 				for (int i = 0; i < argsLength + 1; i++) {
 					char chr = args[i];
-
+                    
 					if (chr == 0 || chr == ' ') {
 						if (argLength != 0) {
 							argData[i] = 0;
@@ -842,20 +884,20 @@ namespace PL_NAMESPACE {
 		if (!FileExist(path)) {
 			return false;
 		}
-
+        
 		// additional information
 		STARTUPINFOA si;
 		PROCESS_INFORMATION pi;
-
+        
 		// set the size of the structures
 		ZeroMemory(&si, sizeof(si));
 		si.cb = sizeof(si);
 		ZeroMemory(&pi, sizeof(pi));
-
+        
 		int slashIndex = path.find_last_of("\\");
-
+        
 		std::string workingDir = path.substr(0, slashIndex);
-
+        
 		//#ifdef NDEBUG
 		//		std::wstring exeFile = convert(path);
 		//		std::wstring workDir = convert(workingDir);
@@ -864,17 +906,17 @@ namespace PL_NAMESPACE {
 		std::string& workDir = workingDir;
 		//#endif
 		CreateProcessA(exeFile.c_str(),   // the path
-			commandLine,        // Command line
-			NULL,           // Process handle not inheritable
-			NULL,           // Thread handle not inheritable
-			FALSE,          // Set handle inheritance to FALSE
-			0,              // No creation flags
-			NULL,           // Use parent's environment block
-			workDir.c_str(),   // starting directory 
-			&si,            // Pointer to STARTUPINFO structure
-			&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
-		);
-
+                       commandLine,        // Command line
+                       NULL,           // Process handle not inheritable
+                       NULL,           // Thread handle not inheritable
+                       FALSE,          // Set handle inheritance to FALSE
+                       0,              // No creation flags
+                       NULL,           // Use parent's environment block
+                       workDir.c_str(),   // starting directory 
+                       &si,            // Pointer to STARTUPINFO structure
+                       &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+                       );
+        
 		// Close process and thread handles. 
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
@@ -970,7 +1012,7 @@ namespace PL_NAMESPACE {
 						if (length < MAX_PATH + 1) {
 							temp.resize(length);
 							for (int i = 0; i < length; i++) {
-								*(&temp[i]) = (char)*(info.FileName + i);
+								((char*)temp.data())[i] = (char)*(info.FileName + i);
 							}
 						}
 
@@ -1024,8 +1066,10 @@ namespace PL_NAMESPACE {
 		return 0;
 	}
 	// Todo: handle is checked against NULL, it should be checked against INVALID_HANDLE_VALUE
-	bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
-		if (!FileExist(path))
+	bool FileMonitor::check(const std::string& path, void(*callback)(const std::string&, uint32), uint32 flags) {
+	// bool FileMonitor::check(const std::string& path, std::function<void(const std::string&, uint32)> callback, uint32 flags) {
+		
+		if(!FileExist(path))
 			return false;
 		//log::out << log::RED << "FileMonitor::check - invalid path : " << m_root << "\n";
 

@@ -30,5 +30,3 @@
 #include <Engone/vendor/glm/gtc/quaternion.hpp>
 #include <Engone/vendor/glm/gtc/type_ptr.hpp>
 #include <Engone/vendor/glm/gtc/matrix_transform.hpp>
-
-#include "Engone/Utilities/Typedefs.h"

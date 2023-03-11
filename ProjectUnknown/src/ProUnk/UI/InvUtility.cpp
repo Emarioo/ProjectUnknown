@@ -30,8 +30,8 @@ namespace prounk {
 		float modelY = -asset->boundingPoint.y;
 
 		glm::vec3 modelScale = { 1,1,1 };
-		modelScale.x = 2.f * size / GetWidth();
-		modelScale.y = 2.f * size / GetHeight();
+		modelScale.x = 2.f * size / win->getWidth();
+		modelScale.y = 2.f * size / win->getHeight();
 
 		float scaleW = asset->maxPoint.x - asset->minPoint.x;
 		float scaleH = asset->maxPoint.y - asset->minPoint.y;
@@ -42,8 +42,8 @@ namespace prounk {
 		}
 
 		// pixel to model
-		modelX += (pixelX + size / 2 - GetWidth() / 2) * 2.f / GetWidth() / modelScale.x;
-		modelY += (GetHeight() / 2 - size / 2 - pixelY) * 2.f / GetHeight() / modelScale.y;
+		modelX += (pixelX + size / 2 - win->getWidth() / 2) * 2.f / win->getWidth() / modelScale.x;
+		modelY += (win->getHeight() / 2 - size / 2 - pixelY) * 2.f / win->getHeight() / modelScale.y;
 
 		glm::mat4 matrix = glm::translate(glm::vec3(0, 0, -1.0)) * glm::scale(modelScale) * glm::translate(glm::vec3(modelX, modelY, 0));
 		ui::Draw(asset, matrix);

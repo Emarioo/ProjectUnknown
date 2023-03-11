@@ -6,22 +6,28 @@ project "glfw3"
     symbols "On"
     staticruntime "on"
     
+    filter "action:vs2*" 
+        buildoptions {"/Zi"}
+    
     buildoptions {"-fpermissive"} 
     
     targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
     objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
     
-    defines {"GLFW_BUILD_WIN32","_GLFW_WIN32","_WIN32"}
+    defines {"GLFW_BUILD_WIN32","_GLFW_WIN32","_WIN32","_GLFW_WGL","_GLFW_USE_OPENGL"}
 
     files {"glfw-3.3.8/src/**.c","glfw-3.3.8/include/**.h"}
+    includedirs {"glfw-3.3.8/include"}
+    -- files {"glfw-3.0/src/**.c","glfw-3.0/include/**.h"}
+    -- includedirs {"glfw-3.0/include"}
     -- files {"__glfw/src/**.c","__glfw/include/**.h"}
+    -- includedirs {"__glfw/include"}
 
     -- win32 is not removed
     removefiles{"**posix**","**cocoa**","**nsgl**","**glx**","**x11**","**xkb**","**wl**","**linux**"}
+    -- removefiles{"**posix**","**cocoa**","**nsgl**","**glx**","**x11**","**xkb**","**wl**","**linux**","**egl**"}
     removefiles{"**null**"}
    
-    -- includedirs {"__glfw/include"}
-    includedirs {"glfw-3.3.8/include"}
 
     links {"gdi32"}
 

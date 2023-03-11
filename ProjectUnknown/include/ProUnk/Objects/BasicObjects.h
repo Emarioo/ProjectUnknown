@@ -31,7 +31,11 @@ namespace prounk {
 	CombatData* GetCombatData(engone::EngineObject* object);
 	Inventory* GetInventory(engone::EngineObject* object);
 	Session* GetSession(engone::EngineObject* object);
-
+	
+	engone::EngineObject* GetHeldObject(engone::EngineObject* object);
+	
+	// object should have an inventory
+	// void DropAllItems(engone::EngineObject* object);
 	//-- Creation functions
 
 	//engone::EngineObject* CreateObject(int type, Dimension* dimension, engone::UUID uuid = 0);

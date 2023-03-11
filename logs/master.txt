@@ -1,13 +1,11 @@
-[20:12:45] [Thread 6652] Run GameMemoryTest
-[20:12:45] [Thread 6652] Attempt 2 alloc 4
-[20:12:45] [Thread 6652] Attempt 3 free
-[20:12:45] [Thread 6652] Attempt 4 alloc 49
-[20:12:45] [Thread 6652] Attempt 5 alloc 18
-[20:12:45] [Thread 6652] Attempt 6 alloc 36
-[20:12:45] [Thread 6652] Attempt 7 realloc 17
-[20:12:45] [Thread 6652] Attempt 8 realloc 55
-[20:12:45] [Thread 6652] Attempt 9 alloc 59
-[20:12:45] [Thread 6652] Attempt 10 realloc 45
+[23:14:02] [Thread 15172] Failed loading: ../../../ProjectUnknown/assets/fonts/consolas42
+[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
+[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
+[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
+[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
+[23:14:03] [Thread 15172] Load lib
+[23:14:05] [Thread 15172] GameApp : CLEANUP NOT IMPLEMENTED
+0 realloc 45
 [20:12:45] [Thread 6652] Attempt 11 alloc 14
 [20:12:45] [Thread 6652] Attempt 12 free
 [20:12:45] [Thread 6652] Attempt 13 realloc 18

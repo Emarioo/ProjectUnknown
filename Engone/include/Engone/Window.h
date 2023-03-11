@@ -7,6 +7,9 @@
 // #include "Engone/Utilities/Thread.h"
 #include "Engone/PlatformModule/PlatformLayer.h"
 
+#include "Engone/Rendering/UIRenderer.h"
+#include "Engone/Rendering/CommonRenderer.h"
+
 namespace engone {
 
 	// note that BorderlessFullscreen is a bitmask of borderless and fullscreen
@@ -26,6 +29,7 @@ namespace engone {
 		int w = -1, h = -1;
 		int x = -1, y = -1;
 	};
+	typedef Event(*ListenProc)(Event);
 	// Window can be seen as a reference to a window on your computer.
 	class Window {
 	public:
@@ -43,32 +47,36 @@ namespace engone {
 		void setMode(WindowModes mode, bool force=false);
 		// May send a EventMove to listeners since the mouse position is relative to window position.
 		void setPosition(float x,float y);
+		void setSize(float w, float h);
 
-		inline float getX() const {return x; }
-		inline float getY() const {return y; }
+		float getX() const {return x; }
+		float getY() const {return y; }
 		// Inner width of window
-		inline float getWidth() const { return w; }
+		float getWidth() const { return w; }
 		// Inner height of window
-		inline float getHeight() const { return h; }
+		float getHeight() const { return h; }
 
-		inline WindowModes getMode() const { return m_windowMode; }
+		WindowModes getMode() const { return m_windowMode; }
 
-		inline bool hasFocus() const { return m_focus; }
+		bool hasFocus() const { return m_focus; }
 		// True if cursor is visible.
-		inline bool isCursorVisible() const { return m_cursorVisible; }
+		bool isCursorVisible() const { return m_cursorVisible; }
 
-		inline Application* getParent() { return m_parent; }
-		inline AssetStorage* getStorage() { return &m_storage; }
-		//inline Renderer* getRenderer() { return &m_renderer; }
-		inline RenderPipeline* getPipeline() {
-			return &m_renderPipeline;
-		}
+		Application* getParent() { return m_parent; }
+		AssetStorage* getStorage() { return &m_storage; }
+		
+		CommonRenderer* getCommonRenderer(){return &m_commonRenderer;}
+		UIRenderer* getUIRenderer(){return &m_uiRenderer;}
 
 		// Window will not destroy listener. Should it?
 		void attachListener(Listener* listener);
+		
+		void addListener(EventTypes type, ListenProc proc);
 
 		void addEvent(Event& e) { m_events.push_back(e); }
 		void runListeners();
+
+		void maximize(bool yes);
 
 		float getMouseX() const { return m_mouseX; }
 		float getMouseY() const { return m_mouseY; }
@@ -90,6 +98,12 @@ namespace engone {
 		bool isKeyDown(int code);
 		bool isKeyPressed(int code);
 		bool isKeyReleased(int code);
+		
+		// bool isKeybindingDown(uint16_t id);
+		// bool isKeybindingPressed(uint16_t id);
+		// // if keybinding uses multiple keys then the first one needs to be released and the others down
+		// // on order for the function to return true.
+		// bool isKeybindingReleased(uint16_t id);
 
 		void resetKey(int code);
 		void resetEvents(bool resetFrameInput);
@@ -102,7 +116,7 @@ namespace engone {
 		// If true, the cursor will be made visible.
 		void setCursorVisible(bool visible);
 		// Whether the cursor is locked to the window.
-		inline bool isCursorLocked() const { return m_cursorLocked;}
+		bool isCursorLocked() const { return m_cursorLocked;}
 		// If true, the cursor will be made invisible and locked to the window. Use this when you want the player to lock around.
 		void lockCursor(bool locked);
 		// true if window is open, or should be open
@@ -130,11 +144,20 @@ namespace engone {
 		//Assets m_assets;
 		AssetStorage m_storage;
 		//Renderer m_renderer;
-		RenderPipeline m_renderPipeline;
+		// RenderPipeline m_renderPipeline;
 		std::vector<Listener*> m_listeners;
 		std::vector<Event> m_events;
 		std::vector<EventInput> m_inputs;
 		std::vector<std::string> m_pathDrops;
+		
+		struct ListenerProc {
+			EventTypes types;
+			ListenProc proc;		
+		};
+		std::vector<ListenerProc> listenerProcs;
+		
+		CommonRenderer m_commonRenderer;
+		UIRenderer m_uiRenderer;
 
 		bool initializedGLEW = false;
 
@@ -182,12 +205,12 @@ namespace engone {
 	};
 
 	void InitializeGLFW();
-	Window* GetMappedWindow(GLFWwindow* window);
+	// Window* GetMappedWindow(GLFWwindow* window);
 
 	// May be nullptr
 	Window* GetActiveWindow();
-	// Inner width of active window
-	float GetWidth();
-	// Inner height of active window
-	float GetHeight();
+	// // Inner width of active window
+	// float GetWidth();
+	// // Inner height of active window
+	// float GetHeight();
 }

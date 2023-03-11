@@ -60,7 +60,7 @@ namespace engone {
 			}
 			EnableBlend();
 			shader3->bind();
-			CommonRenderer* renderer = GET_COMMON_RENDERER();
+			CommonRenderer* renderer = info.window->getCommonRenderer();
 			//Renderer* renderer = info.window->getRenderer();
 
 			renderer->updatePerspective(shader3);

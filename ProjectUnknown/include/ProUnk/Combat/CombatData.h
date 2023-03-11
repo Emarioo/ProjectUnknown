@@ -4,6 +4,8 @@
 #include "Engone/EngineObject.h"
 #include "ProUnk/Combat/Skills.h"
 
+#include "Engone/Structures/Array.h"
+
 namespace prounk {
 	extern uint64 COLLIDER_IS_DAMAGE;
 	extern uint64 COLLIDER_IS_HEALTH;
@@ -23,7 +25,9 @@ namespace prounk {
 
 		bool attacking = false; // should be true when dealing damage
 
-		std::vector<engone::UUID> hitObjects; // cleared at beginning of attack
+		// std::vector<engone::UUID> hitObjects;
+		engone::Array hitObjects{sizeof(engone::UUID),ALLOC_TYPE_GAME_MEMORY}; // cleared at beginning of attack
+		
 
 		SkillType skillType = (SkillType)0;
 

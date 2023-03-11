@@ -35,7 +35,10 @@ namespace engone {
 				if (pair.second) {
 					// GetTracker().untrack(Asset::GetTrackerId(pair.second->type), pair.second);
 					//GetTracker().untrack(, pair.second);
-					ALLOC_DELETE(Asset, pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
+					
+					// at this point we don't know whether free, Free or delete should be called.
+					// crash happens if we call the wrong one. fix this later.
+					//ALLOC_DELETE(Asset, pair.second); // ISSUE: BIG ISSUE THIS WILL NOT DELETE OPENGL BUFFERS UNLESS CLEANUP IS DONE ON THE RENDER THREAD!
 				}
 			}
 		}

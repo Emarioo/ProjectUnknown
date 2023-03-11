@@ -6,12 +6,16 @@
             "includePath": [
                 "${workspaceFolder}/Engone/include",
                 "${workspaceFolder}/ProjectUnknown/include",
+                "${workspaceFolder}/GameCode/include",
                 "${workspaceFolder}/libs/GLFW/include",
                 "${workspaceFolder}/libs/GLEW/include",
                 "${workspaceFolder}/libs/reactphysics3d/include"
             ],
             "defines": [
-                "ENGONE_PHYSICS","ENGONE_LOGGER","ENGONE_TRACKER","WIN32"
+                "ENGONE_PHYSICS",
+                "ENGONE_LOGGER",
+                "ENGONE_TRACKER",
+                "WIN32"
             ],
             "forcedInclude": [
                 "Engone/include/Engone/pch.h",

@@ -76,11 +76,11 @@ namespace prounk {
 		using namespace engone;
 		ui::Box area = getBox();
 		//Constraint& c = m_constraints[TOP];
-
+		Window* win = engone::GetActiveWindow();
 		if (f < 0) {
 			m_top = 0;
-		} else if (f > GetHeight()) {
-			m_top = GetHeight();
+		} else if (f > win->getHeight()) {
+			m_top = win->getHeight();
 		} else {
 			m_top = f;
 		}
@@ -105,12 +105,13 @@ namespace prounk {
 	void Panel::setLeft(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
+		Window* win = engone::GetActiveWindow();
 		//Constraint& c = m_constraints[LEFT];
 
 		if (f < 0) {
 			m_left = 0;
-		} else if (f > GetWidth()) {
-			m_left = GetWidth(); // rare scenario, check if m_right is less than m_left?
+		} else if (f > win->getWidth()) {
+			m_left = win->getWidth(); // rare scenario, check if m_right is less than m_left?
 		} else {
 			m_left = f;
 		}
@@ -135,12 +136,13 @@ namespace prounk {
 	void Panel::setRight(float f) {
 		using namespace engone;
 		ui::Box area = getBox();
+		Window* win = engone::GetActiveWindow();
 		//Constraint& c = m_constraints[RIGHT];
 
 		if (f < 0) {
 			m_right = 0; // m_left?
-		} else if (f > GetWidth()) {
-			m_right = GetWidth();
+		} else if (f > win->getWidth()) {
+			m_right = win->getWidth();
 		} else {
 			m_right = f; // m_left?
 		}
@@ -164,13 +166,14 @@ namespace prounk {
 	}
 	void Panel::setBottom(float f) {
 		using namespace engone;
+		Window* win = engone::GetActiveWindow();
 		ui::Box area = getBox();
 		//Constraint& c = m_constraints[BOTTOM];
 
 		if (f < 0) {
 			m_bottom = 0;
-		} else if (f > GetHeight()) {
-			m_bottom = GetHeight();
+		} else if (f > win->getHeight()) {
+			m_bottom = win->getHeight();
 		} else {
 			m_bottom = f;
 		}
@@ -225,12 +228,13 @@ namespace prounk {
 	}
 	void Panel::move(float dx, float dy) {
 		using namespace engone;
+		Window* win = engone::GetActiveWindow();
 		if (m_left + dx < 0) {
 			m_right = m_right - m_left;
 			m_left = 0;
-		}else if (m_right + dx > GetWidth()) {
-			m_left = GetWidth() - (m_right-m_left);
-			m_right = GetWidth();
+		}else if (m_right + dx > win->getWidth()) {
+			m_left = win->getWidth() - (m_right-m_left);
+			m_right = win->getWidth();
 		} else {
 			m_left += dx;
 			m_right += dx;
@@ -238,9 +242,9 @@ namespace prounk {
 		if (m_top + dy < 0) {
 			m_bottom = m_bottom - m_top;
 			m_top = 0;
-		}else if (m_bottom + dy > GetHeight()) {
-			m_top = GetHeight() - (m_bottom - m_top);
-			m_bottom = GetHeight();
+		}else if (m_bottom + dy > win->getHeight()) {
+			m_top = win->getHeight() - (m_bottom - m_top);
+			m_bottom = win->getHeight();
 		} else {
 			m_top += dy;
 			m_bottom += dy;
@@ -277,30 +281,30 @@ namespace prounk {
 	//}
 	void Panel::updateConstraints() {
 		using namespace engone;
-		
-		if (m_right - m_left > GetWidth()) {
+		Window* win = engone::GetActiveWindow();
+		if (m_right - m_left > win->getWidth()) {
 			m_left = 0;
-			m_right = GetWidth();
+			m_right = win->getWidth();
 		}
-		if (m_bottom - m_top > GetHeight()) {
+		if (m_bottom - m_top > win->getHeight()) {
 			m_left = 0;
-			m_right = GetWidth();
+			m_right = win->getWidth();
 		}
 		if (m_left < 0) {
 			m_right = m_right - m_left;
 			m_left = 0;
 		}
-		if (m_right > GetWidth()) {
-			m_left = GetWidth()-(m_right-m_left);
-			m_right = GetWidth();
+		if (m_right > win->getWidth()) {
+			m_left = win->getWidth()-(m_right-m_left);
+			m_right = win->getWidth();
 		}
 		if (m_top < 0) {
 			m_bottom = m_bottom - m_top;
 			m_top = 0;
 		}
-		if (m_bottom > GetHeight()) {
-			m_top = GetHeight() - (m_bottom - m_top);
-			m_bottom = GetHeight();
+		if (m_bottom > win->getHeight()) {
+			m_top = win->getHeight() - (m_bottom - m_top);
+			m_bottom = win->getHeight();
 		}
 		
 		if (m_bottom - m_top > m_maxHeight) {

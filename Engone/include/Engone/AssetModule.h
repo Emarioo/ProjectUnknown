@@ -118,6 +118,8 @@ namespace engone {
 		void cleanup();
 
 		void printTasks();
+		
+		void setRoot(const std::string& path){m_storagePath=path;}
 
 		std::vector<AssetProcessor*>& getIOProcessors() { return m_ioProcessors; }
 		std::vector<AssetProcessor*>& getDataProcessors() { return m_dataProcessors; }
@@ -154,6 +156,7 @@ namespace engone {
 		
 		// loading assets and then changing this will not allow
 		// you to access those assets again since the path is different
+		// std::string m_storagePath="assets/";
 		std::string m_storagePath="assets/";
 
 		template<typename T>

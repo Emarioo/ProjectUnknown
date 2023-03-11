@@ -53,7 +53,7 @@ namespace engone {
 
 		void setFlags(ImageFlags flags, bool yes);
 
-	protected:
+	// protected:
 		enum InternalFlag : uint8_t {
 			OwnerSelf = 1,
 			OwnerStbi = 2,
@@ -93,6 +93,7 @@ namespace engone {
 		//RawImage toRaw(int channels=4);
 
 	};
+	RawImage* PNGToRawImage(PNG* img);
 	// mainly used for ICO.
 	// BITMAPINFOHEADER is the start. There are others.
 	// BMP format from wikipedia

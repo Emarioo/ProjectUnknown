@@ -98,8 +98,8 @@ namespace engone {
 
 		//if(!m_profilingData[info.window].show) return;
 
-		float sw = GetWidth();
-		float sh = GetHeight();
+		float sw = info.window->getWidth();
+		float sh = info.window->getHeight();
 
 		const int bufferSize = 50;
 		char str[bufferSize];
@@ -109,6 +109,9 @@ namespace engone {
 
 		// should be changed
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+		
+		if(!consolas)
+			consolas = info.window->getStorage()->get<FontAsset>("consolas");
 
 		float scroll = IsScrolledY();
 		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
@@ -213,13 +216,15 @@ namespace engone {
 		const ui::Color timelineColor = { 1,1,1,1 };
 		const ui::Color backColor = { 0,0,0,0.1 };
 
-		ui::Box back = { 0,0,GetWidth(),40,backColor };
-		ui::Box timeline = { 0,0,GetWidth(),2 ,timelineColor };
-		timeline.y = GetHeight() - timeline.h - 40;
+		ui::Box back = { 0,0,info.window->getWidth(),40,backColor };
+		ui::Box timeline = { 0,0,info.window->getWidth(),2 ,timelineColor };
+		timeline.y = info.window->getHeight() - timeline.h - 40;
 		back.y = timeline.y - back.h / 2;
 		ui::Draw(back);
 		ui::Draw(timeline);
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+		if(!consolas)
+			consolas = info.window->getStorage()->get<FontAsset>("consolas");
 
 		//ui::TextBox zoomText{ std::to_string(zoom),0,0,20,consolas,{1}};
 		//zoomText.x = 10;
@@ -271,7 +276,8 @@ namespace engone {
 				points[i] = 0;
 			}
 		}
-		points[pushIndex] = time - engone::GetActiveWindow()->getParent()->getEngine()->getUpdateTimer().startTime;
+		Window* win = GetActiveUIRenderer()->m_owner;
+		points[pushIndex] = time - win->getParent()->getEngine()->getUpdateTimer().startTime;
 		pushIndex = (pushIndex + 1) % MAX_POINTS;
 	}
 	void Profiler::renderGraph(LoopInfo& info, Graph& graph) {
@@ -279,9 +285,11 @@ namespace engone {
 		//renderer->
 		
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
+		if(!consolas)
+			consolas = info.window->getStorage()->get<FontAsset>("consolas");
 
-		ui::Box timeline = { 0,0,GetWidth(),2};
-		timeline.y = GetHeight()-timeline.h-40;
+		ui::Box timeline = { 0,0,info.window->getWidth(),2};
+		timeline.y = info.window->getHeight()-timeline.h-40;
 
 		//-- time points
 		
@@ -359,7 +367,7 @@ namespace engone {
 			//	log::out << " " <<x<< "\n";
 			ui::Box box = { 0,0,2,20,graph.color };
 			box.y = timeline.y + graph.offsetY;
-			box.x = GetWidth()/2+(x-GetWidth()/2 + offsetX) * zoom;
+			box.x = info.window->getWidth()/2+(x-info.window->getWidth()/2 + offsetX) * zoom;
 			//+GetWidth() / 2;
 			ui::Draw(box);
 		}

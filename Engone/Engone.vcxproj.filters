@@ -31,6 +31,9 @@
     <Filter Include="include\Engone\Rendering">
       <UniqueIdentifier>{C1694DB4-AD8E-9C34-D6D9-81C4C25D9B52}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Engone\Shaders">
+      <UniqueIdentifier>{4D18B34B-3912-DC9D-227F-72AE0E18420A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Engone\Sound">
       <UniqueIdentifier>{2CCC92AD-185B-1C77-C179-3072ADE72C1D}</UniqueIdentifier>
     </Filter>
@@ -51,21 +54,6 @@
     </Filter>
     <Filter Include="include\Engone\vendor\glm">
       <UniqueIdentifier>{20B6AAE6-8C78-DE70-D528-6DFD412AB74E}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Engone\vendor\glm\out">
-      <UniqueIdentifier>{A773740B-138C-5B35-DC38-EBCE4810F0CE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Engone\vendor\glm\out\build">
-      <UniqueIdentifier>{2621CEE7-92DA-3892-1B3A-536C87F2EE01}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug">
-      <UniqueIdentifier>{0BDE6A7F-774E-6DF8-406D-E780AC9CA5F9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles">
-      <UniqueIdentifier>{6E962025-5A6B-68D8-831A-A8D46F4E76EF}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes">
-      <UniqueIdentifier>{75F00C77-E164-A2D4-AAAE-EFE316E22D08}</UniqueIdentifier>
     </Filter>
     <Filter Include="include\Engone\vendor\glm\simd">
       <UniqueIdentifier>{7CE6047A-680C-CFE0-5152-54AC3D17F4AC}</UniqueIdentifier>
@@ -264,6 +252,9 @@
     <ClInclude Include="include\Engone\Rendering\UIRenderer.h">
       <Filter>include\Engone\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engone\Shaders\ShaderGLSL.h">
+      <Filter>include\Engone\Shaders</Filter>
+    </ClInclude>
     <ClInclude Include="include\Engone\Sound\SoundBuffer.h">
       <Filter>include\Engone\Sound</Filter>
     </ClInclude>
@@ -347,9 +338,6 @@
     </ClInclude>
     <ClInclude Include="include\Engone\vendor\Libaudio.h">
       <Filter>include\Engone\vendor</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes\foo.h">
-      <Filter>include\Engone\vendor\glm\out\build\x64-Debug\CMakeFiles\ShowIncludes</Filter>
     </ClInclude>
     <ClInclude Include="include\Engone\vendor\glm\simd\common.h">
       <Filter>include\Engone\vendor\glm\simd</Filter>
@@ -469,6 +457,9 @@
     </ClCompile>
     <ClCompile Include="src\Engone\Rendering\UIRenderer.cpp">
       <Filter>src\Engone\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engone\ShaderGLSL.cpp">
+      <Filter>src\Engone</Filter>
     </ClCompile>
     <ClCompile Include="src\Engone\Sound\SoundBuffer.cpp">
       <Filter>src\Engone\Sound</Filter>

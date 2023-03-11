@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\GameCode">
+      <UniqueIdentifier>{ADA24B77-999B-6AC9-C2CD-4F4EAE254AD5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\GameCode">
+      <UniqueIdentifier>{D1F6CC62-BD59-5C07-66DF-94BD5221288A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\GameCode\PlayerController.h">
+      <Filter>include\GameCode</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\GameCode\PlayerController.cpp">
+      <Filter>src\GameCode</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameCode\main.cpp">
+      <Filter>src\GameCode</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

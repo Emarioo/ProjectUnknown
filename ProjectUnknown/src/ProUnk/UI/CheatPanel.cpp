@@ -43,7 +43,7 @@ namespace prounk {
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
 		Session* session = m_app->getActiveSession();
 

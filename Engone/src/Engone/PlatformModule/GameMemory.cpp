@@ -18,6 +18,7 @@ namespace engone {
         // delete common;
         // delete allocator;
     }
+    #ifdef ENGONE_PHYSICS
     void* CustomAllocator::allocate(size_t size) {
         //printf("RP3D: ");
         return GetGameMemory().allocate(size, false);
@@ -26,6 +27,7 @@ namespace engone {
         //printf("RP3D ");
         GetGameMemory().free(pointer,false);
     }
+    #endif
     bool GameMemory::init(void* baseAddress, uint64 bytes, bool noPhysics){
         if (baseAllocation)
             return true; // returns true since the memory is initialized
@@ -45,12 +47,14 @@ namespace engone {
         freeBlocks.push_back({0,maxSize});
         
         mutex.unlock();
+        #ifdef ENGONE_PHYSICS
         if (!noPhysics) {
             allocator = (CustomAllocator*)allocate(sizeof(CustomAllocator), false);
             new(allocator)CustomAllocator();
             common = (rp3d::PhysicsCommon*)allocate(sizeof(rp3d::PhysicsCommon), false);
             new(common)rp3d::PhysicsCommon(allocator);
         }
+        #endif
         //log::out << "size: " << sizeof(rp3d::PhysicsCommon) << "\n";
         //common = new rp3d::PhysicsCommon(allocator);
         return true;
@@ -96,9 +100,11 @@ namespace engone {
         FileClose(file);
         return true;
     }
+    #ifdef ENGONE_PHYSICS
     rp3d::PhysicsCommon* GameMemory::getCommon() {
         return common;
     }
+    #endif
     void GameMemory::insertFreeBlock(Block block){
         //-- Find spot for block
         int index = freeBlocks.size();
@@ -392,14 +398,17 @@ namespace engone {
         // }
         // printf("\n");
     }
-    static GameMemory s_gameMemory;
-    bool s_initializedGameMemory = false;
+    static GameMemory* s_gameMemory=0;
     GameMemory& GetGameMemory() {
-        if (!s_initializedGameMemory) {
-            s_initializedGameMemory = true;
-            s_gameMemory.init((void*)GigaBytes(1000), MegaBytes(10),false);
+        if(!s_gameMemory){
+            s_gameMemory = ALLOC_NEW(GameMemory);
+            s_gameMemory->init((void*)GigaBytes(1000), MegaBytes(10),false);
         }
-        return s_gameMemory;
+        return *s_gameMemory;
+    }
+    void SetGameMemory(GameMemory* memory){
+        if(!s_gameMemory)
+            s_gameMemory = memory;
     }
     void TestActions(GameMemory& mem, int count){
         for(int i=0;i<count;i++){

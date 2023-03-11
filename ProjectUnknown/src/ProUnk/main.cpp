@@ -23,21 +23,10 @@ void runApp(int argc, char** argv) {
 	using namespace engone;
 	using namespace prounk;
 	
-	HMODULE module = LoadLibraryA("C:\\Users\\datao\\Desktop\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll");
-	if (module == NULL) {
-		int err = GetLastError();
-		printf("Error: %d\n",err);
-	} else {
-		int(*proc)(int) = (int(*)(int)) GetProcAddress(module, "HelloWorld");
-
-		if (proc == NULL) {
-			int err = GetLastError();
-			printf("Err: %d\n", err);
-		} else {
-			int val = proc(25);
-			printf("WOOS %d\n",val);
-		}
-	}
+	// void* lib = LoadDynamicLibrary("D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll");
+	// int(*proc)(int) = (int(*)(int)) GetFunctionPointer(lib,"HelloWorld");
+	// if(proc)
+	// 	proc(5);
 
 	// log::out << "Broken?\n";
 	
@@ -192,6 +181,7 @@ void runApp(int argc, char** argv) {
 			GameApp* app = ALLOC_NEW(GameApp)(&engine, info);
 			engine.addApplication(app);
 		}
+		
 		engine.start();
 		if (writeLogReport) {
 			// any log message in deconstructors will not be saved. (deconstructors of global variables that is)
@@ -214,23 +204,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine,
 }
 // Runs the game with a console
 int main(int argc, char** argv) {
-	using namespace engone;
-	//class Apple {
-	//public:
-	//	Apple(float sour, float size) : sour(sour), size(size) {}
-	//	~Apple() {}
-	//	float sour, size;
-	//};
-
-
-	//Apple* eh = NEW(Apple)(2, 5);
-
-	//DELETE(Apple, eh);
-
-	//eh->~Apple();
-	//Free(eh, 8);
-
-	//std::cin.get();
 	runApp(argc,argv);
 	return 0;
 }

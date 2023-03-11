@@ -6,6 +6,9 @@ project "glew"
     symbols "On"
     staticruntime "on"
     
+     filter "action:vs2*" 
+        buildoptions {"/Zi"}
+    
     targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
     objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
     

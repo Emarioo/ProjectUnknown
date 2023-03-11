@@ -46,7 +46,7 @@ namespace prounk {
 
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
-		CommonRenderer* renderer = GET_COMMON_RENDERER();
+		CommonRenderer* renderer = info.window->getCommonRenderer();
 
 		auto& viewMatrix = renderer->getCamera()->getViewMatrix();
 		auto& persMatrix = renderer->getPerspective();
@@ -84,8 +84,8 @@ namespace prounk {
 				float w = consolas->getWidth(text.text, h);
 				
 				shader->setVec2("uPos", { 
-					GetWidth() * (0.5 + pos.x / pos.z / 2) - w / 2,
-					GetHeight() * (0.5 - pos.y / pos.z / 2) - h / 2 });
+					info.window->getWidth() * (0.5 + pos.x / pos.z / 2) - w / 2,
+					info.window->getHeight() * (0.5 - pos.y / pos.z / 2) - h / 2 });
 
 				const float fadeTime = 0.23;
 				if (text.lifetime < fadeTime) {
@@ -131,8 +131,8 @@ namespace prounk {
 						float h = th / pos.z;
 						float w = consolas->getWidth(oinfo->displayName, h);
 
-						float x = GetWidth() * (0.5 + pos.x / pos.z / 2) - w / 2;
-						float y = GetHeight() * (0.5 - pos.y / pos.z / 2) - h / 2;
+						float x = info.window->getWidth() * (0.5 + pos.x / pos.z / 2) - w / 2;
+						float y = info.window->getHeight() * (0.5 - pos.y / pos.z / 2) - h / 2;
 						const float paddingBack = 3;
 						const float paddingHealth = 1;
 						shader->setVec4("uColor", { 0,0,0,0.5 });
@@ -206,8 +206,8 @@ namespace prounk {
 			if (pos.z > 0) {
 				float s = part.size / pos.z;
 
-				float x = GetWidth() * (0.5 + pos.x / pos.z / 2) - s / 2;
-				float y = GetHeight() * (0.5 - pos.y / pos.z / 2) - s / 2;
+				float x = info.window->getWidth() * (0.5 + pos.x / pos.z / 2) - s / 2;
+				float y = info.window->getHeight() * (0.5 - pos.y / pos.z / 2) - s / 2;
 				shader->setVec4("uColor", { 1,1,1,1 });
 				shader->setVec2("uPos", { x, y });
 				shader->setVec2("uSize", { s, s });

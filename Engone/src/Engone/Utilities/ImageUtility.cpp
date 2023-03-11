@@ -96,27 +96,28 @@ namespace engone {
 
 		return out;
 	}
+	RawImage* PNGToRawImage(PNG* img){
 	// template<>
 	// RawImage* Image::Convert<PNG,RawImage>(PNG* img){
-	// 	int channels = 0;
-	// 	//if (img->m_flags & RGBA)
-	// 	channels = 4;
-	// 	int realChannels;
-	// 	int width, height;
-	// 	stbi_set_flip_vertically_on_load(img->m_flags & FlipOnLoad);
-	// 	char* newData = (char*)stbi_load_from_memory((uint8_t*)img->data(), img->m_size, &width, &height, &realChannels, channels);
-	// 	if (!newData) {
-	// 		return nullptr;
-	// 	}
-	// 	RawImage* out = ALLOC_NEW(RawImage)();
-	// 	out->m_data = newData;
-	// 	out->width = width;
-	// 	out->height = height;
-	// 	out->channels = channels;
-	// 	out->m_size = out->width * out->height * out->channels;
-	// 	out->m_flags = StripInternal(img->m_flags) | OwnerStbi;
-	// 	return out;
-	// }
+		int channels = 0;
+		//if (img->m_flags & RGBA)
+		channels = 4;
+		int realChannels;
+		int width, height;
+		stbi_set_flip_vertically_on_load(img->m_flags & FlipOnLoad);
+		char* newData = (char*)stbi_load_from_memory((uint8_t*)img->data(), img->m_size, &width, &height, &realChannels, channels);
+		if (!newData) {
+			return nullptr;
+		}
+		RawImage* out = ALLOC_NEW(RawImage)();
+		out->m_data = newData;
+		out->width = width;
+		out->height = height;
+		out->channels = channels;
+		out->m_size = out->width * out->height * out->channels;
+		out->m_flags = Image::StripInternal(img->m_flags) | Image::OwnerStbi;
+		return out;
+	}
 	template<>
 	ICO* Image::Convert<BMP, ICO>(BMP* img) {
 		if (!img) return nullptr;

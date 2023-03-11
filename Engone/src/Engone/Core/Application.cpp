@@ -22,18 +22,10 @@ namespace engone {
 			//delete m_worlds[i];
 		}
 		m_worlds.clear();
-#ifdef ENGONE_PHYSICS
-		using namespace rp3d;
-
-		//if (m_physicsCommon)
-		//	ALLOC_DELETE(PhysicsCommon, m_physicsCommon);
-		//m_physicsCommon = nullptr;
-#endif
 	}
 #ifdef ENGONE_PHYSICS
 	rp3d::PhysicsCommon* Application::getPhysicsCommon() {
 		return GetGameMemory().getCommon();
-		//return m_physicsCommon;
 	}
 #endif
 	Window* Application::createWindow(WindowDetail detail) {

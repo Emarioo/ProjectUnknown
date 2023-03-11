@@ -35,6 +35,7 @@ uniform sampler2D uSampler[8];
 
 void main()
 {
+	// oColor = vec4(1,1,1,1);
 	if (fTexture==-1){
 		oColor = fColor;
 	} else {

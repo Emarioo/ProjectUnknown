@@ -7,10 +7,11 @@ project "rp3d"
     
     -- toolset "gcc"
     
-    -- buildoptions {"-g"}
+    filter "action:vs2*" 
+        buildoptions {"/Zi"}
     
-    targetdir "../bin/%{cfg.system}-%{cfg.buildcfg}"
-    objdir "../bin/intermediates/%{cfg.system}-%{cfg.buildcfg}"
+    targetdir "../bin/%{cfg.buildcfg}"
+    objdir "../bin/intermediates/%{cfg.buildcfg}"
     
     files {"reactphysics3d/src/**.cpp","reactphysics3d/include/**.h"}
     -- removefiles{"**/test/**","**/testbed/**","**/helloworld/**"}

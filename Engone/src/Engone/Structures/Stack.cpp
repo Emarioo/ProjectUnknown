@@ -56,24 +56,24 @@ namespace engone {
 		return true;
 	}
 
-#define POP() yes = stack.pop(&num); printf("Pop %d - yes:%d\n",num,yes);
-#define PUSH(V) num=V; yes = stack.push(&num); printf("Push %d - yes:%d\n",num,yes);
-#define SIZE printf("Size - num:%d\n",stack.size());
+#define TEST_STACK_POP() yes = stack.pop(&num); printf("Pop %d - yes:%d\n",num,yes);
+#define TEST_STACK_PUSH(V) num=V; yes = stack.push(&num); printf("Push %d - yes:%d\n",num,yes);
+#define TEST_STACK_SIZE printf("Size - num:%d\n",stack.size());
 	void EngoneStackTest() {
 		Stack stack(sizeof(int),ALLOC_TYPE_HEAP);
 		int num = 0;
 		bool yes = false;
 
-		POP();
-		PUSH(52);
-		SIZE;
-		PUSH(923);
-		SIZE;
-		POP();
-		SIZE;
-		POP();
-		POP();
-		SIZE;
+		TEST_STACK_POP();
+		TEST_STACK_PUSH(52);
+		TEST_STACK_SIZE;
+		TEST_STACK_PUSH(923);
+		TEST_STACK_SIZE;
+		TEST_STACK_POP();
+		TEST_STACK_SIZE;
+		TEST_STACK_POP();
+		TEST_STACK_POP();
+		TEST_STACK_SIZE;
 
 		// improve testing by randomly generating stuff?
 		// analyze with time?

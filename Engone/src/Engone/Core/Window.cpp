@@ -34,19 +34,8 @@ namespace engone {
 		glfwIsActive = true;
 		tempThread.join();
 	}
-	static Window* activeWindow=nullptr;
-	//static Window* mainWindow=nullptr;
-	Window* GetActiveWindow() {
-		return activeWindow;
-	}
-	float GetWidth() {
-		return activeWindow->getWidth();
-	}
-	float GetHeight() {
-		return activeWindow->getHeight();
-	}
 	static std::unordered_map<GLFWwindow*, Window*> windowMapping;
-	Window* GetMappedWindow(GLFWwindow* window) {
+	static Window* GetMappedWindow(GLFWwindow* window) {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end())
 			return win->second;
@@ -156,9 +145,10 @@ namespace engone {
 	}
 	void FocusCallback(GLFWwindow* window, int focused) {
 		Window* win = GetMappedWindow(window);
-		if (win) {
-			win->m_focus = focused;
-		}
+		if (!win) return;
+		
+		win->m_focus = focused;
+		
 	}
 	void ResizeCallback(GLFWwindow* window, int width, int height) {
 		Window* win = GetMappedWindow(window);
@@ -176,28 +166,32 @@ namespace engone {
 
 		win->w = (float)width;
 		win->h = (float)height;
+		
+		if(win->getParent()->getEngine()->getFlags()&Engone::EngoneRenderOnResize)
+			win->getParent()->getEngine()->renderApps();
 	}
 	void CloseCallback(GLFWwindow* window) {
 		Window* win = GetMappedWindow(window);
-		if (win) {
-			if (win->m_parent) {
-				win->m_parent->onClose(win);
-			}
-			//if (mainWindow == win)
-			//	mainWindow = nullptr;
+		if (!win) return;
+		if (win->m_parent) {
+			win->m_parent->onClose(win);
 		}
+		//if (mainWindow == win)
+		//	mainWindow = nullptr;
 	}
 	void PosCallback(GLFWwindow* window, int x, int y) {
 		Window* win = GetMappedWindow(window);
-		if (win) {
-			win->x = (float)x;
-			win->y = (float)y;
-		}
+		if (!win) return;
+		
+		win->x = (float)x;
+		win->y = (float)y;
+		// if(win->getParent()->getEngine()->getFlags()&Engone::EngoneRenderOnResize)
+		// 	win->getParent()->getEngine()->renderApps();
 	}
 	static float cameraSensitivity = 0.2f;
 	EventType FirstPerson(Event& e) {
 		if (e.window->m_lastMouseX != -1) {
-			CommonRenderer* renderer = (CommonRenderer*)e.window->getPipeline()->getComponent("common_renderer");
+			CommonRenderer* renderer = e.window->getCommonRenderer();
 			Camera* camera = nullptr;
 			if (renderer)
 				camera = renderer->getCamera();
@@ -260,10 +254,11 @@ namespace engone {
 		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
 		
-		CommonRenderer* commonRenderer = ALLOC_NEW(CommonRenderer)();
-		m_renderPipeline.addComponent(commonRenderer,true);
-		UIRenderer* uiRenderer = ALLOC_NEW(UIRenderer)();
-		m_renderPipeline.addComponent(uiRenderer,true);
+		// CommonRenderer* commonRenderer = ALLOC_NEW(CommonRenderer)();
+		// m_renderPipeline.addComponent(commonRenderer,true);
+		// UIRenderer* uiRenderer = ALLOC_NEW(UIRenderer)();
+		// m_renderPipeline.addComponent(uiRenderer,true);
+		getUIRenderer()->m_owner = this;
 
 		setActiveContext();
 	}
@@ -271,9 +266,9 @@ namespace engone {
 		// we need to set window as active context before deleting buffers.
 		setActiveContext();
 		windowMapping.erase(m_glfwWindow);
-		if (activeWindow == this) {
-			activeWindow = nullptr;
-		}
+		// if (activeWindow == this) {
+		// 	activeWindow = nullptr;
+		// }
 		// destroy execution context
 		
 		// deleting context will delete buffers to. If you are sharing any unexepected things might happen
@@ -292,7 +287,7 @@ namespace engone {
 		//log::out << "deleted window\n";
 
 		// then we set it to nullptr
-		activeWindow = nullptr;
+		// activeWindow = nullptr;
 	}
 	void Window::setTitle(const std::string title) {
 		m_title = title;
@@ -304,19 +299,29 @@ namespace engone {
 			return;
 		}
 		GLFWimage tmp = {img->width,img->height,(uint8_t*)img->data()};
-		glfwSetWindowIcon(m_glfwWindow,1,&tmp);
+		// glfwSetWindowIcon(m_glfwWindow,1,&tmp);
+	}
+	static Window* s_activeWindow=0;
+	Window* GetActiveWindow() {
+		return s_activeWindow;
+	}
+	void Window::maximize(bool yes){
+		if(yes)
+			glfwMaximizeWindow(m_glfwWindow);
+		else
+			glfwRestoreWindow(m_glfwWindow);
 	}
 	void Window::setActiveContext() {
 		//if(m_renderer)
-		UIRenderer* uiRenderer = (UIRenderer*)getPipeline()->getComponent("ui_renderer");
+		UIRenderer* uiRenderer = getUIRenderer();
 		if(uiRenderer)
 			uiRenderer->setActiveUIRenderer();
-		CommonRenderer* commonRenderer = (CommonRenderer*)getPipeline()->getComponent("common_renderer");
+		CommonRenderer* commonRenderer = getCommonRenderer();
 		if(commonRenderer)
 			commonRenderer->setActiveRenderer();
-		m_renderPipeline.setActivePipeline();
+		// m_renderPipeline.setActivePipeline();
 		// no need to do this if window already is active
-		if (activeWindow != this) {
+		if (s_activeWindow != this) {
 			glfwMakeContextCurrent(m_glfwWindow);
 			if (!initializedGLEW) {
 				initializedGLEW = true;
@@ -327,7 +332,7 @@ namespace engone {
 				}
 			}
 		}
-		activeWindow = this;
+		s_activeWindow = this;
 		int wid;
 		int hei;
 		glfwGetWindowSize(m_glfwWindow, &wid, &hei);
@@ -335,7 +340,7 @@ namespace engone {
 		glViewport(0, 0, wid, hei);
 
 		if (commonRenderer)
-			commonRenderer->init();
+			commonRenderer->init(this);
 		//m_renderer.init();
 		// 
 		//if (mainWindow == nullptr)
@@ -344,6 +349,10 @@ namespace engone {
 	void Window::setPosition(float x, float y) {
 		glfwSetWindowPos(m_glfwWindow, (int)x, (int)y);
 		PosCallback(m_glfwWindow, (int)x, (int)y);
+	}
+	void Window::setSize(float w, float h) {
+		glfwSetWindowSize(m_glfwWindow, (int)w, (int)h);
+		ResizeCallback(m_glfwWindow, (int)w, (int)h);
 	}
 	void Window::setInput(int code, bool down) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
@@ -439,6 +448,9 @@ namespace engone {
 			}
 		}
 		m_listeners.push_back(listener);
+	}
+	void Window::addListener(EventTypes type, ListenProc proc){
+		listenerProcs.push_back({(EventType)type,proc});
 	}
 	std::string Window::pollPathDrop() {
 		if (m_pathDrops.size() == 0) return "";
@@ -562,7 +574,7 @@ namespace engone {
 		glfwSetWindowCloseCallback(window, CloseCallback);
 		glfwSetWindowPosCallback(window, PosCallback);
 		glfwSetCharCallback(window, CharCallback);
-		glfwSetDropCallback(window, DropCallback);
+		// glfwSetDropCallback(window, DropCallback);
 	}
 	void Window::setMode(WindowModes winMode,bool force) {
 		if (m_windowMode == winMode&&!force) return;
@@ -578,9 +590,9 @@ namespace engone {
 		if (m_glfwWindow) {
 			GLFWmonitor* mayUseMonitor = NULL;
 			if (winMode & ModeBorderless) {
-				glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, true);
+				// glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, true);
 			} else {
-				glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, false);
+				// glfwSetWindowAttrib(m_glfwWindow, GLFW_DECORATED, false);
 				mayUseMonitor = monitor;
 			}
 			if ((winMode & ModeTransparent)!=(m_windowMode&ModeTransparent)) {
@@ -589,13 +601,13 @@ namespace engone {
 			if (winMode & ModeFullscreen) {
 				if((m_windowMode&ModeFullscreen)==0)
 					saveCoords();
-				glfwSetWindowMonitor(m_glfwWindow, mayUseMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+				// glfwSetWindowMonitor(m_glfwWindow, mayUseMonitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 				PosCallback(m_glfwWindow, (int)0, (int)0);
 				ResizeCallback(m_glfwWindow, (int)mode->width, (int)mode->height);
 			} else {
 				if (m_windowMode & ModeFullscreen)
 					loadCoords();
-				glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
+				// glfwSetWindowMonitor(m_glfwWindow, NULL, (int)x, (int)y, (int)w, (int)h, mode->refreshRate);
 			}
 		} else {
 			//glfwWindowHint(GLFW_FOCUS_ON_SHOW, true);
@@ -659,11 +671,11 @@ namespace engone {
 		m_cursorLocked = locked;
 		if (locked) {
 			glfwSetInputMode(m_glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			if (glfwRawMouseMotionSupported())
+			// if (glfwRawMouseMotionSupported())
 				glfwSetInputMode(m_glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		} else {
 			setCursorVisible(isCursorVisible());
-			if (glfwRawMouseMotionSupported())
+			// if (glfwRawMouseMotionSupported())
 				glfwSetInputMode(m_glfwWindow, GLFW_RAW_MOUSE_MOTION, GLFW_FALSE);
 		}
 	}

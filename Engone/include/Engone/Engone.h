@@ -22,6 +22,13 @@
 // #include "Engone/ParticleModule.h"
 
 namespace engone {
+	typedef int(*InitProc)(void*,void*);
+	typedef int(*UpdateProc)(void*,void*);
+	struct AppInstance {
+		void* instanceData=0;
+		InitProc initProc=0;
+		UpdateProc updateProc=0;
+	};
 	class Engone {
 	public:
 		Engone();
@@ -32,12 +39,17 @@ namespace engone {
 			EngoneShowHitboxes=1,
 			EngoneEnableDebugInfo = 2, // not used
 			EngoneShowBasicDebugInfo = 4, // not used
+			EngoneRenderOnResize = 8,
 		};
 		typedef uint32_t EngoneFlags;
 
 		// Will create an application in the engine.
 		// The created app will be tracked which means it requires TrackerId. I would recommend looking at an Application example.
 		void addApplication(Application* app);
+		
+		void add(AppInstance app);
+		
+		Window* createWindow(WindowDetail detail);
 
 		// I wouldn't recommend adding or removing apps from the vector.
 		// Instead use createApplication or Application::stop if you want to add or remove an app.
@@ -50,6 +62,8 @@ namespace engone {
 
 		void manageThreading();
 		void manageNonThreading();
+
+		void renderApps();
 
 		// the run time of stats
 		//inline double getEngineTime() const { return m_runtimeStats.getRunTime(); }
@@ -100,6 +114,9 @@ namespace engone {
 		//GameMemory gameMemory;
 
 		std::vector<Application*> m_applications{};
+		std::vector<AppInstance> appInstances;
+
+		std::vector<Window*> windows;
 
 		// Todo: instead of 3 vectors, use one vector<Tracker::TrackClass>
 		std::vector<uint16_t> m_appSizes{}; // used for tracker
