@@ -3,14 +3,17 @@
 
 @REM SET UNITY_BUILD=1
 SET LIVE_EDITING=1
-SET AUTO_LAUNCH=1
+@REM SET AUTO_LAUNCH=1
 
 @REM Live edit and unity build don't work together. They could, I just haven't fixed it.
 @REM If game is running and not live editing kill the game so it doens't block linking?
 
-SET e_defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER /DENGONE_OPENGL /DGLEW_STATIC /DWIN32
+SET PLATFORM=/DWIN32
+
+SET e_defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER /DENGONE_OPENGL !PLATFORM! /DGLEW_STATIC
 SET p_defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER /DENGONE_OPENGL /DGLEW_STATIC /DWIN32
-SET g_defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER /DENGONE_OPENGL /DGLEW_STATIC /DWIN32
+SET g_defines=/DENGONE_PHYSICS /DENGONE_LOGGER /DENGONE_TRACKER /DENGONE_OPENGL /DWIN32 /DGLEW_BUILD /DGLFW_DLL
+@REM  /DGLEW_STATIC
 
 SET e_includes=/FI Engone/pch.h
 SET p_includes=/FI ProUnk/pch.h
@@ -23,8 +26,8 @@ SET g_includedirs=/IEngone/include /Ilibs/GLFW/include /Ilibs/GLEW/include /Ilib
 SET objdir=bin\intermediates
 
 SET COMPILE_OPTIONS=/DEBUG /std:c++14 /EHsc /TP /Z7 /MTd /nologo
-SET LINK_OPTIONS=/IGNORE:4006 /NOLOGO /DEBUG
-SET LIB_OPTIONS=/IGNORE:4006 /NOLOGO
+SET LINK_OPTIONS=/IGNORE:4006 /DEBUG /NOLOGO /MACHINE:X64
+SET LIB_OPTIONS=/IGNORE:4006 /NOLOGO /MACHINE:X64
 
 set /a startTime=6000*( 100%time:~3,2% %% 100 ) + 100* ( 100%time:~6,2% %% 100 ) + ( 100%time:~9,2% %% 100 )
 
@@ -53,13 +56,25 @@ for /r %%i in (*.cpp) do (
         if not "x!file:Engone=!"=="x!file!" (
             echo #include ^"!file:\=/!^">> !e_srcfile!
         ) else if not "x!file:ProUnk=!"=="x!file!" (
-            echo #include ^"!file:\=/!^">> !p_srcfile!
-        ) else if not "x!file:GameCode=!"=="x!file!" (
             if !LIVE_EDITING! == 1 (
-                echo #include ^"!file:\=/!^">> !g_srcfile!
-            ) else ( 
-                echo #include ^"!file:\=/!^">> !p_srcfile!
+                if "x!file:main=!"=="x!file!" (
+                    echo #include ^"!file:\=/!^">> !g_srcfile!
+                ) else (
+                    echo #include ^"!file:\=/!^">> !p_srcfile!
+                )
+            ) else (
+                if not "x!file:ProUnk=!"=="x!file!" (
+                    echo #include ^"!file:\=/!^">> !p_srcfile!
+                ) 
             )
+        ) else (
+            @REM if !LIVE_EDITING! == 1 (
+            @REM     if not "x!file:ProUnk=!"=="x!file!" (
+                    
+                    
+            @REM     )   
+                
+            @REM )   
         )
     )
 )
@@ -82,6 +97,7 @@ if !LIVE_EDITING! == 1 (
 if !ONLY_GAME_CODE! == 1 (
     @rem Note that Engone isn't compiled since prounk itself uses it and different version on gamecode and prounk is probably bad.
     cl /c !COMPILE_OPTIONS! !g_includes! !g_defines! !g_includedirs! !objdir!\all_gamecode.cpp /Fo!objdir!\all_gamecode.o
+    @REM if not %errorlevel% == 0 ( goto FAILED )
 ) else (
     start /b cl /c !COMPILE_OPTIONS! !p_includes! !p_defines! !p_includedirs! !objdir!\all_prounk.cpp /Fo!objdir!\all_prounk.o
 
@@ -89,8 +105,8 @@ if !ONLY_GAME_CODE! == 1 (
         start /b cl /c !COMPILE_OPTIONS! !g_includes! !g_defines! !g_includedirs! !objdir!\all_gamecode.cpp /Fo!objdir!\all_gamecode.o
     )
     cl /c !COMPILE_OPTIONS! !e_includes! !e_defines! !e_includedirs! !objdir!\all_engone.cpp /Fo!objdir!\all_engone.o
+    @REM if not %errorlevel% == 0 ( goto FAILED )
 )
-@REM if not %errorlevel% == 0 ( exit )
 
 set /a c_endTime=6000*(100%time:~3,2% %% 100 )+100*(100%time:~6,2% %% 100 )+(100%time:~9,2% %% 100 )
 
@@ -102,7 +118,7 @@ SET libdirs=/LIBPATH:bin/Debug-MSVC /LIBPATH:bin/Engone/Debug-MSVC /LIBPATH:bin/
 @REM    winmm.lib gdi32.lib user32.lib 
 SET e_libs=rp3d.lib glew.lib glfw3.lib opengl32.lib Ws2_32.lib shell32.lib
 SET p_libs=Engone.lib
-SET g_libs=Engone.lib ProjectUnknown.lib
+SET g_libs=Engone.lib
 
 if !UNITY_BUILD! == 1 (
     SET p_libs=!e_libs!
@@ -118,27 +134,33 @@ set /a l_startTime=6000*( 100%time:~3,2% %% 100 ) + 100* ( 100%time:~6,2% %% 100
 
 if !ONLY_GAME_CODE! == 1 (
     link !objdir!\all_gamecode.o !libdirs! !g_libs! /DLL !LINK_OPTIONS! /PDBALTPATH:bin/GameCode/Debug-MSVC/GameCode_.pdb /OUT:bin/GameCode/Debug-MSVC/GameCode.dll   
+    @REM if not %errorlevel% == 0 ( goto FAILED )
 ) else (
+    if !UNITY_BUILD! == 1 (
+        @REM echo !p_libs! !libdirs!
+        @REM Link Engone.lib in case another project needs the updated version
+        start /b lib %objdir%\all_engone.o !libdirs! !e_libs! !LIB_OPTIONS! /OUT:bin/Engone/Debug-MSVC/Engone.lib > nul
 
-if !UNITY_BUILD! == 1 (
-    @REM echo !p_libs! !libdirs!
-    @REM Link Engone.lib in case another project needs the updated version
-    start /b lib %objdir%\all_engone.o !libdirs! !e_libs! !LIB_OPTIONS! /OUT:bin/Engone/Debug-MSVC/Engone.lib > nul
-
-    link !objdir!\all_prounk.o !objdir!\all_engone.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
-) else (
-    lib %objdir%\all_engone.o !libdirs! !e_libs! !LIB_OPTIONS! /OUT:bin/Engone/Debug-MSVC/Engone.lib
-
-    if !LIVE_EDITING! == 1 (
-        start /b lib !objdir!\all_prounk.o !libdirs! !p_libs! !LIB_OPTIONS! /OUT:bin/ProUnk/Debug-MSVC/ProjectUnknown.lib
-        link !objdir!\all_prounk.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
-        start /b link !objdir!\all_gamecode.o !libdirs! !g_libs! /DLL !LINK_OPTIONS! /PDBALTPATH:bin/GameCode/Debug-MSVC/GameCode_.pdb /OUT:bin/GameCode/Debug-MSVC/GameCode.dll
+        link !objdir!\all_prounk.o !objdir!\all_engone.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
+        @REM if not %errorlevel% == 0 ( goto FAILED )
     ) else (
-        link !objdir!\all_prounk.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
+        lib %objdir%\all_engone.o !libdirs! !e_libs! !LIB_OPTIONS! /OUT:bin/Engone/Debug-MSVC/Engone.lib
+        @REM errorlevel doesn't work on lib ):
+        @REM echo ERROR: %errorlevel%
+        @REM if not %errorlevel% == 0 ( goto FAILED )
+        
+        if !LIVE_EDITING! == 1 (
+            @REM start /b lib !objdir!\all_prounk.o !libdirs! !p_libs! !LIB_OPTIONS! /OUT:bin/ProUnk/Debug-MSVC/ProjectUnknown.lib
+            start /b link !objdir!\all_prounk.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
+            @REM link !objdir!\all_gamecode.o !libdirs! !g_libs! /DLL /OUT:bin/GameCode/Debug-MSVC/GameCode.dll
+            link !objdir!\all_gamecode.o !libdirs! !g_libs! !LINK_OPTIONS! /DLL /OUT:bin/GameCode.dll
+            @REM  /PDBALTPATH:bin/GameCode/Debug-MSVC/GameCode_.pdb
+        ) else (
+            link !objdir!\all_prounk.o !libdirs! !p_libs! !LINK_OPTIONS! /SUBSYSTEM:CONSOLE /OUT:bin/game.exe
+        )
+        @REM if not %errorlevel% == 0 ( goto FAILED )
     )
 )
-)
-@REM if not %errorlevel% == 0 ( exit )
 
 set /a l_endTime=6000*(100%time:~3,2% %% 100 )+100*(100%time:~6,2% %% 100 )+(100%time:~9,2% %% 100 )
 
@@ -159,4 +181,10 @@ if !AUTO_LAUNCH! == 1 if !errorlevel! == 0 if not !ONLY_GAME_CODE! == 1 (
     pushd bin
     start game.exe
     popd
+    
+    goto END
 )
+
+:FAILED
+
+:END

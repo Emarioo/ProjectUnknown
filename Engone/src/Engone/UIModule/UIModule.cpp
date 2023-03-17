@@ -83,15 +83,19 @@ void UIModule::edit(UIText* text, bool stopEditWithEnter) {
         }
     }
 }
-float UIModule::getFontWidth(UIText* text){
+float UIModule::getWidthOfText(UIText* text){
+    // We don't assert because we allow the frame to load the next few frames.
+    // If the font never loads then we have a problem. It will probably be noticable though.
+    if(fonts.size()<=text->fontId) return 0;
+    
     UIFont& font = fonts[text->fontId];
-    return font.charWidth/font.cellW * text->h;    
+    return font.charWidth * text->text.length() * text->h / font.cellH;    
 }
 bool UIModule::inside(UIBox* box, float x, float y){
     return box->x<x&& box->x + box->w>x && box->y<y&& box->y + box->h>y;
 }
 bool UIModule::inside(UIText* box, float x, float y) {
-    float w = getFontWidth(box);
+    float w = getWidthOfText(box);
     return box->x<x&& box->x + w>x && box->y<y&& box->y + box->h>y;
 }
 bool UIModule::clicked(UIBox* box, int mouseKey) {
@@ -110,12 +114,14 @@ bool UIModule::clicked(UIText* text, int mouseKey) {
         float y = GetMouseY();
         if (inside(text, x, y)) {
             // set cursor
+            if(fonts.size()<=text->fontId) return false;
+            
             float wid = fonts[text->fontId].charWidth;
             text->cursorIndex = ((x - text->x) / wid + 0.5f);
             return true;
         }
     }
-    return 0;
+    return false;
 }
 bool UIModule::hover(UIBox* box) {
     float x = GetMouseX();
@@ -368,6 +374,27 @@ void UIFrameArray::Frame::setBool(uint32 index, bool yes) {
     //}
     *((char*)array.data + index) = yes;
 }
+// bool UIFrameArray::copy(UIFrameArray& array){
+//     for(int i=0;i<array.m_frames.count;i++){
+//         ((Frame*)array.m_frames.data)->array.reserve(0);
+//     }
+//     array.m_frames.reserve(0);
+    
+//     array.m_valuesPerFrame = m_valuesPerFrame; 
+//     array.m_typeSize = m_typeSize;
+//     // if(array.m_frames.m_typeSize != m_frames.m_typeSize){
+//     //     array.m_frames.reserve(0);
+//     // }
+//     array.m_frames.m_typeSize = m_frames.m_typeSize;
+//     if(m_frames.max != array.m_frames.max){
+//         array.m_frames.reserve(m_frames.max);
+//     }
+//     // array.m_frames.count = m_frames.count;
+//     for(int i=0;i<array.m_frames.count;i++){
+//         ((Frame*)array.m_frames.data)->array.
+//     }
+//     // 
+// }
 UIBox* UIModule::makeBox(uint64 id){
      if(id){
         int found=-1;
@@ -443,12 +470,7 @@ UIText* UIModule::makeText(uint64 id){
             UIText* ptr = 0;
             uint32 index = maintainedTexts.add(0,(void**)&ptr);
             if(index==-1) return 0;
-            // if(maintainedTexts.count==maintainedTexts.max){
-            //     if(maintainedTexts.data) return 0; // cannot reallocate because pointers will become invalid.
-            //     if(!maintainedTexts.reserve(maintainedTexts.max*2+100))
-            //         return 0;
-            // }
-            if(internalTexts.count==internalTexts.max){
+            if(index>=internalTexts.max){
                 if(!internalTexts.reserve(internalTexts.max*2+100)){
                     maintainedTexts.remove(index);
                     return 0;
@@ -459,10 +481,7 @@ UIText* UIModule::makeText(uint64 id){
             elem.type = UI_ELEMENT_TEXT|UI_ELEMENT_MAINTAIN;
             internalElements.push_back(elem);
             
-            // UIText* ptr = (UIText*)maintainedTexts.data+maintainedTexts.count;
-            // maintainedTexts.count++;
             UIInternal* internal = (UIInternal*)internalTexts.data+index;
-            // UIInternal* internal = (UIInternal*)internalTexts.data+internalTexts.count;
             internal->id = id;
             internalTexts.count++;
             
@@ -477,7 +496,6 @@ UIText* UIModule::makeText(uint64 id){
             internalElements.push_back(elem);
             
             return (UIText*)maintainedTexts.get(found);
-            // return (UIText*)maintainedTexts.data + found;
         }
     }else{
         if(texts.count==texts.max){
@@ -663,6 +681,33 @@ void UIModule::render(float windowWidth, float windowHeight){
         sprintf(strbuf,"uSampler[%d]",i);
         glUniform1i(location(strbuf),i);
     }
+    
+    // Swap arrays
+    std::swap(tempElements,internalElements);
+    internalElements.clear();
+    
+    UIArray tmp = tempBoxes;
+    tempBoxes = boxes;
+    boxes = tmp;
+    boxes.count = 0;
+    
+    tmp = tempTexts;
+    tempTexts = texts;
+    texts = tmp;
+    texts.count = 0;
+    
+    if(tempMaintainedBoxes.max<internalBoxes.count)
+        tempMaintainedBoxes.reserve(internalBoxes.count);
+    for(int i=0;i<internalBoxes.count;i++){
+        *((UIBox*)tempMaintainedBoxes.data+i) = *(UIBox*)maintainedBoxes.get(i);
+    }
+    
+    if(tempMaintainedTexts.max<internalTexts.count)
+        tempMaintainedTexts.reserve(internalTexts.count);
+    for(int i=0;i<internalTexts.count;i++){
+        new((UIText*)tempMaintainedTexts.data+i)UIText();
+        *((UIText*)tempMaintainedTexts.data+i) = *(UIText*)maintainedTexts.get(i);
+    }
 
     int index=0; // total index
     int dataIndex=0; // index in vertex data
@@ -671,12 +716,12 @@ void UIModule::render(float windowWidth, float windowHeight){
         if(dataIndex==BATCH_BOX_LIMIT){
             drawBatch(dataIndex);
         }
-        if(index == internalElements.size()){
+        if(index == tempElements.size()){
             drawBatch(dataIndex);
             break;
         }
         
-        UIElement& elem = internalElements[index];
+        UIElement& elem = tempElements[index];
         index++;
         
         int rawType = elem.type&(~UI_ELEMENT_MAINTAIN);
@@ -684,14 +729,16 @@ void UIModule::render(float windowWidth, float windowHeight){
             
             UIBox* e = 0;
             if(elem.type&UI_ELEMENT_MAINTAIN){
-                // e = (UIBox*)maintainedBoxes.data+elem.index;
-                e = (UIBox*)maintainedBoxes.get(elem.index);
+                e = (UIBox*)tempMaintainedBoxes.data + elem.index;
+                // e = (UIBox*)maintainedBoxes.get(elem.index);
             }else{
-                e = (UIBox*)boxes.data+elem.index;
+                e = (UIBox*)tempBoxes.data+elem.index;
             }
             
             float sampler = -1;
             if(e->textureId!=-1){
+                if(textures.size() <= e->textureId) continue;
+                
                 auto find = textureMapping.find(e->textureId);
                 if(find!=textureMapping.end()){
                     sampler = find->second;
@@ -719,16 +766,17 @@ void UIModule::render(float windowWidth, float windowHeight){
         if(rawType == UI_ELEMENT_TEXT){
             UIText* t=0;
             if(elem.type&UI_ELEMENT_MAINTAIN){
-                t = (UIText*)maintainedTexts.get(elem.index);
-                // t = (UIText*)maintainedTexts.data+elem.index;
+                // t = (UIText*)maintainedTexts.get(elem.index);
+                t = (UIText*)tempMaintainedTexts.data+elem.index;
             }else{
-                t = (UIText*)texts.data+elem.index;
+                t = (UIText*)tempTexts.data+elem.index;
             }
                         
             int length = t->text.length();
             // int length = strlen(t->text);
-            
+            if(fonts.size()<=t->fontId) continue;
             UIFont& font = fonts[t->fontId];
+            if(textures.size()<=font.textureId) continue;
             UITexture& texture = textures[font.textureId];
             
             float sampler = -1;
@@ -808,9 +856,9 @@ void UIModule::render(float windowWidth, float windowHeight){
             }
         }
     }
-    texts.count = 0;
-    boxes.count = 0;
-    internalElements.clear();
+    // texts.count = 0;
+    // boxes.count = 0;
+    // internalElements.clear();
     
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER,0);

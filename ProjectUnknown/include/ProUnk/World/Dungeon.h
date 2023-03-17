@@ -12,7 +12,7 @@ namespace prounk {
 
 		void init(Dimension* dimension, glm::vec3 pos0, glm::vec3 pos1);
 
-		void update(engone::LoopInfo& info);
+		void update(engone::LoopInfo* info);
 
 	private:
 		

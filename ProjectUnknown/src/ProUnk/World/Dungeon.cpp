@@ -36,7 +36,7 @@ namespace prounk {
 		//obj->setLinearVelocity(vec);
 		obj->setLinearVelocity({});
 	}
-	void Dungeon::update(engone::LoopInfo& info) {
+	void Dungeon::update(engone::LoopInfo* info) {
 		using namespace engone;
 		//for (int i = 0; i < objvels.size();i++) {
 		//	auto& a = objvels[i];

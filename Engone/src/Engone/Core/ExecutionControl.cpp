@@ -42,9 +42,8 @@ namespace engone {
 			aimedDelta = 1;
 		if (accumulator < aimedDelta)
 			return false;
-		accumulator -= aimedDelta;
-		if (accumulator < 0) {
-			DebugBreak();
+		while(accumulator>=aimedDelta){
+			accumulator -= aimedDelta;
 		}
 		return true;
 	}

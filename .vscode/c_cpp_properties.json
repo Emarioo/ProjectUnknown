@@ -23,7 +23,7 @@
             ],
             "compilerPath": "C:/Program Files/mingw-w64/x86_64-12.2.0-release-posix-seh-ucrt-rt_v10-rev2/mingw64/bin/g++.exe",
             "cStandard": "c11",
-            "cppStandard": "c++17",
+            "cppStandard": "c++14",
             "compileCommands": "",
             "browse": {
                 "path": [],

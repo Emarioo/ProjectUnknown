@@ -7,7 +7,7 @@
 
 // #include "ProUnk/Combat/CombatData.h"
 
-#include "ProUnk/PlayerController.h"
+// #include "ProUnk/PlayerController.h"
 // #include "ProUnk/Registries/InventoryRegistry.h"
 
 #include "ProUnk/UI/MasterInventoryPanel.h"
@@ -24,7 +24,7 @@
 #include "Engone/UIModule/UIModule.h"
 
 // #include "Engone/Sound/SoundStream.h"
-
+#ifdef gone
 namespace prounk {
 
 	struct CombatParticle {
@@ -143,3 +143,4 @@ namespace prounk {
 		engone::Window* m_window=nullptr;
 	};
 }
+#endif

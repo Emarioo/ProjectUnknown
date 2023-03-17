@@ -13,6 +13,7 @@ namespace engone {
 		EventScroll = 4,
 		EventKey = 8,
 		EventResize = 16,
+		EventClose = 32,
 	};
 	typedef int EventTypes;
 	struct Keybinding {

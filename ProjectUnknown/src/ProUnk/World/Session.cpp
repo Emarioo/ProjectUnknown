@@ -1,6 +1,6 @@
 #include "ProUnk/World/Session.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
 
 #include "ProUnk/Objects/BasicObjects.h"
 
@@ -43,7 +43,8 @@ namespace prounk {
 		//	eh = &m_server;
 		//printf("? %u %u\n", eh->getStats().sentMessages(), eh->getStats().receivedMessages());
 	}
-	Session::Session(GameApp* app) : m_parent(app) {
+	// Session::Session() {
+	Session::Session(engone::Engone* engone) : m_parent(engone) {
 		using namespace engone;
 		m_server.setOnEvent([this](NetEvent e, UUID uuid) {
 			log::out << "Server : " << e << "\n";
@@ -117,6 +118,7 @@ namespace prounk {
 		
 		dim = ALLOC_NEW(Dimension)(this);
 		dim->name = name;
+		
 		m_dimensions.push_back(dim);
 		return dim;
 	}
@@ -128,17 +130,17 @@ namespace prounk {
 		}
 		return nullptr;
 	}
-	GameApp* Session::getParent() {
+	engone::Engone* Session::getParent() {
 		return m_parent;
 	}
-	void Session::update(engone::LoopInfo& info) {
+	void Session::update(engone::LoopInfo* info) {
 		using namespace engone;
 
 		for (int i = 0; i < m_dimensions.size(); i++) {
 			m_dimensions[i]->update(info);
 		}
 
-		m_networkStats.updateSample(info.timeStep,this);
+		m_networkStats.updateSample(info->timeStep,this);
 
 		processMessages();
 	}
@@ -148,7 +150,7 @@ namespace prounk {
 			if (e == NetEvent::Connect) {
 				enableMessages();
 				m_clients[uuid] = {};
-				prounk::GameApp* app = m_parent;
+				// prounk::GameApp* app = m_parent;
 				Dimension* dim = getDimension("0");
 				EngineObjectIterator iter = dim->getWorld()->createIterator();
 				EngineObject* obj;
@@ -195,7 +197,7 @@ namespace prounk {
 			}
 		} else {
 			if (e == NetEvent::Connect) {
-				prounk::GameApp* app = (prounk::GameApp*)m_parent;
+				// prounk::GameApp* app = (prounk::GameApp*)m_parent;
 
 				enableMessages();
 				Dimension* dim = getDimension("0");

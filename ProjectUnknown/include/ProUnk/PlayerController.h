@@ -8,7 +8,6 @@
 
 namespace prounk {
 
-	class GameApp;
 	// Since the game is based on a registry, entity component and more data oriented there is not a Player EngineObject class.
 	// This will be the replacement for that.
 	class PlayerController {
@@ -16,45 +15,35 @@ namespace prounk {
 		PlayerController();
 
 		// attach/set player object
-		void setPlayerObject(engone::UUID player);
-		//void setPlayerObject(engone::EngineObject* player);
-		//engone::EngineObject* getPlayerObject() { return m_player; }
-		//engone::EngineObject* m_player=nullptr;
-		engone::UUID m_playerId=0;
+		void setPlayerObject(engone::UUID uuid);
+		engone::UUID playerId=0;
 
-		engone::EngineObject* requestPlayer();
-		void releasePlayer(engone::EngineObject* plr);
-		engone::EngineObject* requestHeldObject();
-		void releaseHeldObject(engone::EngineObject* held);
+		void update(engone::LoopInfo* info, engone::EngineObject* player);
+		void render(engone::LoopInfo* info, engone::EngineObject* player);
+		void Movement(engone::LoopInfo* info, engone::EngineObject* player);
+		void Input(engone::LoopInfo* info, engone::EngineObject* player);
 
-		void update(engone::LoopInfo& info);
-		void render(engone::LoopInfo& info);
-		// void Movement(engone::LoopInfo& info);
-		void Input(engone::LoopInfo& info);
-
-		void performSkills(engone::LoopInfo& info);
-		void simpleTest(engone::LoopInfo& info);
+		void performSkills(engone::LoopInfo* info, engone::EngineObject* player);
+		void simpleTest(engone::LoopInfo* info);
 		// This updates the position of the weapon when held
 
-		void DetectHeldWeapon(engone::LoopInfo& info);
-		void UpdateWeaponTransform(engone::LoopInfo& info);
+		void DetectHeldWeapon(engone::LoopInfo* info, engone::EngineObject* player);
+		void UpdateWeaponTransform(engone::LoopInfo* info, engone::EngineObject* player);
 
 		std::string hoveredItem;
 
 		// object the player is looking at
-		engone::EngineObject* getSeenObject();
-
-		Inventory* getInventory();
+		engone::EngineObject* getSeenObject(engone::LoopInfo* info,engone::EngineObject* player);
 
 		// turns the object into a chicken. no haha.
 		// it turns the object into an item and destroys the object.
 		// things may fail.
-		bool pickupItem(engone::EngineObject* object);
+		bool pickupItem(engone::EngineObject* player, engone::EngineObject* object);
 
 		// drops the item in the first slot
-		void dropItem(int slotIndex, int count);
+		void dropItem(int slotIndex, int count, engone::EngineObject* player);
 
-		void dropAllItems();
+		void dropAllItems(engone::EngineObject* player);
 		bool keepInventory=false;
 		
 		// Movement and camera
@@ -67,15 +56,16 @@ namespace prounk {
 
 		// object held in hand
 		//engone::EngineObject* heldObject = nullptr;
-		engone::UUID heldObjectId = 0;
+		// engone::UUID heldObjectId = 0;
+		// engone::EngineObject* getHeldObject();
 
 		// info exists as an argument because NetGameGround is required.
 		//void setWeapon(engone::EngineObject* weapon);
 
 		bool noclip = false;
 		bool flight = false;
-		void setFlight(bool yes);
-		void setNoClip(bool yes);
+		void setFlight(bool yes, engone::EngineObject* player);
+		void setNoClip(bool yes, engone::EngineObject* player);
 
 		float deathTime = 0;
 		float deathShockStrength = 1.f; // how much the player "jumps" when they die.
@@ -99,7 +89,7 @@ namespace prounk {
 
 		//engone::Camera testCam;
 
-		GameApp* app=nullptr;
+		// GameApp* app=nullptr;
 
 	private:
 		float animBlending = 0;

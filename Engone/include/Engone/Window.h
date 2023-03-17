@@ -3,12 +3,14 @@
 #include "Engone/RenderModule.h"
 #include "Engone/EventModule.h"
 
+
 #include "Engone/Core/ExecutionControl.h"
 // #include "Engone/Utilities/Thread.h"
 #include "Engone/PlatformModule/PlatformLayer.h"
 
 #include "Engone/Rendering/UIRenderer.h"
 #include "Engone/Rendering/CommonRenderer.h"
+#include "Engone/UIModule/UIModule.h"
 
 namespace engone {
 
@@ -22,14 +24,14 @@ namespace engone {
 		ModeMousePassthrough = 8,
 	};
 	typedef uint8_t WindowModes;
-	class Application;
+	class Engone;
 	// mode, w, h, x, y
 	struct WindowDetail {
 		WindowModes mode = ModeWindowed;
 		int w = -1, h = -1;
 		int x = -1, y = -1;
 	};
-	typedef Event(*ListenProc)(Event);
+	typedef EventType(*ListenProc)(Event*);
 	// Window can be seen as a reference to a window on your computer.
 	class Window {
 	public:
@@ -62,7 +64,8 @@ namespace engone {
 		// True if cursor is visible.
 		bool isCursorVisible() const { return m_cursorVisible; }
 
-		Application* getParent() { return m_parent; }
+		Engone* getParent() { return m_parent; }
+		// Application* getParent() { return m_parent; }
 		AssetStorage* getStorage() { return &m_storage; }
 		
 		CommonRenderer* getCommonRenderer(){return &m_commonRenderer;}
@@ -71,7 +74,8 @@ namespace engone {
 		// Window will not destroy listener. Should it?
 		void attachListener(Listener* listener);
 		
-		void addListener(EventTypes type, ListenProc proc);
+		// procName is only just when reloading DLLs
+		void addListener(EventTypes type, ListenProc proc, const std::string& procName);
 
 		void addEvent(Event& e) { m_events.push_back(e); }
 		void runListeners();
@@ -87,8 +91,8 @@ namespace engone {
 		void setMouseY(float y) { m_mouseY=y; }
 		float getScrollX() const;
 		float getScrollY() const;
-		void setScrollX(float x) { m_frameScrollY = x; m_tickScrollY = x;}
-		void setScrollY(float y) { m_frameScrollY = y; m_tickScrollY = y; }
+		void setScrollX(float x) { m_frameScrollX += x; m_tickScrollX += x;}
+		void setScrollY(float y) { m_frameScrollY += y; m_tickScrollY += y; }
 
 		void setInput(int code, bool down);
 
@@ -105,7 +109,7 @@ namespace engone {
 		// // on order for the function to return true.
 		// bool isKeybindingReleased(uint16_t id);
 
-		void resetKey(int code);
+		// void resetKey(int code);
 		void resetEvents(bool resetFrameInput);
 
 		void enableFirstPerson(bool yes);
@@ -128,10 +132,15 @@ namespace engone {
 		void setFPS(double fps);
 		double getFPS();
 		double getRealFPS();
+		
+		void* userData=0;
+		
+		UIModule uiModule;
 
 		// static TrackerId trackerId;
 	private:
-		Window(Application* application, WindowDetail detail);
+		Window(Engone* engone, WindowDetail detail);
+		// Window(Application* application, WindowDetail detail);
 		// Deleting window will delete renderer's buffers. To do this this window becomes the active one. This means that you sohuldn't call delete on the window.
 		// The game loop will delete a window that should close because it nows when the window is being rendered to and not. Deleting a window while it is being rendered to is bad.
 		// if this window shares buffers with another unexepected things might happen.
@@ -140,19 +149,30 @@ namespace engone {
 		Listener* m_firstPersonListener=nullptr;
 
 		GLFWwindow* m_glfwWindow=nullptr;
-		Application* m_parent=nullptr;
+		Engone* m_parent=nullptr;
 		//Assets m_assets;
 		AssetStorage m_storage;
 		//Renderer m_renderer;
 		// RenderPipeline m_renderPipeline;
 		std::vector<Listener*> m_listeners;
 		std::vector<Event> m_events;
-		std::vector<EventInput> m_inputs;
+		
+		struct Input {
+			int code=0;
+			bool down = false;
+			uint8_t tickPressed = 0;
+			uint8_t framePressed = 0;
+			uint8_t tickReleased = 0;
+			uint8_t frameReleased = 0;
+		};
+		
+		std::vector<Input> m_inputs;
 		std::vector<std::string> m_pathDrops;
 		
 		struct ListenerProc {
 			EventTypes types;
-			ListenProc proc;		
+			ListenProc proc;
+			std::string procName;
 		};
 		std::vector<ListenerProc> listenerProcs;
 		
@@ -195,6 +215,7 @@ namespace engone {
 		friend class Engone;
 
 		friend EventType FirstPerson(Event& e);
+		friend EventType FirstPersonProc(Event* _e);
 		friend void FocusCallback(GLFWwindow* window, int focused);
 		friend void CloseCallback(GLFWwindow* window);
 		friend void ResizeCallback(GLFWwindow* window, int width, int height);

@@ -1,7 +1,7 @@
 #include "ProUnk/Objects/BasicObjects.h"
 
 #include "Engone/Engone.h"
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
 
 namespace prounk {
 	const char* to_string(BasicObjectType value) {
@@ -39,6 +39,15 @@ namespace prounk {
 		Dimension* dim = ((Dimension*)object->getWorld()->getUserData()); // Todo: the dimension should be the one the player is in.
 		auto oinfo = dim->getParent()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
 		return dim->getWorld()->getObject(oinfo->heldObject);
+	}
+	void SetHeldObject(engone::EngineObject* object, engone::EngineObject* heldObject){
+		Assert(object);
+		Dimension* dim = ((Dimension*)object->getWorld()->getUserData()); // Todo: the dimension should be the one the player is in.
+		auto oinfo = dim->getParent()->objectInfoRegistry.getCreatureInfo(object->getObjectInfo());
+		if(heldObject)
+			oinfo->heldObject = heldObject->getUUID();
+		else
+			oinfo->heldObject = 0;
 	}
 	void DropInventory(engone::EngineObject* object, float shock) {
 		using namespace engone;
@@ -315,7 +324,9 @@ namespace prounk {
 
 		out->getRigidBody()->setType(rp3d::BodyType::STATIC);
 
-		auto* shape = dimension->getWorld()->getPhysicsCommon()->createBoxShape(ToRp3dVec3(size));
+		// dimension->getParent()->getParent()->getGameMemory()->getCommon()
+
+		auto* shape = dimension->getParent()->getParent()->getGameMemory()->getCommon()->createBoxShape(ToRp3dVec3(size));
 		auto* collider = out->getRigidBody()->addCollider(shape, {});
 		collider->setIsTrigger(true);
 		//ModelAsset* model = dimension->getParent()->modelRegistry.getModel(item.getModelId());

@@ -7,19 +7,34 @@
 // #include "Engone/Window.h"
 #include "Engone/Rendering/UIRenderer.h"
 
-#include "Engone/PlatformModule/GameMemory.h"
-#include "Engone/Window.h"
-
 namespace prounk {
-	class Panel;
+
 	class PanelHandler;
-	
-	typedef void(*PanelUpdateProc)(engone::LoopInfo*, Panel*);
 	class Panel {
 	public:
 		Panel();
 
+		typedef int EdgeType;
+		static const EdgeType TOP=0;
+		static const EdgeType LEFT=1;
+		static const EdgeType BOTTOM=2;
+		static const EdgeType RIGHT=3;
+
+		virtual void render(engone::LoopInfo& info) = 0;
+		
+		void setDepth(float depth);
+		float getDepth();
+		bool isMovable();
+		void setMovable(bool yes);
+
+		// will update values of the constraints
+		//void setX(float f);
+		//void setY(float f);
+		//void setW(float f);
+		//void setH(float f);
+
 		void move(float dx, float dy);
+		//void resize(float dx, float dy);
 		void setLeft(float f);
 		void setRight(float f);
 		void setTop(float f);
@@ -28,9 +43,6 @@ namespace prounk {
 		void setPosition(float x, float y);
 		void setSize(float w, float h);
 		engone::ui::Box getBox();
-		
-		// out is a pointer with space for 4 floats in x,y,w,h order
-		void retrieveXYWH(float out[4]);
 
 		struct Constraint {
 			bool active = false;
@@ -42,6 +54,14 @@ namespace prounk {
 		// This is due to panels depending on each other's position
 		void updateConstraints();
 
+		// new type will replace old types
+		//void addConstraint(EdgeType type, float offset, float minOffset, Panel* attached);
+		//void removeConstraint(EdgeType type);
+
+		void setHidden(bool yes) { m_hidden = yes; }
+		bool getHidden() { return m_hidden; }
+
+	protected:
 		// edges of the panel. right >= left and bottom>=top is guaranteed.
 		union {
 			struct {
@@ -70,17 +90,16 @@ namespace prounk {
 		void setMinHeight(float f);
 		void setMaxWidth(float f);
 		void setMaxHeight(float f);
-		
-		bool hidden = false;
-		float depth=0; // panels are sorted by this
-		bool movable=true; // Some panels like MasterInventoryPanel cannot be moved.
-		PanelUpdateProc updateProc = 0;
-		void* extraData = 0;
-		
-		std::string name;
 
 	private:
-		PanelHandler* panelHandler=nullptr; // used when updating depth
+		bool m_movable=true; // Some panels like MasterInventoryPanel cannot be moved.
+		float m_depth=0; // panels are sorted by this
+		bool m_hidden = false;
+		
+		PanelHandler* m_panelHandler=nullptr; // used when updating depth
+
+		//Constraint m_constraints[4];
+		//std::vector<Panel*> m_attachments;
 
 		friend class PanelHandler;
 	};
@@ -88,16 +107,12 @@ namespace prounk {
 	class PanelHandler {
 	public:
 		PanelHandler() = default;
-		
-		void init(engone::Window* window);
-		
-		Panel* createPanel();
 
-		void render(engone::LoopInfo* info);
+		void addPanel(Panel* panel);
+
+		void render(engone::LoopInfo& info);
 
 		void setCanMovePanels(bool yes);
-		
-		Panel* getPanel(const char* name);
 
 	private:
 
@@ -115,8 +130,10 @@ namespace prounk {
 		static const int EDIT_RESIZE=1;
 		static const int EDIT_CONSTRAIN=2;
 
-		engone::Window* window=0;
+		bool m_pendingSort = false;
 		std::vector<Panel*> m_panels;
+
+		//GameApp* m_app;
 
 		// sort panels by depth
 		void sortPanels();

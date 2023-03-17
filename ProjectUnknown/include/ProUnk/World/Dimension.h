@@ -3,18 +3,25 @@
 #include "Engone/World/EngineWorld.h"
 #include "ProUnk/World/Dungeon.h"
 
+#include "Engone/Utilities/rp3d.h"
+
 namespace prounk {
 
 	class Session;
-	class Dimension {
+	class Dimension : rp3d::EventListener {
 	public:
 		Dimension(Session* session);
 
 		engone::EngineWorld* getWorld();
 
+		void onTrigger(const rp3d::OverlapCallback::CallbackData& callbackData) override;
+		void onContact(const rp3d::CollisionCallback::CallbackData& callbackData) override;
+		void dealCombat(engone::EngineObject* atkObj, engone::EngineObject* collider, glm::vec3 contactPoint);
+
+
 		Session* getParent();
 
-		void update(engone::LoopInfo& info);
+		void update(engone::LoopInfo* info);
 
 		const std::string& getName();
 

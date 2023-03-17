@@ -32,6 +32,7 @@ namespace prounk {
 	Inventory* GetInventory(engone::EngineObject* object);
 	Session* GetSession(engone::EngineObject* object);
 	
+	void SetHeldObject(engone::EngineObject* object, engone::EngineObject* heldObject);
 	engone::EngineObject* GetHeldObject(engone::EngineObject* object);
 	
 	// object should have an inventory

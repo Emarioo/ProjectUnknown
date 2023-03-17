@@ -43,22 +43,22 @@ namespace prounk {
 		}
 
 		if (clickedIndex != -1) {
-			Item& heldItem = m_app->masterInventoryPanel->getItem();
-			auto& slot = m_craftSlots[clickedIndex];
-			if (slot.item.getType()) {
-				// pick up item
-				bool yes = slot.item.transfer(heldItem);
-				if (yes) {
-					// disable stuff for next round
-					removeNeighbourSlots(slot.x, slot.y);
-				}
-			} else {
-				// place item
-				bool yes = heldItem.transfer(slot.item);
-				if (yes) {
-					addNeighbourSlots(slot.x,slot.y);
-				}
-			}
+			// Item& heldItem = m_app->masterInventoryPanel->getItem();
+			// auto& slot = m_craftSlots[clickedIndex];
+			// if (slot.item.getType()) {
+			// 	// pick up item
+			// 	bool yes = slot.item.transfer(heldItem);
+			// 	if (yes) {
+			// 		// disable stuff for next round
+			// 		removeNeighbourSlots(slot.x, slot.y);
+			// 	}
+			// } else {
+			// 	// place item
+			// 	bool yes = heldItem.transfer(slot.item);
+			// 	if (yes) {
+			// 		addNeighbourSlots(slot.x,slot.y);
+			// 	}
+			// }
 		}
 		DrawToolTip(area.x + area.w, area.y, 20, 20, "This is Crafting");
 	}

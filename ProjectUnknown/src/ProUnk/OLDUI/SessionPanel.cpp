@@ -19,13 +19,13 @@ namespace prounk {
 
 	void SessionPanel::stop(engone::LoopInfo& info) {
 		GameApp* app = (GameApp*)info.window->getParent();
-		Session* session = app->getActiveSession();
-		if (session->getServer().isRunning()) {
-			session->getServer().stop();
-		}
-		if (session->getClient().isRunning()) {
-			session->getClient().stop();
-		}
+		// Session* session = app->getActiveSession();
+		// if (session->getServer().isRunning()) {
+		// 	session->getServer().stop();
+		// }
+		// if (session->getClient().isRunning()) {
+		// 	session->getClient().stop();
+		// }
 	}
 	IPAndPort SplitAddress(const std::string& address) {
 		std::string ip = Session::DEFAULT_IP;
@@ -49,7 +49,8 @@ namespace prounk {
 	}
 	void SessionPanel::connect(engone::LoopInfo& info) {
 		using namespace engone;
-		Session* session = app->getActiveSession();
+		Session* session = 0;
+		// app->getActiveSession();
 
 		// Nothing will happen if client or server is active. You have to stop first.
 		// NOTE: restarting server is a bit tricky because you can't call stop and then start because stop is asynchronous and when start is called the server is still running
@@ -81,7 +82,8 @@ namespace prounk {
 		using namespace engone;
 		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
-		Session* session = app->getActiveSession();
+		Session* session =0;
+		//  app->getActiveSession();
 
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 

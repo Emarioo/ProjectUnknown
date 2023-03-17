@@ -34,7 +34,7 @@ namespace engone {
 		glfwIsActive = true;
 		tempThread.join();
 	}
-	static std::unordered_map<GLFWwindow*, Window*> windowMapping;
+	static std::unordered_map<GLFWwindow*, Window*> windowMapping; // Todo: doesn't work with dlls
 	static Window* GetMappedWindow(GLFWwindow* window) {
 		auto win = windowMapping.find(window);
 		if (win != windowMapping.end())
@@ -134,6 +134,8 @@ namespace engone {
 		win->setScrollX((float)xoffset);
 		win->setScrollY((float)yoffset);
 
+		// printf("Callback %llf\n",yoffset);
+
 		Event e{ EventScroll };
 		e.scrollX = (float)xoffset;
 		e.scrollY = (float)yoffset;
@@ -167,15 +169,21 @@ namespace engone {
 		win->w = (float)width;
 		win->h = (float)height;
 		
-		if(win->getParent()->getEngine()->getFlags()&Engone::EngoneRenderOnResize)
-			win->getParent()->getEngine()->renderApps();
+		// if(win->getParent()->getEngine()->getFlags()&Engone::EngoneRenderOnResize)
+		// 	win->getParent()->getEngine()->renderApps();
+		if(win->getParent()->getFlags()&Engone::EngoneRenderOnResize)
+			win->getParent()->renderApps();
 	}
 	void CloseCallback(GLFWwindow* window) {
 		Window* win = GetMappedWindow(window);
 		if (!win) return;
-		if (win->m_parent) {
-			win->m_parent->onClose(win);
-		}
+		// DebugBreak();
+		Event e{ EventClose };
+		e.window = win;
+		win->addEvent(e);
+		// if (win->m_parent) {
+		// 	win->m_parent->onClose(win);
+		// }
 		//if (mainWindow == win)
 		//	mainWindow = nullptr;
 	}
@@ -226,13 +234,51 @@ namespace engone {
 		e.window->m_lastMouseY = e.my;
 		return EventNone;
 	}
+	EventType FirstPersonProc(Event* _e) {
+		Event& e = *_e;
+		if (e.window->m_lastMouseX != -1) {
+			CommonRenderer* renderer = e.window->getCommonRenderer();
+			Camera* camera = nullptr;
+			if (renderer)
+				camera = renderer->getCamera();
+			if (e.window->isCursorLocked() && camera != nullptr) {
+				float rawX = -(e.mx - e.window->m_lastMouseX) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
+				float rawY = -(e.my - e.window->m_lastMouseY) * (glm::pi<float>() / 360.0f) * cameraSensitivity;
 
-	Window::Window(Application* application, WindowDetail detail) {
+				e.window->m_tickRawMouseX += rawX;
+				e.window->m_frameRawMouseX += rawX;
+				e.window->m_tickRawMouseY += rawY;
+				e.window->m_frameRawMouseY += rawY;
+
+				if (e.window->m_enabledFirstPerson) {
+					glm::vec3 rot = camera->getRotation(); // get a copy of rotation
+					rot.y += rawX;
+					rot.x += rawY;
+					// clamp up and down directions.
+					if (rot.x > glm::pi<float>() / 2) {
+						rot.x = glm::pi<float>() / 2;
+					}
+					if (rot.x < -glm::pi<float>() / 2) {
+						rot.x = -glm::pi<float>() / 2;
+					}
+					rot.x = remainder(rot.x, glm::pi<float>() * 2);
+					rot.y = remainder(rot.y, glm::pi<float>() * 2);
+					camera->setRotation(rot); // set the new rotation
+					//log::out << "FIRST PERSON\n";
+				}
+			}
+		}
+		e.window->m_lastMouseX = e.mx;
+		e.window->m_lastMouseY = e.my;
+		return EventNone;
+	}
+
+	Window::Window(Engone* engone, WindowDetail detail) {
 		// setup
 		if(!glfwIsActive) InitializeGLFW();
 		
 		// Minor setup stuff
-		m_parent = application;
+		m_parent = engone;
 		//m_renderer.m_parent = this;
 
 		// Window related setup
@@ -248,8 +294,10 @@ namespace engone {
 		if (detail.h == -1) h = (float)vidmode->height / 1.5f;
 		else h = (float)detail.h;
 
-		m_firstPersonListener = ALLOC_NEW(Listener)(EventMove, 9998, FirstPerson);
-		attachListener(m_firstPersonListener);
+		// m_firstPersonListener = ALLOC_NEW(Listener)(EventMove, 9998, FirstPerson);
+		// attachListener(m_firstPersonListener);
+		
+		addListener(EventMove,FirstPersonProc,"FirstPersonProc");
 
 		setMode(detail.mode,true);
 		windowMapping[m_glfwWindow] = this;
@@ -281,9 +329,9 @@ namespace engone {
 				ALLOC_DELETE(Listener, l);
 			}
 		}
-		ALLOC_DELETE(Listener, m_firstPersonListener);
+		// ALLOC_DELETE(Listener, m_firstPersonListener);
 		//delete m_firstPersonListener;
-		m_firstPersonListener = nullptr;
+		// m_firstPersonListener = nullptr;
 		//log::out << "deleted window\n";
 
 		// then we set it to nullptr
@@ -355,56 +403,62 @@ namespace engone {
 		ResizeCallback(m_glfwWindow, (int)w, (int)h);
 	}
 	void Window::setInput(int code, bool down) {
+		int index=-1;
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 			if (m_inputs[i].code == code) {
-				if (down) {
-					if (!m_inputs[i].down) {
-						m_inputs[i].down = true;
-						m_inputs[i].tickPressed++;
-						m_inputs[i].framePressed++;
-						return;
-					}
-				} else {
-					m_inputs[i].down = false;
-					m_inputs[i].tickReleased++;
-					m_inputs[i].frameReleased++;
-				}
+				index = i;
 				break;
 			}
 		}
-		// HEY YOU! don't forget to change these when messing about.
-		if (down)
-			m_inputs.push_back({ code, down, 1, 1, 0, 0 });
-		else
-			m_inputs.push_back({ code, down, 0, 0, 1, 1 });
+		if(index==-1){
+			index = m_inputs.size();
+			m_inputs.push_back({});
+			m_inputs[index].code=code;
+		}
+		Input& input = m_inputs[index];
+		if(down){
+			if (!input.down) {
+				// printf("PRESSED %c (%d)\n",(char)code,code);
+				// log::out << "PRESSED "<<(char)code << " ("<<code << ")\n";
+				input.down = true;
+				input.tickPressed++;
+				input.framePressed++;
+			}
+		}else{
+			// log::out << "RELEASED "<<(char)code << " ("<<code << ")\n";
+			// printf("RELEASED %c (%d)\n",(char)code,code);
+			input.down = false;
+			input.tickReleased++;
+			input.frameReleased++;
+		}
 	}
 	float Window::getRawMouseX() const {
-		if (m_parent->isRenderingWindow()) {
-			return m_frameRawMouseX;
-		} else {
+		// if (m_parent->isRenderingWindow()) {
+		// 	return m_frameRawMouseX;
+		// } else {
 			return m_tickRawMouseX;
-		}
+		// }
 	}
 	float Window::getRawMouseY() const {
-		if (m_parent->isRenderingWindow()) {
-			return m_frameRawMouseY;
-		} else {
+		// if (m_parent->isRenderingWindow()) {
+		// 	return m_frameRawMouseY;
+		// } else {
 			return m_tickRawMouseY;
-		}
+		// }
 	}
 	float Window::getScrollX() const {
-		if (m_parent->isRenderingWindow()) {
-			return m_frameScrollX;
-		} else {
+		// if (m_parent->isRenderingWindow()) {
+		// 	return m_frameScrollX;
+		// } else {
 			return m_tickScrollX;
-		}
+		// }
 	}
 	float Window::getScrollY() const {
-		if (m_parent->isRenderingWindow()) {
-			return m_frameScrollY;
-		} else {
+		// if (m_parent->isRenderingWindow()) {
+		// 	return m_frameScrollY;
+		// } else {
 			return m_tickScrollY;
-		}
+		// }
 	}
 	ExecutionControl& Window::getControl() {
 		return renderControl;
@@ -415,19 +469,22 @@ namespace engone {
 	void Window::setFPS(double fps) {
 		if (fps < 1)
 			fps = 1;
-		if (getParent()->isMultiThreaded()) {
-			executionTimer.aimedDelta = 1. / fps;
-		} else
-			getParent()->getEngine()->mainRenderTimer.aimedDelta = 1. / fps;
+		// if (getParent()->isMultiThreaded()) {
+		// 	executionTimer.aimedDelta = 1. / fps;
+		// } else
+		// 	getParent()->getEngine()->mainRenderTimer.aimedDelta = 1. / fps;
+			getParent()->mainRenderTimer.aimedDelta = 1. / fps;
 	}
 	double Window::getFPS() {
-		if (getParent()->isMultiThreaded())
-			return 1./executionTimer.aimedDelta;
+		// if (getParent()->isMultiThreaded())
+		// 	return 1./executionTimer.aimedDelta;
 
-		return 1. / getParent()->getEngine()->mainRenderTimer.aimedDelta;
+		// return 1. / getParent()->getEngine()->mainRenderTimer.aimedDelta;
+		return 1. / getParent()->mainRenderTimer.aimedDelta;
 	}
 	double Window::getRealFPS() {
-		return getParent()->getProfiler().getSampler(this).getAverage();
+		return 0;
+		// return getParent()->getProfiler().getSampler(this).getAverage();
 		//if (getParent()->isMultiThreaded())
 		//	return 1. / executionTimer.delta;
 
@@ -449,8 +506,8 @@ namespace engone {
 		}
 		m_listeners.push_back(listener);
 	}
-	void Window::addListener(EventTypes type, ListenProc proc){
-		listenerProcs.push_back({(EventType)type,proc});
+	void Window::addListener(EventTypes type, ListenProc proc, const std::string& procName){
+		listenerProcs.push_back({(EventType)type,proc,procName});
 	}
 	std::string Window::pollPathDrop() {
 		if (m_pathDrops.size() == 0) return "";
@@ -478,45 +535,35 @@ namespace engone {
 	bool Window::isKeyPressed(int code) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 			if (m_inputs[i].code == code) {
-				if (m_parent->isRenderingWindow()) {
-					if (m_inputs[i].framePressed > 0) {
-						return true;
-					}
-				} else {
+				// log::out << "IS "<<(char)code<<"\n";
+				// if (m_parent->isRenderingWindow()) {
+				// 	if (m_inputs[i].framePressed > 0) {
+				// 		return true;
+				// 	}
+				// } else {
 					if (m_inputs[i].tickPressed > 0) {
+						// log::out << " Done\n";
 						return true;
 					}
-				}
+				// }
 				return false;
 			}
 		}
 		return false;
 	}
-	void Window::resetKey(int code) {
-		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
-			if (m_inputs[i].code == code) {
-				if (m_parent->isRenderingWindow()) {
-					m_inputs[i].framePressed = 0;
-				} else {
-					m_inputs[i].tickPressed = 0;
-				}
-				break;
-			}
-		}
-	}
 	bool Window::isKeyReleased(int code) {
 		for (uint32_t i = 0; i < m_inputs.size(); ++i) {
 			if (m_inputs[i].code == code) {
-				if (m_parent->isRenderingWindow()) {
-					if (m_inputs[i].frameReleased > 0) {
-						return true;
-					}
-				}
-				else {
+				// if (m_parent->isRenderingWindow()) {
+				// 	if (m_inputs[i].frameReleased > 0) {
+				// 		return true;
+				// 	}
+				// }
+				// else {
 					if (m_inputs[i].tickReleased > 0) {
 						return true;
 					}
-				}
+				// }
 				return false;
 			}
 		}
@@ -539,6 +586,11 @@ namespace engone {
 				m_tickRawMouseX = 0;
 				m_tickRawMouseY = 0;
 				for (uint32_t i = 0; i < m_inputs.size(); ++i) {
+					if(m_inputs[i].tickPressed!=0){
+						int code = m_inputs[i].code;
+						// log::out << "RESET "<<(char)code << " ("<<code << ")\n";
+						// printf("RESET %c (%d)\n",(char)code,code);
+					}
 					m_inputs[i].tickPressed = 0;
 					m_inputs[i].tickReleased = 0;
 				}
@@ -546,14 +598,26 @@ namespace engone {
 		}
 	}
 	void Window::runListeners() {
-		for (uint32_t j = 0; j < m_events.size(); ++j) {
+		for (uint32_t j = 0; j < m_events.size(); j++) {
 			EventTypes breaker = EventNone; // if a flag is simular it will break
-			for (uint32_t i = 0; i < m_listeners.size(); ++i) {
-				if (m_listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
+			// Todo: remove m_listeners
+			// for (uint32_t i = 0; i < m_listeners.size(); i++) {
+			// 	if (m_listeners[i]->eventTypes & breaker)// continue if an event has been checked/used/disabled
+			// 		continue;
+
+			// 	if (m_listeners[i]->eventTypes & m_events[j].eventType) {
+			// 		EventTypes types = m_listeners[i]->run(m_events[j]);
+			// 		if (types != EventNone)
+			// 			breaker = (breaker | m_listeners[i]->eventTypes);
+			// 	}
+			// }
+			for (uint32_t i = 0; i < listenerProcs.size(); i++) {
+				ListenerProc& proc = listenerProcs[i];
+				if (proc.types & breaker)// continue if an event has been checked/used/disabled
 					continue;
 
-				if (m_listeners[i]->eventTypes & m_events[j].eventType) {
-					EventTypes types = m_listeners[i]->run(m_events[j]);
+				if (proc.types & m_events[j].eventType) {
+					EventTypes types = proc.proc(&m_events[j]);
 					if (types != EventNone)
 						breaker = (breaker | m_listeners[i]->eventTypes);
 				}

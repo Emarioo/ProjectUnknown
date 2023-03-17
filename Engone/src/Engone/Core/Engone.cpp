@@ -11,7 +11,6 @@
 #include "Engone/Networking/NetworkModule.h"
 
 #include "Engone/Core/ExecutionControl.h"
-// #include "Engone/Utilities/Thread.h"
 #include "Engone/PlatformModule/PlatformLayer.h"
 
 #include "Engone/UIModule/UIModule.h"
@@ -37,15 +36,11 @@ namespace engone {
 #define INSTANCE_LIMIT 1000u
 
 	Engone::Engone() {
-		// Todo: check failure?
-		GetGameMemory(); // Used to initialize memory
+		SetupStaticVariables(this);
+		gameMemory.init((void*)GigaBytes(100),MegaBytes(10),false);
 	}
 	Engone::~Engone() {
-		for (int i = 0; i < m_applications.size(); i++) {
-			//delete m_applications[i];
-			ALLOC_DELETE(Application, m_applications[i]);
-		}
-		m_applications.clear();
+		CleanupStaticVariables();
 		for (int i = 0; i < m_lights.size(); i++) {
 			//delete m_lights[i];
 			ALLOC_DELETE(Light, m_lights[i]);
@@ -53,39 +48,50 @@ namespace engone {
 		m_lights.clear();
 		DestroyNetworking();
 	}
-	void Engone::addApplication(Application* app) {
-		//T* app = new T(this);
-		// GetTracker().track(app);
-		m_applications.push_back(app);
-		m_appSizes.push_back(sizeof(Application));
-		// m_appIds.push_back(Application::trackerId);
-	}
 	
 	Window* Engone::createWindow(WindowDetail detail){
-		// Window* win = ALLOC_NEW(Window)(this, detail);
+		Window* win = ALLOC_NEW(Window)(this, detail);
 		// GetTracker().track(win);
-		// windows.push_back(win);
-		return 0;
+		windows.push_back(win);
+		return win;
 	}
-	void Engone::add(AppInstance app){
-		appInstances.push_back(app);
+	GameMemory* Engone::getGameMemory(){
+		return &gameMemory;
+	}
+	Logger* Engone::getLogger(){
+		return &logger;
+	}
+	EngineWorld* Engone::createWorld(){
+		EngineWorld* world = (EngineWorld*)gameMemory.allocate(sizeof(EngineWorld));
+		new(world)EngineWorld(this);
+		worlds.push_back(world);
+		return world;
+	}
+	AppInstance* Engone::createApp(){
+		AppInstance* ptr = (AppInstance*)gameMemory.allocate(sizeof(AppInstance));
+		new(ptr)AppInstance();
+		appInstances.push_back(ptr);
+		return ptr;
+	}
+	void Engone::stopApp(AppInstance* app){
+		// Todo: mutex?
+		removeApps.push_back(app);
 	}
 	void Engone::saveGameMemory(const std::string& path) {
-		GetGameMemory().save(path);
+		gameMemory.save(path);
 	}
 	void Engone::loadGameMemory(const std::string& path) {
-		GetGameMemory().load(path);
+		gameMemory.load(path);
 	}
-	std::vector<Application*>& Engone::getApplications() { return m_applications; }
 	void Engone::start() {
-		if (m_applications.size() == 0) {
+		if (appInstances.size() == 0) {
 			log::out << log::YELLOW<<"Engone::start : Returning because of zero apps\n";
 			return;
 		}
 
-		for(AppInstance& app : appInstances){
-			app.initProc(this,&app);
-		}
+		// for(AppInstance* app : appInstances){
+		// 	app->initProc(this,&app);
+		// }
 
 		m_flags |= EngoneRenderOnResize; // Todo: remove later?
 
@@ -94,20 +100,25 @@ namespace engone {
 		// when threaded app stops, it needs to notify main thread that things should happen.
 		
 		// where are default executions added to control?
-		for (Application* app : m_applications) {
-			app->getWindow(0)->getControl().addExecution(&app->getProfiler());
-			app->getProfiler().getGraph("update").color = {0,0,1,1};
-			app->getProfiler().getGraph("update").offsetY = -15;
-			app->getProfiler().getGraph("render").color = {1,0,0,1};
-			app->getProfiler().getGraph("render").offsetY = -5;
-		}
+		// for (Application* app : m_applications) {
+		// 	app->getWindow(0)->getControl().addExecution(&app->getProfiler());
+		// 	app->getProfiler().getGraph("update").color = {0,0,1,1};
+		// 	app->getProfiler().getGraph("update").offsetY = -15;
+		// 	app->getProfiler().getGraph("render").color = {1,0,0,1};
+		// 	app->getProfiler().getGraph("render").offsetY = -5;
+		// }
 		while (true) {
-			
-			manageThreading();
+			mainUpdateTimer.step();
+			// manageThreading();
+			if(mainUpdateTimer.accumulate()){
+				manageNonThreading();
+			}else{
+				float sleepy = mainUpdateTimer.aimedDelta-mainUpdateTimer.accumulator;
+				if(sleepy*1000>1)
+				Sleep(((int)(sleepy*1000))/1000.f);
+			}
 
-			manageNonThreading();
-
-			if (m_applications.size() == 0)
+			if (appInstances.size() == 0)
 				break;
 
 			// function seems to to processing of all inputs and stuff
@@ -116,9 +127,10 @@ namespace engone {
 			glfwPollEvents(); // window refreh callback to redraw when resizing?
 
 			// sleep a bit if little work was done
-			const float limit = mainUpdateTimer.aimedDelta / 8;
-			if(mainUpdateTimer.delta < limit)
-				engone::Sleep(limit*2);
+			// const float limit = mainUpdateTimer.aimedDelta / 8;
+			// if(mainUpdateTimer.delta < limit)
+				// engone::Sleep(limit*2);
+			// engone::Sleep(0.05);
 		}
 
 		// Filters don't work with multithreading
@@ -150,144 +162,259 @@ namespace engone {
 	}
 	uint32 RunWindow(void* arg){
 		Window* win = (Window*)arg;
-		Application* app = win->getParent();
-		while (app->isMultiThreaded()) {
-			win->getExecTimer().step();
-			LoopInfo info;
-			info.app = app;
-			info.window = win;
-			info.timeStep = win->getExecTimer().aimedDelta;
+		// Application* app = win->getParent();
+		// while (app->isMultiThreaded()) {
+		// 	win->getExecTimer().step();
+		// 	LoopInfo info;
+		// 	info.app = app;
+		// 	info.window = win;
+		// 	info.timeStep = win->getExecTimer().aimedDelta;
 
-			//while (win->getExecTimer().accumulate()) {
-			win->getControl().execute(info, ExecutionControl::RENDER);
+		// 	//while (win->getExecTimer().accumulate()) {
+		// 	win->getControl().execute(info, ExecutionControl::RENDER);
 
-			// In case execute takes 0 seconds the thread should sleep for a little bit
-			// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-			engone::Sleep(1/120.f);
-		}
+		// 	// In case execute takes 0 seconds the thread should sleep for a little bit
+		// 	// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+		// 	engone::Sleep(1/120.f);
+		// }
 		return (uint32)0;
 	}
 	uint32 RunApplication(void* arg){
-		Application* app = (Application*)arg;
-		while (app->isMultiThreaded()) {
-			// keep looping as long as the app has threading active.
-			// Todo: isThreaded && isWindowActive
-			app->getExecTimer().step();
-			LoopInfo info;
-			info.app = app;
-			info.window = app->getWindow(0);
-			info.timeStep = app->getExecTimer().aimedDelta;
+		// Application* app = (Application*)arg;
+		// while (app->isMultiThreaded()) {
+		// 	// keep looping as long as the app has threading active.
+		// 	// Todo: isThreaded && isWindowActive
+		// 	app->getExecTimer().step();
+		// 	LoopInfo info;
+		// 	info.app = app;
+		// 	info.window = app->getWindow(0);
+		// 	info.timeStep = app->getExecTimer().aimedDelta;
 
-			while (app->getExecTimer().accumulate()) {
-				app->getControl().execute(info, ExecutionControl::UPDATE);
-			}
-			// In case execute takes 0 seconds the thread should sleep for a little bit
-			// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-			engone::Sleep(1/120.f);
-		}
+		// 	while (app->getExecTimer().accumulate()) {
+		// 		app->getControl().execute(info, ExecutionControl::UPDATE);
+		// 	}
+		// 	// In case execute takes 0 seconds the thread should sleep for a little bit
+		// 	// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+		// 	engone::Sleep(1/120.f);
+		// }
 		return 0;
 	}
-	void Engone::manageThreading() {
-		for (Application* app : m_applications) {
-			if (app->isMultiThreaded()) { // is supposed to be multithreaded
-				if (!app->updateThread.isActive()) {
-					app->updateThread.init(RunApplication,app);
-					// app->updateThread.init([&](void* arg) {
-					// 	while (app->isMultiThreaded()) {
-					// 		app->getExecTimer().step();
-					// 		LoopInfo info;
-					// 		info.app = app;
-					// 		info.window = app->getWindow(0);
-					// 		info.timeStep = app->getExecTimer().aimedDelta;
+	// void Engone::manageThreading() {
+	// 	for (Application* app : m_applications) {
+	// 		if (app->isMultiThreaded()) { // is supposed to be multithreaded
+	// 			if (!app->updateThread.isActive()) {
+	// 				app->updateThread.init(RunApplication,app);
+	// 				// app->updateThread.init([&](void* arg) {
+	// 				// 	while (app->isMultiThreaded()) {
+	// 				// 		app->getExecTimer().step();
+	// 				// 		LoopInfo info;
+	// 				// 		info.app = app;
+	// 				// 		info.window = app->getWindow(0);
+	// 				// 		info.timeStep = app->getExecTimer().aimedDelta;
 
-					// 		while (app->getExecTimer().accumulate()) {
-					// 			app->getControl().execute(info, ExecutionControl::UPDATE);
-					// 		}
-					// 		// In case execute takes 0 seconds the thread should sleep for a little bit
-					// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-					// 		engone::Sleep(1/120.f);
-					// 	}
-					// 	return 0;
-					// }, nullptr);
-				}
+	// 				// 		while (app->getExecTimer().accumulate()) {
+	// 				// 			app->getControl().execute(info, ExecutionControl::UPDATE);
+	// 				// 		}
+	// 				// 		// In case execute takes 0 seconds the thread should sleep for a little bit
+	// 				// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+	// 				// 		engone::Sleep(1/120.f);
+	// 				// 	}
+	// 				// 	return 0;
+	// 				// }, nullptr);
+	// 			}
 
-				for (Window* win : app->getAttachedWindows()) {
-					if (!win->renderThread.isActive()) {
-						win->renderThread.init(RunWindow,win);
-						// win->renderThread.init([&](void* arg) {
-						// 	while (app->isMultiThreaded()) {
-						// 		win->getExecTimer().step();
-						// 		LoopInfo info;
-						// 		info.app = app;
-						// 		info.window = win;
-						// 		info.timeStep = win->getExecTimer().aimedDelta;
+	// 			for (Window* win : app->getAttachedWindows()) {
+	// 				if (!win->renderThread.isActive()) {
+	// 					win->renderThread.init(RunWindow,win);
+	// 					// win->renderThread.init([&](void* arg) {
+	// 					// 	while (app->isMultiThreaded()) {
+	// 					// 		win->getExecTimer().step();
+	// 					// 		LoopInfo info;
+	// 					// 		info.app = app;
+	// 					// 		info.window = win;
+	// 					// 		info.timeStep = win->getExecTimer().aimedDelta;
 
-						// 		//while (win->getExecTimer().accumulate()) {
-						// 		win->getControl().execute(info, ExecutionControl::RENDER);
+	// 					// 		//while (win->getExecTimer().accumulate()) {
+	// 					// 		win->getControl().execute(info, ExecutionControl::RENDER);
 
-						// 		// In case execute takes 0 seconds the thread should sleep for a little bit
-						// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
-						// 		engone::Sleep(1/120.f);
-						// 	}
-						// 	return (uint32)0;
-						// }, nullptr);
-					}
-				}
-			}
-		}
+	// 					// 		// In case execute takes 0 seconds the thread should sleep for a little bit
+	// 					// 		// to ease the strain on the CPU. CPU going full throttle while just looping is unnecessary.
+	// 					// 		engone::Sleep(1/120.f);
+	// 					// 	}
+	// 					// 	return (uint32)0;
+	// 					// }, nullptr);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+	int Engone::addLibrary(const char* dllPath, const char* pdbPath){
+		libraries.push_back({});
+		int id = libraries.size();
+		
+		// Todo: handle duplicates?
+		libraries.back().dllPath = dllPath;
+		libraries.back().pdbPath = pdbPath;
+		
+		return id;
 	}
 	void Engone::manageNonThreading() {
 		//-- Timers and stuff
-		mainUpdateTimer.step(); // replace with one step for both? they can become unsynchrized otherwise
-		mainRenderTimer.step();
+		// mainUpdateTimer.step(); // replace with one step for both? they can become unsynchrized otherwise
+		// mainRenderTimer.step();
+		currentLoopInfo = {};
+		currentLoopInfo.engone = this;
+		currentLoopInfo.timeStep = mainUpdateTimer.aimedDelta;
+		currentLoopInfo.interpolation = 1; // needed when using interpolation?
+
+		codeReloadTime+=currentLoopInfo.timeStep;
+		const float reloadDelay=1;
+		if(codeReloadTime>reloadDelay){
+			// log::out << "time: "<<codeReloadTime<<"\n";
+			codeReloadTime -= reloadDelay;
+			
+			for(int i = 0;i<libraries.size();i++){
+				auto& lib = libraries[i];
+				int id = i+1;
+				double seconds=0;
+				bool yes = FileLastWriteSeconds(lib.dllPath,&seconds);
+				if(yes){
+					if(seconds>lib.lastModified){
+						lib.lastModified=seconds;
+						if(lib.libraryReference)
+							UnloadDynamicLibrary(lib.libraryReference);
+						for(auto app : appInstances){
+							if(app->libraryId==id){
+								app->initProc = 0;	
+								app->preUpdateProc = 0;	
+								app->postUpdateProc = 0;
+							}
+						}
+						
+						std::string dllTemp = lib.dllPath;
+						// int ind = dllTemp.find_last_of(".");
+						// if(ind==std::string::npos) ind = dllTemp.size();
+						// dllTemp.insert(ind,"_");
+						
+						std::string pdbTemp = lib.dllPath;
+						// ind = pdbTemp.find_last_of(".");
+						// if(ind==std::string::npos) ind = pdbTemp.size();
+						// pdbTemp.insert(ind,"_");
+						
+						// FileCopy(lib.dllPath,dllTemp.c_str());
+						// FileCopy(lib.pdbPath,pdbTemp.c_str());
+						// Todo: check if copy failed
+						
+						void* newLib = LoadDynamicLibrary(dllTemp.c_str());
+						if(!newLib){
+							lib.libraryReference = 0;
+							log::out << log::RED << "Engone : Cannot load '"<<lib.dllPath<<"'\n";	
+						}else{
+							if(lib.libraryReference) log::out << "Reloaded '"<<lib.dllPath<<"'\n";
+							else log::out << "Loaded '"<<lib.dllPath<<"'\n";
+							lib.libraryReference = newLib;
+							
+							InitProc initProc = (InitProc)GetFunctionPointer(lib.libraryReference, "GameInit");
+							UpdateProc preUpdateProc = (UpdateProc)GetFunctionPointer(lib.libraryReference, "GamePreUpdate");
+							UpdateProc postUpdateProc = (UpdateProc)GetFunctionPointer(lib.libraryReference, "GamePostUpdate");
+							// Todo: check function pointers for null
+							
+							for(auto app : appInstances){
+								if(app->libraryId==id){
+									app->initProc = initProc;
+									app->preUpdateProc = preUpdateProc;
+									app->postUpdateProc = postUpdateProc;
+									
+									initProc(this,app,0); // reload
+								}
+							}
+						}
+					}
+				}else{
+					// static bool wasbad=false;
+					// if(!wasbad)
+						log::out << log::RED<< "Engone : Library has invalid path '"<<lib.dllPath<<"'\n";
+					// wasbad=true;
+				}
+			}
+		}
 
 		//-- Update execution
-		bool once = false;
-		while (mainUpdateTimer.accumulate()) {
-			once = true;
+		for(Window* win : windows){
+			if(!win->getStorage()->getIOProcessors().empty())
+				win->getStorage()->getIOProcessors()[0]->process();
+			if(!win->getStorage()->getDataProcessors().empty())
+				win->getStorage()->getDataProcessors()[0]->process();
+			win->runListeners();
+		}
+		// log::out << "Update\n";
+		// while (mainUpdateTimer.accumulate()) {
 			//printf("update\n");
-			for (Application* app : m_applications) {
-				if (app->isMultiThreaded())
-					continue;
-				if (app->getWindow(0))
-					app->getWindow(0)->setActiveContext();
-				app->getProfiler().getGraph("update").plot(GetSystemTime());
+			for(AppInstance* app : appInstances){
+			// for (Application* app : m_applications) {
+				// if (app->isMultiThreaded())
+				// 	continue;
+				// if (app->getWindow(0))
+				// 	app->getWindow(0)->setActiveContext();
+				// app->getProfiler().getGraph("update").plot(GetSystemTime());
+				
+				currentLoopInfo.instance = app;
 
-				currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
-				//currentLoopInfo = { mainUpdateTimer.aimedDelta ,app,app->getWindow(0),0 };
-				//currentLoopInfo = { mainUpdateTimer.aimedDelta * m_runtimeStats.gameSpeed,app,app->getWindow(0),0 };
-					
-				for (Window* win : app->getAttachedWindows()) {
-					// should be changed, storage should use a thread pool, a set of asset tasks to do. (seperate from TaskHandler...)
-					if(!win->getStorage()->getIOProcessors().empty())
-						win->getStorage()->getIOProcessors()[0]->process();
-					if(!win->getStorage()->getDataProcessors().empty())
-						win->getStorage()->getDataProcessors()[0]->process();
+				if(app->preUpdateProc){
+					app->preUpdateProc(&currentLoopInfo);
+				}else{
+					static bool badproc=false;
+					if(!badproc)
+						logger<<log::RED<<"Engone : Bad pre update procedure\n";
+					badproc=true;
 				}
-
-				app->update(currentLoopInfo);
+				
 
 				// physics should be done last to make sure that the position of newly created objects have been simulated.
 				// not simulating objects causes the renderer to render objects at (0,0,0) but next frame they would be rendered at the correct location
 				// causing a visible teleportation.
-				update(currentLoopInfo);
+				// update(currentLoopInfo);
 
-				app->getProfiler().getSampler(app).increment();
-				app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
+				// app->getProfiler().getSampler(app).increment();
+				// app->getControl().execute(currentLoopInfo, ExecutionControl::UPDATE);
 
-				for (uint32_t winIndex = 0; winIndex < app->getAttachedWindows().size(); ++winIndex) {
-					app->getWindow(winIndex)->resetEvents(false);
+			}
+			for (EngineWorld* world : worlds) {
+				world->update(currentLoopInfo);
+			}
+			for(AppInstance* app : appInstances){
+				currentLoopInfo.instance = app;
+				
+				if(app->postUpdateProc){
+					app->postUpdateProc(&currentLoopInfo);
+				}else{
+					static bool badproc2=false;
+					if(!badproc2)
+						logger<<log::RED<<"Engone : Bad post update procedure\n";
+					badproc2=true;
 				}
 			}
-		}
-		if (!once) {
-			//log::out << "skipped\n";
-		}
-		for (Application* app : m_applications) {
-			if (!app->isMultiThreaded()) {
-				app->getProfiler().getSampler(app).next(mainUpdateTimer.delta);
+			for(Window* win : windows){
+				win->resetEvents(false);
+			}
+		// }
+		
+		for(AppInstance* app : removeApps){
+			for(int i=0;i<appInstances.size();i++){
+				if(app==appInstances[i]){
+					appInstances.erase(appInstances.begin()+i);
+					i--;
+					break;
+				}	
 			}
 		}
+		removeApps.clear();
+		
+		// for (Application* app : m_applications) {
+		// 	if (!app->isMultiThreaded()) {
+		// 		app->getProfiler().getSampler(app).next(mainUpdateTimer.delta);
+		// 	}
+		// }
 		//-- Render execution
 		//if (mainRenderTimer.accumulate()) {
 			//log::out << "RENDER\n";
@@ -295,64 +422,69 @@ namespace engone {
 		// log::out << "Time "<<mainUpdateTimer.runtime<<"\n";
 		renderApps();
 		//}
-		for (Application* app : m_applications) {
-			if (!app->isMultiThreaded()) {
-				for (Window* win : app->getAttachedWindows()) {
-					app->getProfiler().getSampler(win).next(mainRenderTimer.delta);
-					win->runListeners();
-				}
-			}
-		}
+		
+		// for (Application* app : m_applications) {
+		// 	if (!app->isMultiThreaded()) {
+		// 		for (Window* win : app->getAttachedWindows()) {
+		// 			app->getProfiler().getSampler(win).next(mainRenderTimer.delta);
+		// 			win->runListeners();
+		// 		}
+		// 	}
+		// }
 
 		//-- delete applications
-		for (int i = 0; i < m_applications.size(); i++) {
-			Application* app = m_applications[i];
-			for (int j = 0; j < app->getAttachedWindows().size(); j++) {
-				Window* win = app->getAttachedWindows()[j];
-				if (win->isOpen()) continue;
+		// for (int i = 0; i < m_applications.size(); i++) {
+		// 	Application* app = m_applications[i];
+		// 	for (int j = 0; j < app->getAttachedWindows().size(); j++) {
+		// 		Window* win = app->getAttachedWindows()[j];
+		// 		if (win->isOpen()) continue;
 				
-				// GetTracker().track(win);
-				ALLOC_DELETE(Window,win);
-				app->getAttachedWindows().erase(app->getAttachedWindows().begin() + j);
-				j--;
-			}
-			// app->stop() has to be called for app to be destroyed.
-			// A common approach is to call stop in the app's overrided onClose function
-			if (app->isStopped()) {
-				// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
-				// app should be safe to delete
-				// GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
+		// 		// GetTracker().track(win);
+		// 		ALLOC_DELETE(Window,win);
+		// 		app->getAttachedWindows().erase(app->getAttachedWindows().begin() + j);
+		// 		j--;
+		// 	}
+		// 	// app->stop() has to be called for app to be destroyed.
+		// 	// A common approach is to call stop in the app's overrided onClose function
+		// 	if (app->isStopped()) {
+		// 		// if you store any vertex buffers in the application they should have been destroyed by the window. (since the window destroys the context they were on)
+		// 		// app should be safe to delete
+		// 		// GetTracker().untrack({ m_appIds[i],m_appSizes[i],app });
 				 
-				// crashes if allocated with new
-				//ALLOC_DELETE(Application, app);
-				app->~Application();
+		// 		// crashes if allocated with new
+		// 		//ALLOC_DELETE(Application, app);
+		// 		app->~Application();
 
-				m_applications.erase(m_applications.begin() + i);
-				m_appSizes.erase(m_appSizes.begin() + i);
-				// m_appIds.erase(m_appIds.begin() + i);
-				i--;
-			}
-		}
+		// 		m_applications.erase(m_applications.begin() + i);
+		// 		m_appSizes.erase(m_appSizes.begin() + i);
+		// 		// m_appIds.erase(m_appIds.begin() + i);
+		// 		i--;
+		// 	}
+		// }
 	}
 	void Engone::renderApps(){
-		for (Application* app : m_applications) {
-			if (app->isMultiThreaded())
-				continue;
-			app->m_renderingWindows = true;
-			for (Window* win : app->getAttachedWindows()) {
+		// for (AppInstance* app : appInstances) {
+			// if (app->isMultiThreaded())
+			// 	continue;
+			// app->m_renderingWindows = true;
+			currentLoopInfo = { };
+			currentLoopInfo.engone = this;
+			currentLoopInfo.timeStep = mainRenderTimer.delta;
+			double interpolation = mainUpdateTimer.accumulator / mainUpdateTimer.aimedDelta; // Note: update accumulator should be there.
+			if(getFlags()&EngoneShowHitboxes)
+				interpolation = 1; // Hitboxes cannot be interpolated, the latest transform must be used
+			currentLoopInfo.interpolation = interpolation;
+			currentLoopInfo.interpolation = 1;
+			for (Window* win : windows) {
 				if (!win->isOpen()) continue;
 
-				double interpolation = mainUpdateTimer.accumulator / mainUpdateTimer.aimedDelta; // Note: update accumulator should be there.
-				if(getFlags()&EngoneShowHitboxes)
-					interpolation = 1;
-				//currentLoopInfo = { m_runtimeStats.frameTime * m_runtimeStats.gameSpeed,app,win,interpolation };
 				// Todo: Will delta still be a good value when rendering on window resize? Fix it if not.
-				currentLoopInfo = { mainRenderTimer.delta,app,win,interpolation};
+				currentLoopInfo.window = win;
 				//currentLoopInfo = { mainRenderTimer.aimedDelta,app,win,interpolation};
 				// uses aimedDelta for now since we do if(...accumulate) which would ignore the other delta stuff
 
 				win->setActiveContext();
-				app->getProfiler().getGraph("render").plot(GetSystemTime());
+				// app->getProfiler().getGraph("render").plot(GetSystemTime());
 
 				if (!win->getStorage()->getGraphicProcessors().empty()) {
 					win->getStorage()->getGraphicProcessors()[0]->process();
@@ -369,34 +501,33 @@ namespace engone {
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				// 3d stuff
-				app->render(currentLoopInfo);
+				// app->render(currentLoopInfo);
 
 				render(currentLoopInfo);
 
-				app->getProfiler().getSampler(win).increment();
-				win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
+				// app->getProfiler().getSampler(win).increment();
+				// win->getControl().execute(currentLoopInfo, ExecutionControl::RENDER);
 
 				// orthogonal was set before hand
 				win->getCommonRenderer()->render(currentLoopInfo);
 				win->getUIRenderer()->render(currentLoopInfo);
+				win->uiModule.render(currentLoopInfo.window->getWidth(),currentLoopInfo.window->getHeight());
 				
 				// static UIModule uiModule{};
 				// TestUIMaintain(uiModule);
 				// uiModule.render(currentLoopInfo.window->getWidth(),currentLoopInfo.window->getHeight());
 
 				glfwSwapInterval(0); // turning off vsync?
-				//Timer swapT("glSwapBuffers");
 				glfwSwapBuffers(win->glfw());
-				//swapT.stop();
 				// frame reset
-				win->resetEvents(true);
+				// win->resetEvents(true);
 				char endChr;
 				while (endChr = win->pollChar()) {
 					//log::out << "endpoll " << endChr << "\n";
 				}
 			}
-			app->m_renderingWindows = false;
-		}
+			// app->m_renderingWindows = false;
+		// }
 	}
 	//FrameBuffer depthBuffer;
 	//glm::mat4 lightProjection;
@@ -404,77 +535,56 @@ namespace engone {
 	//	return depthBuffer;
 	//}
 
-	EventType DrawOnResize(Event& e) {
-		//glViewport(0, 0, Width(), Height());
-		//glClearColor(1, 0, 0, 1);
-		//glClear(GL_COLOR_BUFFER_BIT);
-		//UpdateEngine(1 / 40.f);
-		// 
-		// maybe using refresh rate instead?
-		//update(1 / 40.f);
-		//RenderEngine(0);
-		//render(0);
-
-		//glfwSwapBuffers(GetActiveWindow()->glfw());
-
-		return EventNone;
-	}
-	void Engone::update(LoopInfo& info) {
-		for (int i = 0; i < info.app->m_worlds.size(); i++) {
-			EngineWorld* world = info.app->m_worlds[i];
-			world->update(info);
-		}
-	}
 	float testTime = 0;
 	void Engone::render(LoopInfo& info) {
 		//test::TestParticles(info);
 		EnableDepth();
 		//if (IsKeyDown(GLFW_KEY_K)) {
-		ShaderAsset* blur =  info.window->getStorage()->get<ShaderAsset>("blur");
-		blur = nullptr;
-		if (blur) {
-			float detail = 1 / 3.f;
-			//float detail = 1;
-			glViewport(0, 0, info.window->getWidth() * detail, info.window->getHeight() * detail);
-			if (!frameBuffer.initialized()) {
-				frameBuffer.initBlur(info.window->getWidth() * detail, info.window->getHeight() * detail);
-			}
-			frameBuffer.bind();
-			glClearColor(0, 0, 0, 1);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			////}
-				//glEnable(GL_POINT_SMOOTH);
-		}
-		else {
-		}
+		// ShaderAsset* blur =  info.window->getStorage()->get<ShaderAsset>("blur");
+		// blur = nullptr;
+		// if (blur) {
+		// 	float detail = 1 / 3.f;
+		// 	//float detail = 1;
+		// 	glViewport(0, 0, info.window->getWidth() * detail, info.window->getHeight() * detail);
+		// 	if (!frameBuffer.initialized()) {
+		// 		frameBuffer.initBlur(info.window->getWidth() * detail, info.window->getHeight() * detail);
+		// 	}
+		// 	frameBuffer.bind();
+		// 	glClearColor(0, 0, 0, 1);
+		// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// 	////}
+		// 		//glEnable(GL_POINT_SMOOTH);
+		// }
+		// else {
+		// }
 		//GL_CHECK()
 		//EnableBlend(); <- done in particle render
-		for (int i = 0; i < info.app->m_worlds.size(); i++) {
-			Array& groups = info.app->m_worlds[i]->getParticleGroups();
-			for (int i = 0; i < groups.size(); i++) {
-				((ParticleGroupT*)groups.get(i))->render(info);
-			}
-		}
+		// for (int i = 0; i < info.app->m_worlds.size(); i++) {
+		// 	Array& groups = info.app->m_worlds[i]->getParticleGroups();
+		// 	for (int i = 0; i < groups.size(); i++) {
+		// 		((ParticleGroupT*)groups.get(i))->render(info);
+		// 	}
+		// }
 		//EnableDepth();
-		if (blur) {
-			//glDisable(GL_POINT_SMOOTH);
-			//if (IsKeyDown(GLFW_KEY_K)) {
-			frameBuffer.unbind();
-			glViewport(0, 0, info.window->getWidth(), info.window->getHeight());
-			//
-			//Shader* blur = info.window->getAssets()->get<Shader>("blur");
-			ShaderAsset* blur = info.window->getStorage()->get<ShaderAsset>("blur");
-			blur->bind();
-			blur->setInt("uTexture", 0);
-			blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
-			frameBuffer.bindTexture();
-			glDisable(GL_DEPTH_TEST); // these depend on what you want, don't disable if you use fragdepth
-			CommonRenderer* renderer = info.window->getCommonRenderer();
-			renderer->drawQuad(info);
+		// if (blur) {
+		// 	//glDisable(GL_POINT_SMOOTH);
+		// 	//if (IsKeyDown(GLFW_KEY_K)) {
+		// 	frameBuffer.unbind();
+		// 	glViewport(0, 0, info.window->getWidth(), info.window->getHeight());
+		// 	//
+		// 	//Shader* blur = info.window->getAssets()->get<Shader>("blur");
+		// 	ShaderAsset* blur = info.window->getStorage()->get<ShaderAsset>("blur");
+		// 	blur->bind();
+		// 	blur->setInt("uTexture", 0);
+		// 	blur->setVec2("uInvTextureSize", { 1.f / frameBuffer.getWidth(), 1.f / frameBuffer.getHeight() });
+		// 	frameBuffer.bindTexture();
+		// 	glDisable(GL_DEPTH_TEST); // these depend on what you want, don't disable if you use fragdepth
+		// 	CommonRenderer* renderer = info.window->getCommonRenderer();
+		// 	renderer->drawQuad(info);
 
-			//EnableDepth();
-			frameBuffer.blitDepth(info.window->getWidth(), info.window->getHeight()); // not this if frag depth
-		}
+		// 	//EnableDepth();
+		// 	frameBuffer.blitDepth(info.window->getWidth(), info.window->getHeight()); // not this if frag depth
+		// }
 		EnableDepth();
 		//}
 		//glm::mat4 lightView = glm::lookAt({ -2,4,-1 }, glm::vec3(0), { 0,1,0 });
@@ -554,10 +664,10 @@ namespace engone {
 			// Physics debug
 #ifdef ENGONE_PHYSICS
 			if (getFlags() & EngoneShowHitboxes) {
-				for (int i = 0; i < info.app->m_worlds.size(); i++) {
-					rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+				for (EngineWorld* w : worlds) {
+					rp3d::PhysicsWorld* world = w->getPhysicsWorld();
 					if (!world) continue;
-					info.app->m_worlds[i]->lockPhysics();
+					// info.app->m_worlds[i]->lockPhysics();
 					world->setIsDebugRenderingEnabled(true);
 
 					rp3d::DebugRenderer& debugRenderer = world->getDebugRenderer();
@@ -577,14 +687,14 @@ namespace engone {
 						auto& tri = debugRenderer.getTrianglesArray()[i];
 						renderer->drawTriangle(*(glm::vec3*)&tri.point1, *(glm::vec3*)&tri.point2, *(glm::vec3*)&tri.point3);
 					}
-					info.app->m_worlds[i]->unlockPhysics();
+					// info.app->m_worlds[i]->unlockPhysics();
 				}
 			} else {
-				for (int i = 0; i < info.app->m_worlds.size(); i++) {
-					info.app->m_worlds[i]->lockPhysics();
-					rp3d::PhysicsWorld* world = info.app->m_worlds[i]->getPhysicsWorld();
+				for (EngineWorld* w : worlds) {
+					// info.app->m_worlds[i]->lockPhysics();
+					rp3d::PhysicsWorld* world = w->getPhysicsWorld();
 					world->setIsDebugRenderingEnabled(false);
-					info.app->m_worlds[i]->unlockPhysics();
+					// info.app->m_worlds[i]->unlockPhysics();
 				}
 			}
 #endif
@@ -610,7 +720,7 @@ namespace engone {
 		}
 #ifdef ENGONE_PHYSICS
 		std::unordered_map<MeshAsset*, std::vector<glm::mat4>> normalObjects;
-		for (EngineWorld* world : info.app->m_worlds) {
+		for (EngineWorld* world : worlds) {
 
 			EngineObjectIterator iterator = world->createIterator();
 			EngineObject* obj = 0;
@@ -707,7 +817,7 @@ namespace engone {
 			shader->bind();
 			renderer->updatePerspective(shader);
 			shader->setVec3("uCamera", camera->getPosition());
-			for (EngineWorld* world : info.app->m_worlds) {
+			for (EngineWorld* world : worlds) {
 				//world->lock();
 
 				EngineObjectIterator iterator = world->createIterator();
@@ -904,5 +1014,14 @@ namespace engone {
 			}
 			shader->setIVec3("uLightCount", lightCount);
 		}
+	}
+	
+	void SetupStaticVariables(Engone* engone){
+		SetGameMemory(&engone->gameMemory);
+		log::out.setRealLogger(&engone->logger);	
+	}
+	void CleanupStaticVariables(){
+		SetGameMemory(0);
+		log::out.setRealLogger(0);
 	}
 }

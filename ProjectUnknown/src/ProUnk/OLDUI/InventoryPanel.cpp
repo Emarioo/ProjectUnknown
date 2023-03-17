@@ -11,7 +11,8 @@ namespace prounk {
 		using namespace engone;
 		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
-		Session* session = m_app->getActiveSession();
+		Session* session = 0;
+		// m_app->getActiveSession();
 		//EngineObject* object = m_app->playerController.getPlayerObject();
 
 		Inventory* inv = session->inventoryRegistry.getInventory(m_inventoryId);
@@ -115,33 +116,33 @@ namespace prounk {
 
 				if (MouseInsideSlot(pixelX, pixelY, slotSize)) {
 					hoveredSlot = i;
-					Item& heldItem = m_app->masterInventoryPanel->getItem();
-					if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-						if (heldItem.getType() == 0) {
-							item->transfer(heldItem);
-						} else {
-							bool yes = heldItem.transfer(*item);
-							if (!yes) {
-								heldItem.swap(*item);
-							}
-						}
-					}
-					if (IsKeyPressed(GLFW_MOUSE_BUTTON_2)) {
-						if (heldItem.getType() == 0) {
-							item->transfer(heldItem, item->getCount() / 2);
-						} else {
-							int transferAmount = 1;
-							if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
-								transferAmount = 100;
-							} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
-								transferAmount = 10;
-								//heldItem.transfer(item, ceil(heldItem.getCount() / 2.f)); // ceil here is important
-							}
-							if (transferAmount > heldItem.getCount())
-								transferAmount = heldItem.getCount();
-							heldItem.transfer(*item, transferAmount);
-						}
-					}
+					// Item& heldItem = m_app->masterInventoryPanel->getItem();
+					// if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
+					// 	if (heldItem.getType() == 0) {
+					// 		item->transfer(heldItem);
+					// 	} else {
+					// 		bool yes = heldItem.transfer(*item);
+					// 		if (!yes) {
+					// 			heldItem.swap(*item);
+					// 		}
+					// 	}
+					// }
+					// if (IsKeyPressed(GLFW_MOUSE_BUTTON_2)) {
+					// 	if (heldItem.getType() == 0) {
+					// 		item->transfer(heldItem, item->getCount() / 2);
+					// 	} else {
+					// 		int transferAmount = 1;
+					// 		if (IsKeyDown(GLFW_KEY_LEFT_CONTROL)) {
+					// 			transferAmount = 100;
+					// 		} else if (IsKeyDown(GLFW_KEY_LEFT_SHIFT)) {
+					// 			transferAmount = 10;
+					// 			//heldItem.transfer(item, ceil(heldItem.getCount() / 2.f)); // ceil here is important
+					// 		}
+					// 		if (transferAmount > heldItem.getCount())
+					// 			transferAmount = heldItem.getCount();
+					// 		heldItem.transfer(*item, transferAmount);
+					// 	}
+					// }
 				}
 
 				DrawSlot(pixelX, pixelY, slotSize);
@@ -164,9 +165,9 @@ namespace prounk {
 			}
 
 			const char* keepStr = "KeepInv (active)";
-			if (!m_app->playerController.keepInventory) {
-				keepStr = "KeepInv (inactive)";
-			}
+			// if (!m_app->playerController.keepInventory) {
+			// 	keepStr = "KeepInv (inactive)";
+			// }
 			ui::TextBox keepText = { keepStr,0,0,20,consolas,{1.f} };
 			ui::Box keepBox = { 0,0,0,0,{0.f,1.f} };
 			keepBox.w = keepText.getWidth();
@@ -177,7 +178,7 @@ namespace prounk {
 			keepText.y = keepBox.y;
 
 			if (ui::Clicked(keepBox) == 1) {
-				m_app->playerController.keepInventory = !m_app->playerController.keepInventory;
+				// m_app->playerController.keepInventory = !m_app->playerController.keepInventory;
 			}
 			ui::Draw(keepBox);
 			ui::Draw(keepText);

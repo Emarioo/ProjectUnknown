@@ -94,7 +94,7 @@ namespace engone{
         void insertUsedBlock(Block block);
         
     };
-    GameMemory& GetGameMemory();
+    GameMemory* GetGameMemory();
     void SetGameMemory(GameMemory* memory);
     void GameMemoryTest();
 }

@@ -17,7 +17,8 @@ namespace prounk {
 		const int BUFFER_SIZE = 50;
 		char str[BUFFER_SIZE];
 		int bufferSize = BUFFER_SIZE;
-		float sps = app->getActiveSession()->getNetworkStats().getBytesSentPerSecond();
+		float sps = 0;
+		// app->getActiveSession()->getNetworkStats().getBytesSentPerSecond();
 		int at = 0;
 		at += snprintf(str, bufferSize, "sending ");
 		//if (sps<1000) {
@@ -36,7 +37,8 @@ namespace prounk {
 		sent.y = 10;
 		ui::Draw(sent);
 		
-		float rps = app->getActiveSession()->getNetworkStats().getBytesReceivedPerSecond();
+		float rps = 0;
+		// app->getActiveSession()->getNetworkStats().getBytesReceivedPerSecond();
 		at = 0;
 		bufferSize = BUFFER_SIZE;
 		at += snprintf(str, bufferSize, "receiving ");

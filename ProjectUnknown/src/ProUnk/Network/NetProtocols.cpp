@@ -3,7 +3,7 @@
 
 #include "ProUnk/World/Session.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
 
 #include "ProUnk/Objects/BasicObjects.h"
 
@@ -381,7 +381,7 @@ namespace prounk {
 				// Todo: Could dealCombat be changed a bit to call a sub function which this code also calls to avoid code duplication?
 
 				// Todo: Change this to contact point instead of object.pos. Contact point should be added in NET_DAMAGE.
-				getSession()->getParent()->visualEffects.addDamageParticle(object->getPosition());
+				// getSession()->getParent()->visualEffects.addDamageParticle(object->getPosition());
 				obj.dim->getWorld()->releaseAccess(obj.uuid);
 			}
 		}

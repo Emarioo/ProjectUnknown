@@ -124,7 +124,7 @@ namespace engone {
 		const ui::Color normalColor = { 1.f,1.0f,1.0f,1.f };
 
 		std::string runStr = "Runtime ";
-		runStr += FormatTime(info.app->getRuntime(), true, FormatTimeH | FormatTimeM | FormatTimeS | FormatTimeMS);
+		// runStr += FormatTime(info.app->getRuntime(), true, FormatTimeH | FormatTimeM | FormatTimeS | FormatTimeMS);
 		ui::TextBox runtimeBox = { runStr, 0,0,20,consolas,normalColor };
 		runtimeBox.x = rightEdge - runtimeBox.getWidth();
 		runtimeBox.y = upEdge;
@@ -152,7 +152,7 @@ namespace engone {
 			}
 		}
 
-		snprintf(str, bufferSize, "%.2f (%.2fms, %.2f) UPS", info.app->getRealUPS(), 1000./info.app->getRealUPS(), info.app->getUPS());
+		// snprintf(str, bufferSize, "%.2f (%.2fms, %.2f) UPS", info.app->getRealUPS(), 1000./info.app->getRealUPS(), info.app->getUPS());
 		ui::TextBox upsBox = { str,0,0,20,consolas,normalColor };
 		upsBox.x = rightEdge - upsBox.getWidth();
 		upsBox.y = upEdge;
@@ -160,7 +160,7 @@ namespace engone {
 		if (ui::Hover(upsBox)) {
 			upsBox.rgba = highlighted;
 			if (scroll != 0) {
-				info.app->setUPS(info.app->getUPS() + scroll);
+				// info.app->setUPS(info.app->getUPS() + scroll);
 			}
 		}
 
@@ -277,7 +277,7 @@ namespace engone {
 			}
 		}
 		Window* win = GetActiveUIRenderer()->m_owner;
-		points[pushIndex] = time - win->getParent()->getEngine()->getUpdateTimer().startTime;
+		points[pushIndex] = time - win->getParent()->getUpdateTimer().startTime;
 		pushIndex = (pushIndex + 1) % MAX_POINTS;
 	}
 	void Profiler::renderGraph(LoopInfo& info, Graph& graph) {

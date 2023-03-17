@@ -70,8 +70,8 @@ namespace engone {
 	}
 	void ResetKey(int code) {
 		Window* win = GetActiveWindow();
-		if (win)
-			win->resetKey(code);
+		// if (win)
+		// 	win->resetKey(code);
 	}
 	bool IsKeybindingDown(uint16_t id) {
 		if (keybindings.count(id)) {

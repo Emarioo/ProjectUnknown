@@ -2,7 +2,7 @@
 
 #include "Engone/Window.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
 
 #include "ProUnk/Objects/BasicObjects.h"
 
@@ -106,7 +106,8 @@ namespace prounk {
 		}
 
 		//-- Creature names
-		Session* session = ((GameApp*)info.app)->getActiveSession();
+		Session* session = 0;
+		// ((GameApp*)info.app)->getActiveSession();
 		Dimension* dim = session->getDimension("0");
 		EngineWorld* world = dim->getWorld();
 

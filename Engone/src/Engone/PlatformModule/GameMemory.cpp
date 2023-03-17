@@ -21,17 +21,20 @@ namespace engone {
     #ifdef ENGONE_PHYSICS
     void* CustomAllocator::allocate(size_t size) {
         //printf("RP3D: ");
-        return GetGameMemory().allocate(size, false);
+        return GetGameMemory()->allocate(size, false);
     }
     void CustomAllocator::release(void* pointer, size_t size) {
         //printf("RP3D ");
-        GetGameMemory().free(pointer,false);
+        GetGameMemory()->free(pointer,false);
     }
     #endif
     bool GameMemory::init(void* baseAddress, uint64 bytes, bool noPhysics){
         if (baseAllocation)
             return true; // returns true since the memory is initialized
         mutex.lock();
+        if(!GetGameMemory()){
+            SetGameMemory(this);
+        }
         // baseAllocation = (void*)GigaBytes(1);
         // baseAllocation = (void*)MegaBytes(900);
         // maxSize = 500;
@@ -72,15 +75,15 @@ namespace engone {
         // It will be faster since it requires less bytes to write.
         
         //Block* emptyBlock = 0;
-        uint64 memory = GetGameMemory().getMaxMemory();
-        if (GetGameMemory().getUsedBlocks().size() != 0) {
-            Block& block = GetGameMemory().getUsedBlocks().back();
+        uint64 memory = getMaxMemory();
+        if (getUsedBlocks().size() != 0) {
+            Block& block = getUsedBlocks().back();
             memory = block.start + block.size;
         }
         
         log::out << "Saving game memory ("<<memory<<" bytes)... ";
         log::out.flush();
-        FileWrite(file, GetGameMemory().getBaseAdress(), memory);
+        FileWrite(file, getBaseAdress(), memory);
         log::out << "done\n";
         FileClose(file);
         return true;
@@ -95,7 +98,7 @@ namespace engone {
         // Check errors?
         log::out << "Loading game memory ("<<fileSize<<" bytes)... ";
         log::out.flush();
-        FileRead(file, GetGameMemory().getBaseAdress(), fileSize);
+        FileRead(file, getBaseAdress(), fileSize);
         log::out << "done\n";
         FileClose(file);
         return true;
@@ -399,16 +402,19 @@ namespace engone {
         // printf("\n");
     }
     static GameMemory* s_gameMemory=0;
-    GameMemory& GetGameMemory() {
-        if(!s_gameMemory){
-            s_gameMemory = ALLOC_NEW(GameMemory);
-            s_gameMemory->init((void*)GigaBytes(1000), MegaBytes(10),false);
-        }
-        return *s_gameMemory;
+    GameMemory* GetGameMemory() {
+        // if(!s_gameMemory){
+        //     s_gameMemory = ALLOC_NEW(GameMemory);
+        //     s_gameMemory->init((void*)GigaBytes(1000), MegaBytes(10),false);
+        // }
+        return s_gameMemory;
     }
     void SetGameMemory(GameMemory* memory){
         if(!s_gameMemory)
             s_gameMemory = memory;
+        else{
+            printf("SetGameMemory : Cannot overwrite global variable\n");   
+        }
     }
     void TestActions(GameMemory& mem, int count){
         for(int i=0;i<count;i++){
@@ -539,7 +545,7 @@ namespace engone {
         log::out << "Fails "<<fails<<", States "<<states<<"\n";
     }
     void SpecialTest(){
-        GameMemory& memory = GetGameMemory();
+        GameMemory& memory = *GetGameMemory();
         
         TestActions(memory,13);
         

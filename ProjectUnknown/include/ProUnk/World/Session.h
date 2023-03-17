@@ -8,7 +8,9 @@
 #include "ProUnk/Registries/ModelRegistry.h"
 
 #include "ProUnk/Network/NetProtocols.h"
-
+namespace engone {
+	class Engone;
+}
 namespace prounk {
 	
 	class ClientData {
@@ -44,7 +46,6 @@ namespace prounk {
 		float receivedPerSecond = 0;
 	};
 
-	class GameApp;
 	class Session 
 		: public NetProtocols 
 	{
@@ -54,7 +55,8 @@ namespace prounk {
 		static const char* DEFAULT_PORT;
 		static const char* DEFAULT_IP;
 
-		Session(GameApp* app);
+		// Session(GameApp* app);
+		Session(engone::Engone* engone);
 		~Session();
 		void cleanup();
 
@@ -75,9 +77,9 @@ namespace prounk {
 
 		std::vector<Dimension*>& getDimensions();
 
-		GameApp* getParent();
+		engone::Engone* getParent();
 
-		void update(engone::LoopInfo& info);
+		void update(engone::LoopInfo* info);
 
 
 		//engone::Mutex m_uuidMapMutex;
@@ -134,6 +136,6 @@ namespace prounk {
 
 		bool m_areMessagesEnabled = false;
 
-		GameApp* m_parent;
+		engone::Engone* m_parent;
 	};
 }

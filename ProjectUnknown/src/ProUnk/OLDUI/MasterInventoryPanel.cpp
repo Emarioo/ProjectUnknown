@@ -12,7 +12,8 @@ namespace prounk {
 		using namespace engone;
 		CommonRenderer* renderer =  info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
-		Session* session = m_app->getActiveSession();
+		Session* session = 0;
+		// m_app->getActiveSession();
 
 		if (!m_heldItem.getType())
 			return;

@@ -12,10 +12,12 @@ namespace prounk {
 		using namespace engone;
 		CommonRenderer* renderer = info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
-		PlayerController* playerController = &m_app->playerController;
+		// PlayerController* playerController = 0;
+		// &m_app->playerController;
 		FontAsset* consolas = info.window->getStorage()->get<FontAsset>("fonts/consolas42");
 
-		EngineObject* plr = playerController->requestPlayer();
+		EngineObject* plr = 0;
+		// playerController->requestPlayer();
 		CombatData* combatData = GetCombatData(plr);
 		
 		float health = 0;

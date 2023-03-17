@@ -1,6 +1,6 @@
 #include "Engone/Engone.h"
 #include "Engone/Application.h"
-
+#ifdef gone
 namespace engone {
 	// TrackerId Application::trackerId="Application";
 	void Application::stop() {
@@ -119,3 +119,4 @@ namespace engone {
 		return getEngine()->mainUpdateTimer.runtime;
 	}
 }
+#endif

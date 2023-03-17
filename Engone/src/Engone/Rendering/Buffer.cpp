@@ -1,6 +1,6 @@
 #include "Engone/Rendering/Buffer.h"
 #include "Engone/Logger.h"
- #define GLEW_STATIC
+
 #include <GL/glew.h>
 
 #include "Engone/Utilities/Alloc.h"

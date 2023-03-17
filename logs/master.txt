@@ -1,6 +1,7 @@
-[23:14:02] [Thread 15172] Failed loading: ../../../ProjectUnknown/assets/fonts/consolas42
-[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
-[23:14:02] [Thread 15172] EngineObject : Loaded no colliders
+[17:37:44] [Thread 10660] Engone : Bad pre update procedure
+[17:37:44] [Thread 10660] Engone : Bad post update procedure
+[17:37:45] [Thread 10660] Loaded 'D:\Backup\CodeProjects\ProjectUnknown\bin\GameCode.dll'
+
 [23:14:02] [Thread 15172] EngineObject : Loaded no colliders
 [23:14:02] [Thread 15172] EngineObject : Loaded no colliders
 [23:14:03] [Thread 15172] Load lib

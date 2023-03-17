@@ -1,6 +1,8 @@
 #include "ProUnk/Registries/ObjectInfoRegistry.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
+
+#include "ProUnk/World/Session.h"
 
 namespace prounk {
 
@@ -57,10 +59,10 @@ namespace prounk {
 		return (ObjectCreatureInfo*)m_creatureInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterCreatureInfo(uint32 dataIndex) {
-		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
 		auto oinfo = (ObjectCreatureInfo*)m_creatureInfos.get(dataIndex-1);
-		if (oinfo->inventoryDataIndex)
-			session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
+		// if (oinfo->inventoryDataIndex)
+			// session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);
 
 		m_creatureInfos.remove(dataIndex-1);
 	}
@@ -73,7 +75,7 @@ namespace prounk {
 		return (ObjectTriggerInfo*)m_triggerInfos.get(dataIndex - 1);
 	}
 	void ObjectInfoRegistry::unregisterTriggerInfo(uint32 dataIndex) {
-		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
 		auto oinfo = m_triggerInfos.get(dataIndex - 1);
 		//if (oinfo->inventoryDataIndex)
 		//	session->inventoryRegistry.destroyInventory(oinfo->inventoryDataIndex);

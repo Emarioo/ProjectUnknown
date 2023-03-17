@@ -6,50 +6,50 @@
 
 namespace prounk {
 	CheatPanel::CheatPanel(GameApp* app) : m_app(app) {
-		Session* sess = app->getActiveSession();
-		const ItemTypeInfo* sword = sess->itemTypeRegistry.getType("sword");
-		const ItemTypeInfo* dagger = sess->itemTypeRegistry.getType("dagger");
-		const ItemTypeInfo* spear = sess->itemTypeRegistry.getType("spear");
+		// Session* sess = app->getActiveSession();
+		// const ItemTypeInfo* sword = sess->itemTypeRegistry.getType("sword");
+		// const ItemTypeInfo* dagger = sess->itemTypeRegistry.getType("dagger");
+		// const ItemTypeInfo* spear = sess->itemTypeRegistry.getType("spear");
 
-		ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
-		ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
+		// ComplexPropertyType* atk = sess->complexDataRegistry.getProperty("atk");
+		// ComplexPropertyType* knock = sess->complexDataRegistry.getProperty("knock");
 
-		Item tmp = { sword,1 };
-		Item* item = 0;
-		availableItems.add(&tmp,(void**)&item);
-		//availableItems.push_back(Item(sword, 1));
-		//ComplexData* data = availableItems.back().getComplexData();
-		item->getComplexData()->set(atk,25.f);
-		item->getComplexData()->set(knock,0.2f);
+		// Item tmp = { sword,1 };
+		// Item* item = 0;
+		// availableItems.add(&tmp,(void**)&item);
+		// //availableItems.push_back(Item(sword, 1));
+		// //ComplexData* data = availableItems.back().getComplexData();
+		// item->getComplexData()->set(atk,25.f);
+		// item->getComplexData()->set(knock,0.2f);
 
-		Item* ditem = 0;
-		tmp = { dagger,1 };
-		availableItems.add(&tmp, (void**)&ditem);
-		//availableItems.push_back(Item(dagger, 1));
-		//data = availableItems.back().getComplexData();
-		item->getComplexData()->set(atk, 15);
-		item->getComplexData()->set(knock, 0.1f);
+		// Item* ditem = 0;
+		// tmp = { dagger,1 };
+		// availableItems.add(&tmp, (void**)&ditem);
+		// //availableItems.push_back(Item(dagger, 1));
+		// //data = availableItems.back().getComplexData();
+		// item->getComplexData()->set(atk, 15);
+		// item->getComplexData()->set(knock, 0.1f);
 
-		Item* sitem = 0;
-		tmp = { spear,1 };
-		availableItems.add(&tmp, (void**)&sitem);
+		// Item* sitem = 0;
+		// tmp = { spear,1 };
+		// availableItems.add(&tmp, (void**)&sitem);
 
-		Item* ehm = (Item*)availableItems.get(0);
+		// Item* ehm = (Item*)availableItems.get(0);
 
-		//availableItems.push_back(Item(spear, 1));
-		//data = availableItems.back().getComplexData();
-		item->getComplexData()->set(atk, 40.f);
-		item->getComplexData()->set(knock, 0.3f);
+		// //availableItems.push_back(Item(spear, 1));
+		// //data = availableItems.back().getComplexData();
+		// item->getComplexData()->set(atk, 40.f);
+		// item->getComplexData()->set(knock, 0.3f);
 	}
 	void CheatPanel::render(engone::LoopInfo& info) {
 		using namespace engone;
 		CommonRenderer* renderer = info.window->getCommonRenderer();
 		//Renderer* renderer = info.window->getRenderer();
-		Session* session = m_app->getActiveSession();
+		// Session* session = m_app->getActiveSession();
 
-		//EngineObject* object = m_app->playerController.getPlayerObject();
+		// //EngineObject* object = m_app->playerController.getPlayerObject();
 		
-		Inventory* inv = m_app->playerController.getInventory();
+		// Inventory* inv = m_app->playerController.getInventory();
 
 		ui::Box area = getBox();
 		area.rgba = { 0.4,0.5,0.6,1 };
@@ -107,14 +107,14 @@ namespace prounk {
 				hoveredItem = i;
 
 				if (IsKeyPressed(GLFW_MOUSE_BUTTON_1)) {
-					uint32_t slot = inv->findAvailableSlot(item);
-					if (slot != -1) {
-						bool yes = item->copy(*inv->getItem(slot));
-						if (yes) {
-							itemSlot = i;
-							animTime = maxAnimTime;
-						}
-					}
+					// uint32_t slot = inv->findAvailableSlot(item);
+					// if (slot != -1) {
+					// 	bool yes = item->copy(*inv->getItem(slot));
+					// 	if (yes) {
+					// 		itemSlot = i;
+					// 		animTime = maxAnimTime;
+					// 	}
+					// }
 				}
 			}
 		}

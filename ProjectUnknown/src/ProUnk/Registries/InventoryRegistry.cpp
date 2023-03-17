@@ -2,22 +2,22 @@
 
 // #include "Engone/Utilities/FileUtility.h"
 
-#include "ProUnk/GameApp.h"
+// #include "ProUnk/GameApp.h"
 
 namespace prounk {
 	
 	Item::Item(ItemType type, int count) : m_type(type), m_count(count) {
-		auto app = (GameApp*)engone::GetActiveWindow()->getParent();
-		if (!app->getActiveSession())
-			return;
-		auto session = app->getActiveSession();
-		auto info = session->itemTypeRegistry.getType(type);
+		// auto app = (GameApp*)engone::GetActiveWindow()->getParent();
+		// if (!app->getActiveSession())
+		// 	return;
+		// auto session = app->getActiveSession();
+		// auto info = session->itemTypeRegistry.getType(type);
 
-		if (!info)
-			return;
+		// if (!info)
+		// 	return;
 
-		m_displayName = info->displayName;
-		m_modelId = info->modelId;
+		// m_displayName = info->displayName;
+		// m_modelId = info->modelId;
 	}
 	Item::Item(const ItemTypeInfo* type, int count) : m_type(type->itemType), m_count(count) {
 		m_displayName = type->displayName;
@@ -26,17 +26,17 @@ namespace prounk {
 	ItemType Item::getType() { return m_type; }
 	void Item::setType(ItemType type) { 
 		m_type = type;
-		auto app = (GameApp*)engone::GetActiveWindow()->getParent();
-		if (!app->getActiveSession())
-			return;
-		auto session = app->getActiveSession();
+		// auto app = (GameApp*)engone::GetActiveWindow()->getParent();
+		// if (!app->getActiveSession())
+		// 	return;
+		// auto session = app->getActiveSession();
 
-		auto info = session->itemTypeRegistry.getType(type);
-		if (!info)
-			return;
+		// auto info = session->itemTypeRegistry.getType(type);
+		// if (!info)
+		// 	return;
 
-		m_displayName = info->displayName;
-		m_modelId = info->modelId;
+		// m_displayName = info->displayName;
+		// m_modelId = info->modelId;
 	}
 
 	const std::string& Item::getDisplayName() { return m_displayName; }
@@ -101,7 +101,7 @@ namespace prounk {
 			return false;
 
 		// maybe check max count in a stack too?
-		Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+		// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
 
 		if ((!getComplexData() && item.getComplexData()) ||
 			(getComplexData() && !item.getComplexData())) // if one item has complex data and the other hasn't
@@ -131,15 +131,15 @@ namespace prounk {
 			return false; // cannot transfer more than available
 
 		// Check max stack size and available space
-		auto type = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession()->itemTypeRegistry.getType(getType());
+		// auto type = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession()->itemTypeRegistry.getType(getType());
 		int transferAmount = count;
-		if (target.getType() == 0) {
-			if (count > type->maxStack)
-				transferAmount = type->maxStack;
-		} else {
-			if (count > type->maxStack-target.getCount())
-				transferAmount = type->maxStack - target.getCount();
-		}
+		// if (target.getType() == 0) {
+		// 	if (count > type->maxStack)
+		// 		transferAmount = type->maxStack;
+		// } else {
+		// 	if (count > type->maxStack-target.getCount())
+		// 		transferAmount = type->maxStack - target.getCount();
+		// }
 		if (transferAmount <= 0)
 			return false;
 
@@ -244,26 +244,26 @@ namespace prounk {
 			bool yes = item->sameAs(*target);
 			if (!yes) continue;
 
-			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			auto type = session->itemTypeRegistry.getType(target->getType());
+			// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+			// auto type = session->itemTypeRegistry.getType(target->getType());
 			
-			// int is used for a reason. I don't remember why.
-			// don't change it unless you know in which case you won't change since you know why...
-			int emptySpace = (int)type->maxStack - (int)target->getCount();
-			if (emptySpace <= 0) {
-				continue;
-			}
+			// // int is used for a reason. I don't remember why.
+			// // don't change it unless you know in which case you won't change since you know why...
+			// int emptySpace = (int)type->maxStack - (int)target->getCount();
+			// if (emptySpace <= 0) {
+			// 	continue;
+			// }
 
-			if (item->getCount() > emptySpace) {
-				target->setCount(target->getCount() + emptySpace);
-				transferAmount += emptySpace;
-				item->setCount(item->getCount() - emptySpace);
-			} else {
-				target->setCount(target->getCount() + item->getCount());
-				transferAmount += item->getCount();
-				item->setCount(0);
-				return transferAmount;
-			}
+			// if (item->getCount() > emptySpace) {
+			// 	target->setCount(target->getCount() + emptySpace);
+			// 	transferAmount += emptySpace;
+			// 	item->setCount(item->getCount() - emptySpace);
+			// } else {
+			// 	target->setCount(target->getCount() + item->getCount());
+			// 	transferAmount += item->getCount();
+			// 	item->setCount(0);
+			// 	return transferAmount;
+			// }
 		}
 
 		// find empty slots and fill them
@@ -273,18 +273,18 @@ namespace prounk {
 			if (target->getType() == 0) {
 				item->copy(*target,0); // could do target = item if just one stack of items are transferred successfully.
 
-				Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-				auto type = session->itemTypeRegistry.getType(item->getType());
-				if (item->getCount() > type->maxStack) {
-					target->setCount(type->maxStack);
-					transferAmount += type->maxStack;
-					item->setCount(item->getCount() - type->maxStack);
-				} else {
-					target->setCount(target->getCount() + item->getCount());
-					transferAmount += item->getCount();
-					item->setCount(0);
-					return transferAmount;
-				}
+				// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+				// auto type = session->itemTypeRegistry.getType(item->getType());
+				// if (item->getCount() > type->maxStack) {
+				// 	target->setCount(type->maxStack);
+				// 	transferAmount += type->maxStack;
+				// 	item->setCount(item->getCount() - type->maxStack);
+				// } else {
+				// 	target->setCount(target->getCount() + item->getCount());
+				// 	transferAmount += item->getCount();
+				// 	item->setCount(0);
+				// 	return transferAmount;
+				// }
 			}
 		}
 
@@ -307,11 +307,11 @@ namespace prounk {
 			if (!yes)
 				continue;
 	
-			Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
-			auto type = session->itemTypeRegistry.getType(target->getType());
+			// Session* session = ((GameApp*)engone::GetActiveWindow()->getParent())->getActiveSession();
+			// auto type = session->itemTypeRegistry.getType(target->getType());
 
-			if (target->getCount() >= type->maxStack)
-				continue;
+			// if (target->getCount() >= type->maxStack)
+			// 	continue;
 
 			return i;
 		}

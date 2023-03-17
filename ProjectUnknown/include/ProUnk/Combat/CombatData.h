@@ -67,10 +67,10 @@ namespace prounk {
 
 		void attack() { attacking = true; hitObjects.clear(); }
 
-		void update(engone::LoopInfo& info) {
+		void update(engone::LoopInfo* info) {
 			using namespace engone;
 			if (attacking) {
-				animationTime -= info.timeStep;
+				animationTime -= info->timeStep;
 				//log::out << "Animtime: " << animationTime << "\n";
 				if (animationTime < 0) {
 					animationTime = 0;

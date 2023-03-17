@@ -1,5 +1,6 @@
 #include "Engone/World/EngineWorld.h"
-#include "Engone/Application.h"
+
+#include "Engone/Engone.h"
 
 namespace engone {
 
@@ -54,11 +55,15 @@ namespace engone {
 	EngineWorld::~EngineWorld() {
 		cleanup();
 	}
-	EngineWorld::EngineWorld(Application* app) {
-		m_app = app;
-//#ifdef ENGONE_PHYSICS
-//		m_physicsWorld = app->getPhysicsCommon()->createPhysicsWorld();
-//#endif
+	EngineWorld::EngineWorld(Engone* engone) {
+		m_engone = engone;
+		// m_physicsWorld = GetGameMemory();
+		// world->m_physicsWorld = getPhysicsCommon()->createPhysicsWorld();
+		m_physicsWorld = engone->getGameMemory()->getCommon()->createPhysicsWorld();
+		
+		if (m_physicsWorld==nullptr) {
+			log::out << log::RED << "Application : Failed creating PhysicsWorld!\n";
+		}
 	}
 	void EngineWorld::cleanup() {
 
@@ -86,9 +91,7 @@ namespace engone {
 		//m_objects.clear(); // should clear itself
 
 #ifdef ENGONE_PHYSICS
-		m_physicsMutex.lock();
-		m_app->getPhysicsCommon()->destroyPhysicsWorld(m_physicsWorld);
-		m_physicsMutex.unlock();
+		m_engone->getGameMemory()->getCommon()->destroyPhysicsWorld(m_physicsWorld);
 #endif
 	}
 	void EngineWorld::update(LoopInfo& info) {
@@ -114,7 +117,7 @@ namespace engone {
 		//}
 		//m_physicsMutex.lock();
 		//log::out << "PhysUpdate... ";
-		log::out.flush();
+		// log::out.flush();
 		if (m_physicsWorld)
 			m_physicsWorld->update(info.timeStep);
 		//log::out << "done\n";
@@ -366,8 +369,8 @@ namespace engone {
 	}
 #ifdef ENGONE_PHYSICS
 	rp3d::PhysicsCommon* EngineWorld::getPhysicsCommon() {
-		if (!m_app) return nullptr;
-		return m_app->getPhysicsCommon();
+		// if (!m_app) return nullptr;
+		return m_engone->getGameMemory()->getCommon();
 	}
 	rp3d::PhysicsWorld* EngineWorld::getPhysicsWorld() {
 		return m_physicsWorld;

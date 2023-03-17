@@ -23,6 +23,8 @@
 // #include "Engone/SoundModule.h"
 // #include "Engone/Sound/SoundStream.h"
 
+#ifdef gone
+
 namespace prounk {
 	int s_test1 = 0;
 	// arguments passed to function cannot be nullptr
@@ -288,7 +290,7 @@ namespace prounk {
 
 		m_window->getStorage()->setRoot("D:/Backup/CodeProjects/ProjectUnknown/ProjectUnknown/assets/");
 
-		AssetStorage* assets = getStorage();
+		AssetStorage* assets = m_window->getStorage();
 
 		ShaderAsset* blur = assets->set("blur", ALLOC_NEW(ShaderAsset)(blurGLSL));
 
@@ -298,7 +300,7 @@ namespace prounk {
 		//particleGroup->createCube({ 5,0,0 }, {5,5,5 }, 1000000, {0,0,0});
 		//engone->addParticleGroup(particleGroup);
 
-		m_session = ALLOC_NEW(Session)(this);
+		m_session = ALLOC_NEW(Session)(engone);
 		Dimension* firstDim = m_session->createDimension("0");
 
 		playerController.app = this;
@@ -645,3 +647,4 @@ namespace prounk {
 		return m_session;
 	}
 }
+#endif

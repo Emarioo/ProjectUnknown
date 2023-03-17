@@ -747,7 +747,7 @@ namespace engone {
 			uint32_t drawnCubes = 0;
 			uint32_t cubeCount = 0;
 
-			info.window->getParent()->getEngine()->bindLights(shader, { 0,0,0 });
+			info.window->getParent()->bindLights(shader, { 0,0,0 });
 
 			while (drawnCubes < cubeObjects.size()) {
 				cubeCount = min(MAX_CUBE_BATCH, cubeObjects.size() - drawnCubes);

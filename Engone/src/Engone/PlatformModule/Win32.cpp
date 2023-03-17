@@ -741,6 +741,24 @@ namespace PL_NAMESPACE {
 	ThreadId Thread::GetThisThreadId() {
 		return GetCurrentThreadId();
 	}
+	std::string GetWorkingDirectory(){
+		DWORD length = GetCurrentDirectoryA(0,0);
+		if(length==0){
+			DWORD err = GetLastError();
+			printf("[WinError %lu] GetWorkingDirectory\n",err);
+			return "";
+		} else {
+			std::string out{};
+			out.resize(length);
+			length = GetCurrentDirectoryA(length,(char*)out.data());
+			if(length==0){
+				DWORD err = GetLastError();
+				printf("[WinError %lu] GetWorkingDirectory\n",err);
+				return "";
+			}
+			return out;
+		}
+	}
 	void* LoadDynamicLibrary(const std::string& path){
 		HMODULE module = LoadLibraryA(path.c_str());
 		if (module == NULL) {

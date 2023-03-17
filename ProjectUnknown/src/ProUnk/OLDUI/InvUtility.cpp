@@ -11,7 +11,8 @@ namespace prounk {
 			return;
 
 		auto win = engone::GetActiveWindow();
-		Session* session = ((GameApp*)win->getParent())->getActiveSession();
+		Session* session = 0;
+		// ((GameApp*)win->getParent())->getActiveSession();
 
 		if (!session) {
 			log::out << log::RED<<"InvUtility DrawItem missing session\n";
@@ -171,7 +172,8 @@ namespace prounk {
 		float padding = 3;
 
 		GameApp* app = (GameApp*)win->getParent();
-		Session* session = app->getActiveSession();
+		Session* session = 0;
+		// app->getActiveSession();
 
 		const ItemTypeInfo* typeInfo = session->itemTypeRegistry.getType(item->getType());
 		if (!typeInfo)

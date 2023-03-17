@@ -76,6 +76,10 @@ namespace PL_NAMESPACE {
 	bool DirectoryCreate(const std::string& path);
     bool FileLastWriteSeconds(const std::string& path, double* seconds);
     
+	// Not thread safe if you change working directory or if used within shared libraries. (from msdcindows doc)
+	// string is 
+	std::string GetWorkingDirectory();
+	
 	bool FileCopy(const std::string& src, const std::string& dst);
     // Todo: Remove the simple directory iterator. Skipping directories in the recursive directory iterator
     //      would work the same as the normal directory iterator.

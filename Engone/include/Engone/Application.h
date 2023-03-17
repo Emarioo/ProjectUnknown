@@ -8,7 +8,7 @@
 #include "Engone/Profiling/Profiler.h"
 // #include "Engone/Utilities/Locks.h"
 #include "Engone/PlatformModule/PlatformLayer.h"
-
+#ifdef gone
 namespace engone {
 
 	// required in application
@@ -116,3 +116,4 @@ namespace engone {
 
 	};
 }
+#endif

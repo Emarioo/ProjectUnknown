@@ -35,13 +35,13 @@ namespace engone {
 		friend class EngineWorld;
 	};
 
-	class Application;
+	class Engone;
 	// Template for game ground.
 	// you need to make a class which derives from this and add a list which stores game objects.
 	// The game objcets may be a custom class but has to inherit EngineObject.
 	class EngineWorld {
 	public:
-		EngineWorld(Application* app);
+		EngineWorld(Engone* engone);
 		~EngineWorld();
 		void cleanup();
 
@@ -96,7 +96,6 @@ namespace engone {
 		void lockCommon();
 		void unlockCommon();
 #endif
-		Application* getApp() { return m_app; }
 
 		void* getUserData() { return m_userData; }
 		void setUserData(void* ptr) { m_userData=ptr; }
@@ -138,7 +137,7 @@ namespace engone {
 
 		//HashMap m_objectMap{sizeof(ObjectDetail),ALLOC_TYPE_GAME_MEMORY,50};
 
-		Application* m_app=nullptr;
+		Engone* m_engone=nullptr;
 
 		void* m_userData=nullptr;
 
