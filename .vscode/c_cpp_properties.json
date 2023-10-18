@@ -4,24 +4,23 @@
             "name": "Win32",
             "intelliSenseMode": "${default}",
             "includePath": [
-                "${workspaceFolder}/Engone/include",
-                "${workspaceFolder}/ProjectUnknown/include",
-                "${workspaceFolder}/GameCode/include",
+                "${workspaceFolder}/include",
                 "${workspaceFolder}/libs/GLFW/include",
                 "${workspaceFolder}/libs/GLEW/include",
-                "${workspaceFolder}/libs/reactphysics3d/include"
+                "${workspaceFolder}/libs/reactphysics3d/include",
+                "${workspaceFolder}/libs/include"
             ],
             "defines": [
                 "ENGONE_PHYSICS",
                 "ENGONE_LOGGER",
                 "ENGONE_TRACKER",
-                "WIN32"
+                "OS_WINDOWS"
             ],
             "forcedInclude": [
-                "Engone/include/Engone/pch.h",
-                "ProjectUnknown/include/ProUnk/pch.h"
+                "include/Engone/pch.h",
+                "include/ProUnk/pch.h"
             ],
-            "compilerPath": "C:/Program Files/mingw-w64/x86_64-12.2.0-release-posix-seh-ucrt-rt_v10-rev2/mingw64/bin/g++.exe",
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
             "cppStandard": "c++14",
             "compileCommands": "",

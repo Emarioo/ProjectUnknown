@@ -75,7 +75,8 @@
         "variant": "cpp",
         "internal.h": "c",
         "*.glsl": "cpp",
-        "win32_platform.h": "c"
+        "win32_platform.h": "c",
+        "xstring": "cpp"
     },
     "cmake.configureOnOpen": false
 }
