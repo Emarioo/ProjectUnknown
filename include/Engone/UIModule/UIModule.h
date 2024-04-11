@@ -134,6 +134,7 @@ namespace engone {
         
         // Calculates width of UIText based on font, height and string/text length
         float getWidthOfText(UIText* text);
+        float getHeightOfText(UIText* text);
         
         void render(float windowWidth, float windowHeight);
         

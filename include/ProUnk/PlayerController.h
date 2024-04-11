@@ -77,8 +77,8 @@ namespace prounk {
 		static constexpr float flyFastSpeed = 90.f;
 		static constexpr float walkSpeed = 8.f;
 		static constexpr float sprintSpeed = 15.f;
-		// static constexpr float jumpForce = 17.f;
-		static constexpr float jumpForce = 50.f;
+		static constexpr float jumpForce = 17.f;
+		// static constexpr float jumpForce = 50.f;
 		static constexpr float jumpDelay = 0.4;
 
 		ItemType lastItemType=0;

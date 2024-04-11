@@ -76,7 +76,10 @@
         "internal.h": "c",
         "*.glsl": "cpp",
         "win32_platform.h": "c",
-        "xstring": "cpp"
+        "xstring": "cpp",
+        "xmemory": "cpp",
+        "xstddef": "cpp",
+        "xtr1common": "cpp"
     },
     "cmake.configureOnOpen": false
 }

@@ -453,6 +453,7 @@ namespace launcher {
 		//log::out << "buf " << buf.size()<<"\n";
 		m_client.send(buf);
 	}
+    
 	void LauncherApp::setupGamefiles() {
 		using namespace engone;
 		bool success = gameFilesRefresher.check(GAME_FILES_PATH, [this](const std::string& path, uint32 changeType) {

@@ -221,18 +221,18 @@ namespace prounk {
 
 		DrawToolTip(area.x + area.w, area.y, 20, 20, "Session panel: Server/Client stuff\nClick Client/Server to switch\nFill in port and ip\nPress Start/Connect");
 
-		// Special keybindings
-		ui::TextBox infodump = { "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies",0,0,17,consolas,{1} };
-		infodump.x = 3;
-		infodump.y = info.window->getHeight()-infodump.getHeight() - 3;
+		// // Special keybindings
+		// ui::TextBox infodump = { "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies",0,0,17,consolas,{1} };
+		// infodump.x = 3;
+		// infodump.y = info.window->getHeight()-infodump.getHeight() - 3;
 
-		ui::Box infoback = { 0,0,0,0,{0.f,0.5f} };
-		infoback.x = 0;
-		infoback.y = infodump.y;
-		infoback.w = infodump.getWidth()+6;
-		infoback.h = infodump.getHeight()+6;
-		ui::Draw(infoback);
+		// ui::Box infoback = { 0,0,0,0,{0.f,0.5f} };
+		// infoback.x = 0;
+		// infoback.y = infodump.y;
+		// infoback.w = infodump.getWidth()+6;
+		// infoback.h = infodump.getHeight()+6;
+		// ui::Draw(infoback);
 
-		ui::Draw(infodump);
+		// ui::Draw(infodump);
 	}
 }

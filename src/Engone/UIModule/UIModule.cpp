@@ -98,12 +98,23 @@ float UIModule::getWidthOfText(UIText* text){
     Assert(font.cellH != 0);
     return font.charWidth * text->text.length() * text->h / font.cellH;    
 }
+float UIModule::getHeightOfText(UIText* text) {
+    int n = 1;
+    for(int i=0;i<text->text.size();i++) {
+        char chr = text->text[i];
+        if(chr == '\n') {
+            n++;    
+        }
+    }
+    return n * text->h;
+}
 bool UIModule::inside(UIBox* box, float x, float y){
     return box->x<x&& box->x + box->w>x && box->y<y&& box->y + box->h>y;
 }
 bool UIModule::inside(UIText* box, float x, float y) {
     float w = getWidthOfText(box);
-    return box->x<x&& box->x + w>x && box->y<y&& box->y + box->h>y;
+    float h = getHeightOfText(box);
+    return box->x<x&& box->x + w>x && box->y<y&& box->y + h>y;
 }
 bool UIModule::clicked(UIBox* box, int mouseKey) {
     if (IsKeyPressed(mouseKey)) {

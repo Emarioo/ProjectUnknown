@@ -175,5 +175,35 @@ int GAMEAPI GamePostUpdate(engone::LoopInfo* info){
         info->engone->loadGameMemory("gameMemory.dat");
     }
     
+    {
+        using namespace engone;
+        UIModule& ui = info->window->uiModule;
+
+        auto infoback = ui.makeBox();
+        auto infodump = ui.makeText();
+        
+        // Special keybindings
+        // ui::TextBox infodump = { "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies",0,0,17,nullptr,{1} };
+        
+        infodump->text = "G : Flight, C : No Clip, K : Die, O : Hitboxes, R : Respawn, E : Pickup item\nQ : Throw held item, TAB : Inventory, ALT + LM/RM : Change UI layout\nJ : Spawn Dummies, I : Enable Dummies";
+        infodump->h = 17;
+        infodump->color = { 1.f, 1.f, 1.f, 1.f };
+        
+        float text_height = ui.getHeightOfText(infodump); // includes newlines
+        
+        infodump->x = 3;
+        infodump->y = game->mainWindow->getHeight() - text_height - 3;
+
+        // ui::Box infoback = { 0,0,0,0,{0.f,0.5f} };
+        infoback->color = { 0.f, 0.f, 0.f, 0.5f };
+        
+        infoback->w = ui.getWidthOfText(infodump) + 6;
+        infoback->h = text_height + 6;
+        
+        infoback->x = 0;
+        infoback->y = infodump->y;
+        
+    }
+    
     return 0;
 }
