@@ -168,11 +168,13 @@ int GAMEAPI GamePostUpdate(engone::LoopInfo* info){
     game->panelHandler.render(info);
     game->playerController.render(info,plr);
     
+    const char* const game_mem_path = "manual.game_state";
+    
     if (info->window->isKeyPressed(GLFW_KEY_I)) {
-        info->engone->saveGameMemory("gameMemory.dat");
+        info->engone->saveGameMemory(game_mem_path);
     }
     if (info->window->isKeyPressed(GLFW_KEY_U)) {
-        info->engone->loadGameMemory("gameMemory.dat");
+        info->engone->loadGameMemory(game_mem_path);
     }
     
     {

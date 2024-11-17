@@ -17,7 +17,7 @@
                 "OS_WINDOWS"
             ],
             "forcedInclude": [
-                "src/include/pch.h"
+                "${workspaceFolder}/src/include/pch.h"
             ],
             "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
@@ -25,7 +25,6 @@
             "compileCommands": "",
             "browse": {
                 "path": [],
-                "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
             }
         }
