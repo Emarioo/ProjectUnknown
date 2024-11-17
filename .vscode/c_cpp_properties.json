@@ -4,7 +4,7 @@
             "name": "Win32",
             "intelliSenseMode": "${default}",
             "includePath": [
-                "${workspaceFolder}/include",
+                "${workspaceFolder}/src/include",
                 "${workspaceFolder}/libs/GLFW/include",
                 "${workspaceFolder}/libs/GLEW/include",
                 "${workspaceFolder}/libs/reactphysics3d/include",
@@ -17,8 +17,7 @@
                 "OS_WINDOWS"
             ],
             "forcedInclude": [
-                "include/Engone/pch.h",
-                "include/ProUnk/pch.h"
+                "src/include/pch.h"
             ],
             "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",

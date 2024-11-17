@@ -7,7 +7,7 @@ out
 # They should only temporarily be in the root folder though.
 glfw3.dll
 glew32.dll
-!libs/
+!libs/**
 
 # .vscode/ can be saved because it has settings for launching a debugger
 
@@ -42,6 +42,7 @@ glew32.dll
 *.pidb
 *.svclog
 *.scc
+.exe
 
 # Visual C++ cache files
 ipch/
