@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engone/Error.h"
-#include "Engone/PlatformModule/PlatformLayer.h"
+#include "Engone/PlatformLayer.h"
 
 namespace engone{
 	class FileWriter {
@@ -51,7 +51,7 @@ namespace engone{
 
 	private:
 		bool binaryForm = false;
-		APIFile* m_file = 0;
+		APIFile m_file = {};
 		u64 m_fileHead = 0;
 		std::string m_path;
 		Error m_error = NoError;

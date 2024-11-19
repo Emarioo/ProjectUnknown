@@ -70,6 +70,8 @@ namespace engone {
 		Start the engine loop which will run applications until their windows are closed.
 		*/
 		void start();
+        void pre_update();
+        void post_update();
 
 		// void manageThreading();
 		void manageNonThreading();
@@ -111,7 +113,7 @@ namespace engone {
 		CommonRenderer* activeCommonRenderer = nullptr;
 		Window* activeWindow = nullptr;
 		// static TrackerId trackerId;
-	private:
+	// private:
 		//RuntimeStats m_runtimeStats;
 
 		EngoneFlags m_flags;

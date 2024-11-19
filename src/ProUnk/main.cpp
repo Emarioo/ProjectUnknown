@@ -1,27 +1,36 @@
 #include "Engone/Engone.h"
-
+#include "Engone/PlatformLayer.h"
 #include "ProUnk/Game.h"
 #include "Engone/PlatformModule/GameMemory.h"
+#include "Engone/Driver.h"
+
+// void runApp(int argc, char** argv) {
+// 	using namespace engone;
+	
+// 	Engone* engone = Engone::InitializeGlobal();
+
+//     AppInstance* app = engone->createApp();
+// #ifndef LIVE_EDITING
+//     app->preUpdateProc = GamePreUpdate;
+//     app->postUpdateProc = GamePostUpdate;
+// 	GameInit(engone,app,0);
+// #else
+// 	// app->libraryId = engone.addLibrary("D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll",
+// 	// 	"D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.pdb");
+// 	app->libraryId = engone->addLibrary("bin\\GameCode.dll",
+// 		"bin\\GameCode.pdb");
+// #endif
+//     engone->start();
+// }
 
 void runApp(int argc, char** argv) {
 	using namespace engone;
 	
-	Engone* engone = Engone::InitializeGlobal();
-
-    AppInstance* app = engone->createApp();
-#ifndef LIVE_EDITING
-    app->preUpdateProc = GamePreUpdate;
-    app->postUpdateProc = GamePostUpdate;
-	GameInit(engone,app,0);
-#else
-	// app->libraryId = engone.addLibrary("D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.dll",
-	// 	"D:\\Backup\\CodeProjects\\ProjectUnknown\\bin\\GameCode\\Debug-MSVC\\GameCode.pdb");
-	app->libraryId = engone->addLibrary("bin\\GameCode.dll",
-		"bin\\GameCode.pdb");
-#endif
-    engone->start();
+    // handles the game loop
+    start_driver(argc, argv);
 }
 #ifdef OS_WINDOWS
+#include "Engone/Win32Includes.h"
 // Runs the game without a console
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) {
 	//engone::CreateConsole(); // <- when debugging arguments

@@ -1,0 +1,163 @@
+Animator.cpp
+Application.cpp
+ParticleModule.cpp
+Asset.cpp
+AssetModule.cpp
+Engone.cpp
+EngineWorld.cpp
+EngineObject.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+ExecutionControl.cpp
+Win32.cpp
+Window.cpp
+src/Engone/Core/Engone.cpp(1103): error C2039: 'setRealLogger': is not a member of 'engone::Logger'
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Logger.h(61): note: see declaration of 'engone::Logger'
+src/Engone/Core/Engone.cpp(1107): error C2039: 'setRealLogger': is not a member of 'engone::Logger'
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Logger.h(61): note: see declaration of 'engone::Logger'
+EventModule.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a typeD:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+FileReader.cpp
+Logger.cpp
+FileWriter.cpp
+NetworkModule.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a typesrc/Engone/Core/Win32.cpp(1161): warning C4477: 'printf' : format string '%u' requires an argument of type 'unsigned int', but variadic argument 2 has type 'engone::ThreadId'
+
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not foundsrc/Engone/Core/Win32.cpp(1161): note: consider using '%llu' in the format string
+
+src/Engone/Core/Win32.cpp(1161): note: consider using '%Iu' in the format string
+src/Engone/Core/Win32.cpp(1161): note: consider using '%I64u' in the format string
+src/Engone/Core/Win32.cpp(1246): warning C4477: 'printf' : format string '%u' requires an argument of type 'unsigned int', but variadic argument 2 has type 'engone::ThreadId'
+src/Engone/Core/Win32.cpp(1246): note: consider using '%llu' in the format string
+src/Engone/Core/Win32.cpp(1246): note: consider using '%Iu' in the format string
+src/Engone/Core/Win32.cpp(1246): note: consider using '%I64u' in the format string
+GameMemory.cpp
+Profiler.cpp
+Buffer.cpp
+CommonRenderer.cpp
+src/Engone/Networking/NetworkModule.cpp(483): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(573): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(620): error C3861: 'HasLogLevel': identifier not found
+Light.cpp
+src/Engone/Networking/NetworkModule.cpp(658): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(819): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(827): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(857): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(926): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(967): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(1058): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(1066): error C3861: 'HasLogLevel': identifier not found
+src/Engone/Networking/NetworkModule.cpp(1091): error C3861: 'HasLogLevel': identifier not found
+UIRenderer.cpp
+RenderModule.cpp
+Libaudio.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+SoundModule.cpp
+SoundBuffer.cpp
+SoundStream.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+BinaryTree.cpp
+FrameArray.cpp
+HashMap.cpp
+BasicRendering.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+UIModule.cpp
+StackTrace.cpp
+ImageUtility.cpp
+RandomUtility.cpp
+rp3d.cpp
+TimeUtility.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+Utilities.cpp
+Driver.cpp
+Game.cpp
+main.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+PlayerController.cpp
+Combat.cpp
+VisualEffect.cpp
+CombatData.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a typeD:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not foundD:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+
+BasicObjects.cpp
+NetProtocols.cpp
+InformativeTips.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+src/ProUnk/Game.cpp(23): error C3861: 'init_game': identifier not found
+src/ProUnk/Game.cpp(51): error C3861: 'update_game': identifier not found
+src/ProUnk/Game.cpp(119): error C2065: 'GameClose': undeclared identifier
+src/ProUnk/Game.cpp(239): error C2082: redefinition of formal parameter 'game'
+src/ProUnk/Game.cpp(269): error C2082: redefinition of formal parameter 'game'
+src/ProUnk/Game.cpp(271): error C2374: 'plr': redefinition; multiple initialization
+src/ProUnk/Game.cpp(242): note: see declaration of 'plr'
+ComplexDataRegistry.cpp
+InventoryRegistry.cpp
+ItemTypeRegistry.cpp
+MasterRegistry.cpp
+ModelRegistry.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(31): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(54): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(66): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(76): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(86): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(97): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(104): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/MasterRegistry.cpp(116): error C3861: 'HasLogLevel': identifier not found
+ObjectInfoRegistry.cpp
+src/ProUnk/Registries/ComplexDataRegistry.cpp(122): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/ComplexDataRegistry.cpp(136): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/ComplexDataRegistry.cpp(145): error C3861: 'HasLogLevel': identifier not found
+RecipeRegistry.cpp
+PanelFuncs.cpp
+DataHandlerTest.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+PanelHandler.cpp
+src/ProUnk/Registries/ItemTypeRegistry.cpp(126): error C3861: 'HasLogLevel': identifier not foundDimension.cpp
+
+src/ProUnk/Registries/ItemTypeRegistry.cpp(132): error C3861: 'HasLogLevel': identifier not found
+Dungeon.cpp
+src/ProUnk/Registries/ModelRegistry.cpp(22): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/ModelRegistry.cpp(45): error C3861: 'HasLogLevel': identifier not found
+src/ProUnk/Registries/ModelRegistry.cpp(53): error C3861: 'HasLogLevel': identifier not foundD:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+
+src/ProUnk/Registries/ModelRegistry.cpp(57): error C3861: 'HasLogLevel': identifier not foundD:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+
+Session.cpp
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C2275: 'engone::PNG': expected an expression instead of a type
+D:\Backup\CodeProjects\ProjectUnknown\src\include\Engone/Assets/TextureAsset.h(14): error C3861: 'ALLOC_DELETE': identifier not found
+Compiling...
+Compile failed

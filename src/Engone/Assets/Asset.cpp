@@ -707,19 +707,22 @@ namespace engone {
 			pointSize = sizeof(float) * pointNumbers;
 			points = (float*)Allocate(pointSize); // using malloc because i want to track allocations. I would use the new keyword otherwise.
 			MESH_LOAD_CHECK(file.read(points, pointNumbers))
-
-			colorNumbers = colorCount * 3;
-			colorSize = sizeof(float) * colorNumbers;
-			colors = (float*)Allocate(colorSize);
-			MESH_LOAD_CHECK(file.read(colors, colorNumbers))
+            
+            if(colorCount) {
+                colorNumbers = colorCount * 3;
+                colorSize = sizeof(float) * colorNumbers;
+                colors = (float*)Allocate(colorSize);
+                MESH_LOAD_CHECK(file.read(colors, colorNumbers))
+            }
 
 			// Weight
-			weightNumbers = weightCount * 3;
-			weightIndicesSize = sizeof(int) * weightNumbers;
-			weightIndices = (int*)Allocate(weightIndicesSize);
-			weightValuesSize = sizeof(float) * weightNumbers;
-			weightValues = (float*)Allocate(weightValuesSize);
-
+            if(weightCount) {
+                weightNumbers = weightCount * 3;
+                weightIndicesSize = sizeof(int) * weightNumbers;
+                weightIndices = (int*)Allocate(weightIndicesSize);
+                weightValuesSize = sizeof(float) * weightNumbers;
+                weightValues = (float*)Allocate(weightValuesSize);
+            }
 			if (meshType == MeshType::Boned) {
 				u8 index[3];
 				float floats[3];

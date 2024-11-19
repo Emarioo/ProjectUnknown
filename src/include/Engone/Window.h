@@ -6,7 +6,7 @@
 
 #include "Engone/Core/ExecutionControl.h"
 // #include "Engone/Utilities/Thread.h"
-#include "Engone/PlatformModule/PlatformLayer.h"
+#include "Engone/PlatformLayer.h"
 
 #include "Engone/Rendering/UIRenderer.h"
 #include "Engone/Rendering/CommonRenderer.h"
@@ -138,7 +138,7 @@ namespace engone {
 		UIModule uiModule;
 
 		// static TrackerId trackerId;
-	private:
+	// private:
 		void init(Engone* engone, WindowDetail detail);
 		// Window(Engone* engone, WindowDetail detail);
 		Window() = default;

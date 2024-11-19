@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.cpp": "cpp",
         "mutex": "cpp",
         "algorithm": "cpp",
         "xiosbase": "cpp",
@@ -79,7 +80,22 @@
         "xstring": "cpp",
         "xmemory": "cpp",
         "xstddef": "cpp",
-        "xtr1common": "cpp"
+        "xtr1common": "cpp",
+        "charconv": "cpp",
+        "xhash": "cpp",
+        "xlocmon": "cpp",
+        "xlocnum": "cpp",
+        "xlocbuf": "cpp",
+        "queue": "cpp",
+        "xtree": "cpp",
+        "format": "cpp",
+        "ios": "cpp",
+        "locale": "cpp",
+        "shared_mutex": "cpp",
+        "xfacet": "cpp",
+        "xlocinfo": "cpp",
+        "xlocmes": "cpp",
+        "xloctime": "cpp"
     },
     "cmake.configureOnOpen": false
 }

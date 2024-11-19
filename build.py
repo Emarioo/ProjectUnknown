@@ -201,8 +201,6 @@ def compile(config):
 
         if file.find("/ProUnk/") == -1 and file.find("/Engone/") == -1:
             continue
-        if file.find("pch.cpp") != -1:
-            continue
 
         source_files.append(file)
 

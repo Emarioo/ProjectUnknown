@@ -7,7 +7,7 @@
 
 namespace engone {
 	FileWriter::FileWriter(const std::string& path, bool binaryForm) : binaryForm(binaryForm) {
-		m_file = engone::FileOpen(path.c_str(),nullptr,false);
+		m_file = engone::FileOpen(path.c_str(),engone::FILE_CLEAR_AND_WRITE,nullptr);
 		if (!m_file) {
 			m_error = FileNotFound;
 			return;
@@ -19,7 +19,7 @@ namespace engone {
 	}
 	void FileWriter::close() {
 		engone::FileClose(m_file);
-		m_file = 0;
+		m_file = {};
 	}
 	void FileWriter::cleanup() {
 		m_path.clear();

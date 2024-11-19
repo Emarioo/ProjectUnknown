@@ -11,7 +11,7 @@ i8* ReadWAVE(const std::string& filename, int& channels, int& sampleRate, int& b
 	WAVEHeader header{};
 
 	u64 fileSize = 0;
-	auto file = engone::FileOpen(filename, &fileSize, engone::FILE_ONLY_READ);
+	auto file = engone::FileOpen(filename, engone::FILE_READ_ONLY, &fileSize);
 	Assert(file);
 	if(!file)
 		return nullptr;
@@ -46,7 +46,7 @@ i8* ReadWAVE(const std::string& filename, int& channels, int& sampleRate, int& b
 	return data;
 }
 bool WriteWAVE(const std::string& filename, int& channels, int& sampleRate, int& bps, int& size, i8* data) {
-	auto file = engone::FileOpen(filename, nullptr, engone::FILE_WILL_CREATE);
+	auto file = engone::FileOpen(filename, engone::FILE_CLEAR_AND_WRITE,  nullptr);
 	Assert(file);
 	if(!file)
 		return false;

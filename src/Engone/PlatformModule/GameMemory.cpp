@@ -66,7 +66,7 @@ namespace engone {
         return baseAllocation;
     }
     bool GameMemory::save(const std::string& path){
-        auto file = FileOpen(path, 0, FILE_WILL_CREATE);
+        auto file = FileOpen(path, FILE_CLEAR_AND_WRITE, nullptr);
         if (!file) {
             log::out << log::RED << "Engone : Failed saving game memory\n";
             return false;
@@ -90,7 +90,7 @@ namespace engone {
     }
     bool GameMemory::load(const std::string& path){
         u64 fileSize;
-        auto file = FileOpen(path, &fileSize, FILE_ONLY_READ);
+        auto file = FileOpen(path, FILE_READ_ONLY, &fileSize);
         if (!file) {
             log::out << log::RED << "Engone : Failed loading game memory\n";
             return false;
@@ -422,7 +422,7 @@ namespace engone {
         }
     }
     void WriteResult(GameMemory& memory, const char* path){
-        auto file = FileOpen(path,0,FILE_WILL_CREATE);
+        auto file = FileOpen(path,FILE_CLEAR_AND_WRITE, nullptr);
         
         char buffer[10000];
         int bytes=0;

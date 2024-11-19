@@ -11,7 +11,7 @@
 #include "Engone/Networking/NetworkModule.h"
 
 #include "Engone/Core/ExecutionControl.h"
-#include "Engone/PlatformModule/PlatformLayer.h"
+#include "Engone/PlatformLayer.h"
 
 #include "Engone/UIModule/UIModule.h"
 
@@ -118,6 +118,12 @@ namespace engone {
 	void Engone::loadGameMemory(const std::string& path) {
 		gameMemory.load(path);
 	}
+    // void Engone::pre_app() {
+        
+    // }
+    // void Engone::post_app() {
+        
+    // }
 	void Engone::start() {
 		if (appInstances.size() == 0) {
 			log::out << log::YELLOW<<"Engone::start : Returning because of zero apps\n";
@@ -1094,10 +1100,10 @@ namespace engone {
 	
 	void SetupStaticVariables(Engone* engone){
 		SetGameMemory(&engone->gameMemory);
-		log::out.setRealLogger(&engone->logger);	
+		// log::out.setRealLogger(&engone->logger);	
 	}
 	void CleanupStaticVariables(){
 		SetGameMemory(0);
-		log::out.setRealLogger(0);
+		// log::out.setRealLogger(0);
 	}
 }

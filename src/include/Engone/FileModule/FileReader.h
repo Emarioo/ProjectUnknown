@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engone/PlatformModule/PlatformLayer.h"
+#include "Engone/PlatformLayer.h"
 #include "Engone/Utilities/Alloc.h"
 #include "Engone/Error.h"
 
@@ -72,7 +72,7 @@ namespace engone {
 		bool binaryForm = false;
 
 		std::string m_path;
-		APIFile* m_file;
+		APIFile m_file = {};
 		u64 m_fileSize = 0;
 		u64 m_fileHead = 0;
 		Error m_error = NoError;

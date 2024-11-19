@@ -5,7 +5,7 @@
 
 namespace engone {
 	FileReader::FileReader(const std::string& path, bool binaryForm) : binaryForm(binaryForm) {
-		m_file = engone::FileOpen(path.c_str(),&m_fileSize,true);
+		m_file = engone::FileOpen(path.c_str(),FILE_READ_ONLY, &m_fileSize);
 		if (!m_file) {
 			m_error = FileNotFound;
 			return;
@@ -28,7 +28,7 @@ namespace engone {
 	}
 	void FileReader::close() {
 		engone::FileClose(m_file);
-		m_file = 0;
+		m_file = {};
 	}
 	void FileReader::cleanup() {
 		m_path.clear();

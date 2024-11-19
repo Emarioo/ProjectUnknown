@@ -20,7 +20,10 @@
 #include <ws2tcpip.h>
 
 #include <windows.h>
+#undef FILE_READ_ONLY
+#define WIN32_FILE_READ_ONLY 8
 
+#include <intrin.h>
 // Used for ConvertArguments in Win32.cpp
 #include <shellapi.h>
 

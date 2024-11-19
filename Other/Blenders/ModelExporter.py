@@ -1335,6 +1335,7 @@ class EGONEPanel(bpy.types.Panel):
         layout.prop(egone,"projectPath")
         layout.prop(egone,"subPath")
         layout.operator("object.engone_export");
+        layout.operator("object.toggle_colliders");
 
 # The code below is for exporting models
 class EGONEOperator(bpy.types.Operator):
@@ -1359,15 +1360,30 @@ class EGONEOperator(bpy.types.Operator):
                 projectPath = projectPath + (egone.subPath if egone.subPath[-1]=='\\' else egone.subPath+'\\')
             
             ExportAssets(log,projectPath)
-        
+
         global logState
         msg = log.getMessage()
         level = log.getLevel()
         
         self.report({level}, msg)
         return {"FINISHED"}
+
+# The code below is for exporting models
+class EGONE_ColVisibility(bpy.types.Operator):
+    bl_label = "Toggle Colliders"
+    bl_idname = "object.toggle_colliders"
     
-classes = [EGONEProperty,EGONEPanel,EGONEOperator]
+    def execute(self, context):
+        scene = context.scene
+        egone = scene.egone
+        
+        for obj in bpy.data.objects:
+            if len(obj.name) > 2 and obj.name[:2] == "C-":
+                obj.hide_viewport = not obj.hide_viewport
+        
+        return {"FINISHED"}
+    
+classes = [EGONEProperty,EGONEPanel,EGONEOperator,EGONE_ColVisibility]
 
 def register():
     for cls in classes:
